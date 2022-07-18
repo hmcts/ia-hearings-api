@@ -133,6 +133,10 @@ sonarqube {
     property "sonar.projectName", "Reform :: ia-hearings-api"
     property "sonar.projectKey", "uk.gov.hmcts.reform:ia-hearings-api"
     property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.destination.path}"
+    property "sonar.pitest.mode", "reuseReport"
+    property "sonar.pitest.reportsDirectory", "build/reports/pitest"
+    property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/iahearingsapi/infrastructure/config/**," +
+                                 "src/main/java/uk/gov/hmcts/reform/iahearingsapi/Application.java"
   }
 }
 
