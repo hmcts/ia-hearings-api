@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.iahearingsapi.controllers;
+package uk.gov.hmcts.reform.iahearingsapi.infrastructure.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

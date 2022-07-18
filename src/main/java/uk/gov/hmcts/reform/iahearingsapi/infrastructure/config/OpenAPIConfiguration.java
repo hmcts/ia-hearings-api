@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.iahearingsapi.config;
+package uk.gov.hmcts.reform.iahearingsapi.infrastructure.config;
 
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
