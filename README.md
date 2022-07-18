@@ -1,7 +1,7 @@
 # ia-hearings-api
 Immigration &amp; Asylum Hearings API
 
-[![Build Status](https://travis-ci.org/hmcts/spring-boot-template.svg?branch=master)](https://travis-ci.org/hmcts/spring-boot-template)
+[![Build Status](https://travis-ci.org/hmcts/ia-hearings-api.svg?branch=master)](https://travis-ci.org/hmcts/ia-hearings-api)
 
 ## Purpose
 
