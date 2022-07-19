@@ -1,11 +1,12 @@
 apiVersion: v2
 appVersion: "1.0"
 description: A Helm chart for ia-hearings-api App
-name: ia-ia-hearings-api
+name: ia-hearings-api
 home: https://github.com/hmcts/ia-hearings-api
 version: 0.0.1
 maintainers:
   - name: HMCTS ia team
+    email: ImmigrationandAsylum@HMCTS.NET
 dependencies:
   - name: java
     version: 4.0.0
