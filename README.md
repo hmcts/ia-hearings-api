@@ -1,7 +1,7 @@
 # ia-hearings-api
 Immigration &amp; Asylum Hearings API
 
-[![Build Status](https://travis-ci.org/hmcts/spring-boot-template.svg?branch=master)](https://travis-ci.org/hmcts/spring-boot-template)
+[![Build Status](https://travis-ci.org/hmcts/ia-hearings-api.svg?branch=master)](https://travis-ci.org/hmcts/ia-hearings-api)
 
 ## Purpose
 
@@ -34,14 +34,14 @@ Alternatively, you can start the application from the current source files using
 If required, to run with a low memory consumption, the following can be used:
 
 ```
-./gradlew --no-daemon assemble && java -Xmx384m -jar build/libs/ia-bail-case-*.jar
+./gradlew --no-daemon assemble && java -Xmx384m -jar build/libs/ia-heaings-*.jar
 ```
 ### Using the application
 
 To understand if the application is working, you can call it's health endpoint:
 
 ```
-curl http://localhost:8900/health
+curl http://localhost:8100/health
 ```
 
 If the API is running, you should see this response:

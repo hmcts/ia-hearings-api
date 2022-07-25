@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.demo.config;
+package uk.gov.hmcts.reform.iahearingsapi.config;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,9 @@ class SwaggerPublisherTest {
             .getResponse()
             .getContentAsByteArray();
 
-        try (OutputStream outputStream = Files.newOutputStream(Paths.get("/tmp/swagger-specs.json"))) {
+        String path = System.getProperty("user.dir");
+
+        try (OutputStream outputStream = Files.newOutputStream(Paths.get(path + "\\build\\tmp\\swagger-specs.json"))) {
             outputStream.write(specs);
         }
 
