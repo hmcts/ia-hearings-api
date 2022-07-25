@@ -125,6 +125,7 @@ tasks.withType(JavaCompile) {
 }
 
 configurations {
+  testCompile
   functionalTestImplementation.extendsFrom testImplementation
   functionalTestRuntimeOnly.extendsFrom runtimeOnly
 
@@ -348,13 +349,9 @@ dependencies {
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.1'
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-bootstrap', version: '3.1.1'
 
-  implementation group: 'uk.gov.hmcts.reform', name: 'logging-appinsights', version: versions.reformLogging
-
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
 
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
-
-  implementation group: 'uk.gov.hmcts.reform', name: 'service-auth-provider-client', version: '3.1.2'
 
   implementation group: 'com.google.guava', name: 'guava', version: '30.0-jre'
   implementation group: 'commons-io', name: 'commons-io', version: '2.8.0'
@@ -372,10 +369,10 @@ dependencies {
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
 
-  testImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
-  testImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
-  testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
-  testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  testCompile group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
+  testCompile group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
+  testCompile group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
+  testCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
   testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.5.0'
 
   testImplementation(platform('org.junit:junit-bom:5.8.2'))
