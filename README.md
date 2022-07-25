@@ -34,7 +34,7 @@ Alternatively, you can start the application from the current source files using
 If required, to run with a low memory consumption, the following can be used:
 
 ```
-./gradlew --no-daemon assemble && java -Xmx384m -jar build/libs/ia-bail-case-*.jar
+./gradlew --no-daemon assemble && java -Xmx384m -jar build/libs/ia-heaings-*.jar
 ```
 ### Using the application
 

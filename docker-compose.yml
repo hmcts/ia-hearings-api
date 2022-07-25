@@ -9,7 +9,7 @@ services:
         - https_proxy
         - no_proxy
     image: hmcts/ia-hearings-api
-    container_name: ia-bail-case-api
+    container_name: ia-hearings-api
     environment:
       # these environment variables are used by java-logging library
       JSON_CONSOLE_PRETTY_PRINT:
