@@ -28,8 +28,7 @@ public class SmokeTest {
 
         if (response.getStatusCode() == 200) {
             assertThat(response.getBody().asString().contains("UP"));
-        }
-        else{
+        } else {
             throw new IllegalStateException("Issues with the downstream services");
         }
     }
