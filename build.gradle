@@ -109,6 +109,15 @@ sourceSets {
     }
     resources.srcDir file('src/smokeTest/resources')
   }
+
+  contractTest{
+    java{
+      compileClasspath += main.output
+      runtimeClasspath += main.output
+      srcDir file('src/contractTest/java')
+    }
+    resources.srcDir file('src/contractTest/resources')
+  }
 }
 
 tasks.withType(JavaCompile) {
@@ -124,6 +133,9 @@ configurations {
 
   smokeTestImplementation.extendsFrom testImplementation
   smokeTestRuntimeOnly.extendsFrom runtimeOnly
+
+  contractImplementation.extendsFrom testImplementation
+  contractTestRuntimeOnly.extendsFrom runtimeOnly
 }
 
 tasks.withType(JavaCompile) {
@@ -148,10 +160,12 @@ test {
 }
 
 task functional(type: Test) {
+  systemProperty "scenario", System.getProperty('scenario')
   description = "Runs functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+  finalizedBy aggregate
 }
 
 task integration(type: Test) {
@@ -164,8 +178,17 @@ task integration(type: Test) {
 
 task smoke(type: Test) {
   description = "Runs Smoke Tests"
+  group = "Verification"
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
+}
+
+task contract(type: Test) {
+  description = "Runs Contract Tests"
+  group = "Verification"
+  useJUnitPlatform()
+  testClassesDirs = sourceSets.contractTest.output.classesDirs
+  classpath = sourceSets.contractTest.runtimeClasspath
 }
 
 checkstyle {
@@ -245,7 +268,7 @@ sonarqube {
   }
 }
 
-project.tasks['sonarqube'].dependsOn jacocoTestReport
+project.tasks['sonarqube'].dependsOn test, integration, jacocoTestReport
 project.tasks['sonarqube'].group = "Verification"
 
 dependencyUpdates {
@@ -344,15 +367,59 @@ dependencies {
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
 
-  implementation group: 'io.rest-assured', name: 'rest-assured'
+  testImplementation group: 'io.rest-assured', name: 'rest-assured-all', version: '3.3.0'
+  testImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
+  testImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
+  testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
+  testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.5.0'
 
-  testImplementation(platform('org.junit:junit-bom:5.8.2'))
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+  testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
+  //pact contract testing
+  contractImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pact_version
+  contractImplementation group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pact_version
+
+  contractImplementation('org.junit.jupiter:junit-jupiter-api:5.8.2')
+  contractImplementation('org.junit.jupiter:junit-jupiter-engine:5.8.2')
+  contractImplementation('org.junit.jupiter:junit-jupiter-api:5.8.2')
+
+  testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.6.28'
+
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: versions.springBoot
+
+  smokeTestImplementation(group: 'org.yaml', name: 'snakeyaml', version: '1.30')
+
+  integrationTestImplementation(group: 'org.yaml', name: 'snakeyaml', version: '1.30')
+
+  functionalTestImplementation(group: 'org.yaml', name: 'snakeyaml', version: '1.30')
+
+  contractImplementation(group: 'org.yaml', name: 'snakeyaml', version: '1.30')
+
+  integrationTestImplementation sourceSets.main.runtimeClasspath
+  integrationTestImplementation sourceSets.test.runtimeClasspath
+
+  functionalTestImplementation sourceSets.main.runtimeClasspath
+  functionalTestImplementation sourceSets.test.runtimeClasspath
+
+  smokeTestImplementation sourceSets.main.runtimeClasspath
+  smokeTestImplementation sourceSets.test.runtimeClasspath
+
+  contractImplementation sourceSets.main.runtimeClasspath
+  contractImplementation sourceSets.test.runtimeClasspath
 }
+
+task runAndPublishConsumerPactTests(type: Test) {
+  logger.lifecycle("Runs pact Tests")
+  testClassesDirs = sourceSets.contractTest.output.classesDirs
+  classpath = sourceSets.contractTest.runtimeClasspath
+
+}
+
+tasks.withType(Copy).all { duplicatesStrategy 'exclude' }
 
 gradle.startParameter.continueOnFailure = true
 
