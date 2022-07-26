@@ -125,7 +125,6 @@ tasks.withType(JavaCompile) {
 }
 
 configurations {
-  testCompile
   functionalTestImplementation.extendsFrom testImplementation
   functionalTestRuntimeOnly.extendsFrom runtimeOnly
 
