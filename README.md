@@ -1,8 +1,6 @@
 # ia-hearings-api
 Immigration &amp; Asylum Hearings API
 
-[![Build Status](https://travis-ci.org/hmcts/ia-hearings-api.svg?branch=master)](https://travis-ci.org/hmcts/ia-hearings-api)
-
 ## Purpose
 
 Immigration &amp; Asylum Hearings API is a Spring Boot based application to integrate existing Immigration &amp; Asylum journeys with scheduling and listing of hearings.
