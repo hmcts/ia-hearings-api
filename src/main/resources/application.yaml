@@ -45,10 +45,33 @@ spring:
         jwt:
           jwk-set-uri: ${OPEN_ID_IDAM_URL:http://127.0.0.1:5000}/o/jwks
 
+###Security config - add events below for access
+security:
+  anonymousPaths:
+    - "/"
+    - "/health"
+    - "/health/liveness"
+    - "/health/readiness"
+    - "/loggers/**"
+    - "/swagger-ui/**"
+    - "/swagger-resources/**"
+    - "/v3/api-docs/**"
+    - "/favicon.ico"
+  authorisedRoles:
+    - "caseworker-ia"
+  roleEventAccess:
+    caseworker-ia-legalrep-solicitor:
+      - "example"
+    caseworker-ia-admofficer:
+      - "example"
+    caseworker-ia-respondentofficer:
+      - "example"
+    caseworker-ia-iacjudge:
+      - "example"
+
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
 core_case_data_api_url: ${CCD_URL:http://127.0.0.1:4452}
-document_management.url: ${DM_URL:http://127.0.0.1:4506}
 
 feign:
   hystrix:
@@ -90,7 +113,7 @@ prof.ref.data.path.org.users: ${PROF_REF_DATA_ORG_USERS_PATH:/refdata/external/v
 prof.ref.data.path.org.organisation: ${PROF_REF_DATA_ORG_ORGANISATION_PATH:/refdata/external/v1/organisations}
 
 featureFlag:
-  isDocumentGenerationEnabled: ${IA_DOCUMENT_GENERATION_ENABLED:true}
+  exampleFeatureFlag: ${EXAMPLE_FEATURE_FLAG:true}
 
 launchDarkly:
   sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
@@ -100,3 +123,8 @@ launchDarkly:
 azure:
   application-insights:
     instrumentation-key: ${ia.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
+
+core_case_data_api_assignments_url: ${CCD_URL:http://127.0.0.1:4452}
+assign_case_access_api_url: ${AAC_URL:http://127.0.0.1:4454}
+core_case_data_api_assignments_path: "/case-users"
+assign_case_access_api_assignments_path: "/case-assignments"
