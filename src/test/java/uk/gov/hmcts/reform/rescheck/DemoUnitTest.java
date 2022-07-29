@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.rsecheck;
+package uk.gov.hmcts.reform.rescheck;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

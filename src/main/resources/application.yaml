@@ -61,13 +61,13 @@ security:
     - "caseworker-ia"
   roleEventAccess:
     caseworker-ia-legalrep-solicitor:
-      - "example"
+      - "exampleEvent"
     caseworker-ia-admofficer:
-      - "example"
+      - "exampleEvent"
     caseworker-ia-respondentofficer:
-      - "example"
+      - "exampleEvent"
     caseworker-ia-iacjudge:
-      - "example"
+      - "exampleEvent"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}

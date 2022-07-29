@@ -26,23 +26,24 @@ apply plugin: 'java'
 apply plugin: 'net.serenity-bdd.aggregator'
 apply plugin: 'project-report'
 apply plugin: 'idea'
+apply plugin: 'io.spring.dependency-management'
 
 def versions = [
-  jackson            : '2.13.3',
-  jacksonAnnotation  : '2.13.3',
-  jacksonDatabind    : '2.13.3',
-  junit              : '5.8.2',
-  junitPlatform      : '1.8.2',
-  pitest             : '1.9.3',
-  reformLogging      : '5.1.7',
-  reformHealthStarter: '0.0.5',
-  serenity           : '3.2.0',
-  springBoot         : '2.7.1',
-  springSecurity     : '5.7.1',
-  springDoc          : '1.6.9',
-  springHystrix      : '2.2.10.RELEASE',
-  pact_version       : '4.1.7'
-
+  jackson               : '2.13.3',
+  jacksonAnnotation     : '2.13.3',
+  jacksonDatabind       : '2.13.3',
+  junit                 : '5.8.2',
+  junitPlatform         : '1.8.2',
+  pitest                : '1.9.3',
+  reformLogging         : '5.1.7',
+  reformHealthStarter   : '0.0.5',
+  serenity              : '3.2.0',
+  springBoot            : '2.7.1',
+  springSecurity        : '5.7.1',
+  springDoc             : '1.6.9',
+  springHystrix         : '2.2.10.RELEASE',
+  pact_version          : '4.1.7',
+  serviceTokenGenerator : '4.0.2'
 ]
 
 ext.libraries = [
@@ -58,7 +59,7 @@ ext.libraries = [
 mainClassName = 'uk.gov.hmcts.reform.iahearingsapi.Application'
 
 group = 'uk.gov.hmcts.reform'
-version = '0.0.1'
+version = '1.0.0'
 
 compileJava {
   options.compilerArgs << '-parameters' << '-Xlint:deprecation' << "-Xlint:unchecked" << "-Werror"
@@ -258,7 +259,7 @@ project.tasks['check'].dependsOn integration
 
 sonarqube {
   properties {
-    property "sonar.projectName", "Reform :: Immigration & Asylum Hearings Api"
+    property "sonar.projectName", "Reform: :: Immigration & Asylum Hearings Api"
     property "sonar.projectKey", "IAHEARINGSAPI"
     property "sonar.coverage.jacoco.xmlReportPaths", "${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
     property "sonar.pitest.mode", "reuseReport"
@@ -366,8 +367,8 @@ dependencies {
   implementation group: 'commons-io', name: 'commons-io', version: '2.8.0'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.9.0'
 
-  implementation group: 'uk.gov.hmcts.reform', name: 'service-auth-provider-client', version: '4.0.0'
-  implementation group: 'uk.gov.hmcts.reform', name: 'logging-appinsights', version: versions.reformLogging
+  implementation group: 'com.github.hmcts', name:'service-auth-provider-java-client', version: versions.serviceTokenGenerator
+  implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
 
   implementation group: 'com.sun.xml.bind', name: 'jaxb-osgi', version: '2.3.3'
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: versions.jackson
@@ -428,7 +429,6 @@ task runAndPublishConsumerPactTests(type: Test) {
   logger.lifecycle("Runs pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
-
 }
 
 tasks.withType(Copy).all { duplicatesStrategy 'exclude' }
