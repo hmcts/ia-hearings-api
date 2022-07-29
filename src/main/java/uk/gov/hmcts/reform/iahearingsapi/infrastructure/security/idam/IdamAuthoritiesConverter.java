@@ -18,6 +18,8 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserI
 @Component
 public class IdamAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
 
+    public static final String REGISTRATION_ID = "oidc";
+
     static final String TOKEN_NAME = "tokenName";
 
     private final IdamApi idamApi;
