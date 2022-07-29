@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Bail service")
+@Tag(name = "Hearings service")
 @RestController
 public class WelcomeController {
 
     private static final Logger LOG = getLogger(WelcomeController.class);
     private static final String INSTANCE_ID = UUID.randomUUID().toString();
-    private static final String MESSAGE = "Welcome to the Bail case API";
+    private static final String MESSAGE = "Welcome to the Hearings API";
 
     /**
      * Root GET endpoint.
@@ -31,7 +31,7 @@ public class WelcomeController {
      */
 
     @Operation(
-        summary = "Welcome message for the Immigration & Asylum Bail case API",
+        summary = "Welcome message for the Immigration & Asylum Hearings API",
         responses = {
             @ApiResponse(
                 responseCode = "200",

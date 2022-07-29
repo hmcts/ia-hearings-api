@@ -36,6 +36,6 @@ public class WelcomeTest {
             .and()
             .extract().body().asString();
 
-        assertThat(response).contains("Welcome to the Bail case API");
+        assertThat(response).contains("Welcome to the Hearings API");
     }
 }
