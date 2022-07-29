@@ -3,7 +3,12 @@ package uk.gov.hmcts.reform.iahearingsapi.infrastructure.config;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 import com.google.common.collect.ImmutableMap;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Collection;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
