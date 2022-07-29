@@ -17,7 +17,7 @@ import uk.gov.hmcts.reform.iahearingsapi.util.AuthorizationHeadersProvider;
 @ActiveProfiles("functional")
 public class WelcomeTest {
 
-    @Value("${targetInstance}") private String targetInstance;
+    @Value("${WelcomeTesttargetInstance}") private String targetInstance;
 
     @Autowired private AuthorizationHeadersProvider authorizationHeadersProvider;
 
