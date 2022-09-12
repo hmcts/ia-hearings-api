@@ -400,7 +400,7 @@ dependencies {
   contractImplementation('org.junit.jupiter:junit-jupiter-engine:5.8.2')
   contractImplementation('org.junit.jupiter:junit-jupiter-api:5.8.2')
 
-  testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.6.28'
+  testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '4.8.0'
 
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: versions.springBoot
 
