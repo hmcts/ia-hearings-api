@@ -19,7 +19,7 @@ plugins {
   id 'io.freefair.lombok' version '6.3.0'
   id 'au.com.dius.pact' version '4.1.7'
   id 'org.flywaydb.flyway' version '9.0.1'
-  id 'uk.gov.hmcts.java' version '0.12.27'
+  id 'uk.gov.hmcts.java' version '0.12.40'
 }
 
 apply plugin: 'java'
