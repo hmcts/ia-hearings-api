@@ -89,5 +89,6 @@
     <cve>CVE-2022-45143</cve>
     <cve>CVE-2022-42252</cve>
     <cve>CVE-2023-28708</cve>
+    <cve>CVE-2023-20883</cve>
   </suppress>
 </suppressions>
