@@ -9,18 +9,22 @@ management:
         http-mapping:
           UP: 200
           DOWN: 503
+      probes:
+        enabled: true
   endpoints:
     web:
       base-path: "/"
-  health:
-    probes:
-      enabled: true
+
+health:
   services:
     idam:
       uri: ${IDAM_URL:http://127.0.0.1:4501}/health
       response: '"status":"UP"'
     serviceAuth:
       uri: ${S2S_URL:http://127.0.0.1:4502}/health
+      response: '"status":"UP"'
+    hcm:
+      uri: ${HMC_API_URL:http://127.0.0.1:4561}/health
       response: '"status":"UP"'
 
 spring:
@@ -107,6 +111,10 @@ idam:
     username: ${IA_SYSTEM_USERNAME:system-user}
     password: ${IA_SYSTEM_PASSWORD:system-password}
     scope: "openid profile authorities acr roles create-user manage-user search-user"
+
+#HMC
+hmc:
+  baseUrl: ${HMC_API_URL:http://127.0.0.1:4561}
 
 prof.ref.data.url: ${PROF_REF_DATA_URL:http://localhost:8991}
 prof.ref.data.path.org.users: ${PROF_REF_DATA_ORG_USERS_PATH:/refdata/external/v1/organisations/users}
