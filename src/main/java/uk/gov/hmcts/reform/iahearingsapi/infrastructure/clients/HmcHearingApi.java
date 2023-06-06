@@ -2,28 +2,31 @@ package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
-import java.util.Map;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.Token;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.DisableHystrixFeignConfiguration;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.FeignConfiguration;
 
 @FeignClient(
     name = "hmc-hearing",
-    url = "${idam.baseUrl}",
+    url = "${hmc.baseUrl}",
     configuration = {FeignConfiguration.class, DisableHystrixFeignConfiguration.class}
 )
-public interface HmcApi {
+public interface HmcHearingApi {
 
     String SERVICE_AUTHORIZATION = "ServiceAuthorization";
-    String HEARINGS_ENDPOINT = "/hearings";
+    String HEARING_ENDPOINT = "/hearing";
 
-    @GetMapping(value = "/health", produces = "application/json", consumes = "application/json")
-    UserInfo userInfo(@RequestHeader(AUTHORIZATION) String userToken);
+    @PostMapping(value = HEARING_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE)
+    HmcHearingResponse createHearingRequest(
+        @RequestHeader(AUTHORIZATION) String authorisation,
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestBody HmcHearingRequestPayload hearingPayload
+    );
 
 }
