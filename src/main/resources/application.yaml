@@ -53,6 +53,7 @@ spring:
 security:
   anonymousPaths:
     - "/"
+    - "/test"
     - "/health"
     - "/health/liveness"
     - "/health/readiness"
@@ -103,7 +104,7 @@ idam:
   redirectUrl: ${IA_IDAM_REDIRECT_URI:http://localhost:3002/oauth2/callback}
   s2s-auth:
     totp_secret: ${IA_S2S_SECRET:AAAAAAAAAAAAAAAC}
-    microservice: ${IA_S2S_MICROSERVICE:ia}
+    microservice: ${IA_S2S_MICROSERVICE:iac}
     url: ${S2S_URL:http://127.0.0.1:4502}
   s2s-authorised:
     services: ${IA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac}

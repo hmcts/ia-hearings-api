@@ -16,15 +16,17 @@ public class HearingService {
 
     private final HmcHearingApi hmcHearingApi;
     private final AccessTokenProvider userAuthorizationProvider;
-    private final AuthTokenGenerator serviceAuthorizationProvider;
+    private final AuthTokenGenerator serviceAuthTokenGenerator;
+    private final IdamService idamService;
 
     public HmcHearingResponse sendCreateHearingRequest(HmcHearingRequestPayload hearingPayload) {
         log.debug("Sending Create Hearing Request for Case ID {} and request:\n{}",
                   hearingPayload.getCaseDetails().getCaseId(),
                   hearingPayload);
-        return hmcHearingApi.createHearingRequest(
-            userAuthorizationProvider.getAccessToken(),
-            serviceAuthorizationProvider.generate(),
-            hearingPayload);
+        String serviceUserToken = idamService.getServiceUserToken();
+        String serviceAuthToken = serviceAuthTokenGenerator.generate();
+
+        log.info("Service User token: {}, Service Auth token: {}", serviceUserToken, serviceAuthToken);
+        return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken, hearingPayload);
     }
 }

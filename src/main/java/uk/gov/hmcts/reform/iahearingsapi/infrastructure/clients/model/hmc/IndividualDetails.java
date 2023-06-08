@@ -1,12 +1,11 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -21,11 +20,11 @@ public class IndividualDetails {
 
     private String lastName;
 
-    private HearingChannel preferredHearingChannel;
+    private String preferredHearingChannel;
 
     private String interpreterLanguage;
 
-    private List<Adjustment> reasonableAdjustments;
+    private List<String> reasonableAdjustments;
 
     private boolean vulnerableFlag;
 

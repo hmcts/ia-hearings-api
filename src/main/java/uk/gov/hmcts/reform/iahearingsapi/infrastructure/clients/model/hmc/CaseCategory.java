@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CaseCategory {
 
-    private CaseCategoryType categoryType;
+    private String categoryType;
 
     private String categoryValue;
 

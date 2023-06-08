@@ -17,7 +17,7 @@ public class PartyDetails {
 
     private String partyID;
 
-    private PartyType partyType;
+    private String partyType;
 
     private String partyRole;
 

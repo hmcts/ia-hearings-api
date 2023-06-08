@@ -17,8 +17,9 @@ import java.util.List;
 public class HearingDetails {
 
     private boolean autolistFlag;
+    private String listingAutoChangeReasonCode;
 
-    private HearingType hearingType;
+    private String hearingType;
 
     private HearingWindow hearingWindow;
 
@@ -48,10 +49,10 @@ public class HearingDetails {
 
     private boolean hearingIsLinkedFlag;
 
-    private List<AmendReason> amendReasonCodes;
+    private List<String> amendReasonCodes;
 
     private boolean multiDayHearing;
 
-    private List<HearingChannel> hearingChannels;
+    private List<String> hearingChannels;
 
 }
