@@ -5,11 +5,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.*;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.CaseCategory;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.CaseDetails;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingLocation;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingWindow;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.IndividualDetails;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.OrganisationDetails;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PanelRequirements;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.UnavailabilityDayOfWeek;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.UnavailabilityRange;
 
 public class HearingRequestGenerator {
 
     private static Long caseId;
+
     private HearingRequestGenerator() {
 
     }
@@ -76,16 +88,25 @@ public class HearingRequestGenerator {
         caseDetails.setCaseRestrictedFlag(false);
         caseDetails.setCaseSlaStartDate("2030-08-20");
         caseDetails.setCaseCategories(Arrays.asList(
-            CaseCategory.builder().categoryType("caseType").categoryValue("BBA3-001").build(),
-            CaseCategory.builder().categoryType("caseSubType").categoryValue("BBA3-001BR").categoryParent("BBA3-001").build()
+            CaseCategory.builder()
+                .categoryType("caseType")
+                .categoryValue("BBA3-001")
+                .build(),
+            CaseCategory.builder()
+                .categoryType("caseSubType")
+                .categoryValue("BBA3-001BR")
+                .categoryParent("BBA3-001")
+                .build()
         ));
         return caseDetails;
     }
 
     protected static List<PartyDetails> partyDetails() {
         ArrayList<PartyDetails> partyDetailsArrayList = new ArrayList<>();
-        partyDetailsArrayList.add(createPartyDetails("P1", "IND", "BBA3-appellant", createIndividualDetails(), null));
-        partyDetailsArrayList.add(createPartyDetails("P3", "ORG", "BBA3-respondent", null, createOrganisationDetails()
+        partyDetailsArrayList.add(createPartyDetails(
+            "P1", "IND", "BBA3-appellant", createIndividualDetails(), null));
+        partyDetailsArrayList.add(createPartyDetails(
+            "P3", "ORG", "BBA3-respondent", null, createOrganisationDetails()
         ));
         return partyDetailsArrayList;
     }
