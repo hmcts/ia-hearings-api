@@ -123,6 +123,14 @@ launchDarkly:
 azure:
   application-insights:
     instrumentation-key: ${ia.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
+  service-bus:
+    host: ${HMC_HEARINGS_SERVICE_BUS_TOPIC_HOST:hmc-servicebus-demo.servicebus.windows.net}
+    topicName: ${HMC_HEARINGS_TOPIC_NAME:}
+    subscriptionName: ${HMC_HEARINGS_TOPIC_SUBSCRIPTION_NAME:}
+    receiveTimeout: ${HMC_HEARINGS_TOPIC_RECEIVE_TIMEOUT:1}
+    idleTimeout: ${HMC_HEARINGS_TOPIC_IDLE_TIMEOUT:3600000}
+    username: ${HMC_HEARINGS_TOPIC_POLICY_NAME:}
+    password: ${HMC_HEARINGS_TOPIC_ACCESS_KEY:}
 
 core_case_data_api_assignments_url: ${CCD_URL:http://127.0.0.1:4452}
 assign_case_access_api_url: ${AAC_URL:http://127.0.0.1:4454}
