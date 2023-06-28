@@ -190,11 +190,6 @@
     </module>
     <module name="OverloadMethodsDeclarationOrder"/>
     <module name="VariableDeclarationUsageDistance"/>
-    <module name="CustomImportOrder">
-      <property name="sortImportsInGroupAlphabetically" value="true"/>
-      <property name="separateLineBetweenGroups" value="true"/>
-      <property name="customImportOrderRules" value="THIRD_PARTY_PACKAGE###STANDARD_JAVA_PACKAGE###STATIC"/>
-    </module>
     <module name="MethodParamPad"/>
     <module name="NoWhitespaceBefore">
       <property name="tokens"
@@ -202,12 +197,6 @@
       <property name="allowLineBreaks" value="true"/>
     </module>
     <module name="ParenPad"/>
-    <module name="OperatorWrap">
-      <property name="option" value="NL"/>
-      <property name="tokens"
-                value="BAND, BOR, BSR, BXOR, DIV, EQUAL, GE, GT, LAND, LE, LITERAL_INSTANCEOF, LOR,
-                    LT, MINUS, MOD, NOT_EQUAL, PLUS, QUESTION, SL, SR, STAR, METHOD_REF "/>
-    </module>
     <module name="AnnotationLocation">
       <property name="id" value="AnnotationLocationMostCases"/>
       <property name="tokens"
