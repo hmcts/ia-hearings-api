@@ -1,5 +1,5 @@
 #!groovy
-@Library("Infrastructure@Civil-Terraform-Upgrade") _
+@Library("Infrastructure") _
 
 properties([
   parameters([
