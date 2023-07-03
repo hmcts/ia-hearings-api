@@ -14,8 +14,6 @@ variable "env" {}
 
 variable "subscription" {}
 
-variable "deployment_namespace" {}
-
 variable "common_tags" {
   type = map(string)
 }
@@ -43,4 +41,3 @@ variable "log_level_spring_web" {
 variable "log_level_ia" {
   default = "INFO"
 }
-
