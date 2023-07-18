@@ -76,8 +76,9 @@ class ConfigValidatorAppListenerTest {
         verify(env).getProperty(CLUSTER_NAME);
     }
 
+    // suppressing SonarLint warning on assertions as it's ok for this test not to have any
     @Test
-    @SuppressWarnings("java:S2699") // suppressing SonarLint warning on assertions as it's ok for this test not to have any
+    @SuppressWarnings("java:S2699")
     void runsSuccessfullyWhenIaConfigValidatorSecretsAreCorrectlySetSimulateLocal() {
         // Given
         configValidatorAppListener.setIaConfigValidatorSecret("secret");
@@ -91,8 +92,9 @@ class ConfigValidatorAppListenerTest {
         // I run successfully till the end
     }
 
+    // suppressing SonarLint warning on assertions as it's ok for this test not to have any
     @Test
-    @SuppressWarnings("java:S2699") // suppressing SonarLint warning on assertions as it's ok for this test not to have any
+    @SuppressWarnings("java:S2699")
     void runsSuccessfullyWhenIaConfigValidatorSecretsAreCorrectlySetSimulateCluster() {
         // Given
         configValidatorAppListener.setIaConfigValidatorSecret("secret");
