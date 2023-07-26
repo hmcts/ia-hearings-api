@@ -32,7 +32,10 @@ spring:
     import: "optional:configtree:/mnt/secrets/ia/"
   application:
     name: Immigration & Asylum hearings API
-  jackson.date-format: yyyy-MM-dd
+  jackson:
+    date-format: yyyy-MM-dd
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
   main:
     allow-bean-definition-overriding: true
   security:
@@ -76,7 +79,9 @@ security:
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
-core_case_data_api_url: ${CCD_URL:http://127.0.0.1:4452}
+core_case_data:
+  api:
+    url: ${CCD_URL:http://127.0.0.1:4452}
 
 feign:
   hystrix:
