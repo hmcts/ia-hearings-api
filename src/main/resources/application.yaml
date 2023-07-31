@@ -28,6 +28,9 @@ health:
       response: '"status":"UP"'
 
 spring:
+  cloud:
+    bootstrap:
+      enabled: true
   config:
     import: "optional:configtree:/mnt/secrets/ia/"
   application:
@@ -128,10 +131,6 @@ launchDarkly:
   sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
   connectionTimeout: 5000
   socketTimeout: 5000
-
-azure:
-  application-insights:
-    instrumentation-key: ${ia.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
 
 core_case_data_api_assignments_url: ${CCD_URL:http://127.0.0.1:4452}
 assign_case_access_api_url: ${AAC_URL:http://127.0.0.1:4454}
