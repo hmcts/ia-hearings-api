@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 @Builder
-public class HearingLocationModel {
+public class RelatedPartiesModel {
 
-    private String locationId;
-    private String locationType;
+    private String relatedPartyID;
+    private String relationshipType;
 }

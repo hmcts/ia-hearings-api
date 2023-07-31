@@ -45,4 +45,14 @@ class HearingsControllerAdviceTest {
         assertEquals(responseEntity.getStatusCode().value(), HttpStatus.BAD_REQUEST.value());
         assertEquals(responseEntity.getBody(), "{\"error\": \"HMCTS internal case name is a required field\"}");
     }
+
+    @Test
+    void should_handle_illegal_state_exception() {
+
+        ResponseEntity<String> responseEntity = hearingsControllerAdvice
+            .handleExceptions(request, new IllegalStateException("HMCTS internal case name is a required field"));
+
+        assertEquals(responseEntity.getStatusCode().value(), HttpStatus.BAD_REQUEST.value());
+        assertEquals(responseEntity.getBody(), "{\"error\": \"HMCTS internal case name is a required field\"}");
+    }
 }

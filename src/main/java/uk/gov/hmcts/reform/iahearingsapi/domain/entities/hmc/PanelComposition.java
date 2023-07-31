@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 @Builder
-public class HearingLocationModel {
+public class PanelComposition {
 
-    private String locationId;
-    private String locationType;
+    private String memberType;
+    private int count;
 }
