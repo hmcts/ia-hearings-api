@@ -79,7 +79,7 @@ tasks.withType(Test) {
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(11)
+    languageVersion = JavaLanguageVersion.of(17)
   }
 }
 
@@ -230,7 +230,7 @@ pmd {
 }
 
 jacoco {
-  toolVersion = "0.8.8"
+  toolVersion = "0.8.10"
 }
 
 jacocoTestReport {
