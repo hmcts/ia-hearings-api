@@ -1,9 +1,9 @@
-package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field;
-
-import static java.util.Objects.requireNonNull;
+package uk.gov.hmcts.reform.iahearingsapi.domain.entities.field;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
+import static java.util.Objects.requireNonNull;
 
 @EqualsAndHashCode
 @ToString
@@ -28,10 +28,12 @@ public class IdValue<T> {
     }
 
     public String getId() {
+        requireNonNull(id);
         return id;
     }
 
     public T getValue() {
+        requireNonNull(value);
         return value;
     }
 }
