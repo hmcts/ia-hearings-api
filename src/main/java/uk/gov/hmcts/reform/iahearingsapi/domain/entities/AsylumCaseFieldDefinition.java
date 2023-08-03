@@ -20,12 +20,19 @@ public enum AsylumCaseFieldDefinition {
         "listCaseHearingLength", new TypeReference<String>() {}),
     APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {
     }),
-
     WITNESS_LEVEL_FLAGS(
         "witnessLevelFlags", new TypeReference<List<IdValue<StrategicCaseFlag>>>() {}),
+    CASE_FLAGS(
+        "caseFlags", new TypeReference<StrategicCaseFlag>(){}),
+    APPELLANT_GIVEN_NAMES(
+        "appellantGivenNames", new TypeReference<String>(){}),
 
-    CASE_LEVEL_FLAGS(
-        "caseFlags", new TypeReference<StrategicCaseFlag>(){});
+    APPELLANT_FAMILY_NAME(
+        "appellantFamilyName", new TypeReference<String>(){}),
+    APPELLANT_NAME_FOR_DISPLAY(
+        "appellantNameForDisplay", new TypeReference<String>(){}),
+    ADDITIONAL_INSTRUCTIONS_TRIBUNAL_RESPONSE(
+        "additionalInstructionsTribunalResponse", new TypeReference<String>(){});
 
 
 

@@ -13,6 +13,7 @@ public class CaseFlagValue {
     String name;
     String status;
     String flagCode;
+    String flagComment;
     YesOrNo hearingRelevant;
     String dateTimeCreated;
     String dateTimeModified;

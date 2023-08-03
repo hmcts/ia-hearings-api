@@ -12,13 +12,12 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.mappers.CaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
 
 @Slf4j
 @Service
@@ -28,6 +27,7 @@ public class ServiceHearingValuesProvider {
     static final String HMCTS_SERVICE_ID = "BFA1";
 
     private final CaseDataToServiceHearingValuesMapper caseDataToServiceHearingValuesMapper;
+    private final CaseFlagsToServiceHearingValuesMapper caseFlagsToServiceHearingValuesMapper;
 
     public ServiceHearingValuesModel provideServiceHearingValues(AsylumCase asylumCase, String caseReference) {
         requireNonNull(caseReference, "Case Reference must not be null");
@@ -44,7 +44,9 @@ public class ServiceHearingValuesProvider {
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(HMCTS_SERVICE_ID)
             .hmctsInternalCaseName(hmctsInternalCaseName)
-            .publicCaseName("publicCaseName")
+            .publicCaseName(caseFlagsToServiceHearingValuesMapper.getPublicCaseName(asylumCase, caseReference))
+            .caseAdditionalSecurityFlag(caseFlagsToServiceHearingValuesMapper
+                .getCaseAdditionalSecurityFlag(asylumCase))
             .caseCategories(List.of(new CaseCategoryModel()))
             .caseDeepLink(caseDataToServiceHearingValuesMapper.getCaseDeepLink(caseReference))
             .externalCaseReference(caseDataToServiceHearingValuesMapper
@@ -52,16 +54,20 @@ public class ServiceHearingValuesProvider {
             .caseManagementLocationCode(caseDataToServiceHearingValuesMapper
                 .getCaseManagementLocationCode(asylumCase))
             .caseSlaStartDate(caseDataToServiceHearingValuesMapper.getCaseSlaStartDate())
-            .autoListFlag(true)
+            .autoListFlag(caseFlagsToServiceHearingValuesMapper.getAutoListFlag(asylumCase))
             .duration(Integer.parseInt(listCaseHearingLength))
             .hearingType("hearingType")
             .hearingWindow(caseDataToServiceHearingValuesMapper
                 .getHearingWindowModel())
-            .hearingPriorityType(PriorityType.STANDARD)
+            .hearingPriorityType(caseFlagsToServiceHearingValuesMapper.getHearingPriorityType(asylumCase))
             .hearingLocations(HearingLocationModel.builder().build())
             .facilitiesRequired(Collections.emptyList())
-            .listingComments("")
+            .listingComments(caseFlagsToServiceHearingValuesMapper.getListingComments(asylumCase))
             .hearingRequester("")
+            .privateHearingRequiredFlag(caseFlagsToServiceHearingValuesMapper
+                .getPrivateHearingRequiredFlag(asylumCase))
+            .caseInterpreterRequiredFlag(caseFlagsToServiceHearingValuesMapper
+                .getCaseInterpreterRequiredFlag(asylumCase))
             .panelRequirements(PanelRequirementsModel.builder().build())
             .leadJudgeContractType("")
             .judiciary(JudiciaryModel.builder()
@@ -74,7 +80,7 @@ public class ServiceHearingValuesProvider {
                .build())
             .hearingIsLinkedFlag(false)
             .parties(Collections.emptyList())
-            .caseflags(Caseflags.builder().build())
+            .caseflags(caseFlagsToServiceHearingValuesMapper.getCaseFlags(asylumCase))
             .screenFlow(Collections.emptyList())
             .vocabulary(Collections.emptyList())
             .hearingChannels(caseDataToServiceHearingValuesMapper

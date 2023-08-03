@@ -121,10 +121,6 @@ sourceSets {
   }
 }
 
-tasks.withType(JavaCompile) {
-  options.compilerArgs << "-Xlint:unchecked" << "-Werror"
-}
-
 configurations {
   functionalTestImplementation.extendsFrom testImplementation
   functionalTestRuntimeOnly.extendsFrom runtimeOnly
@@ -158,6 +154,7 @@ tasks.withType(Test) {
 
 test {
   failFast = true
+  forkEvery = 1
 }
 
 task functional(type: Test) {

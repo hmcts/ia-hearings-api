@@ -17,7 +17,8 @@ class StrategicCaseFlagTest {
     @BeforeEach
     public void setUp() {
         caseFlagDetails = List.of(new CaseFlagDetail("", CaseFlagValue.builder().build()));
-        strategicCaseFlag = new StrategicCaseFlag(appellantName, StrategicCaseFlag.ROLE_ON_CASE_APPELLANT, caseFlagDetails);
+        strategicCaseFlag = new StrategicCaseFlag(
+            appellantName, StrategicCaseFlag.ROLE_ON_CASE_APPELLANT, caseFlagDetails);
     }
 
     @Test

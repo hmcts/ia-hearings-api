@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.iahearingsapi.domain.entities.mappers;
+package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -7,8 +7,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.mappers.CaseDataToServiceHearingValuesMapper
-    .HEARING_WINDOW_INTERVAL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper.HEARING_WINDOW_INTERVAL;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -50,8 +49,8 @@ class CaseDataToServiceHearingValuesMapperTest {
         ZonedDateTime zonedDateTimeFrom = ZonedDateTime.parse(startDate);
         when(hearingServiceDateProvider.zonedNowWithTime()).thenReturn(zonedDateTimeFrom);
         String endDate = "2023-08-15T10:46:48.962301+01:00[Europe/London]";
-        when(hearingServiceDateProvider
-                 .calculateDueDate(zonedDateTimeFrom, HEARING_WINDOW_INTERVAL)).thenReturn(ZonedDateTime.parse(endDate));
+        when(hearingServiceDateProvider.calculateDueDate(zonedDateTimeFrom, HEARING_WINDOW_INTERVAL))
+            .thenReturn(ZonedDateTime.parse(endDate));
         when(asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(homeOfficeRef));
 
         CaseManagementLocation caseManagementLocation = CaseManagementLocation
