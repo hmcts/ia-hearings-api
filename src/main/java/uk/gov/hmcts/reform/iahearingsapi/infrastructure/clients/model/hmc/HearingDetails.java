@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
 
 import java.util.List;
 
@@ -12,7 +14,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @SuppressWarnings("PMD.TooManyFields")
 public class HearingDetails {
 
@@ -21,7 +22,7 @@ public class HearingDetails {
 
     private String hearingType;
 
-    private HearingWindow hearingWindow;
+    private HearingWindowModel hearingWindow;
 
     private Integer duration;
 
@@ -33,7 +34,7 @@ public class HearingDetails {
 
     private boolean hearingInWelshFlag;
 
-    private List<HearingLocation> hearingLocations;
+    private List<HearingLocationModel> hearingLocations;
 
     private List<String> facilitiesRequired;
 
@@ -45,7 +46,7 @@ public class HearingDetails {
 
     private String leadJudgeContractType;
 
-    private PanelRequirements panelRequirements;
+    private PanelRequirementsModel panelRequirements;
 
     private boolean hearingIsLinkedFlag;
 

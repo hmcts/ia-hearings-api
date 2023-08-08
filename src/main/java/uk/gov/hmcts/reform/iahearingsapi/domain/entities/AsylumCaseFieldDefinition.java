@@ -4,6 +4,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 public enum AsylumCaseFieldDefinition {
 
+    HOME_OFFICE_REFERENCE_NUMBER(
+        "homeOfficeReferenceNumber", new TypeReference<String>(){}),
+    GWF_REFERENCE_NUMBER(
+        "gwfReferenceNumber", new TypeReference<String>(){}),
     CASE_MANAGEMENT_LOCATION(
         "caseManagementLocation", new TypeReference<CaseManagementLocation>(){}),
     HEARING_CHANNEL(

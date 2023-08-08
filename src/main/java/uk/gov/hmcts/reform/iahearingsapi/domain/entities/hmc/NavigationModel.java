@@ -5,8 +5,5 @@ import lombok.Data;
 
 @Data
 @Builder
-public class HearingLocationModel {
-
-    private String locationId;
-    private String locationType;
+public class NavigationModel {
 }

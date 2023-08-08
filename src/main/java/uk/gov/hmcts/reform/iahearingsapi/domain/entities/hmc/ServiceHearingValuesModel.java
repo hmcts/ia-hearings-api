@@ -2,14 +2,17 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.lang.NonNull;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ServiceHearingValuesModel {
 
     @NonNull
@@ -39,8 +42,7 @@ public class ServiceHearingValuesModel {
     @JsonProperty("caseSLAStartDate")
     private String caseSlaStartDate;
 
-    @NonNull
-    private Boolean autoListFlag;
+    private boolean autoListFlag;
 
     private String hearingType;
 
@@ -49,7 +51,7 @@ public class ServiceHearingValuesModel {
     private int duration;
 
     @NonNull
-    private String hearingPriorityType;
+    private PriorityType hearingPriorityType;
 
     private int numberOfPhysicalAttendees;
 

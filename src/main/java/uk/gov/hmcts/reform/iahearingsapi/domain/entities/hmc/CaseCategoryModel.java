@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
 public class CaseCategoryModel {
+
+    private CategoryType categoryType;
+    private String categoryValue;
+    private String categoryParent;
 }

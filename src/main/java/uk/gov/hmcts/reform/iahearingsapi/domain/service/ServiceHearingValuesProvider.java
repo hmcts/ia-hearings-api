@@ -2,10 +2,14 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,8 +21,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingValuesRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
@@ -26,8 +30,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationMode
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ScreenNavigationModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 
 @Slf4j
@@ -35,17 +38,15 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValue
 @RequiredArgsConstructor
 public class ServiceHearingValuesProvider {
 
-    private static final String HMCTS_SERVICE_ID = "BFA1";
+    static final String HMCTS_SERVICE_ID = "BFA1";
+    static final int HEARING_WINDOW_INTERVAL = 10;
 
-    private final CoreCaseDataService coreCaseDataService;
+    private final DateProvider hearingServiceDateProvider;
 
-    public ServiceHearingValuesModel getServiceHearingValues(HearingValuesRequestPayload requestPayload) {
-
-        requireNonNull(requestPayload.getCaseReference(), "Case Reference must not be null");
-
-        log.info("Building hearing values for case with id {}", requestPayload.getCaseReference());
-
-        AsylumCase asylumCase = coreCaseDataService.getCase(requestPayload.getCaseReference());
+    public ServiceHearingValuesModel provideServiceHearingValues(AsylumCase asylumCase, String caseReference) {
+        requireNonNull(caseReference, "Case Reference must not be null");
+        requireNonNull(asylumCase, "AsylumCase must not be null");
+        log.info("Building hearing values for case with id {}", caseReference);
 
         String hmctsInternalCaseName = asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)
             .orElseThrow(() ->
@@ -53,32 +54,40 @@ public class ServiceHearingValuesProvider {
         String listCaseHearingLength = asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)
             .orElseThrow(() ->
                 new RequiredFieldMissingException("List case hearing length is a required field"));
+        String caseDeepLink = String.format("cases/case-details/%s#Overview", caseReference);
 
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(HMCTS_SERVICE_ID)
             .hmctsInternalCaseName(hmctsInternalCaseName)
             .publicCaseName("publicCaseName")
-            .caseCategories(List.of(CaseCategoryModel.builder().build()))
-            .caseDeepLink("caseDeepLink")
-            .externalCaseReference("externalCaseReference")
+            .caseCategories(List.of(new CaseCategoryModel()))
+            .caseDeepLink(caseDeepLink)
+            .externalCaseReference(getExternalCaseReference(asylumCase))
             .caseManagementLocationCode(getCaseManagementLocationCode(asylumCase))
-            .caseSlaStartDate("caseSlaStartDate")
-            .autoListFlag(false)
+            .caseSlaStartDate(hearingServiceDateProvider.now().toString())
+            .autoListFlag(true)
             .duration(Integer.parseInt(listCaseHearingLength))
             .hearingType("hearingType")
-            .hearingWindow(HearingWindowModel.builder().build())
-            .hearingPriorityType("hearingPriorityType")
+            .hearingWindow(getHearingWindowModel())
+            .hearingPriorityType(PriorityType.STANDARD)
             .hearingLocations(HearingLocationModel.builder().build())
             .facilitiesRequired(Collections.emptyList())
-            .listingComments("listingComments")
-            .hearingRequester("hearingRequester")
+            .listingComments("")
+            .hearingRequester("")
             .panelRequirements(PanelRequirementsModel.builder().build())
-            .leadJudgeContractType("leadJudgeContractType")
-            .judiciary(JudiciaryModel.builder().build())
+            .leadJudgeContractType("")
+            .judiciary(JudiciaryModel.builder()
+               .roleType(Collections.emptyList())
+               .authorisationTypes(Collections.emptyList())
+               .authorisationSubType(Collections.emptyList())
+               .judiciaryPreferences(Collections.emptyList())
+               .judiciarySpecialisms(Collections.emptyList())
+               .panelComposition(Collections.emptyList())
+               .build())
             .hearingIsLinkedFlag(false)
-            .parties(List.of(PartyDetailsModel.builder().build()))
+            .parties(Collections.emptyList())
             .caseflags(Caseflags.builder().build())
-            .screenFlow(List.of(ScreenNavigationModel.builder().build()))
+            .screenFlow(Collections.emptyList())
             .vocabulary(Collections.emptyList())
             .hearingChannels(getHearingChannels(asylumCase))
             .build();
@@ -109,5 +118,21 @@ public class ServiceHearingValuesProvider {
         }
 
         return hearingChannels;
+    }
+
+    private String getExternalCaseReference(AsylumCase asylumCase) {
+        return asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)
+            .orElseGet(() -> asylumCase.read(GWF_REFERENCE_NUMBER, String.class).orElse(null));
+    }
+
+    private HearingWindowModel getHearingWindowModel() {
+        ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
+        String dateRangeEnd = hearingServiceDateProvider
+            .calculateDueDate(now, HEARING_WINDOW_INTERVAL)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return HearingWindowModel.builder()
+            .dateRangeStart(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+            .dateRangeEnd(dateRangeEnd)
+            .build();
     }
 }

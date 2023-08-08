@@ -1,13 +1,13 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc;
 
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 
 @Data
 @NoArgsConstructor
@@ -18,8 +18,7 @@ public class CaseDetails {
 
     private String hmctsServiceCode;
 
-    @JsonProperty("caseRef")
-    private String caseId;
+    private String caseRef;
 
     private String externalCaseReference;
 
@@ -33,7 +32,7 @@ public class CaseDetails {
 
     private boolean caseInterpreterRequiredFlag;
 
-    private List<CaseCategory> caseCategories;
+    private List<CaseCategoryModel> caseCategories;
 
     private String caseManagementLocationCode;
 
