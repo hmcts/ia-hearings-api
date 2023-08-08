@@ -1,18 +1,20 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityDayOfWeekModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityRangeModel;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PartyDetails {
 
     private String partyID;
@@ -21,14 +23,14 @@ public class PartyDetails {
 
     private String partyRole;
 
-    private IndividualDetails individualDetails;
+    private IndividualDetailsModel individualDetails;
 
     private String partyChannelSubType;
 
-    private OrganisationDetails organisationDetails;
+    private OrganisationDetailsModel organisationDetails;
 
     @JsonProperty("unavailabilityDOW")
-    private List<UnavailabilityDayOfWeek> unavailabilityDayOfWeek;
+    private List<UnavailabilityDayOfWeekModel> unavailabilityDayOfWeek;
 
-    private List<UnavailabilityRange> unavailabilityRanges;
+    private List<UnavailabilityRangeModel> unavailabilityRanges;
 }

@@ -6,4 +6,8 @@ import lombok.Data;
 @Data
 @Builder
 public class HearingWindowModel {
+
+    private String dateRangeStart;
+    private String dateRangeEnd;
+    private String firstDateTimeMustBe;
 }

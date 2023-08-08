@@ -28,7 +28,10 @@ public class HearingsControllerAdvice extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler({
+        IllegalStateException.class,
+        IllegalArgumentException.class
+    })
     protected ResponseEntity<String> handleExceptions(
         HttpServletRequest request,
         Exception ex

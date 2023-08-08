@@ -381,6 +381,7 @@ dependencies {
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
 
+  testImplementation group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
   testImplementation group: 'io.rest-assured', name: 'rest-assured-all', version: '3.3.0'
   testImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
