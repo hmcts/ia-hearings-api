@@ -7,6 +7,8 @@ public enum StrategicCaseFlagType {
     URGENT_CASE("CF0007", "Urgent case", false),
     PRESIDENTIAL_PANEL("CF0011", "Presidential panel", true),
     ANONYMITY("CF0012", "RRO (Restricted Reporting Order / Anonymisation)", true),
+    VULNERABLE_USER(
+        "PF0002", "Vulnerable user", false),
     UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR(
         "PF0007", "Unacceptable/disruptive customer behaviour", true),
     FOREIGN_NATIONAL_OFFENDER("PF0012", "Foreign national offender", true),
@@ -15,6 +17,7 @@ public enum StrategicCaseFlagType {
     LANGUAGE_INTERPRETER("PF0015", "Language Interpreter", true),
     LITIGATION_FRIEND("PF0017", "Litigation friend", true),
     LACKING_CAPACITY("PF0018", "Lacking capacity", false),
+    DETAINED_INDIVIDUAL("PF0019", "Detained individual", false),
     STEP_FREE_WHEELCHAIR_ACCESS("RA0019", "Step free / wheelchair access", true),
     SIGN_LANGUAGE_INTERPRETER("RA0042", "Sign Language Interpreter", true),
     HEARING_LOOP("RA0043", "Hearing loop (hearing enhancement system)", true),

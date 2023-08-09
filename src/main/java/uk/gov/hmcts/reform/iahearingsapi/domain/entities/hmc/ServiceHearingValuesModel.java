@@ -98,4 +98,7 @@ public class ServiceHearingValuesModel {
 
     @NonNull
     private List<String> hearingChannels;
+
+    @NonNull
+    private List<String> hearingLevelParticipantAttendance;
 }

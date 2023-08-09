@@ -13,6 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.AUDIO_VIDEO_EVIDENCE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.DETAINED_INDIVIDUAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.FOREIGN_NATIONAL_OFFENDER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.HEARING_LOOP;
@@ -24,6 +25,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFla
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCOMPANIED_MINOR;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.URGENT_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.VULNERABLE_USER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus.IN_CUSTODY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus.IN_DETENTION;
 
 
 import java.util.ArrayList;
@@ -508,6 +512,119 @@ class CaseFlagsToServiceHearingValuesMapperTest {
         Caseflags result = mapper.getCaseFlags(asylumCase, caseReference);
         assertNotNull(result);
         assertNull(result.getFlags());
+    }
+
+    @Test
+    void getCustodyStatus_should_return_in_detention() {
+
+        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(DETAINED_INDIVIDUAL.getFlagCode())
+            .status("Active")
+            .build()));
+        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+
+        assertEquals(IN_DETENTION.getValue(), mapper.getCustodyStatus(asylumCase));
+    }
+
+    @Test
+    void getCustodyStatus_should_return_in_custody() {
+
+        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(FOREIGN_NATIONAL_OFFENDER.getFlagCode())
+            .status("Active")
+            .build()));
+        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+
+        assertEquals(IN_CUSTODY.getValue(), mapper.getCustodyStatus(asylumCase));
+    }
+
+    @Test
+    void getVulnerabilityFlag_should_return_true() {
+
+        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(VULNERABLE_USER.getFlagCode())
+            .status("Active")
+            .build()));
+        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+
+        assertTrue(mapper.getVulnerableFlag(asylumCase));
+
+        caseFlagDetails.add(new CaseFlagDetail("id2", CaseFlagValue.builder()
+            .flagCode(UNACCOMPANIED_MINOR.getFlagCode())
+            .status("Active")
+            .build()));
+        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+
+        assertTrue(mapper.getVulnerableFlag(asylumCase));
+    }
+
+    @Test
+    void getVulnerabilityFlag_should_return_false() {
+        assertFalse(mapper.getVulnerableFlag(asylumCase));
+
+        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(VULNERABLE_USER.getFlagCode())
+            .status("Inactive")
+            .build()));
+        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+
+        assertFalse(mapper.getVulnerableFlag(asylumCase));
+    }
+
+    @Test
+    void getVulnerabilityDetails_should_return_details() {
+
+        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
+        final String vulnerableUser = "Vulnerable user";
+        final String unaccompaniedMinor = "Unaccompanied minor";
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(VULNERABLE_USER.getFlagCode()).status("Active")
+            .flagComment(vulnerableUser).build()));
+        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+
+        assertEquals(vulnerableUser, mapper.getVulnerableDetails(asylumCase));
+
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(UNACCOMPANIED_MINOR.getFlagCode())
+            .status("Active")
+            .flagComment(unaccompaniedMinor)
+            .build()));
+        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+
+        assertEquals(vulnerableUser + ";" + unaccompaniedMinor, mapper.getVulnerableDetails(asylumCase));
+    }
+
+    @Test
+    void getVulnerabilityDetails_should_return_null() {
+
+        assertNull(mapper.getVulnerableDetails(asylumCase));
+
+        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(VULNERABLE_USER.getFlagCode())
+            .status("Inactive")
+            .flagComment("Vulnerable user")
+            .build()));
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(UNACCOMPANIED_MINOR.getFlagCode())
+            .status("Inactive")
+            .flagComment("Unaccompanied minor")
+            .build()));
+        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+
+        assertNull(mapper.getVulnerableDetails(asylumCase));
     }
 
 }

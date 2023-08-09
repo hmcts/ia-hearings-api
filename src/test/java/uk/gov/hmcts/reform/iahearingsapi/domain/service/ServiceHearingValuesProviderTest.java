@@ -13,6 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingVal
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -36,11 +37,13 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationMode
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -68,6 +71,13 @@ class ServiceHearingValuesProviderTest {
                 .partyName("")
                 .flagStatus("Active")
                 .build())).build();
+    private final List<PartyDetailsModel> partyDetails = Arrays.asList(
+        PartyDetailsModel.builder().build(),
+        PartyDetailsModel.builder().build(),
+        PartyDetailsModel.builder().build(),
+        PartyDetailsModel.builder().build(),
+        PartyDetailsModel.builder().build()
+    );
     private ServiceHearingValuesProvider serviceHearingValuesProvider;
     @Mock
     private DateProvider hearingServiceDateProvider;
@@ -77,6 +87,8 @@ class ServiceHearingValuesProviderTest {
     private CaseDataToServiceHearingValuesMapper caseDataToServiceHearingValuesMapper;
     @Mock
     private CaseFlagsToServiceHearingValuesMapper caseFlagsToServiceHearingValuesMapper;
+    @Mock
+    private PartyDetailsMapper partyDetailsMapper;
 
     @BeforeEach
     void setup() {
@@ -114,10 +126,12 @@ class ServiceHearingValuesProviderTest {
         when(caseFlagsToServiceHearingValuesMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsToServiceHearingValuesMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsToServiceHearingValuesMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
+        when(partyDetailsMapper.map(asylumCase, caseFlagsToServiceHearingValuesMapper)).thenReturn(partyDetails);
 
         serviceHearingValuesProvider = new ServiceHearingValuesProvider(
             caseDataToServiceHearingValuesMapper,
-            caseFlagsToServiceHearingValuesMapper
+            caseFlagsToServiceHearingValuesMapper,
+            partyDetailsMapper
         );
     }
 
@@ -167,7 +181,7 @@ class ServiceHearingValuesProviderTest {
             .caseManagementLocationCode(BaseLocation.BIRMINGHAM.getId())
             .caseSlaStartDate(dateStr)
             .autoListFlag(false)
-            .hearingType("hearingType")
+            .hearingType(null)
             .hearingWindow(hearingWindowModel)
             .duration(Integer.parseInt(listCaseHearingLength))
             .hearingPriorityType(PriorityType.STANDARD)
@@ -189,11 +203,12 @@ class ServiceHearingValuesProviderTest {
                .panelComposition(Collections.emptyList())
                .build())
             .hearingIsLinkedFlag(false)
-            .parties(Collections.emptyList())
+            .parties(partyDetails)
             .caseflags(caseflags)
             .screenFlow(Collections.emptyList())
             .vocabulary(Collections.emptyList())
             .hearingChannels(hearingChannels)
+            .hearingLevelParticipantAttendance(Collections.emptyList())
             .build();
     }
 }

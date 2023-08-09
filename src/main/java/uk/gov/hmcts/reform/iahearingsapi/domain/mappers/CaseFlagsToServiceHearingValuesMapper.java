@@ -1,14 +1,12 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_INSTRUCTIONS_TRIBUNAL_RESPONSE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_FAMILY_NAME;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.AUDIO_VIDEO_EVIDENCE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.DETAINED_INDIVIDUAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.FOREIGN_NATIONAL_OFFENDER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LACKING_CAPACITY;
@@ -19,6 +17,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFla
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCOMPANIED_MINOR;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.URGENT_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.VULNERABLE_USER;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -37,6 +37,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 
@@ -54,7 +55,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
             return caseReference;
         }
 
-        return getAppellantDisplayName(asylumCase);
+        return MapperUtils.getAppellantFullName(asylumCase);
     }
 
     public boolean getCaseAdditionalSecurityFlag(AsylumCase asylumCase) {
@@ -188,6 +189,40 @@ public class CaseFlagsToServiceHearingValuesMapper {
         return caseflags;
     }
 
+    public String getCustodyStatus(AsylumCase asylumCase) {
+        List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .map(List::of).orElse(Collections.emptyList());
+
+        if (hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(FOREIGN_NATIONAL_OFFENDER))) {
+            return CustodyStatus.IN_CUSTODY.getValue();
+        } else if (hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(DETAINED_INDIVIDUAL))) {
+            return CustodyStatus.IN_DETENTION.getValue();
+        }
+
+        return null;
+    }
+
+    public boolean getVulnerableFlag(AsylumCase asylumCase) {
+        List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .map(List::of).orElse(Collections.emptyList());
+
+        return hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(VULNERABLE_USER, UNACCOMPANIED_MINOR));
+    }
+
+    public String getVulnerableDetails(AsylumCase asylumCase) {
+        List<String> targetCaseFlagCodes = Stream.of(VULNERABLE_USER, UNACCOMPANIED_MINOR)
+            .map(StrategicCaseFlagType::getFlagCode).toList();
+        List<String> vulnerabilityDetails =  asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .map(StrategicCaseFlag::getDetails)
+            .orElse(Collections.emptyList()).stream().filter(detail ->
+                targetCaseFlagCodes.contains(detail.getCaseFlagValue().getFlagCode())
+                    && Objects.equals("Active", detail.getCaseFlagValue().getStatus()))
+            .map(details -> details.getCaseFlagValue().getFlagComment())
+            .filter(flagComment -> flagComment != null && !flagComment.isBlank()).toList();
+
+        return vulnerabilityDetails.isEmpty() ? null : String.join(";", vulnerabilityDetails);
+    }
+
     private List<PartyFlagsModel> buildCaseFlags(List<CaseFlagDetail> caseFlagDetails, String partyName) {
         if (caseFlagDetails != null) {
             return caseFlagDetails.stream().filter(detail -> {
@@ -227,20 +262,5 @@ public class CaseFlagsToServiceHearingValuesMapper {
         }
 
         return false;
-    }
-
-    private String getAppellantDisplayName(AsylumCase asylumCase) {
-
-        return asylumCase.read(APPELLANT_NAME_FOR_DISPLAY, String.class).orElseGet(() -> {
-            final String appellantGivenNames =
-                asylumCase
-                    .read(APPELLANT_GIVEN_NAMES, String.class).orElse(null);
-            final String appellantFamilyName =
-                asylumCase
-                    .read(APPELLANT_FAMILY_NAME, String.class).orElse(null);
-            return !(appellantGivenNames == null || appellantFamilyName == null)
-                ? appellantGivenNames + " " + appellantFamilyName
-                : null;
-        });
     }
 }
