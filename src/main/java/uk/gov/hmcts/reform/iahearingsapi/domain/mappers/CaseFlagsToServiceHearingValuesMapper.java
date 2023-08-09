@@ -74,7 +74,8 @@ public class CaseFlagsToServiceHearingValuesMapper {
             AUDIO_VIDEO_EVIDENCE,
             LITIGATION_FRIEND,
             LACKING_CAPACITY);
-        boolean hasOneOrMoreActiveAppellantCaseFlags = hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, appellantCaseFlagTypes);
+        boolean hasOneOrMoreActiveAppellantCaseFlags =
+            hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, appellantCaseFlagTypes);
         List<StrategicCaseFlag> caseFlags = asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
         boolean hasActiveCaseFlag = hasOneOrMoreActiveFlagsOfType(caseFlags, List.of(PRESIDENTIAL_PANEL));
@@ -85,7 +86,8 @@ public class CaseFlagsToServiceHearingValuesMapper {
     public PriorityType getHearingPriorityType(AsylumCase asylumCase) {
         List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
-        boolean hasActiveAppellantFlag = hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(UNACCOMPANIED_MINOR));
+        boolean hasActiveAppellantFlag =
+            hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(UNACCOMPANIED_MINOR));
         List<StrategicCaseFlag> caseFlags = asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
         boolean hasActiveCaseFlag = hasOneOrMoreActiveFlagsOfType(caseFlags, List.of(URGENT_CASE));
@@ -143,7 +145,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
         Optional<List<IdValue<StrategicCaseFlag>>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
         caseFlagsOptional.ifPresent(idValues -> {
             List<StrategicCaseFlag> witnessCaseFlags = idValues
-                .stream().map(IdValue::getValue).collect(Collectors.toList());
+                .stream().map(IdValue::getValue).toList();
             if (!witnessCaseFlags.isEmpty()) {
                 caseFlags.addAll(witnessCaseFlags);
             }
@@ -167,14 +169,14 @@ public class CaseFlagsToServiceHearingValuesMapper {
         Optional<List<IdValue<StrategicCaseFlag>>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
         caseFlagsOptional.ifPresent(idValues -> {
             List<StrategicCaseFlag> witnessCaseFlags = idValues
-                .stream().map(IdValue::getValue).collect(Collectors.toList());
+                .stream().map(IdValue::getValue).toList();
             if (!witnessCaseFlags.isEmpty()) {
                 flags.addAll(
                     witnessCaseFlags.stream()
                         .map(witnessCaseFlag ->
                              buildCaseFlags(witnessCaseFlag.getDetails(), witnessCaseFlag.getPartyName()))
                         .flatMap(Collection::stream)
-                        .collect(Collectors.toList()));
+                        .toList());
             }
         });
 
@@ -212,10 +214,10 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
         if (!caseFlags.isEmpty()) {
             List<String> flagCodes = caseFlagTypes.stream()
-                .map(StrategicCaseFlagType::getFlagCode).collect(Collectors.toList());
+                .map(StrategicCaseFlagType::getFlagCode).toList();
             List<CaseFlagDetail> details = caseFlags.stream()
                 .map(StrategicCaseFlag::getDetails)
-                .flatMap(Collection::stream).collect(Collectors.toList());
+                .flatMap(Collection::stream).toList();
             if (!details.isEmpty()) {
                 return details.stream()
                     .map(detail ->
