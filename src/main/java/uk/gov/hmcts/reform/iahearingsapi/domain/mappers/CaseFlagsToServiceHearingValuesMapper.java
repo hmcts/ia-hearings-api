@@ -156,7 +156,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
         );
     }
 
-    public Caseflags getCaseFlags(AsylumCase asylumCase) {
+    public Caseflags getCaseFlags(AsylumCase asylumCase, String caseReference) {
         List<PartyFlagsModel> flags = new ArrayList<>();
         Caseflags caseflags = Caseflags.builder().build();
 
@@ -182,8 +182,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
         if (!flags.isEmpty()) {
             caseflags.setFlags(flags);
-            String flagAmendUrl = "flagAmendUrl";
-            caseflags.setFlagAmendUrl(flagAmendUrl);
+            caseflags.setFlagAmendUrl("/cases/case-details/" + caseReference + "#Case%20flags");
         }
 
         return caseflags;

@@ -52,6 +52,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 class CaseFlagsToServiceHearingValuesMapperTest {
 
     private final String caseReference = "caseReference";
+    private final String flagAmendUrl = "/cases/case-details/" + caseReference + "#Case%20flags";
     private CaseFlagsToServiceHearingValuesMapper mapper;
 
     @Mock
@@ -403,7 +404,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
 
 
         Caseflags expected = Caseflags.builder()
-            .flagAmendUrl("flagAmendUrl")
+            .flagAmendUrl(flagAmendUrl)
             .flags(List.of(
                 PartyFlagsModel.builder()
                     .partyId("case1")
@@ -415,7 +416,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             ))
             .build();
 
-        Caseflags actual = mapper.getCaseFlags(asylumCase);
+        Caseflags actual = mapper.getCaseFlags(asylumCase, caseReference);
         assertNotNull(actual);
         assertEquals(expected, actual);
     }
@@ -461,7 +462,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .thenReturn(Optional.of(witnessCaseFlag));
 
         Caseflags expected = Caseflags.builder()
-            .flagAmendUrl("flagAmendUrl")
+            .flagAmendUrl(flagAmendUrl)
             .flags(List.of(
                 PartyFlagsModel.builder()
                     .partyId("appellant1")
@@ -479,7 +480,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .build()
             )).build();
 
-        Caseflags actual = mapper.getCaseFlags(asylumCase);
+        Caseflags actual = mapper.getCaseFlags(asylumCase, caseReference);
         assertNotNull(actual);
         assertEquals(expected, actual);
     }
@@ -504,7 +505,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                         .hearingRelevant(YesOrNo.YES)
                         .build())))));
 
-        Caseflags result = mapper.getCaseFlags(asylumCase);
+        Caseflags result = mapper.getCaseFlags(asylumCase, caseReference);
         assertNotNull(result);
         assertNull(result.getFlags());
     }

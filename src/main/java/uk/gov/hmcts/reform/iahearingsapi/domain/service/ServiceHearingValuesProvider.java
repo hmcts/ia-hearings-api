@@ -80,7 +80,7 @@ public class ServiceHearingValuesProvider {
                .build())
             .hearingIsLinkedFlag(false)
             .parties(Collections.emptyList())
-            .caseflags(caseFlagsToServiceHearingValuesMapper.getCaseFlags(asylumCase))
+            .caseflags(caseFlagsToServiceHearingValuesMapper.getCaseFlags(asylumCase, caseReference))
             .screenFlow(Collections.emptyList())
             .vocabulary(Collections.emptyList())
             .hearingChannels(caseDataToServiceHearingValuesMapper

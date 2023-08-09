@@ -2,8 +2,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
@@ -115,7 +113,7 @@ class ServiceHearingValuesProviderTest {
         when(caseFlagsToServiceHearingValuesMapper.getListingComments(asylumCase)).thenReturn(listingComments);
         when(caseFlagsToServiceHearingValuesMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsToServiceHearingValuesMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
-        when(caseFlagsToServiceHearingValuesMapper.getCaseFlags(asylumCase)).thenReturn(caseflags);
+        when(caseFlagsToServiceHearingValuesMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
 
         serviceHearingValuesProvider = new ServiceHearingValuesProvider(
             caseDataToServiceHearingValuesMapper,
@@ -130,38 +128,7 @@ class ServiceHearingValuesProviderTest {
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
             .provideServiceHearingValues(asylumCase, caseReference);
 
-        assertEquals(expected.getHmctsServiceId(), actual.getHmctsServiceId());
-        assertEquals(expected.getHmctsInternalCaseName(), actual.getHmctsInternalCaseName());
-        assertEquals(expected.getPublicCaseName(), actual.getPublicCaseName());
-        assertEquals(expected.getCaseCategories(), actual.getCaseCategories());
-        assertFalse(actual.isCaserestrictedFlag());
-        assertEquals(expected.getCaseDeepLink(), actual.getCaseDeepLink());
-        assertFalse(actual.isCaserestrictedFlag());
-        assertEquals(expected.getExternalCaseReference(), actual.getExternalCaseReference());
-        assertEquals(expected.getCaseManagementLocationCode(), actual.getCaseManagementLocationCode());
-        assertEquals(expected.getCaseSlaStartDate(), actual.getCaseSlaStartDate());
-        assertFalse(actual.isAutoListFlag());
-        assertEquals(expected.getHearingType(), actual.getHearingType());
-        assertEquals(expected.getHearingWindow(), actual.getHearingWindow());
-        assertEquals(expected.getDuration(), actual.getDuration());
-        assertEquals(expected.getHearingPriorityType(), actual.getHearingPriorityType());
-        assertEquals(expected.getNumberOfPhysicalAttendees(), actual.getNumberOfPhysicalAttendees());
-        assertFalse(actual.isHearingInWelshFlag());
-        assertEquals(expected.getHearingLocations(), actual.getHearingLocations());
-        assertEquals(expected.getFacilitiesRequired(), actual.getFacilitiesRequired());
-        assertEquals(expected.getListingComments(), actual.getListingComments());
-        assertEquals(expected.getHearingRequester(), actual.getHearingRequester());
-        assertTrue(actual.isPrivateHearingRequiredFlag());
-        assertTrue(actual.isCaseInterpreterRequiredFlag());
-        assertEquals(expected.getPanelRequirements(), actual.getPanelRequirements());
-        assertEquals(expected.getLeadJudgeContractType(), actual.getLeadJudgeContractType());
-        assertEquals(expected.getJudiciary(), actual.getJudiciary());
-        assertFalse(actual.isHearingIsLinkedFlag());
-        assertEquals(expected.getParties(), actual.getParties());
-        assertEquals(expected.getCaseflags(), actual.getCaseflags());
-        assertEquals(expected.getScreenFlow(), actual.getScreenFlow());
-        assertEquals(expected.getVocabulary(), actual.getVocabulary());
-        assertEquals(expected.getHearingChannels(), actual.getHearingChannels());
+        assertEquals(expected, actual);
     }
 
     @Test
