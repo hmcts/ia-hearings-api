@@ -1,14 +1,14 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.HEARING_WINDOW_INTERVAL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.HMCTS_SERVICE_ID;
 
 import java.time.LocalDate;
@@ -36,8 +36,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationMode
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -47,13 +50,33 @@ class ServiceHearingValuesProviderTest {
     private final String listCaseHearingLength = "120";
     private final String caseReference = "1234567891234567";
     private final String homeOfficeRef = "homeOfficeRef";
-    private final String deepCaseLink = String.format("cases/case-details/%s#Overview", caseReference);
     private final String dateStr = "2023-08-01";
+    private final List<String> hearingChannels = List.of("INTER");
+    private final String dateRangeEnd = "2023-08-15";
+    private final String caseDeepLink = "/cases/case-details/1234567891234567#Overview";
+    private final String listingComments = "Customer behaviour: unfriendly";
+    private final HearingWindowModel hearingWindowModel = HearingWindowModel.builder()
+        .dateRangeStart(dateStr)
+        .dateRangeEnd(dateRangeEnd)
+        .build();
+    private final Caseflags caseflags = Caseflags.builder()
+        .flags(List.of(
+            PartyFlagsModel.builder()
+                .partyId("partyId")
+                .flagId("id1")
+                .flagDescription(ANONYMITY.getName())
+                .partyName("")
+                .flagStatus("Active")
+                .build())).build();
     private ServiceHearingValuesProvider serviceHearingValuesProvider;
     @Mock
     private DateProvider hearingServiceDateProvider;
     @Mock
     private AsylumCase asylumCase;
+    @Mock
+    private CaseDataToServiceHearingValuesMapper caseDataToServiceHearingValuesMapper;
+    @Mock
+    private CaseFlagsToServiceHearingValuesMapper caseFlagsToServiceHearingValuesMapper;
 
     @BeforeEach
     void setup() {
@@ -64,9 +87,6 @@ class ServiceHearingValuesProviderTest {
         String startDate = "2023-08-01T10:46:48.962301+01:00[Europe/London]";
         ZonedDateTime zonedDateTimeFrom = ZonedDateTime.parse(startDate);
         when(hearingServiceDateProvider.zonedNowWithTime()).thenReturn(zonedDateTimeFrom);
-        String endDate = "2023-08-15T10:46:48.962301+01:00[Europe/London]";
-        when(hearingServiceDateProvider
-             .calculateDueDate(zonedDateTimeFrom, HEARING_WINDOW_INTERVAL)).thenReturn(ZonedDateTime.parse(endDate));
         when(asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(homeOfficeRef));
 
         CaseManagementLocation caseManagementLocation = CaseManagementLocation
@@ -77,17 +97,38 @@ class ServiceHearingValuesProviderTest {
         DynamicList hearingChannel = new DynamicList("INTER");
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(hearingChannel));
 
-        serviceHearingValuesProvider =
-            new ServiceHearingValuesProvider(hearingServiceDateProvider);
+        when(caseDataToServiceHearingValuesMapper.getHearingChannels(asylumCase)).thenReturn(hearingChannels);
+        when(caseDataToServiceHearingValuesMapper.getExternalCaseReference(asylumCase)).thenReturn(homeOfficeRef);
+        when(caseDataToServiceHearingValuesMapper.getHearingWindowModel()).thenReturn(hearingWindowModel);
+        when(caseDataToServiceHearingValuesMapper.getCaseManagementLocationCode(asylumCase))
+            .thenReturn(BaseLocation.BIRMINGHAM.getId());
+        when(caseDataToServiceHearingValuesMapper.getCaseSlaStartDate()).thenReturn(dateStr);
+        when(caseDataToServiceHearingValuesMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);
+        when(caseFlagsToServiceHearingValuesMapper.getPublicCaseName(asylumCase, caseReference))
+            .thenReturn(caseReference);
+        when(caseFlagsToServiceHearingValuesMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);
+        when(caseFlagsToServiceHearingValuesMapper.getAutoListFlag(asylumCase)).thenReturn(false);
+        when(caseFlagsToServiceHearingValuesMapper.getHearingPriorityType(asylumCase))
+            .thenReturn(PriorityType.STANDARD);
+        when(caseFlagsToServiceHearingValuesMapper.getListingComments(asylumCase)).thenReturn(listingComments);
+        when(caseFlagsToServiceHearingValuesMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
+        when(caseFlagsToServiceHearingValuesMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
+        when(caseFlagsToServiceHearingValuesMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
+
+        serviceHearingValuesProvider = new ServiceHearingValuesProvider(
+            caseDataToServiceHearingValuesMapper,
+            caseFlagsToServiceHearingValuesMapper
+        );
     }
 
     @Test
     void should_get_service_hearing_values() {
 
-        ServiceHearingValuesModel serviceHearingValuesModel = serviceHearingValuesProvider
+        ServiceHearingValuesModel expected = buildTestValues();
+        ServiceHearingValuesModel actual = serviceHearingValuesProvider
             .provideServiceHearingValues(asylumCase, caseReference);
 
-        assertThat(serviceHearingValuesModel).usingRecursiveComparison().isEqualTo(buildTestValues());
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -113,35 +154,31 @@ class ServiceHearingValuesProviderTest {
     }
 
     private ServiceHearingValuesModel buildTestValues() {
-        String hearingChannel = "INTER";
-        String dateRangeEnd = "2023-08-15";
+
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(HMCTS_SERVICE_ID)
             .hmctsInternalCaseName(hmctsCaseNameInternal)
-            .publicCaseName("publicCaseName")
+            .publicCaseName(caseReference)
             .caseCategories(List.of(new CaseCategoryModel()))
-            .caseAdditionalSecurityFlag(false)
-            .caseDeepLink(deepCaseLink)
+            .caseAdditionalSecurityFlag(true)
+            .caseDeepLink(caseDeepLink)
             .caserestrictedFlag(false)
             .externalCaseReference(homeOfficeRef)
             .caseManagementLocationCode(BaseLocation.BIRMINGHAM.getId())
             .caseSlaStartDate(dateStr)
-            .autoListFlag(true)
+            .autoListFlag(false)
             .hearingType("hearingType")
-            .hearingWindow(HearingWindowModel.builder()
-                .dateRangeStart(dateStr)
-                .dateRangeEnd(dateRangeEnd)
-                .build())
+            .hearingWindow(hearingWindowModel)
             .duration(Integer.parseInt(listCaseHearingLength))
             .hearingPriorityType(PriorityType.STANDARD)
             .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
             .hearingLocations(HearingLocationModel.builder().build())
             .facilitiesRequired(Collections.emptyList())
-            .listingComments("")
+            .listingComments(listingComments)
             .hearingRequester("")
-            .privateHearingRequiredFlag(false)
-            .caseInterpreterRequiredFlag(false)
+            .privateHearingRequiredFlag(true)
+            .caseInterpreterRequiredFlag(true)
             .panelRequirements(PanelRequirementsModel.builder().build())
             .leadJudgeContractType("")
             .judiciary(JudiciaryModel.builder().roleType(Collections.emptyList())
@@ -153,10 +190,10 @@ class ServiceHearingValuesProviderTest {
                .build())
             .hearingIsLinkedFlag(false)
             .parties(Collections.emptyList())
-            .caseflags(Caseflags.builder().build())
+            .caseflags(caseflags)
             .screenFlow(Collections.emptyList())
             .vocabulary(Collections.emptyList())
-            .hearingChannels(List.of(hearingChannel))
+            .hearingChannels(hearingChannels)
             .build();
     }
 }

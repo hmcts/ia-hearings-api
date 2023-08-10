@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
+import java.util.List;
 import com.fasterxml.jackson.core.type.TypeReference;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 
 public enum AsylumCaseFieldDefinition {
 
@@ -15,7 +17,22 @@ public enum AsylumCaseFieldDefinition {
     HMCTS_CASE_NAME_INTERNAL(
         "hmctsCaseNameInternal", new TypeReference<String>() {}),
     LIST_CASE_HEARING_LENGTH(
-        "listCaseHearingLength", new TypeReference<String>() {});
+        "listCaseHearingLength", new TypeReference<String>() {}),
+    APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {
+    }),
+    WITNESS_LEVEL_FLAGS(
+        "witnessLevelFlags", new TypeReference<List<IdValue<StrategicCaseFlag>>>() {}),
+    CASE_FLAGS(
+        "caseFlags", new TypeReference<StrategicCaseFlag>(){}),
+    APPELLANT_GIVEN_NAMES(
+        "appellantGivenNames", new TypeReference<String>(){}),
+
+    APPELLANT_FAMILY_NAME(
+        "appellantFamilyName", new TypeReference<String>(){}),
+    APPELLANT_NAME_FOR_DISPLAY(
+        "appellantNameForDisplay", new TypeReference<String>(){}),
+    ADDITIONAL_INSTRUCTIONS_TRIBUNAL_RESPONSE(
+        "additionalInstructionsTribunalResponse", new TypeReference<String>(){});
 
 
 

@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.field.YesOrNo;
 
 class YesOrNoTest {
 
