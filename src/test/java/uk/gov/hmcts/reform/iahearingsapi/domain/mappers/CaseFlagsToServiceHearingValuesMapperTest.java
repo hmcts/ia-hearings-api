@@ -57,14 +57,18 @@ class CaseFlagsToServiceHearingValuesMapperTest {
 
     private final String caseReference = "caseReference";
     private final String flagAmendUrl = "/cases/case-details/" + caseReference + "#Case%20flags";
+    private final String partyId = "partyId";
     private CaseFlagsToServiceHearingValuesMapper mapper;
 
     @Mock
     private AsylumCase asylumCase;
+    @Mock
+    private CaseDataToServiceHearingValuesMapper caseDataMapper;
 
     @BeforeEach
     void setup() {
-        mapper = new CaseFlagsToServiceHearingValuesMapper();
+        when(caseDataMapper.getPartyId()).thenReturn(partyId);
+        mapper = new CaseFlagsToServiceHearingValuesMapper(caseDataMapper);
     }
 
     @Test
@@ -411,7 +415,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagAmendUrl(flagAmendUrl)
             .flags(List.of(
                 PartyFlagsModel.builder()
-                    .partyId("case1")
+                    .partyId(partyId)
                     .partyName("case1")
                     .flagId("id1")
                     .flagStatus("Active")
@@ -469,14 +473,14 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagAmendUrl(flagAmendUrl)
             .flags(List.of(
                 PartyFlagsModel.builder()
-                    .partyId("appellant1")
+                    .partyId(partyId)
                     .partyName("appellant1")
                     .flagId("id4")
                     .flagStatus("Active")
                     .flagDescription(LITIGATION_FRIEND.getName())
                     .build(),
                 PartyFlagsModel.builder()
-                    .partyId("witness3")
+                    .partyId(partyId)
                     .partyName("witness3")
                     .flagId("id7")
                     .flagStatus("Active")

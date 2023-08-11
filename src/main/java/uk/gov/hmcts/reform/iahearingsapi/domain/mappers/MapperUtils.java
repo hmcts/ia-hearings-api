@@ -1,10 +1,18 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_FAMILY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_IN_UK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HAS_SPONSOR;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.AIP;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
+
+import java.util.Objects;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 
 public class MapperUtils {
 
@@ -24,5 +32,29 @@ public class MapperUtils {
                 ? appellantGivenNames + " " + appellantFamilyName
                 : null;
         });
+    }
+
+    public static boolean isAipJourney(AsylumCase asylumCase) {
+        return asylumCase.read(JOURNEY_TYPE, String.class)
+            .map(journeyType -> Objects.equals(AIP.getValue(), journeyType)).orElse(false);
+    }
+
+    public static boolean isRepJourney(AsylumCase asylumCase) {
+        return asylumCase.read(JOURNEY_TYPE, String.class)
+            .map(journeyType -> Objects.equals(REP.getValue(), journeyType)).orElse(true);
+    }
+
+    public static boolean isAppellantInUk(AsylumCase asylumCase) {
+        return asylumCase.read(APPELLANT_IN_UK, YesOrNo.class)
+            .map(inUk -> YesOrNo.YES == inUk).orElse(true);
+    }
+
+    public static boolean isS94B(AsylumCase asylumCase) {
+        return asylumCase.read(S94B_STATUS, YesOrNo.class)
+            .map(s94bStatus -> YesOrNo.YES == s94bStatus).orElse(false);
+    }
+
+    public static boolean hasSponsor(AsylumCase asylumCase) {
+        return asylumCase.read(HAS_SPONSOR, YesOrNo.class).map(sponsor -> YesOrNo.YES == sponsor).orElse(false);
     }
 }

@@ -84,9 +84,9 @@ class ServiceHearingValuesProviderTest {
     @Mock
     private AsylumCase asylumCase;
     @Mock
-    private CaseDataToServiceHearingValuesMapper caseDataToServiceHearingValuesMapper;
+    private CaseDataToServiceHearingValuesMapper caseDataMapper;
     @Mock
-    private CaseFlagsToServiceHearingValuesMapper caseFlagsToServiceHearingValuesMapper;
+    private CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
     @Mock
     private PartyDetailsMapper partyDetailsMapper;
 
@@ -109,28 +109,28 @@ class ServiceHearingValuesProviderTest {
         DynamicList hearingChannel = new DynamicList("INTER");
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(hearingChannel));
 
-        when(caseDataToServiceHearingValuesMapper.getHearingChannels(asylumCase)).thenReturn(hearingChannels);
-        when(caseDataToServiceHearingValuesMapper.getExternalCaseReference(asylumCase)).thenReturn(homeOfficeRef);
-        when(caseDataToServiceHearingValuesMapper.getHearingWindowModel()).thenReturn(hearingWindowModel);
-        when(caseDataToServiceHearingValuesMapper.getCaseManagementLocationCode(asylumCase))
+        when(caseDataMapper.getHearingChannels(asylumCase)).thenReturn(hearingChannels);
+        when(caseDataMapper.getExternalCaseReference(asylumCase)).thenReturn(homeOfficeRef);
+        when(caseDataMapper.getHearingWindowModel()).thenReturn(hearingWindowModel);
+        when(caseDataMapper.getCaseManagementLocationCode(asylumCase))
             .thenReturn(BaseLocation.BIRMINGHAM.getId());
-        when(caseDataToServiceHearingValuesMapper.getCaseSlaStartDate()).thenReturn(dateStr);
-        when(caseDataToServiceHearingValuesMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);
-        when(caseFlagsToServiceHearingValuesMapper.getPublicCaseName(asylumCase, caseReference))
+        when(caseDataMapper.getCaseSlaStartDate()).thenReturn(dateStr);
+        when(caseDataMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);
+        when(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
             .thenReturn(caseReference);
-        when(caseFlagsToServiceHearingValuesMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);
-        when(caseFlagsToServiceHearingValuesMapper.getAutoListFlag(asylumCase)).thenReturn(false);
-        when(caseFlagsToServiceHearingValuesMapper.getHearingPriorityType(asylumCase))
+        when(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);
+        when(caseFlagsMapper.getAutoListFlag(asylumCase)).thenReturn(false);
+        when(caseFlagsMapper.getHearingPriorityType(asylumCase))
             .thenReturn(PriorityType.STANDARD);
-        when(caseFlagsToServiceHearingValuesMapper.getListingComments(asylumCase)).thenReturn(listingComments);
-        when(caseFlagsToServiceHearingValuesMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
-        when(caseFlagsToServiceHearingValuesMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
-        when(caseFlagsToServiceHearingValuesMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
-        when(partyDetailsMapper.map(asylumCase, caseFlagsToServiceHearingValuesMapper)).thenReturn(partyDetails);
+        when(caseFlagsMapper.getListingComments(asylumCase)).thenReturn(listingComments);
+        when(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
+        when(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
+        when(caseFlagsMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
+        when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper)).thenReturn(partyDetails);
 
         serviceHearingValuesProvider = new ServiceHearingValuesProvider(
-            caseDataToServiceHearingValuesMapper,
-            caseFlagsToServiceHearingValuesMapper,
+            caseDataMapper,
+            caseFlagsMapper,
             partyDetailsMapper
         );
     }
