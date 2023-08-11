@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsMo
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 
 @Slf4j
 @Service
@@ -28,6 +29,7 @@ public class ServiceHearingValuesProvider {
 
     private final CaseDataToServiceHearingValuesMapper caseDataToServiceHearingValuesMapper;
     private final CaseFlagsToServiceHearingValuesMapper caseFlagsToServiceHearingValuesMapper;
+    private final PartyDetailsMapper partyDetailsMapper;
 
     public ServiceHearingValuesModel provideServiceHearingValues(AsylumCase asylumCase, String caseReference) {
         requireNonNull(caseReference, "Case Reference must not be null");
@@ -56,7 +58,6 @@ public class ServiceHearingValuesProvider {
             .caseSlaStartDate(caseDataToServiceHearingValuesMapper.getCaseSlaStartDate())
             .autoListFlag(caseFlagsToServiceHearingValuesMapper.getAutoListFlag(asylumCase))
             .duration(Integer.parseInt(listCaseHearingLength))
-            .hearingType("hearingType")
             .hearingWindow(caseDataToServiceHearingValuesMapper
                 .getHearingWindowModel())
             .hearingPriorityType(caseFlagsToServiceHearingValuesMapper.getHearingPriorityType(asylumCase))
@@ -79,12 +80,13 @@ public class ServiceHearingValuesProvider {
                .panelComposition(Collections.emptyList())
                .build())
             .hearingIsLinkedFlag(false)
-            .parties(Collections.emptyList())
+            .parties(partyDetailsMapper.map(asylumCase, caseFlagsToServiceHearingValuesMapper))
             .caseflags(caseFlagsToServiceHearingValuesMapper.getCaseFlags(asylumCase, caseReference))
             .screenFlow(Collections.emptyList())
             .vocabulary(Collections.emptyList())
             .hearingChannels(caseDataToServiceHearingValuesMapper
                 .getHearingChannels(asylumCase))
+            .hearingLevelParticipantAttendance(Collections.emptyList())
             .build();
     }
 }
