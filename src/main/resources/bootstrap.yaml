@@ -14,6 +14,6 @@ spring:
         s2s-microservice: IA_S2S_MICROSERVICE
         prof-ref-data-url: PROF_REF_DATA_URL
         launch-darkly-sdk-key: LAUNCH_DARKLY_SDK_KEY
-        AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
         ia-config-validator-secret: IA_CONFIG_VALIDATOR_SECRET
+        AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
         app-insights-connection-string: APP_INSIGHTS_CONNECTION_STRING
