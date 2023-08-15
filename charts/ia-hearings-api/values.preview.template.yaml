@@ -25,9 +25,5 @@ java:
           alias: PROF_REF_DATA_URL
         - name: launch-darkly-sdk-key
           alias: LAUNCH_DARKLY_SDK_KEY
-        - name: app-insights-connection-string
-          alias: azure.application-insights.instrumentation-key
-        - name: ia-config-validator-secret
-          alias: IA_CONFIG_VALIDATOR_SECRET
-        - name: app-insights-connection-string
-          alias: APP_INSIGHTS_CONNECTION_STRING
+        - ia-config-validator-secret
+        - app-insights-connection-string

@@ -15,5 +15,4 @@ spring:
         prof-ref-data-url: PROF_REF_DATA_URL
         launch-darkly-sdk-key: LAUNCH_DARKLY_SDK_KEY
         ia-config-validator-secret: IA_CONFIG_VALIDATOR_SECRET
-        AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
-        app-insights-connection-string: APP_INSIGHTS_CONNECTION_STRING
+        app-insights-connection-string: app-insights-connection-string
