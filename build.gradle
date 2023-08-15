@@ -166,6 +166,7 @@ tasks.withType(Test) {
 
 test {
   failFast = true
+  forkEvery = 1
 }
 
 task functional(type: Test) {
@@ -238,7 +239,7 @@ jacocoTestReport {
   reports {
     xml.required = true
     csv.required = false
-    xml.getOutputLocation().set(file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml"))
+    xml.getOutputLocation().set(file("${project.buildDir}/reports/jacoco/test/jacocoTestReport.xml"))
   }
 }
 
@@ -377,6 +378,7 @@ dependencies {
 
   implementation group: 'com.github.hmcts', name:'service-auth-provider-java-client', version: versions.serviceTokenGenerator
   implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
+  implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'
 
   implementation group: 'com.sun.xml.bind', name: 'jaxb-osgi', version: '2.3.3'
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: versions.jackson

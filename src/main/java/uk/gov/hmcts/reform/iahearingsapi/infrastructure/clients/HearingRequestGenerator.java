@@ -1,37 +1,37 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.CaseCategory;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.DoW;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityDayOfWeekModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityRangeModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityType;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingLocation;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingWindow;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.IndividualDetails;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.OrganisationDetails;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PanelRequirements;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.UnavailabilityDayOfWeek;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.UnavailabilityRange;
 
 public class HearingRequestGenerator {
-
-    private static Long caseId;
 
     private HearingRequestGenerator() {
 
     }
 
-    public static HmcHearingRequestPayload generateTestHearingRequest(String caseId) {
+    public static HmcHearingRequestPayload generateTestHearingRequest(String caseReference) {
         HmcHearingRequestPayload request = new HmcHearingRequestPayload();
 
         request.setHearingDetails(hearingDetails());
-        request.setCaseDetails(caseDetails(caseId));
-        request.setPartiesDetails(partyDetails());
+        request.setCaseDetails(caseDetails(caseReference));
+        request.setPartyDetails(partyDetails());
 
         return request;
     }
@@ -41,8 +41,8 @@ public class HearingRequestGenerator {
         hearingDetails.setAutolistFlag(false);
         hearingDetails.setHearingType("BBA3-substantive");
         hearingDetails.setHearingWindow(
-            HearingWindow.builder().dateRangeStart(LocalDate.parse("2020-02-01"))
-                .dateRangeEnd(LocalDate.parse("2020-02-12"))
+            HearingWindowModel.builder().dateRangeStart("2020-02-01")
+                .dateRangeEnd("2020-02-12")
                 .build()
         );
         hearingDetails.setDuration(60);
@@ -51,22 +51,22 @@ public class HearingRequestGenerator {
         hearingDetails.setNumberOfPhysicalAttendees(4);
         hearingDetails.setHearingInWelshFlag(false);
         hearingDetails.setHearingLocations(
-            Arrays.asList(HearingLocation.builder().locationId("219164").locationType("court").build()));
+            List.of(HearingLocationModel.builder().locationId("219164").locationType("court").build()));
         hearingDetails.setFacilitiesRequired(List.of("facility1", "facility2"));
         hearingDetails.setPrivateHearingRequiredFlag(false);
         hearingDetails.setLeadJudgeContractType("84");
         hearingDetails.setPanelRequirements(
-            PanelRequirements.builder()
-                .roleTypes(Collections.emptyList())
+            PanelRequirementsModel.builder()
+                .roleType(Collections.emptyList())
                 .authorisationTypes(Collections.emptyList())
-                .authorisationSubTypes(Collections.emptyList())
+                .authorisationSubType(Collections.emptyList())
                 .panelPreferences(Collections.emptyList())
-                .panelSpecialisms(Arrays.asList("BBA3-MQPM-001"))
+                .panelSpecialisms(List.of("BBA3-MQPM-001"))
                 .build()
         );
         hearingDetails.setHearingIsLinkedFlag(false);
         hearingDetails.setAmendReasonCodes(Collections.emptyList());
-        hearingDetails.setHearingChannels(Arrays.asList("INTER"));
+        hearingDetails.setHearingChannels(List.of("INTER"));
         hearingDetails.setListingAutoChangeReasonCode("no-mapping-available");
         hearingDetails.setDuration(360);
         hearingDetails.setNonStandardHearingDurationReasons(List.of("First reason", "Second reason"));
@@ -76,10 +76,10 @@ public class HearingRequestGenerator {
         return hearingDetails;
     }
 
-    protected static CaseDetails caseDetails(String caseId) {
+    protected static CaseDetails caseDetails(String caseReference) {
         CaseDetails caseDetails = new CaseDetails();
         caseDetails.setHmctsServiceCode("BBA3");
-        caseDetails.setCaseId(caseId);
+        caseDetails.setCaseRef(caseReference);
         caseDetails.setExternalCaseReference("EXT/REF123");
         caseDetails.setCaseDeepLink("https://www.google.com");
         caseDetails.setHmctsInternalCaseName("Jane Doe vs DWP");
@@ -87,17 +87,14 @@ public class HearingRequestGenerator {
         caseDetails.setCaseManagementLocationCode("219164");
         caseDetails.setCaseRestrictedFlag(false);
         caseDetails.setCaseSlaStartDate("2030-08-20");
-        caseDetails.setCaseCategories(Arrays.asList(
-            CaseCategory.builder()
-                .categoryType("caseType")
-                .categoryValue("BBA3-001")
-                .build(),
-            CaseCategory.builder()
-                .categoryType("caseSubType")
-                .categoryValue("BBA3-001BR")
-                .categoryParent("BBA3-001")
-                .build()
-        ));
+        CaseCategoryModel cat1 = new CaseCategoryModel();
+        cat1.setCategoryType(CategoryType.CASE_TYPE);
+        cat1.setCategoryValue("BBA3-001");
+        CaseCategoryModel cat2 = new CaseCategoryModel();
+        cat2.setCategoryType(CategoryType.CASE_SUB_TYPE);
+        cat2.setCategoryParent("BBA3-001");
+        cat2.setCategoryValue("BBA3-001BR");
+        caseDetails.setCaseCategories(List.of(cat1, cat2));
         return caseDetails;
     }
 
@@ -111,38 +108,37 @@ public class HearingRequestGenerator {
         return partyDetailsArrayList;
     }
 
-    private static OrganisationDetails createOrganisationDetails() {
-        OrganisationDetails organisationDetails = new OrganisationDetails();
-        organisationDetails.setName("name");
-        organisationDetails.setOrganisationType("organisationType");
-        organisationDetails.setCftOrganisationID("cftOrganisationId01001");
-        return organisationDetails;
+    private static OrganisationDetailsModel createOrganisationDetails() {
+        return OrganisationDetailsModel.builder()
+            .name("name")
+            .organisationType("organisationType")
+            .cftOrganisationID("cftOrganisationId01001")
+            .build();
     }
 
-    private static IndividualDetails createIndividualDetails() {
-        IndividualDetails individualDetails = new IndividualDetails();
-        individualDetails.setFirstName("Harry");
-        individualDetails.setLastName("Styles");
-        individualDetails.setHearingChannelEmail(Arrays.asList(
-            "harry.styles.neveragin1@gmailsss.com",
-            "harry.styles.neveragin2@gmailsss.com",
-            "harry.styles.neveragin3@gmailsss.com"
-        ));
-        individualDetails.setHearingChannelPhone(Arrays.asList("+447398087560", "+447398087561", "+447398087562"));
-        individualDetails.setInterpreterLanguage("German");
-        individualDetails.setPreferredHearingChannel("INTER");
-        individualDetails.setReasonableAdjustments(Collections.emptyList());
-        individualDetails.setRelatedParties(Collections.emptyList());
-        individualDetails.setVulnerableFlag(false);
-        individualDetails.setVulnerabilityDetails("Vulnerability details 1");
-        individualDetails.setCustodyStatus("ACTIVE");
-        individualDetails.setOtherReasonableAdjustmentDetails("Other Reasonable Adjustment Details");
-        return individualDetails;
+    private static IndividualDetailsModel createIndividualDetails() {
+        return IndividualDetailsModel.builder()
+            .firstName("Harry")
+            .lastName("Styles")
+            .hearingChannelEmail(Arrays.asList(
+                    "harry.styles.neveragin1@gmailsss.com",
+                    "harry.styles.neveragin2@gmailsss.com",
+                    "harry.styles.neveragin3@gmailsss.com"))
+            .hearingChannelPhone(Arrays.asList("+447398087560", "+447398087561", "+447398087562"))
+            .interpreterLanguage("German")
+            .preferredHearingChannel("INTER")
+            .reasonableAdjustments(Collections.emptyList())
+            .relatedParties(Collections.emptyList())
+            .vulnerableFlag(false)
+            .vulnerabilityDetails("Vulnerability details 1")
+            .custodyStatus("ACTIVE")
+            .otherReasonableAdjustmentDetails("Other Reasonable Adjustment Details")
+            .build();
     }
 
     private static PartyDetails createPartyDetails(String partyID, String partyType, String partyRole,
-                                                   IndividualDetails individualDetails,
-                                                   OrganisationDetails organisationDetails) {
+                                                   IndividualDetailsModel individualDetails,
+                                                   OrganisationDetailsModel organisationDetails) {
         PartyDetails partyDetails = new PartyDetails();
         partyDetails.setPartyID(partyID);
         partyDetails.setPartyType(partyType);
@@ -154,32 +150,33 @@ public class HearingRequestGenerator {
         return partyDetails;
     }
 
-    private static List<UnavailabilityDayOfWeek> createUnavailabilityDows() {
-        List<UnavailabilityDayOfWeek> unavailabilityDows = new ArrayList<>();
-        UnavailabilityDayOfWeek unavailabilityDow1 = new UnavailabilityDayOfWeek();
-        unavailabilityDow1.setDayOfWeek("Monday");
-        unavailabilityDow1.setDayOfWeekUnavailabilityType("AM");
-        unavailabilityDows.add(unavailabilityDow1);
-        UnavailabilityDayOfWeek unavailabilityDow2 = new UnavailabilityDayOfWeek();
-        unavailabilityDow2.setDayOfWeek("Tuesday");
-        unavailabilityDow2.setDayOfWeekUnavailabilityType("PM");
-        unavailabilityDows.add(unavailabilityDow2);
-        return unavailabilityDows;
+    private static List<UnavailabilityDayOfWeekModel> createUnavailabilityDows() {
+
+        return Arrays.asList(
+            UnavailabilityDayOfWeekModel.builder()
+                .dayOfWeek(DoW.MONDAY)
+                .dayOfWeekUnavailabilityType(UnavailabilityType.AM)
+                .build(),
+            UnavailabilityDayOfWeekModel.builder()
+                .dayOfWeek(DoW.TUESDAY)
+                .dayOfWeekUnavailabilityType(UnavailabilityType.PM)
+                .build()
+        );
     }
 
-    private static List<UnavailabilityRange> createUnavailableDateRanges() {
-        UnavailabilityRange unavailabilityRanges1 = new UnavailabilityRange();
-        unavailabilityRanges1.setUnavailableFromDate(LocalDate.parse("2021-01-01"));
-        unavailabilityRanges1.setUnavailableToDate(LocalDate.parse("2021-01-15"));
-        unavailabilityRanges1.setUnavailabilityType("All Day");
-        UnavailabilityRange unavailabilityRanges2 = new UnavailabilityRange();
-        unavailabilityRanges2.setUnavailableFromDate(LocalDate.parse("2021-06-01"));
-        unavailabilityRanges2.setUnavailableToDate(LocalDate.parse("2021-06-21"));
-        unavailabilityRanges2.setUnavailabilityType("All Day");
+    private static List<UnavailabilityRangeModel> createUnavailableDateRanges() {
 
-        List<UnavailabilityRange> listUnavailabilityRanges = new ArrayList<>();
-        listUnavailabilityRanges.add(unavailabilityRanges1);
-        listUnavailabilityRanges.add(unavailabilityRanges2);
-        return listUnavailabilityRanges;
+        return Arrays.asList(
+            UnavailabilityRangeModel.builder()
+                .unavailableFromDate("2021-01-01")
+                .unavailableToDate("2021-01-15")
+                .unavailabilityType(UnavailabilityType.ALL_DAY)
+                .build(),
+            UnavailabilityRangeModel.builder()
+                .unavailableFromDate("2021-06-01")
+                .unavailableToDate("2021-06-21")
+                .unavailabilityType(UnavailabilityType.ALL_DAY)
+                .build()
+        );
     }
 }

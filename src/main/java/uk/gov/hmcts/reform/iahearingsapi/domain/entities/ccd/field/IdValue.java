@@ -28,12 +28,10 @@ public class IdValue<T> {
     }
 
     public String getId() {
-        requireNonNull(id);
         return id;
     }
 
     public T getValue() {
-        requireNonNull(value);
         return value;
     }
 }
