@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATES_TO_AVOID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
@@ -8,17 +9,24 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityRangeModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityType;
 
 @Service
 @RequiredArgsConstructor
@@ -77,5 +85,57 @@ public class CaseDataToServiceHearingValuesMapper {
 
     public String getCaseDeepLink(String caseReference) {
         return String.format("/cases/case-details/%s#Overview", caseReference);
+    }
+
+    public String getHearingChannel(AsylumCase asylumCase) {
+        return asylumCase.read(HEARING_CHANNEL, DynamicList.class)
+            .map(dynamicList -> dynamicList.getValue().getCode()).orElse(null);
+    }
+
+    // TODO This is a temporary placeholder Replace with the real party ID when implemented.
+    public String getPartyId() {
+        return UUID.randomUUID().toString();
+    }
+
+    public List<UnavailabilityRangeModel> getUnavailabilityRanges(AsylumCase asylumCase) {
+
+        Optional<List<IdValue<DatesToAvoid>>> datesToAvoidOptional = asylumCase.read(DATES_TO_AVOID);
+
+        return datesToAvoidOptional.map(idValues -> idValues.stream()
+            .map(IdValue::getValue)
+            .filter(dateToAvoid -> dateToAvoid.getDateToAvoid() != null)
+            .map(dateToAvoid ->
+                     UnavailabilityRangeModel.builder()
+                         .unavailableFromDate(dateToAvoid.getDateToAvoid().toString())
+                         .unavailableToDate(dateToAvoid.getDateToAvoid().toString())
+                         .unavailabilityType(UnavailabilityType.ALL_DAY)
+                         .build()).toList()).orElse(Collections.emptyList());
+
+    }
+
+    public String getName(AsylumCase asylumCase, AsylumCaseFieldDefinition nameFieldDefinition) {
+        return asylumCase.read(nameFieldDefinition, String.class)
+            .orElse(null);
+    }
+
+    public List<String> getHearingChannelEmail(
+        AsylumCase asylumCase,
+        AsylumCaseFieldDefinition emailFieldDefinition) {
+        return asylumCase.read(emailFieldDefinition, String.class).map(List::of).orElse(Collections.emptyList());
+    }
+
+    public List<String> getHearingChannelPhone(
+        AsylumCase asylumCase,
+        AsylumCaseFieldDefinition phoneFieldDefinition) {
+        return asylumCase.read(phoneFieldDefinition, String.class).map(List::of).orElse(Collections.emptyList());
+    }
+
+    public String getRespondentName(AsylumCase asylumCase) {
+
+        if (MapperUtils.isAppellantInUk(asylumCase) || MapperUtils.isS94B(asylumCase)) {
+            return "Secretary of State";
+        } else {
+            return "Entry Clearance Officer";
+        }
     }
 }

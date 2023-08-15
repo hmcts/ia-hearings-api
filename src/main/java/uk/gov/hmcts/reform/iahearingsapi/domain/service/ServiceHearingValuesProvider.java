@@ -27,8 +27,8 @@ public class ServiceHearingValuesProvider {
 
     static final String HMCTS_SERVICE_ID = "BFA1";
 
-    private final CaseDataToServiceHearingValuesMapper caseDataToServiceHearingValuesMapper;
-    private final CaseFlagsToServiceHearingValuesMapper caseFlagsToServiceHearingValuesMapper;
+    private final CaseDataToServiceHearingValuesMapper caseDataMapper;
+    private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
     private final PartyDetailsMapper partyDetailsMapper;
 
     public ServiceHearingValuesModel provideServiceHearingValues(AsylumCase asylumCase, String caseReference) {
@@ -46,28 +46,28 @@ public class ServiceHearingValuesProvider {
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(HMCTS_SERVICE_ID)
             .hmctsInternalCaseName(hmctsInternalCaseName)
-            .publicCaseName(caseFlagsToServiceHearingValuesMapper.getPublicCaseName(asylumCase, caseReference))
-            .caseAdditionalSecurityFlag(caseFlagsToServiceHearingValuesMapper
+            .publicCaseName(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
+            .caseAdditionalSecurityFlag(caseFlagsMapper
                 .getCaseAdditionalSecurityFlag(asylumCase))
             .caseCategories(List.of(new CaseCategoryModel()))
-            .caseDeepLink(caseDataToServiceHearingValuesMapper.getCaseDeepLink(caseReference))
-            .externalCaseReference(caseDataToServiceHearingValuesMapper
+            .caseDeepLink(caseDataMapper.getCaseDeepLink(caseReference))
+            .externalCaseReference(caseDataMapper
                 .getExternalCaseReference(asylumCase))
-            .caseManagementLocationCode(caseDataToServiceHearingValuesMapper
+            .caseManagementLocationCode(caseDataMapper
                 .getCaseManagementLocationCode(asylumCase))
-            .caseSlaStartDate(caseDataToServiceHearingValuesMapper.getCaseSlaStartDate())
-            .autoListFlag(caseFlagsToServiceHearingValuesMapper.getAutoListFlag(asylumCase))
+            .caseSlaStartDate(caseDataMapper.getCaseSlaStartDate())
+            .autoListFlag(caseFlagsMapper.getAutoListFlag(asylumCase))
             .duration(Integer.parseInt(listCaseHearingLength))
-            .hearingWindow(caseDataToServiceHearingValuesMapper
+            .hearingWindow(caseDataMapper
                 .getHearingWindowModel())
-            .hearingPriorityType(caseFlagsToServiceHearingValuesMapper.getHearingPriorityType(asylumCase))
+            .hearingPriorityType(caseFlagsMapper.getHearingPriorityType(asylumCase))
             .hearingLocations(HearingLocationModel.builder().build())
             .facilitiesRequired(Collections.emptyList())
-            .listingComments(caseFlagsToServiceHearingValuesMapper.getListingComments(asylumCase))
+            .listingComments(caseFlagsMapper.getListingComments(asylumCase))
             .hearingRequester("")
-            .privateHearingRequiredFlag(caseFlagsToServiceHearingValuesMapper
+            .privateHearingRequiredFlag(caseFlagsMapper
                 .getPrivateHearingRequiredFlag(asylumCase))
-            .caseInterpreterRequiredFlag(caseFlagsToServiceHearingValuesMapper
+            .caseInterpreterRequiredFlag(caseFlagsMapper
                 .getCaseInterpreterRequiredFlag(asylumCase))
             .panelRequirements(PanelRequirementsModel.builder().build())
             .leadJudgeContractType("")
@@ -80,11 +80,11 @@ public class ServiceHearingValuesProvider {
                .panelComposition(Collections.emptyList())
                .build())
             .hearingIsLinkedFlag(false)
-            .parties(partyDetailsMapper.map(asylumCase, caseFlagsToServiceHearingValuesMapper))
-            .caseflags(caseFlagsToServiceHearingValuesMapper.getCaseFlags(asylumCase, caseReference))
+            .parties(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+            .caseflags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference))
             .screenFlow(Collections.emptyList())
             .vocabulary(Collections.emptyList())
-            .hearingChannels(caseDataToServiceHearingValuesMapper
+            .hearingChannels(caseDataMapper
                 .getHearingChannels(asylumCase))
             .hearingLevelParticipantAttendance(Collections.emptyList())
             .build();

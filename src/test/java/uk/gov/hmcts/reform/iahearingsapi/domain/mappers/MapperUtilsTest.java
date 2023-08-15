@@ -1,19 +1,31 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_FAMILY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_IN_UK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HAS_SPONSOR;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.AIP;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
 
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 
+@ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class MapperUtilsTest {
 
@@ -47,6 +59,88 @@ class MapperUtilsTest {
     void getAppellantFullName_should_return_null() {
 
         assertNull(MapperUtils.getAppellantFullName(asylumCase));
+    }
+
+    @Test
+    void isAipJourney_should_return_true() {
+
+        when(asylumCase.read(JOURNEY_TYPE, String.class)).thenReturn(Optional.of(AIP.getValue()));
+
+        assertTrue(MapperUtils.isAipJourney(asylumCase));
+    }
+
+    @Test
+    void isAipJourney_should_return_false() {
+
+        assertFalse(MapperUtils.isAipJourney(asylumCase));
+    }
+
+    @Test
+    void isRepJourney_should_return_true() {
+
+        assertTrue(MapperUtils.isRepJourney(asylumCase));
+
+        when(asylumCase.read(JOURNEY_TYPE, String.class)).thenReturn(Optional.of(REP.getValue()));
+
+        assertTrue(MapperUtils.isRepJourney(asylumCase));
+    }
+
+    @Test
+    void isRepJourney_should_return_false() {
+
+        when(asylumCase.read(JOURNEY_TYPE, String.class)).thenReturn(Optional.of(AIP.getValue()));
+
+        assertFalse(MapperUtils.isRepJourney(asylumCase));
+    }
+
+    @Test
+    void isAppellantInUk_should_return_true() {
+
+        assertTrue(MapperUtils.isAppellantInUk(asylumCase));
+
+        when(asylumCase.read(APPELLANT_IN_UK, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
+
+        assertTrue(MapperUtils.isAppellantInUk(asylumCase));
+    }
+
+    @Test
+    void isAppellantInUk_should_return_false() {
+
+        when(asylumCase.read(APPELLANT_IN_UK, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
+
+        assertFalse(MapperUtils.isAppellantInUk(asylumCase));
+    }
+
+    @Test
+    void isS94B_should_return_true() {
+
+        when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
+
+        assertTrue(MapperUtils.isS94B(asylumCase));
+    }
+
+    @Test
+    void isS94B_should_return_false() {
+
+        when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
+
+        assertFalse(MapperUtils.isS94B(asylumCase));
+    }
+
+    @Test
+    void hasSponsor_should_return_true() {
+
+        when(asylumCase.read(HAS_SPONSOR, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
+
+        assertTrue(MapperUtils.hasSponsor(asylumCase));
+    }
+
+    @Test
+    void hasSponsor_should_return_false() {
+
+        when(asylumCase.read(HAS_SPONSOR, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
+
+        assertFalse(MapperUtils.hasSponsor(asylumCase));
     }
 
 }
