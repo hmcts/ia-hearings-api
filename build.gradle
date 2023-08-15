@@ -121,11 +121,11 @@ sourceSets {
   }
 }
 
-processFunctionalTestResources {
+processIntegrationTestResources {
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-processIntegrationTestResources {
+processFunctionalTestResources {
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
