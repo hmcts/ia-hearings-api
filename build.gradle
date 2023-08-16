@@ -301,6 +301,8 @@ ext {
     dependencies {
       // CVE-2020-15522
       dependency group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.70'
+      dependency group: 'org.yaml', name: 'snakeyaml', version: '2.1'
+      dependency group: 'commons-fileupload', name: 'commons-fileupload', version: '1.5'
 
       // CVE-2019-10086
       dependencySet(group: 'commons-beanutils', version: '1.9.4') {
@@ -373,13 +375,13 @@ dependencies {
 
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 
-  smokeTestImplementation(group: 'org.yaml', name: 'snakeyaml', version: '2.1')
+  smokeTestImplementation group: 'org.yaml', name: 'snakeyaml'
 
-  integrationTestImplementation(group: 'org.yaml', name: 'snakeyaml', version: '2.1')
+  integrationTestImplementation group: 'org.yaml', name: 'snakeyaml'
 
-  functionalTestImplementation(group: 'org.yaml', name: 'snakeyaml', version: '2.1')
+  functionalTestImplementation group: 'org.yaml', name: 'snakeyaml'
 
-  contractImplementation(group: 'org.yaml', name: 'snakeyaml', version: '2.1')
+  contractImplementation group: 'org.yaml', name: 'snakeyaml'
 
   integrationTestImplementation sourceSets.main.runtimeClasspath
   integrationTestImplementation sourceSets.test.runtimeClasspath
