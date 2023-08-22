@@ -9,6 +9,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.INTERPRETER_LANGUAGE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.OTHER_REASONABLE_ADJUSTMENTS_DETAILS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.REASONABLE_ADJUSTMENTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.HMCTS_SERVICE_ID;
 
 import java.time.LocalDate;
@@ -16,6 +19,7 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +47,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,6 +63,9 @@ class ServiceHearingValuesProviderTest {
     private final String dateRangeEnd = "2023-08-15";
     private final String caseDeepLink = "/cases/case-details/1234567891234567#Overview";
     private final String listingComments = "Customer behaviour: unfriendly";
+    private final List<String> interpreterLanguage = List.of("deu");
+    private final List<String> reasonableAdjustments = List.of("Interpreter: Greek");
+    private final List<String> otherReasonableAdjustmentsDetails = List.of("Support filling in forms: Comment here");
     private final HearingWindowModel hearingWindowModel = HearingWindowModel.builder()
         .dateRangeStart(dateStr)
         .dateRangeEnd(dateRangeEnd)
@@ -87,6 +95,8 @@ class ServiceHearingValuesProviderTest {
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
     @Mock
     private CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
+    @Mock
+    private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
     @Mock
     private PartyDetailsMapper partyDetailsMapper;
 
@@ -127,10 +137,16 @@ class ServiceHearingValuesProviderTest {
         when(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
         when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper)).thenReturn(partyDetails);
+        when(languageAndAdjustmentsMapper.getLanguageAndAdjustmentsFields(asylumCase)).thenReturn(Map.of(
+            INTERPRETER_LANGUAGE, interpreterLanguage,
+            REASONABLE_ADJUSTMENTS, reasonableAdjustments,
+            OTHER_REASONABLE_ADJUSTMENTS_DETAILS, otherReasonableAdjustmentsDetails
+        ));
 
         serviceHearingValuesProvider = new ServiceHearingValuesProvider(
             caseDataMapper,
             caseFlagsMapper,
+            languageAndAdjustmentsMapper,
             partyDetailsMapper
         );
     }
@@ -209,6 +225,9 @@ class ServiceHearingValuesProviderTest {
             .vocabulary(Collections.emptyList())
             .hearingChannels(hearingChannels)
             .hearingLevelParticipantAttendance(Collections.emptyList())
+            .interpreterLanguage(interpreterLanguage.get(0))
+            .reasonableAdjustments(reasonableAdjustments)
+            .otherReasonableAdjustmentsDetails(otherReasonableAdjustmentsDetails)
             .build();
     }
 }
