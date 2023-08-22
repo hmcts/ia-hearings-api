@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsMo
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 
 @Slf4j
@@ -30,6 +31,7 @@ public class ServiceHearingValuesProvider {
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
     private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
     private final PartyDetailsMapper partyDetailsMapper;
+    private final ListingCommentsMapper listingCommentsMapper;
 
     public ServiceHearingValuesModel provideServiceHearingValues(AsylumCase asylumCase, String caseReference) {
         requireNonNull(caseReference, "Case Reference must not be null");
@@ -63,7 +65,7 @@ public class ServiceHearingValuesProvider {
             .hearingPriorityType(caseFlagsMapper.getHearingPriorityType(asylumCase))
             .hearingLocations(HearingLocationModel.builder().build())
             .facilitiesRequired(Collections.emptyList())
-            .listingComments(caseFlagsMapper.getListingComments(asylumCase))
+            .listingComments(listingCommentsMapper.getListingComments(asylumCase, caseFlagsMapper, caseDataMapper))
             .hearingRequester("")
             .privateHearingRequiredFlag(caseFlagsMapper
                 .getPrivateHearingRequiredFlag(asylumCase))

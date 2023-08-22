@@ -70,7 +70,34 @@ public enum AsylumCaseFieldDefinition {
         "sponsorEmail", new TypeReference<String>(){}),
 
     SPONSOR_MOBILE_NUMBER(
-        "sponsorMobileNumber", new TypeReference<String>(){});
+        "sponsorMobileNumber", new TypeReference<String>(){}),
+
+    VULNERABILITIES_TRIBUNAL_RESPONSE(
+        "vulnerabilitiesTribunalResponse", new TypeReference<String>() {}),
+
+    MULTIMEDIA_TRIBUNAL_RESPONSE(
+        "multimediaTribunalResponse", new TypeReference<String>() {}),
+
+    ADDITIONAL_TRIBUNAL_RESPONSE(
+        "additionalTribunalResponse", new TypeReference<String>() {}),
+
+    SINGLE_SEX_COURT_TYPE(
+        "singleSexCourtType", new TypeReference<String>() {}),
+
+    SINGLE_SEX_COURT_TRIBUNAL_RESPONSE(
+        "singleSexCourtTribunalResponse", new TypeReference<String>() {}),
+
+    IS_VULNERABILITIES_ALLOWED(
+            "isVulnerabilitiesAllowed", new TypeReference<String>() {}),
+
+    IS_MULTIMEDIA_ALLOWED(
+            "isMultimediaAllowed", new TypeReference<String>() {}),
+
+    IS_ADDITIONAL_ADJUSTMENTS_ALLOWED(
+            "isAdditionalAdjustmentsAllowed", new TypeReference<String>() {}),
+
+    IS_SINGLE_SEX_COURT_ALLOWED(
+        "isSingleSexCourtAllowed", new TypeReference<String>() {});
 
 
 

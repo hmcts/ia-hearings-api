@@ -43,6 +43,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -89,6 +90,8 @@ class ServiceHearingValuesProviderTest {
     private CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
     @Mock
     private PartyDetailsMapper partyDetailsMapper;
+    @Mock
+    private ListingCommentsMapper listingCommentsMapper;
 
     @BeforeEach
     void setup() {
@@ -122,7 +125,8 @@ class ServiceHearingValuesProviderTest {
         when(caseFlagsMapper.getAutoListFlag(asylumCase)).thenReturn(false);
         when(caseFlagsMapper.getHearingPriorityType(asylumCase))
             .thenReturn(PriorityType.STANDARD);
-        when(caseFlagsMapper.getListingComments(asylumCase)).thenReturn(listingComments);
+        when(listingCommentsMapper.getListingComments(asylumCase, caseFlagsMapper, caseDataMapper))
+            .thenReturn(listingComments);
         when(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
@@ -131,7 +135,8 @@ class ServiceHearingValuesProviderTest {
         serviceHearingValuesProvider = new ServiceHearingValuesProvider(
             caseDataMapper,
             caseFlagsMapper,
-            partyDetailsMapper
+            partyDetailsMapper,
+            listingCommentsMapper
         );
     }
 

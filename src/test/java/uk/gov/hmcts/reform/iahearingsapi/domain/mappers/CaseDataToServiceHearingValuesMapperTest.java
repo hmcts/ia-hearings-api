@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_EMAIL_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_IN_UK;
@@ -12,13 +13,22 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATES_TO_AVOID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_ADDITIONAL_ADJUSTMENTS_ALLOWED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_MULTIMEDIA_ALLOWED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VULNERABILITIES_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REPRESENTATIVE_EMAIL_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_FAMILY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_MOBILE_PHONE_NUMBER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.REFUSED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper.HEARING_WINDOW_INTERVAL;
+
+
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -77,6 +87,13 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         DynamicList hearingChannel = new DynamicList("INTER");
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(hearingChannel));
+
+        when(asylumCase.read(VULNERABILITIES_TRIBUNAL_RESPONSE, String.class))
+            .thenReturn(Optional.of("vulnerabilities"));
+        when(asylumCase.read(MULTIMEDIA_TRIBUNAL_RESPONSE, String.class))
+            .thenReturn(Optional.of("multimedia"));
+        when(asylumCase.read(ADDITIONAL_TRIBUNAL_RESPONSE, String.class))
+            .thenReturn(Optional.of("adjustments"));
 
         mapper =
             new CaseDataToServiceHearingValuesMapper(hearingServiceDateProvider);
@@ -281,6 +298,50 @@ class CaseDataToServiceHearingValuesMapperTest {
         when(asylumCase.read(APPELLANT_IN_UK, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
 
         assertEquals("Entry Clearance Officer", mapper.getRespondentName(asylumCase));
+    }
+
+    @Test
+    void getListingCommentsFromHearingRequest_should_return_vulnerabilities_multimedia_adjustments_with_all_granted() {
+        when(asylumCase.read(IS_VULNERABILITIES_ALLOWED, String.class))
+            .thenReturn(Optional.of(GRANTED.getValue()));
+        when(asylumCase.read(IS_MULTIMEDIA_ALLOWED, String.class))
+            .thenReturn(Optional.of(GRANTED.getValue()));
+        when(asylumCase.read(IS_ADDITIONAL_ADJUSTMENTS_ALLOWED, String.class))
+            .thenReturn(Optional.of(GRANTED.getValue()));
+
+        String listingComments = mapper.getListingCommentsFromHearingRequest(asylumCase);
+
+        assertEquals(listingComments, "Adjustments to accommodate vulnerabilities: vulnerabilities;"
+            + "Multimedia equipment: multimedia;"
+            + "Other adjustments: adjustments;");
+    }
+
+    @Test
+    void getListingCommentsFromHearingRequest_should_return_adjustments_with_granted() {
+        when(asylumCase.read(IS_VULNERABILITIES_ALLOWED, String.class))
+            .thenReturn(Optional.of(REFUSED.getValue()));
+        when(asylumCase.read(IS_MULTIMEDIA_ALLOWED, String.class))
+            .thenReturn(Optional.of(REFUSED.getValue()));
+        when(asylumCase.read(IS_ADDITIONAL_ADJUSTMENTS_ALLOWED, String.class))
+            .thenReturn(Optional.of(GRANTED.getValue()));
+
+        String listingComments = mapper.getListingCommentsFromHearingRequest(asylumCase);
+
+        assertEquals(listingComments, "Other adjustments: adjustments;");
+    }
+
+    @Test
+    void getListingCommentsFromHearingRequest_should_return_empty_string_with_all_refused() {
+        when(asylumCase.read(IS_VULNERABILITIES_ALLOWED, String.class))
+            .thenReturn(Optional.of(REFUSED.getValue()));
+        when(asylumCase.read(IS_MULTIMEDIA_ALLOWED, String.class))
+            .thenReturn(Optional.of(REFUSED.getValue()));
+        when(asylumCase.read(IS_ADDITIONAL_ADJUSTMENTS_ALLOWED, String.class))
+            .thenReturn(Optional.of(REFUSED.getValue()));
+
+        String listingComments = mapper.getListingCommentsFromHearingRequest(asylumCase);
+
+        assertEquals(listingComments, "");
     }
 
 }
