@@ -1,13 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
-import java.util.Collections;
-import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
-
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_EMAIL_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_FAMILY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES;
@@ -19,6 +11,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SINGLE_SEX_COURT_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.SingleSexType.MALE;
+
+import java.util.Collections;
+import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 
 @Component
 public class AppellantDetailsMapper {
