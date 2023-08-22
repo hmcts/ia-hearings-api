@@ -5,6 +5,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -153,12 +154,9 @@ public class LanguageAndAdjustmentsMapper {
     }
 
     private List<StrategicCaseFlag> getAppellantAndWitnessCaseFlags(AsylumCase asylumCase) {
-        List<StrategicCaseFlag> caseFlags = new ArrayList<>();
-        List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
-            .map(List::of).orElse(Collections.emptyList());
-        if (!appellantCaseFlags.isEmpty()) {
-            caseFlags.addAll(appellantCaseFlags);
-        }
+        List<StrategicCaseFlag> caseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .map(Lists::newArrayList).orElse(new ArrayList<>());
+
         Optional<List<IdValue<StrategicCaseFlag>>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
         caseFlagsOptional.ifPresent(idValues -> {
             List<StrategicCaseFlag> witnessCaseFlags = idValues
