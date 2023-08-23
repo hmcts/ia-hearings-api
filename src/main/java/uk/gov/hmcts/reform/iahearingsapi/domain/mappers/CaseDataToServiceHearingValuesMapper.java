@@ -1,10 +1,18 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATES_TO_AVOID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_ADDITIONAL_ADJUSTMENTS_ALLOWED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_MULTIMEDIA_ALLOWED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VULNERABILITIES_ALLOWED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
+
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -137,5 +145,52 @@ public class CaseDataToServiceHearingValuesMapper {
         } else {
             return "Entry Clearance Officer";
         }
+    }
+
+    public String getListingCommentsFromHearingRequest(AsylumCase asylumCase) {
+        StringBuilder responseFromHearingRequest = new StringBuilder();
+
+        String isVulnerabilitiesAllowed = asylumCase.read(IS_VULNERABILITIES_ALLOWED, String.class)
+            .orElse("");
+        String isMultimediaAllowed = asylumCase.read(IS_MULTIMEDIA_ALLOWED, String.class)
+            .orElse("");
+        String isAdditionalAdjustmentsAllowed = asylumCase.read(IS_ADDITIONAL_ADJUSTMENTS_ALLOWED, String.class)
+            .orElse("");
+
+        responseFromHearingRequest.append(
+            GRANTED.getValue().equals(isVulnerabilitiesAllowed) ? getGrantedHearingResponseFromField(
+                asylumCase,
+                "Adjustments to accommodate vulnerabilities: ",
+                VULNERABILITIES_TRIBUNAL_RESPONSE
+            ) : "");
+
+        responseFromHearingRequest.append(
+            GRANTED.getValue().equals(isMultimediaAllowed) ? getGrantedHearingResponseFromField(
+                asylumCase,
+                "Multimedia equipment: ",
+                MULTIMEDIA_TRIBUNAL_RESPONSE
+            ) : "");
+
+        responseFromHearingRequest.append(
+            GRANTED.getValue().equals(isAdditionalAdjustmentsAllowed) ? getGrantedHearingResponseFromField(
+                asylumCase,
+                "Other adjustments: ",
+                ADDITIONAL_TRIBUNAL_RESPONSE
+            ) : "");
+
+        return responseFromHearingRequest.toString();
+
+    }
+
+    private StringBuilder getGrantedHearingResponseFromField(AsylumCase asylumCase,
+                                                      String hearingRequestTitle,
+                                                      AsylumCaseFieldDefinition responseField) {
+        StringBuilder result = new StringBuilder();
+
+        result.append(hearingRequestTitle);
+        result.append(asylumCase.read(responseField, String.class).orElse(""));
+        result.append(";");
+
+        return result;
     }
 }
