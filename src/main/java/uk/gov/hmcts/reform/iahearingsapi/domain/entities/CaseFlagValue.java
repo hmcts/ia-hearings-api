@@ -13,7 +13,9 @@ public class CaseFlagValue {
     String name;
     String status;
     String flagCode;
+    String subTypeKey;
     String flagComment;
+    String subTypeValue;
     YesOrNo hearingRelevant;
     String dateTimeCreated;
     String dateTimeModified;
