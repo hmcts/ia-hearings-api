@@ -103,19 +103,17 @@ public class LanguageAndAdjustmentsMapper {
             ? interpreterLanguageFlag.getCaseFlagValue().getSubTypeKey()
             : "";
 
-        fields.put(INTERPRETER_LANGUAGE, Collections.singletonList(interpreterLanguage));
-
         List<String> otherLanguages = buildOtherLanguagesField(otherLanguageFlags);
         List<String> reasonableAdjustmentsComments = buildReasonableAdjustmentsFlagComments(reasonableAdjustmentsFlags);
 
         List<String> otherReasonableAdjustments = Stream.concat(otherLanguages.stream(), reasonableAdjustmentsComments
                 .stream()).collect(Collectors.toList());
 
-        fields.put(OTHER_REASONABLE_ADJUSTMENTS_DETAILS, otherReasonableAdjustments);
-
         List<String> reasonableAdjustments = reasonableAdjustmentsFlags.stream()
             .map(flag -> flag.getCaseFlagValue().getFlagCode()).toList();
 
+        fields.put(INTERPRETER_LANGUAGE, Collections.singletonList(interpreterLanguage));
+        fields.put(OTHER_REASONABLE_ADJUSTMENTS_DETAILS, otherReasonableAdjustments);
         fields.put(REASONABLE_ADJUSTMENTS, reasonableAdjustments);
 
         return fields;
