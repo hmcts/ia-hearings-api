@@ -38,6 +38,7 @@ public class LanguageAndAdjustmentsMapper {
     public static final String REASONABLE_ADJUSTMENTS = "reasonableAdjustments";
 
     public static final String INTERPRETER = "Interpreter: ";
+    private static final String ACTIVE = "Active";
 
     /**
      * Method to extract the interpreter language, other reasonable adjustments details and reasonable adjustments.
@@ -56,12 +57,7 @@ public class LanguageAndAdjustmentsMapper {
     public Map<String, List<String>> getLanguageAndAdjustmentsFields(AsylumCase asylumCase) {
         Map<String, List<String>> fields = new HashMap<>();
 
-        List<CaseFlagDetail> caseFlags = getAppellantAndWitnessCaseFlags(asylumCase)
-            .stream()
-            .map(StrategicCaseFlag::getDetails)
-            .flatMap(Collection::stream)
-            .filter(detail -> Objects.equals("Active", detail.getCaseFlagValue().getStatus()))
-            .toList();
+        List<CaseFlagDetail> caseFlags = filterForActiveCaseFlagDetails(getAppellantAndWitnessCaseFlags(asylumCase));
 
         List<CaseFlagDetail> languageFlags = new ArrayList<>();
         List<CaseFlagDetail> reasonableAdjustmentsFlags = new ArrayList<>();
@@ -84,24 +80,9 @@ public class LanguageAndAdjustmentsMapper {
 
         // extract one flag with code to populate "interpreterLanguage" and group all the others with code
         // and the ones without code to populate "otherReasonableAdjustmentsDetails"
-        CaseFlagDetail interpreterLanguageFlag = null;
         List<CaseFlagDetail> otherLanguageFlags = new ArrayList<>(Collections.emptyList());
 
-        int i = 0;
-        while (i < sortedLanguageFlags.size()) {
-            CaseFlagDetail flag = sortedLanguageFlags.get(i);
-
-            if (interpreterLanguageFlag == null && flag.getCaseFlagValue().getSubTypeKey() != null) {
-                interpreterLanguageFlag = flag;
-            } else {
-                otherLanguageFlags.add(flag);
-            }
-            i++;
-        }
-
-        String interpreterLanguage = interpreterLanguageFlag != null
-            ? interpreterLanguageFlag.getCaseFlagValue().getSubTypeKey()
-            : "";
+        String interpreterLanguage = extractInterpreterLanguageField(sortedLanguageFlags, otherLanguageFlags);
 
         List<String> otherLanguages = buildOtherLanguagesField(otherLanguageFlags);
         List<String> reasonableAdjustmentsComments = buildReasonableAdjustmentsFlagComments(reasonableAdjustmentsFlags);
@@ -165,5 +146,42 @@ public class LanguageAndAdjustmentsMapper {
         });
 
         return caseFlags;
+    }
+
+    private List<CaseFlagDetail> filterForActiveCaseFlagDetails(List<StrategicCaseFlag> strategicCaseFlags) {
+        return strategicCaseFlags
+            .stream()
+            .map(StrategicCaseFlag::getDetails)
+            .flatMap(Collection::stream)
+            .filter(detail -> Objects.equals(ACTIVE, detail.getCaseFlagValue().getStatus()))
+            .toList();
+    }
+
+    /**
+     * Find one eligible case flag to populate interpreterLanguage and add the remainder to a list
+     * that will be used to populate otherReasonableAdjustmentDetails.
+     * @param sortedLanguageFlags language flags sorted to have the ones with language-code at the top
+     * @param otherLanguageFlags collection initially empty and to be filled with the remaining flags
+     * @return the value to be used to populate interpreterLanguage
+     */
+    private String extractInterpreterLanguageField(List<CaseFlagDetail> sortedLanguageFlags,
+                                                   List<CaseFlagDetail> otherLanguageFlags) {
+        CaseFlagDetail interpreterLanguageFlag = null;
+
+        int i = 0;
+        while (i < sortedLanguageFlags.size()) {
+            CaseFlagDetail flag = sortedLanguageFlags.get(i);
+
+            if (interpreterLanguageFlag == null && flag.getCaseFlagValue().getSubTypeKey() != null) {
+                interpreterLanguageFlag = flag;
+            } else {
+                otherLanguageFlags.add(flag);
+            }
+            i++;
+        }
+
+        return interpreterLanguageFlag != null
+            ? interpreterLanguageFlag.getCaseFlagValue().getSubTypeKey()
+            : "";
     }
 }
