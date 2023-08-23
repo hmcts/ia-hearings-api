@@ -148,7 +148,7 @@ public class CaseDataToServiceHearingValuesMapper {
     }
 
     public String getListingCommentsFromHearingRequest(AsylumCase asylumCase) {
-        String responseFromHearingRequest = "";
+        StringBuilder responseFromHearingRequest = new StringBuilder();
 
         String isVulnerabilitiesAllowed = asylumCase.read(IS_VULNERABILITIES_ALLOWED, String.class)
             .orElse("");
@@ -157,43 +157,39 @@ public class CaseDataToServiceHearingValuesMapper {
         String isAdditionalAdjustmentsAllowed = asylumCase.read(IS_ADDITIONAL_ADJUSTMENTS_ALLOWED, String.class)
             .orElse("");
 
-        responseFromHearingRequest += getGrantedHearingResponseFromField(
-            asylumCase,
-            isVulnerabilitiesAllowed,
-            "Adjustments to accommodate vulnerabilities: ",
-            VULNERABILITIES_TRIBUNAL_RESPONSE
-        );
+        responseFromHearingRequest.append(
+            GRANTED.getValue().equals(isVulnerabilitiesAllowed) ? getGrantedHearingResponseFromField(
+                asylumCase,
+                "Adjustments to accommodate vulnerabilities: ",
+                VULNERABILITIES_TRIBUNAL_RESPONSE
+            ) : "");
 
-        responseFromHearingRequest += getGrantedHearingResponseFromField(
-            asylumCase,
-            isMultimediaAllowed,
-            "Multimedia equipment: ",
-            MULTIMEDIA_TRIBUNAL_RESPONSE
-        );
+        responseFromHearingRequest.append(
+            GRANTED.getValue().equals(isMultimediaAllowed) ? getGrantedHearingResponseFromField(
+                asylumCase,
+                "Multimedia equipment: ",
+                MULTIMEDIA_TRIBUNAL_RESPONSE
+            ) : "");
 
-        responseFromHearingRequest += getGrantedHearingResponseFromField(
-            asylumCase,
-            isAdditionalAdjustmentsAllowed,
-            "Other adjustments: ",
-            ADDITIONAL_TRIBUNAL_RESPONSE
-        );
+        responseFromHearingRequest.append(
+            GRANTED.getValue().equals(isAdditionalAdjustmentsAllowed) ? getGrantedHearingResponseFromField(
+                asylumCase,
+                "Other adjustments: ",
+                ADDITIONAL_TRIBUNAL_RESPONSE
+            ) : "");
 
-        return responseFromHearingRequest;
+        return responseFromHearingRequest.toString();
 
     }
 
-    private String getGrantedHearingResponseFromField(AsylumCase asylumCase,
-                                                      String isGrantedResponse,
+    private StringBuilder getGrantedHearingResponseFromField(AsylumCase asylumCase,
                                                       String hearingRequestTitle,
                                                       AsylumCaseFieldDefinition responseField) {
-        String result = "";
+        StringBuilder result = new StringBuilder();
 
-        if (GRANTED.getValue().equals(isGrantedResponse)) {
-            result += hearingRequestTitle;
-            result += asylumCase.read(responseField, String.class)
-                .orElse("");
-            result += ";";
-        }
+        result.append(hearingRequestTitle);
+        result.append(asylumCase.read(responseField, String.class).orElse(""));
+        result.append(";");
 
         return result;
     }

@@ -40,15 +40,15 @@ public class AppellantDetailsMapper {
             ? APPELLANT_PHONE_NUMBER
             : MOBILE_NUMBER;
 
-        String singleSexCourtResponse = "";
+        StringBuilder singleSexCourtResponse = new StringBuilder();
         if (GRANTED.getValue().equals(asylumCase.read(IS_SINGLE_SEX_COURT_ALLOWED, String.class).orElse(""))) {
-            singleSexCourtResponse += singleSexCourtResponseTitle;
+            singleSexCourtResponse.append(singleSexCourtResponseTitle);
             if (MALE.getValue().equals(asylumCase.read(SINGLE_SEX_COURT_TYPE, String.class).orElse(""))) {
-                singleSexCourtResponse += male;
+                singleSexCourtResponse.append(male);
             } else {
-                singleSexCourtResponse += female;
+                singleSexCourtResponse.append(female);
             }
-            singleSexCourtResponse += ";";
+            singleSexCourtResponse.append(";");
         }
 
         return PartyDetailsModel.builder()
@@ -67,7 +67,7 @@ public class AppellantDetailsMapper {
                     .hearingChannelPhone(
                         caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef))
                     .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
-                    .otherReasonableAdjustmentDetails(singleSexCourtResponse)
+                    .otherReasonableAdjustmentDetails(singleSexCourtResponse.toString())
                     .build())
             .partyRole("APEL")
             .unavailabilityDOW(Collections.emptyList())
