@@ -3,9 +3,13 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.INTERPRETER_LANGUAGE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.OTHER_REASONABLE_ADJUSTMENTS_DETAILS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.REASONABLE_ADJUSTMENTS;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +22,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsMo
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 
 @Slf4j
@@ -29,6 +34,7 @@ public class ServiceHearingValuesProvider {
 
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
     private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
+    private final LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
     private final PartyDetailsMapper partyDetailsMapper;
 
     public ServiceHearingValuesModel provideServiceHearingValues(AsylumCase asylumCase, String caseReference) {
@@ -42,6 +48,9 @@ public class ServiceHearingValuesProvider {
         String listCaseHearingLength = asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)
             .orElseThrow(() ->
                 new RequiredFieldMissingException("List case hearing length is a required field"));
+
+        Map<String, List<String>> languageAndReasonableAdjustments = languageAndAdjustmentsMapper
+            .getLanguageAndAdjustmentsFields(asylumCase);
 
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(HMCTS_SERVICE_ID)
@@ -87,6 +96,10 @@ public class ServiceHearingValuesProvider {
             .hearingChannels(caseDataMapper
                 .getHearingChannels(asylumCase))
             .hearingLevelParticipantAttendance(Collections.emptyList())
+            .interpreterLanguage(languageAndReasonableAdjustments.get(INTERPRETER_LANGUAGE).get(0))
+            .reasonableAdjustments(languageAndReasonableAdjustments.get(REASONABLE_ADJUSTMENTS))
+            .otherReasonableAdjustmentsDetails(languageAndReasonableAdjustments
+                                                   .get(OTHER_REASONABLE_ADJUSTMENTS_DETAILS))
             .build();
     }
 }
