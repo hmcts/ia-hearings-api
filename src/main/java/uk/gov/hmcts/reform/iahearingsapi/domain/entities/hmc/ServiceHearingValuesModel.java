@@ -82,8 +82,7 @@ public class ServiceHearingValuesModel {
     @NonNull
     private JudiciaryModel judiciary;
 
-    @NonNull
-    private Boolean hearingIsLinkedFlag;
+    private boolean hearingIsLinkedFlag;
 
     @NonNull
     private List<PartyDetailsModel> parties;
@@ -99,4 +98,13 @@ public class ServiceHearingValuesModel {
 
     @NonNull
     private List<String> hearingChannels;
+
+    @NonNull
+    private List<String> hearingLevelParticipantAttendance;
+
+    private String interpreterLanguage;
+
+    private List<String> reasonableAdjustments;
+
+    private List<String> otherReasonableAdjustmentsDetails;
 }

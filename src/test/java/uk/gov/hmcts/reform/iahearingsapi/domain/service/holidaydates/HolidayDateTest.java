@@ -1,22 +1,17 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service.holidaydates;
 
-import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import pl.pojo.tester.api.assertion.Method;
 
 public class HolidayDateTest {
 
-    private final Class<HolidayDate> classToTest = HolidayDate.class;
+    private final LocalDate date = LocalDate.now();
+    private final HolidayDate holidayDate = new HolidayDate(date);
 
     @Test
-    void isWellImplemented() {
-        assertPojoMethodsFor(classToTest)
-            .testing(Method.GETTER)
-            .testing(Method.EQUALS)
-            .testing(Method.HASH_CODE)
-            .testing(Method.TO_STRING)
-            .areWellImplemented();
-
+    void should_hold_unto_value() {
+        assertEquals(date, holidayDate.getDate());
     }
 }
