@@ -50,14 +50,19 @@ class InterpreterDetailsMapperTest {
         assertEquals("INTP", partyDetails1.getPartyRole());
         assertEquals("Email", partyDetails1.getIndividualDetails().getPreferredHearingChannel());
         assertEquals(
-            Collections.singletonList(interpreterDetails1.getInterpreterEmail()), partyDetails1.getIndividualDetails().getHearingChannelEmail());
+            Collections.singletonList(interpreterDetails1.getInterpreterEmail()),
+            partyDetails1.getIndividualDetails().getHearingChannelEmail()
+        );
 
         PartyDetailsModel partyDetails2 = partyDetailsList.get(1);
         assertEquals("INTP2", partyDetails2.getPartyID());
         assertEquals("IND", partyDetails2.getPartyType());
         assertEquals("INTP", partyDetails2.getPartyRole());
         assertEquals("Email", partyDetails2.getIndividualDetails().getPreferredHearingChannel());
-        assertEquals(Collections.singletonList(interpreterDetails2.getInterpreterEmail()), partyDetails2.getIndividualDetails().getHearingChannelEmail());
+        assertEquals(
+            Collections.singletonList(interpreterDetails2.getInterpreterEmail()),
+            partyDetails2.getIndividualDetails().getHearingChannelEmail()
+        );
     }
 
     @Test
