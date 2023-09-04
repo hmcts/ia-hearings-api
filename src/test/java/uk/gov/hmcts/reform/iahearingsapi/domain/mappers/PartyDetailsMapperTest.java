@@ -36,6 +36,8 @@ class PartyDetailsMapperTest {
     private SponsorDetailsMapper sponsorDetailsMapper;
     @Mock
     private WitnessDetailsMapper witnessDetailsMapper;
+    @Mock
+    private InterpreterDetailsMapper interpreterDetailsMapper;
 
     @Test
     void should_map_correctly() {
@@ -69,7 +71,8 @@ class PartyDetailsMapperTest {
             legalRepOrgDetailsMapper,
             respondentDetailsMapper,
             sponsorDetailsMapper,
-            witnessDetailsMapper
+            witnessDetailsMapper,
+            interpreterDetailsMapper
         );
 
         assertEquals(expected, mapper.map(asylumCase, caseFlagsMapper, caseDataMapper));
