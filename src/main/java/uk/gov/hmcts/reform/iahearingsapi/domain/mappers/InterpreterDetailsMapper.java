@@ -20,7 +20,6 @@ public class InterpreterDetailsMapper {
     public static final String ADJUSTMENT_DETAILS_FORMAT = "Booking Ref: %s; " + " Notes: %s";
 
     public List<PartyDetailsModel> map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
-
         Optional<List<IdValue<InterpreterDetails>>> interpreterDetailsOptional = asylumCase.read(INTERPRETER_DETAILS);
 
         return interpreterDetailsOptional
@@ -34,7 +33,6 @@ public class InterpreterDetailsMapper {
     private static PartyDetailsModel getPartyDetails(AsylumCase asylumCase,
                                                      CaseDataToServiceHearingValuesMapper caseDataMapper,
                                                      InterpreterDetails interpreterDetails) {
-
         IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()
             .firstName(interpreterDetails.getInterpreterGivenNames())
             .lastName(interpreterDetails.getInterpreterFamilyName())
