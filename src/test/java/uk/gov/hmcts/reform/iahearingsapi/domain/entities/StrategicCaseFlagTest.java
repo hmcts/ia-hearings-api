@@ -9,9 +9,7 @@ import org.junit.jupiter.api.Test;
 class StrategicCaseFlagTest {
 
     private final String appellantName = "some-appellant-name";
-
     private StrategicCaseFlag strategicCaseFlag;
-
     private List<CaseFlagDetail> caseFlagDetails;
 
     @BeforeEach
@@ -23,8 +21,8 @@ class StrategicCaseFlagTest {
 
     @Test
     void should_hold_onto_values() {
-        assertThat(strategicCaseFlag.getPartyName()).isEqualTo((appellantName));
-        assertThat(strategicCaseFlag.getRoleOnCase()).isEqualTo((StrategicCaseFlag.ROLE_ON_CASE_APPELLANT));
+        assertThat(strategicCaseFlag.getPartyName()).isEqualTo(appellantName);
+        assertThat(strategicCaseFlag.getRoleOnCase()).isEqualTo(StrategicCaseFlag.ROLE_ON_CASE_APPELLANT);
         assertThat(strategicCaseFlag.getDetails()).isEqualTo(caseFlagDetails);
     }
 }

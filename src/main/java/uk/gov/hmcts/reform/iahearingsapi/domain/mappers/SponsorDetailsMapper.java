@@ -17,7 +17,7 @@ public class SponsorDetailsMapper {
     public PartyDetailsModel map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
 
         return PartyDetailsModel.builder()
-            .partyID(caseDataMapper.getPartyId())
+            .partyID(caseDataMapper.getSponsorPartyId(asylumCase))
             .partyType(PartyType.IND.getPartyType())
             .partyRole("SPON")
             .individualDetails(

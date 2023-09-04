@@ -17,7 +17,7 @@ public class LegalRepOrgDetailsMapper {
         String legalRepCompanyName = asylumCase.read(LEGAL_REP_COMPANY_NAME, String.class).orElse(null);
 
         return PartyDetailsModel.builder()
-            .partyID(caseDataMapper.getPartyId())
+            .partyID(caseDataMapper.getLegalRepOrgPartyId(asylumCase))
             .partyType(PartyType.ORG.getPartyType())
             .partyRole("LGRP")
             .organisationDetails(

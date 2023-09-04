@@ -11,12 +11,9 @@ import lombok.Setter;
 @AllArgsConstructor
 public class WitnessDetails {
 
+    private String witnessPartyId;
     private String witnessName;
     private String witnessFamilyName;
-
-    public WitnessDetails(String witnessName) {
-        this.witnessName = witnessName;
-    }
 
     public String buildWitnessFullName() {
         String givenNames = getWitnessName() == null ? " " : getWitnessName();

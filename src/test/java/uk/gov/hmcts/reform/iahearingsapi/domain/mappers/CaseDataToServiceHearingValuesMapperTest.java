@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -8,27 +9,30 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_EMAIL_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_IN_UK;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PHONE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATES_TO_AVOID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_ADDITIONAL_ADJUSTMENTS_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_MULTIMEDIA_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VULNERABILITIES_ALLOWED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REPRESENTATIVE_EMAIL_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_FAMILY_NAME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_MOBILE_PHONE_NUMBER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.REFUSED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper.HEARING_WINDOW_INTERVAL;
-
-
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -43,6 +47,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
@@ -50,6 +55,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.WitnessDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -175,9 +181,55 @@ class CaseDataToServiceHearingValuesMapperTest {
     }
 
     @Test
-    void getPartyId_should_return_a_string_value() {
+    void getPartyId_methods_should_return_valid_value() {
 
-        assertNotNull(mapper.getPartyId());
+        when(asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class))
+            .thenReturn(Optional.of("homeOfficeRef"));
+        when(asylumCase.read(APPELLANT_PARTY_ID, String.class))
+            .thenReturn(Optional.of("appellantPartyId"));
+        when(asylumCase.read(LEGAL_REP_INDIVIDUAL_PARTY_ID, String.class))
+            .thenReturn(Optional.of("legalRepPartyId"));
+        when(asylumCase.read(LEGAL_REP_ORGANISATION_PARTY_ID, String.class))
+            .thenReturn(Optional.of("legalRepOrgPartyId"));
+        when(asylumCase.read(SPONSOR_PARTY_ID, String.class))
+            .thenReturn(Optional.of("sponsorPartyId"));
+
+        IdValue<WitnessDetails> witnessDetails = new IdValue<>("1", new WitnessDetails(
+            "witnessPartyId", "WitnessName", "WitnessFamilyName"));
+        when(asylumCase.read(WITNESS_DETAILS)).thenReturn(Optional.of(List.of(witnessDetails)));
+
+        assertNotNull(mapper.getAppellantPartyId(asylumCase));
+        assertNotNull(mapper.getLegalRepPartyId(asylumCase));
+        assertNotNull(mapper.getLegalRepOrgPartyId(asylumCase));
+        assertNotNull(mapper.getSponsorPartyId(asylumCase));
+        assertNotNull(mapper.getRespondentPartyId(asylumCase));
+        assertNotNull(mapper.getWitnessPartyId(asylumCase, "WitnessName WitnessFamilyName"));
+    }
+
+    @Test
+    void getPartyId_methods_should_throw_exception() {
+
+        assertThatThrownBy(() -> mapper.getAppellantPartyId(asylumCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("appellantPartyId is a required field");
+        assertThatThrownBy(() -> mapper.getLegalRepPartyId(asylumCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("legalRepIndividualPartyId is a required field");
+        assertThatThrownBy(() -> mapper.getLegalRepOrgPartyId(asylumCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("legalRepOrganisationPartyId is a required field");
+        assertThatThrownBy(() -> mapper.getSponsorPartyId(asylumCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("sponsorPartyId is a required field");
+        assertThatThrownBy(() -> mapper.getWitnessPartyId(asylumCase, "WitnessFullName"))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("Party ID for witness WitnessFullName is missing");
+
+        when(asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> mapper.getRespondentPartyId(asylumCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("homeOfficeReferenceNumber is a required field");
     }
 
     @Test

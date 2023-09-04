@@ -23,10 +23,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 @Component
 public class AppellantDetailsMapper {
 
-    private final String singleSexCourtResponseTitle = "Single sex court: ";
-    private final String male = "Male";
-    private final String female = "Female";
-
     public PartyDetailsModel map(
         AsylumCase asylumCase,
         CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
@@ -42,17 +38,17 @@ public class AppellantDetailsMapper {
 
         StringBuilder singleSexCourtResponse = new StringBuilder();
         if (GRANTED.getValue().equals(asylumCase.read(IS_SINGLE_SEX_COURT_ALLOWED, String.class).orElse(""))) {
-            singleSexCourtResponse.append(singleSexCourtResponseTitle);
+            singleSexCourtResponse.append("Single sex court: ");
             if (MALE.getValue().equals(asylumCase.read(SINGLE_SEX_COURT_TYPE, String.class).orElse(""))) {
-                singleSexCourtResponse.append(male);
+                singleSexCourtResponse.append("Male");
             } else {
-                singleSexCourtResponse.append(female);
+                singleSexCourtResponse.append("Female");
             }
             singleSexCourtResponse.append(";");
         }
 
         return PartyDetailsModel.builder()
-            .partyID(caseDataMapper.getPartyId())
+            .partyID(caseDataMapper.getAppellantPartyId(asylumCase))
             .partyType(PartyType.IND.getPartyType())
             .individualDetails(
                 IndividualDetailsModel.builder()

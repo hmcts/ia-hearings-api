@@ -100,9 +100,19 @@ public enum AsylumCaseFieldDefinition {
         "isSingleSexCourtAllowed", new TypeReference<String>() {}),
 
     INTERPRETER_DETAILS(
-        "interpreterDetails", new TypeReference<List<IdValue<InterpreterDetails>>>() {});
+        "interpreterDetails", new TypeReference<List<IdValue<InterpreterDetails>>>() {}),
 
+    APPELLANT_PARTY_ID(
+        "appellantPartyId", new TypeReference<String>() {}),
 
+    LEGAL_REP_INDIVIDUAL_PARTY_ID(
+        "legalRepIndividualPartyId", new TypeReference<String>() {}),
+
+    LEGAL_REP_ORGANISATION_PARTY_ID(
+        "legalRepOrganisationPartyId", new TypeReference<String>() {}),
+
+    SPONSOR_PARTY_ID(
+        "sponsorPartyId", new TypeReference<String>() {});
 
     private final String value;
     private final TypeReference typeReference;

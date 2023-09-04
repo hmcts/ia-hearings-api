@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
+
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATES_TO_AVOID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
@@ -9,8 +11,12 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_ADDITIONAL_ADJUSTMENTS_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_MULTIMEDIA_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VULNERABILITIES_ALLOWED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
 
 
@@ -19,10 +25,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
@@ -31,6 +38,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.WitnessDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityRangeModel;
@@ -100,9 +108,41 @@ public class CaseDataToServiceHearingValuesMapper {
             .map(dynamicList -> dynamicList.getValue().getCode()).orElse(null);
     }
 
-    // TODO This is a temporary placeholder Replace with the real party ID when implemented.
-    public String getPartyId() {
-        return UUID.randomUUID().toString();
+    public String getAppellantPartyId(AsylumCase asylumCase) {
+        return asylumCase.read(APPELLANT_PARTY_ID, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("appellantPartyId is a required field"));
+    }
+
+    public String getRespondentPartyId(AsylumCase asylumCase) {
+        return asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)
+        .orElseThrow(() -> new RequiredFieldMissingException("homeOfficeReferenceNumber is a required field"));
+    }
+
+    public String getLegalRepPartyId(AsylumCase asylumCase) {
+        return asylumCase.read(LEGAL_REP_INDIVIDUAL_PARTY_ID, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("legalRepIndividualPartyId is a required field"));
+    }
+
+    public String getLegalRepOrgPartyId(AsylumCase asylumCase) {
+        return asylumCase.read(LEGAL_REP_ORGANISATION_PARTY_ID, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("legalRepOrganisationPartyId is a required field"));
+    }
+
+    public String getSponsorPartyId(AsylumCase asylumCase) {
+        return asylumCase.read(SPONSOR_PARTY_ID, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("sponsorPartyId is a required field"));
+    }
+
+    public String getWitnessPartyId(AsylumCase asylumCase, String witnessFullName) {
+        Optional<List<IdValue<WitnessDetails>>> witnessDetailsList = asylumCase.read(WITNESS_DETAILS);
+
+        return witnessDetailsList.flatMap(idValues -> idValues.stream()
+            .filter(Objects::nonNull)
+            .map(IdValue::getValue)
+            .filter(witnessDetails -> Objects.equals(witnessDetails.buildWitnessFullName(), witnessFullName))
+            .map(WitnessDetails::getWitnessPartyId).findAny())
+            .orElseThrow(() -> new RequiredFieldMissingException(
+                "Party ID for witness " + witnessFullName + " is missing"));
     }
 
     public List<UnavailabilityRangeModel> getUnavailabilityRanges(AsylumCase asylumCase) {

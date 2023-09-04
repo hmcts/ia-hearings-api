@@ -17,7 +17,7 @@ public class LegalRepDetailsMapper {
     public PartyDetailsModel map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
 
         return PartyDetailsModel.builder()
-            .partyID(caseDataMapper.getPartyId())
+            .partyID(caseDataMapper.getLegalRepPartyId(asylumCase))
             .partyType(PartyType.IND.getPartyType())
             .partyRole("LGRP")
             .individualDetails(

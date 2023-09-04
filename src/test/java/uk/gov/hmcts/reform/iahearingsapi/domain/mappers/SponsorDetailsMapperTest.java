@@ -23,7 +23,7 @@ class SponsorDetailsMapperTest {
     @Test
     void should_map_correctly() {
 
-        when(caseDataMapper.getPartyId()).thenReturn("partyId");
+        when(caseDataMapper.getSponsorPartyId(asylumCase)).thenReturn("partyId");
         when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn("hearingChannel");
 
         IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()

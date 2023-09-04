@@ -13,7 +13,7 @@ public class RespondentDetailsMapper {
     public PartyDetailsModel map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
 
         return PartyDetailsModel.builder()
-            .partyID(caseDataMapper.getPartyId())
+            .partyID(caseDataMapper.getRespondentPartyId(asylumCase))
             .partyType(PartyType.ORG.getPartyType())
             .partyRole("RESP")
             .organisationDetails(
