@@ -32,7 +32,6 @@ public class HearingService {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
-            log.info("Service User token: {}, Service Auth token: {}", serviceUserToken, serviceAuthToken);
             return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken, hearingPayload);
         } catch (Exception e) {
             throw new IllegalStateException("Service could not complete request to create hearing", e);

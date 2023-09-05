@@ -19,6 +19,7 @@ public class PartyDetailsMapper {
     private RespondentDetailsMapper respondentDetailsMapper;
     private SponsorDetailsMapper sponsorDetailsMapper;
     private WitnessDetailsMapper witnessDetailsMapper;
+    private InterpreterDetailsMapper interpreterDetailsMapper;
 
     public List<PartyDetailsModel> map(
         AsylumCase asylumCase,
@@ -37,6 +38,7 @@ public class PartyDetailsMapper {
             partyDetails.add(legalRepOrgDetailsMapper.map(asylumCase, caseDataMapper));
         }
         partyDetails.addAll(witnessDetailsMapper.map(asylumCase, caseDataMapper));
+        partyDetails.addAll(interpreterDetailsMapper.map(asylumCase, caseDataMapper));
 
         return partyDetails;
     }

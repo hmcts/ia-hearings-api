@@ -97,7 +97,10 @@ public enum AsylumCaseFieldDefinition {
             "isAdditionalAdjustmentsAllowed", new TypeReference<String>() {}),
 
     IS_SINGLE_SEX_COURT_ALLOWED(
-        "isSingleSexCourtAllowed", new TypeReference<String>() {});
+        "isSingleSexCourtAllowed", new TypeReference<String>() {}),
+
+    INTERPRETER_DETAILS(
+        "interpreterDetails", new TypeReference<List<IdValue<InterpreterDetails>>>() {});
 
 
 
