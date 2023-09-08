@@ -28,9 +28,6 @@ health:
       response: '"status":"UP"'
 
 spring:
-  cloud:
-    bootstrap:
-      enabled: true
   config:
     import: "optional:configtree:/mnt/secrets/ia/"
   application:
@@ -146,6 +143,27 @@ ia:
   config:
     validator:
       secret: ${IA_CONFIG_VALIDATOR_SECRET:}
+  hmctsServiceId: ${HMCTS_SERVICE_ID:BFA1}
+  flags:
+    hmc-response-subscription:
+      enabled: ${HMC_RESPONSE_SUBSCRIPTION_ENABLED:false}
+    hmc-response-processing:
+      enabled: ${HMC_RESPONSE_PROCESSING_ENABLED:false}
 
 govUkHolidays:
   url: https://www.gov.uk/
+
+azure:
+  application-insights:
+    instrumentation-key: ${AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
+  service-bus:
+    amqp-connection-string-template: ${AMQP_CONNECTION_STRING:amqps://%1s?amqp.idleTimeout=%2d}
+    connection-postfix: ${HMC_RESPONSE_TOPIC_CONNECTION_POSTFIX:.servicebus.windows.net}
+    hmc-response-subscription:
+      namespace: ${HMC_RESPONSE_TOPIC_NAMESPACE:}
+      topicName: ${HMC_RESPONSE_TOPIC_NAME:}
+      subscriptionName: ${HMC_RESPONSE_TOPIC_SUBSCRIPTION_NAME:}
+      receiveTimeout: ${HMC_RESPONSE_TOPIC_RECEIVE_TIMEOUT:1}
+      idleTimeout: ${HMC_RESPONSES_TOPIC_IDLE_TIMEOUT:3600000}
+      username: ${HMC_RESPONSE_TOPIC_POLICY_NAME:}
+      password: ${HMC_RESPONSES_TOPIC_ACCESS_KEY:}

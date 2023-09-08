@@ -327,6 +327,10 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
 
+  implementation group: 'org.springframework', name: 'spring-jms', version: '6.0.9'
+  implementation group: 'org.springframework', name: 'spring-messaging', version: '6.0.9'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-activemq', version: '2.7.12'
+
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.1'
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
@@ -350,6 +354,12 @@ dependencies {
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.0.1'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
+
+  implementation group: 'org.apache.qpid', name: 'qpid-jms-client', version: '2.4.0'
+  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '10.1.13'
+  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '10.1.13'
+  implementation group: 'com.azure', name: 'azure-core', version: '1.37.0'
+  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.14.0-beta.1'
 
   testImplementation group: 'io.rest-assured', name: 'rest-assured-all', version: '3.3.0'
   testImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
