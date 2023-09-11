@@ -67,17 +67,17 @@ public class LanguageAndAdjustmentsMapperTest {
             .build()));
 
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", appellantCaseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(appellantCaseFlagDetails)));
         when(asylumCase.read(WITNESS_LEVEL_FLAGS))
             .thenReturn(Optional.of(List.of(
-                new IdValue<>("id3", new StrategicCaseFlag("", "", List.of(
+                new IdValue<>("id3", new StrategicCaseFlag(List.of(
                     new CaseFlagDetail("id3", CaseFlagValue.builder()
                         .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
                         .subTypeKey("ita")
                         .subTypeValue("Italian")
                         .status("Active")
                         .build())))),
-                new IdValue<>("id4", new StrategicCaseFlag("", "", List.of(
+                new IdValue<>("id4", new StrategicCaseFlag(List.of(
                     new CaseFlagDetail("id4", CaseFlagValue.builder()
                         .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
                         .subTypeKey("por")
@@ -116,7 +116,7 @@ public class LanguageAndAdjustmentsMapperTest {
             .build()));
 
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", appellantCaseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(appellantCaseFlagDetails)));
         when(asylumCase.read(WITNESS_LEVEL_FLAGS))
             .thenReturn(Optional.empty());
 
@@ -139,7 +139,7 @@ public class LanguageAndAdjustmentsMapperTest {
             .build()));
 
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", appellantCaseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(appellantCaseFlagDetails)));
         when(asylumCase.read(WITNESS_LEVEL_FLAGS))
             .thenReturn(Optional.empty());
 
@@ -162,7 +162,7 @@ public class LanguageAndAdjustmentsMapperTest {
             .build()));
 
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", appellantCaseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(appellantCaseFlagDetails)));
         when(asylumCase.read(WITNESS_LEVEL_FLAGS))
             .thenReturn(Optional.empty());
 

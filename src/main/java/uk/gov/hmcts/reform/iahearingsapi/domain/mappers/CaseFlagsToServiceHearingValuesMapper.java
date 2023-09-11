@@ -159,29 +159,15 @@ public class CaseFlagsToServiceHearingValuesMapper {
         );
     }
 
-    public Caseflags getCaseFlags(AsylumCase asylumCase, String caseReference) {
-        List<PartyFlagsModel> flags = new ArrayList<>();
-        Caseflags caseflags = Caseflags.builder().build();
+    public Caseflags getCaseFlags(
+        AsylumCase asylumCase, String caseReference) {
 
-        asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class).ifPresent(flag -> {
-            flags.addAll(buildCaseFlags(flag.getDetails(), flag.getPartyName()));
-        });
-        asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class).ifPresent(flag -> {
-            flags.addAll(buildCaseFlags(flag.getDetails(), flag.getPartyName()));
-        });
-        Optional<List<IdValue<StrategicCaseFlag>>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
-        caseFlagsOptional.ifPresent(idValues -> {
-            List<StrategicCaseFlag> witnessCaseFlags = idValues
-                .stream().map(IdValue::getValue).toList();
-            if (!witnessCaseFlags.isEmpty()) {
-                flags.addAll(
-                    witnessCaseFlags.stream()
-                        .map(witnessCaseFlag ->
-                             buildCaseFlags(witnessCaseFlag.getDetails(), witnessCaseFlag.getPartyName()))
-                        .flatMap(Collection::stream)
-                        .toList());
-            }
-        });
+        Caseflags caseflags = Caseflags.builder().build();
+        List<PartyFlagsModel> flags = new ArrayList<>();
+
+        flags.addAll(getCaseLevelFlags(asylumCase));
+        flags.addAll(getAppellantCaseFlags(asylumCase, caseDataMapper));
+        flags.addAll(getWitnessCaseFlags(asylumCase, caseDataMapper));
 
         if (!flags.isEmpty()) {
             caseflags.setFlags(flags);
@@ -225,7 +211,42 @@ public class CaseFlagsToServiceHearingValuesMapper {
         return vulnerabilityDetails.isEmpty() ? null : String.join(";", vulnerabilityDetails);
     }
 
-    private List<PartyFlagsModel> buildCaseFlags(List<CaseFlagDetail> caseFlagDetails, String partyName) {
+    public List<PartyFlagsModel> getCaseLevelFlags(AsylumCase asylumCase) {
+        return asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
+            .map(flag -> buildCaseFlags(flag.getDetails(), null, flag.getPartyName()))
+            .orElse(Collections.emptyList());
+    }
+
+    public List<PartyFlagsModel> getAppellantCaseFlags(
+        AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
+        return asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .map(flag -> buildCaseFlags(
+                flag.getDetails(),
+                caseDataMapper.getAppellantPartyId(asylumCase),
+                flag.getPartyName()))
+            .orElse(Collections.emptyList());
+    }
+
+    public List<PartyFlagsModel> getWitnessCaseFlags(
+        AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
+
+        Optional<List<IdValue<StrategicCaseFlag>>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
+        return caseFlagsOptional.map(idValues -> {
+            List<StrategicCaseFlag> witnessCaseFlags = idValues
+                .stream().map(IdValue::getValue).toList();
+
+            return witnessCaseFlags.stream()
+                .map(witnessCaseFlag -> buildCaseFlags(
+                    witnessCaseFlag.getDetails(),
+                    caseDataMapper.getWitnessPartyId(asylumCase, witnessCaseFlag.getPartyName()),
+                    witnessCaseFlag.getPartyName()))
+                .flatMap(Collection::stream)
+                .toList();
+        }).orElse(Collections.emptyList());
+    }
+
+    private List<PartyFlagsModel> buildCaseFlags(
+        List<CaseFlagDetail> caseFlagDetails, String partyId, String partyName) {
         if (caseFlagDetails != null) {
             return caseFlagDetails.stream().filter(detail -> {
                 CaseFlagValue value = detail.getCaseFlagValue();
@@ -233,7 +254,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
                 return Objects.equals(value.getStatus(), "Active")
                     && YesOrNo.YES.equals(value.getHearingRelevant());
             }).map(detail -> PartyFlagsModel.builder()
-                .partyId(caseDataMapper.getPartyId())
+                .partyId(partyId)
                 .partyName(partyName)
                 .flagId(detail.getId())
                 .flagStatus(detail.getCaseFlagValue().getStatus())

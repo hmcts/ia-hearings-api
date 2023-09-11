@@ -9,7 +9,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
 
 import java.util.Collections;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +32,7 @@ class AppellantDetailsMapperTest {
 
     @BeforeEach
     void setup() {
-        when(caseDataMapper.getPartyId()).thenReturn("partyId");
+        when(caseDataMapper.getAppellantPartyId(asylumCase)).thenReturn("partyId");
         when(asylumCase.read(JOURNEY_TYPE, String.class)).thenReturn(Optional.of(REP.getValue()));
     }
 

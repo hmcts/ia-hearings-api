@@ -22,7 +22,7 @@ public class WitnessDetailsMapper {
 
         return witnessDetailsOptional.map(idValues -> idValues.stream()
             .map(IdValue::getValue).map(witnessDetails -> PartyDetailsModel.builder()
-                .partyID(caseDataMapper.getPartyId())
+                .partyID(witnessDetails.getWitnessPartyId())
                 .partyType(PartyType.IND.getPartyType())
                 .partyRole("WITN")
                 .individualDetails(

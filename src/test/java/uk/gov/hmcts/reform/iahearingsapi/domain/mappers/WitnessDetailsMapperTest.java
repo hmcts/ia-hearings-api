@@ -27,12 +27,11 @@ class WitnessDetailsMapperTest {
     @Test
     void should_map_correctly() {
 
-        when(caseDataMapper.getPartyId()).thenReturn("partyId");
         when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn("hearingChannel");
 
         final List<IdValue<WitnessDetails>> witnessDetails = List.of(
             new IdValue<>(
-                "id1", new WitnessDetails("witnessName", "witnessFamilyName"))
+                "id1", new WitnessDetails("partyId", "witnessName", "witnessFamilyName"))
         );
         when(asylumCase.read(WITNESS_DETAILS)).thenReturn(Optional.of(witnessDetails));
 
