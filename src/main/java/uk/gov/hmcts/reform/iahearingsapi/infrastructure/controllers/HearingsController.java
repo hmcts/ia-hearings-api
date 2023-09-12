@@ -1,5 +1,9 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.controllers;
 
+import feign.FeignException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.List;
 import javax.validation.constraints.NotNull;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,9 +18,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
@@ -75,8 +81,34 @@ public class HearingsController {
     public ResponseEntity<ServiceHearingValuesModel> getHearingsValues(
         @Parameter(name = "Hearing values request payload: caseId and hearingId", required = true)
         @NotNull @RequestBody HearingRequestPayload hearingRequestPayload
-    ) {
+    ) throws URISyntaxException, IOException {
         return ResponseEntity.ok(hearingService.getServiceHearingValues(hearingRequestPayload));
+    }
+
+    @Operation(
+        summary = "Get service hearings Linked Cases",
+        security =
+            {
+                @SecurityRequirement(name = "Authorization"),
+                @SecurityRequirement(name = "ServiceAuthorization")
+            },
+        responses =
+            {
+                @ApiResponse(
+                    responseCode = "200",
+                    description = "get Hearings Linked case Data successfully",
+                    content = @Content),
+                @ApiResponse(responseCode = "400",
+                    description = "Bad Request",
+                    content = @Content)
+            })
+    @PostMapping(path = "/serviceLinkedCases")
+    @ResponseBody
+    public ResponseEntity<List<Object>> getHearingsLinkData(
+        @Parameter(name = "Hearing values request payload", required = true)
+        @NotNull @RequestBody HearingRequestPayload hearingRequestPayload) {
+        return ResponseEntity.ok(
+            hearingService.getHearingLinkData(hearingRequestPayload));
     }
 
     @Operation(description = "Create a test hearing")

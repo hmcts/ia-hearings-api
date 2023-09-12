@@ -83,4 +83,9 @@ class HearingServiceTest {
         verify(serviceHearingValuesProvider, times(1))
             .provideServiceHearingValues(asylumCase, CASE_ID);
     }
+
+    @Test
+    void testGetHearingLinkValues() {
+
+    }
 }

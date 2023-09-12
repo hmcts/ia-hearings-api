@@ -21,10 +21,10 @@ public class LegalRepOrgDetailsMapper {
             .partyType(PartyType.ORG.getPartyType())
             .partyRole("LGRP")
             .organisationDetails(
-                List.of(OrganisationDetailsModel.builder()
+                OrganisationDetailsModel.builder()
                             .organisationType(PartyType.ORG.getPartyType())
                             .name(legalRepCompanyName)
-                            .build()))
+                            .build())
             .build();
     }
 }

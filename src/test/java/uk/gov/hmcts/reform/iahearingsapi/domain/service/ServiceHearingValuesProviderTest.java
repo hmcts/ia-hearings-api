@@ -12,7 +12,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFla
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.INTERPRETER_LANGUAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.OTHER_REASONABLE_ADJUSTMENTS_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.REASONABLE_ADJUSTMENTS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.HMCTS_SERVICE_ID;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -21,6 +20,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import net.minidev.json.JSONObject;
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,10 +38,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
@@ -87,6 +88,8 @@ class ServiceHearingValuesProviderTest {
         PartyDetailsModel.builder().build(),
         PartyDetailsModel.builder().build()
     );
+    private final CaseCategoryModel caseCategoryCaseType = new CaseCategoryModel();
+    private final CaseCategoryModel caseCategoryCaseSubType = new CaseCategoryModel();
     private ServiceHearingValuesProvider serviceHearingValuesProvider;
     @Mock
     private DateProvider hearingServiceDateProvider;
@@ -102,6 +105,10 @@ class ServiceHearingValuesProviderTest {
     private PartyDetailsMapper partyDetailsMapper;
     @Mock
     private ListingCommentsMapper listingCommentsMapper;
+    private String baseUrl = "http://localhost:3002";
+    private String screenFlowJsonFilePath = "/screenFlowTest.json";
+    private String caseCategoriesValue = "BFA1-TST";
+    private String serviceId = "BFA1";
 
     @BeforeEach
     void setup() {
@@ -147,6 +154,14 @@ class ServiceHearingValuesProviderTest {
             OTHER_REASONABLE_ADJUSTMENTS_DETAILS, otherReasonableAdjustmentsDetails
         ));
 
+        caseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
+        caseCategoryCaseType.setCategoryValue(caseCategoriesValue);
+        caseCategoryCaseType.setCategoryParent("");
+
+        caseCategoryCaseSubType.setCategoryType(CategoryType.CASE_SUB_TYPE);
+        caseCategoryCaseSubType.setCategoryValue(caseCategoriesValue);
+        caseCategoryCaseSubType.setCategoryParent(caseCategoriesValue);
+
         serviceHearingValuesProvider = new ServiceHearingValuesProvider(
             caseDataMapper,
             caseFlagsMapper,
@@ -154,10 +169,15 @@ class ServiceHearingValuesProviderTest {
             partyDetailsMapper,
             listingCommentsMapper
         );
+
+        serviceHearingValuesProvider.setBaseUrl(baseUrl);
+        serviceHearingValuesProvider.setScreenFlowJsonFilePath(screenFlowJsonFilePath);
+        serviceHearingValuesProvider.setCaseCategoriesValue(caseCategoriesValue);
+        serviceHearingValuesProvider.setServiceId(serviceId);
     }
 
     @Test
-    void should_get_service_hearing_values() {
+    void should_get_service_hearing_values() throws JSONException {
 
         ServiceHearingValuesModel expected = buildTestValues();
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
@@ -188,15 +208,15 @@ class ServiceHearingValuesProviderTest {
             .isExactlyInstanceOf(RequiredFieldMissingException.class);
     }
 
-    private ServiceHearingValuesModel buildTestValues() {
+    private ServiceHearingValuesModel buildTestValues() throws JSONException {
 
         return ServiceHearingValuesModel.builder()
-            .hmctsServiceId(HMCTS_SERVICE_ID)
+            .hmctsServiceId(serviceId)
             .hmctsInternalCaseName(hmctsCaseNameInternal)
             .publicCaseName(caseReference)
-            .caseCategories(List.of(new CaseCategoryModel()))
+            .caseCategories(List.of(caseCategoryCaseType, caseCategoryCaseSubType))
             .caseAdditionalSecurityFlag(true)
-            .caseDeepLink(caseDeepLink)
+            .caseDeepLink("http://localhost:3002" + caseDeepLink)
             .caserestrictedFlag(false)
             .externalCaseReference(homeOfficeRef)
             .caseManagementLocationCode(BaseLocation.BIRMINGHAM.getId())
@@ -208,13 +228,16 @@ class ServiceHearingValuesProviderTest {
             .hearingPriorityType(PriorityType.STANDARD)
             .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
-            .hearingLocations(HearingLocationModel.builder().build())
+            .hearingLocations(List.of(HearingLocationModel.builder() //TODO: RIA-7135
+                                          .locationId("386417")
+                                          .locationType("court")
+                                          .build()))
             .facilitiesRequired(Collections.emptyList())
             .listingComments(listingComments)
             .hearingRequester("")
             .privateHearingRequiredFlag(true)
             .caseInterpreterRequiredFlag(true)
-            .panelRequirements(PanelRequirementsModel.builder().build())
+            .panelRequirements(null)
             .leadJudgeContractType("")
             .judiciary(JudiciaryModel.builder().roleType(Collections.emptyList())
                .authorisationTypes(Collections.emptyList())
@@ -226,7 +249,7 @@ class ServiceHearingValuesProviderTest {
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
             .caseflags(caseflags)
-            .screenFlow(Collections.emptyList())
+            .screenFlow(serviceHearingValuesProvider.getScreenFlowJson())
             .vocabulary(Collections.emptyList())
             .hearingChannels(hearingChannels)
             .hearingLevelParticipantAttendance(Collections.emptyList())

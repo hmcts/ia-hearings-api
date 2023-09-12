@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.minidev.json.JSONArray;
 import org.springframework.lang.NonNull;
 
 @Data
@@ -16,6 +17,7 @@ import org.springframework.lang.NonNull;
 public class ServiceHearingValuesModel {
 
     @NonNull
+    @JsonProperty("hmctsServiceID")
     private String hmctsServiceId;
 
     @NonNull
@@ -58,7 +60,7 @@ public class ServiceHearingValuesModel {
     private boolean hearingInWelshFlag;
 
     @NonNull
-    private HearingLocationModel hearingLocations;
+    private List<HearingLocationModel> hearingLocations;
 
     @NonNull
     private List<String> facilitiesRequired;
@@ -73,7 +75,6 @@ public class ServiceHearingValuesModel {
 
     private boolean caseInterpreterRequiredFlag;
 
-    @NonNull
     private PanelRequirementsModel panelRequirements;
 
     @NonNull
@@ -90,8 +91,7 @@ public class ServiceHearingValuesModel {
     @NonNull
     private Caseflags caseflags;
 
-    @NonNull
-    private List<ScreenNavigationModel> screenFlow;
+    private JSONArray screenFlow;
 
     @NonNull
     private List<VocabularyModel> vocabulary;

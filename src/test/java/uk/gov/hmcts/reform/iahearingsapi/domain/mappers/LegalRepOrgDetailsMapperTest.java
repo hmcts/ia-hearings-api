@@ -30,9 +30,9 @@ class LegalRepOrgDetailsMapperTest {
             .partyType("ORG")
             .partyRole("LGRP")
             .organisationDetails(
-                List.of(OrganisationDetailsModel.builder()
+                OrganisationDetailsModel.builder()
                             .organisationType("ORG")
-                            .build()))
+                            .build())
             .build();
 
         assertEquals(expected, new LegalRepOrgDetailsMapper().map(asylumCase, caseDataMapper));

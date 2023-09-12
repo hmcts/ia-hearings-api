@@ -30,9 +30,9 @@ class RespondentDetailsMapperTest {
             .partyType("ORG")
             .partyRole("RESP")
             .organisationDetails(
-                List.of(OrganisationDetailsModel.builder()
+                OrganisationDetailsModel.builder()
                             .organisationType("ORG")
-                            .build()))
+                            .build())
             .build();
 
         assertEquals(expected, new RespondentDetailsMapper().map(asylumCase, caseDataMapper));

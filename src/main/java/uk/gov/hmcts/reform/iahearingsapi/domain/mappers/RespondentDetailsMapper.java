@@ -17,10 +17,10 @@ public class RespondentDetailsMapper {
             .partyType(PartyType.ORG.getPartyType())
             .partyRole("RESP")
             .organisationDetails(
-                List.of(OrganisationDetailsModel.builder()
+                OrganisationDetailsModel.builder()
                         .organisationType(PartyType.ORG.getPartyType())
                         .name(caseDataMapper.getRespondentName(asylumCase))
-                        .build()))
+                        .build())
             .build();
     }
 }
