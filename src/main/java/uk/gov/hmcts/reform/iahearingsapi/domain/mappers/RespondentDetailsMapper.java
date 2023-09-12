@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
-import java.util.List;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
