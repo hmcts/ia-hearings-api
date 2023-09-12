@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_INSTRUCTIONS_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
@@ -45,8 +43,8 @@ import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.PartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlag;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
@@ -351,8 +349,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
             .status("Active")
             .build()));
-        List<IdValue<StrategicCaseFlag>> witnessCaseFlag = List.of(
-            new IdValue<>("witness1",
+        List<PartyFlagIdValue> witnessCaseFlag = List.of(
+            new PartyFlagIdValue("partyId1",
                           new StrategicCaseFlag(
                               "witness1",
                               "",
@@ -366,7 +364,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         witnessCaseFlag = List.of(
-            new IdValue<>("witness2",
+            new PartyFlagIdValue("partyId2",
                           new StrategicCaseFlag(
                               "witness2",
                               "",
@@ -426,7 +424,6 @@ class CaseFlagsToServiceHearingValuesMapperTest {
     void getCaseFlags_should_return_valid_case_flag_object_with_a_list_of_flags() {
 
         when(caseDataMapper.getAppellantPartyId(asylumCase)).thenReturn("appellantPartyId");
-        when(caseDataMapper.getWitnessPartyId(any(AsylumCase.class), anyString())).thenReturn("witnessPartyId");
 
         List<CaseFlagDetail> appellantCaseFlagDetails = Arrays.asList(
             new CaseFlagDetail("id4", CaseFlagValue.builder()
@@ -450,8 +447,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(
                 new StrategicCaseFlag("appellant1", "", appellantCaseFlagDetails)));
-        List<IdValue<StrategicCaseFlag>> witnessCaseFlag = List.of(
-            new IdValue<>("witness3",
+        List<PartyFlagIdValue> witnessCaseFlag = List.of(
+            new PartyFlagIdValue("witnessPartyId",
                           new StrategicCaseFlag(
                               "witness3",
                               "",

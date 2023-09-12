@@ -9,7 +9,9 @@ import lombok.Value;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CaseFlagDetail {
+
     String id;
     @JsonProperty("value")
     CaseFlagValue caseFlagValue;
+
 }

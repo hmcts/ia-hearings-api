@@ -101,7 +101,7 @@ public class ServiceHearingValuesProvider {
             .interpreterLanguage(languageAndReasonableAdjustments.get(INTERPRETER_LANGUAGE).get(0))
             .reasonableAdjustments(languageAndReasonableAdjustments.get(REASONABLE_ADJUSTMENTS))
             .otherReasonableAdjustmentsDetails(languageAndReasonableAdjustments
-                                                   .get(OTHER_REASONABLE_ADJUSTMENTS_DETAILS))
+                .get(OTHER_REASONABLE_ADJUSTMENTS_DETAILS))
             .build();
     }
 }

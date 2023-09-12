@@ -29,7 +29,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.REFUSED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper.HEARING_WINDOW_INTERVAL;
@@ -55,7 +54,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.WitnessDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -194,16 +192,11 @@ class CaseDataToServiceHearingValuesMapperTest {
         when(asylumCase.read(SPONSOR_PARTY_ID, String.class))
             .thenReturn(Optional.of("sponsorPartyId"));
 
-        IdValue<WitnessDetails> witnessDetails = new IdValue<>("1", new WitnessDetails(
-            "witnessPartyId", "WitnessName", "WitnessFamilyName"));
-        when(asylumCase.read(WITNESS_DETAILS)).thenReturn(Optional.of(List.of(witnessDetails)));
-
         assertNotNull(mapper.getAppellantPartyId(asylumCase));
         assertNotNull(mapper.getLegalRepPartyId(asylumCase));
         assertNotNull(mapper.getLegalRepOrgPartyId(asylumCase));
         assertNotNull(mapper.getSponsorPartyId(asylumCase));
         assertNotNull(mapper.getRespondentPartyId(asylumCase));
-        assertNotNull(mapper.getWitnessPartyId(asylumCase, "WitnessName WitnessFamilyName"));
     }
 
     @Test
@@ -221,9 +214,6 @@ class CaseDataToServiceHearingValuesMapperTest {
         assertThatThrownBy(() -> mapper.getSponsorPartyId(asylumCase))
             .isExactlyInstanceOf(RequiredFieldMissingException.class)
             .hasMessage("sponsorPartyId is a required field");
-        assertThatThrownBy(() -> mapper.getWitnessPartyId(asylumCase, "WitnessFullName"))
-            .isExactlyInstanceOf(RequiredFieldMissingException.class)
-            .hasMessage("Party ID for witness WitnessFullName is missing");
 
         when(asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.empty());
 

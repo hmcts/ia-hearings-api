@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
-
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
@@ -16,16 +15,13 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
-
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,7 +34,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.WitnessDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityRangeModel;
@@ -115,7 +110,7 @@ public class CaseDataToServiceHearingValuesMapper {
 
     public String getRespondentPartyId(AsylumCase asylumCase) {
         return asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)
-        .orElseThrow(() -> new RequiredFieldMissingException("homeOfficeReferenceNumber is a required field"));
+            .orElseThrow(() -> new RequiredFieldMissingException("homeOfficeReferenceNumber is a required field"));
     }
 
     public String getLegalRepPartyId(AsylumCase asylumCase) {
@@ -131,18 +126,6 @@ public class CaseDataToServiceHearingValuesMapper {
     public String getSponsorPartyId(AsylumCase asylumCase) {
         return asylumCase.read(SPONSOR_PARTY_ID, String.class)
             .orElseThrow(() -> new RequiredFieldMissingException("sponsorPartyId is a required field"));
-    }
-
-    public String getWitnessPartyId(AsylumCase asylumCase, String witnessFullName) {
-        Optional<List<IdValue<WitnessDetails>>> witnessDetailsList = asylumCase.read(WITNESS_DETAILS);
-
-        return witnessDetailsList.flatMap(idValues -> idValues.stream()
-            .filter(Objects::nonNull)
-            .map(IdValue::getValue)
-            .filter(witnessDetails -> Objects.equals(witnessDetails.buildWitnessFullName(), witnessFullName))
-            .map(WitnessDetails::getWitnessPartyId).findAny())
-            .orElseThrow(() -> new RequiredFieldMissingException(
-                "Party ID for witness " + witnessFullName + " is missing"));
     }
 
     public List<UnavailabilityRangeModel> getUnavailabilityRanges(AsylumCase asylumCase) {

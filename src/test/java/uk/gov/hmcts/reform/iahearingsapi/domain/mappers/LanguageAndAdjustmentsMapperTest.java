@@ -26,8 +26,8 @@ import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.PartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlag;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -70,14 +70,14 @@ public class LanguageAndAdjustmentsMapperTest {
             .thenReturn(Optional.of(new StrategicCaseFlag(appellantCaseFlagDetails)));
         when(asylumCase.read(WITNESS_LEVEL_FLAGS))
             .thenReturn(Optional.of(List.of(
-                new IdValue<>("id3", new StrategicCaseFlag(List.of(
+                new PartyFlagIdValue("id3", new StrategicCaseFlag(List.of(
                     new CaseFlagDetail("id3", CaseFlagValue.builder()
                         .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
                         .subTypeKey("ita")
                         .subTypeValue("Italian")
                         .status("Active")
                         .build())))),
-                new IdValue<>("id4", new StrategicCaseFlag(List.of(
+                new PartyFlagIdValue("id4", new StrategicCaseFlag(List.of(
                     new CaseFlagDetail("id4", CaseFlagValue.builder()
                         .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
                         .subTypeKey("por")

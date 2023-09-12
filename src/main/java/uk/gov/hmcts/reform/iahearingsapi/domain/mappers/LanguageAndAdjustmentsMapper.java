@@ -21,9 +21,9 @@ import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagDetail;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.PartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlag;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 
 @Component
 public class LanguageAndAdjustmentsMapper {
@@ -136,10 +136,10 @@ public class LanguageAndAdjustmentsMapper {
         List<StrategicCaseFlag> caseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
             .map(Lists::newArrayList).orElse(new ArrayList<>());
 
-        Optional<List<IdValue<StrategicCaseFlag>>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
-        caseFlagsOptional.ifPresent(idValues -> {
-            List<StrategicCaseFlag> witnessCaseFlags = idValues
-                .stream().map(IdValue::getValue).toList();
+        Optional<List<PartyFlagIdValue>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
+        caseFlagsOptional.ifPresent(witnessFlagIdValues -> {
+            List<StrategicCaseFlag> witnessCaseFlags = witnessFlagIdValues
+                .stream().map(PartyFlagIdValue::getValue).toList();
             if (!witnessCaseFlags.isEmpty()) {
                 caseFlags.addAll(witnessCaseFlags);
             }

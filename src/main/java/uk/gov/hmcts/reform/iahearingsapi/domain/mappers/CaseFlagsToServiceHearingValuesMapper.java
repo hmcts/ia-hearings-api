@@ -32,9 +32,9 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.PartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlag;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus;
@@ -140,17 +140,17 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
     public boolean getCaseInterpreterRequiredFlag(AsylumCase asylumCase) {
         List<StrategicCaseFlag> caseFlags = new ArrayList<>();
-        List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
+        List<StrategicCaseFlag> appellantFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
-        if (!appellantCaseFlags.isEmpty()) {
-            caseFlags.addAll(appellantCaseFlags);
+        if (!appellantFlags.isEmpty()) {
+            caseFlags.addAll(appellantFlags);
         }
-        Optional<List<IdValue<StrategicCaseFlag>>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
-        caseFlagsOptional.ifPresent(idValues -> {
-            List<StrategicCaseFlag> witnessCaseFlags = idValues
-                .stream().map(IdValue::getValue).toList();
-            if (!witnessCaseFlags.isEmpty()) {
-                caseFlags.addAll(witnessCaseFlags);
+        Optional<List<PartyFlagIdValue>> flagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
+        flagsOptional.ifPresent(witnessFlagIdValues -> {
+            List<StrategicCaseFlag> witnessFlags = witnessFlagIdValues
+                .stream().map(PartyFlagIdValue::getValue).toList();
+            if (!witnessFlags.isEmpty()) {
+                caseFlags.addAll(witnessFlags);
             }
         });
 
@@ -167,7 +167,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
         flags.addAll(getCaseLevelFlags(asylumCase));
         flags.addAll(getAppellantCaseFlags(asylumCase, caseDataMapper));
-        flags.addAll(getWitnessCaseFlags(asylumCase, caseDataMapper));
+        flags.addAll(getWitnessCaseFlags(asylumCase));
 
         if (!flags.isEmpty()) {
             caseflags.setFlags(flags);
@@ -227,43 +227,30 @@ public class CaseFlagsToServiceHearingValuesMapper {
             .orElse(Collections.emptyList());
     }
 
-    public List<PartyFlagsModel> getWitnessCaseFlags(
-        AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
-
-        Optional<List<IdValue<StrategicCaseFlag>>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
-        return caseFlagsOptional.map(idValues -> {
-            List<StrategicCaseFlag> witnessCaseFlags = idValues
-                .stream().map(IdValue::getValue).toList();
-
-            return witnessCaseFlags.stream()
-                .map(witnessCaseFlag -> buildCaseFlags(
-                    witnessCaseFlag.getDetails(),
-                    caseDataMapper.getWitnessPartyId(asylumCase, witnessCaseFlag.getPartyName()),
-                    witnessCaseFlag.getPartyName()))
-                .flatMap(Collection::stream)
-                .toList();
-        }).orElse(Collections.emptyList());
+    public List<PartyFlagsModel> getWitnessCaseFlags(AsylumCase asylumCase) {
+        Optional<List<PartyFlagIdValue>> flagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
+        return flagsOptional.map(witnessFlagIdValues -> witnessFlagIdValues.stream()
+            .map(witnessFlagIdValue -> buildCaseFlags(
+                witnessFlagIdValue.getValue().getDetails(),
+                witnessFlagIdValue.getPartyId(),
+                witnessFlagIdValue.getValue().getPartyName()))
+            .flatMap(Collection::stream).toList())
+            .orElse(Collections.emptyList());
     }
 
     private List<PartyFlagsModel> buildCaseFlags(
         List<CaseFlagDetail> caseFlagDetails, String partyId, String partyName) {
-        if (caseFlagDetails != null) {
-            return caseFlagDetails.stream().filter(detail -> {
-                CaseFlagValue value = detail.getCaseFlagValue();
 
-                return Objects.equals(value.getStatus(), "Active")
-                    && YesOrNo.YES.equals(value.getHearingRelevant());
-            }).map(detail -> PartyFlagsModel.builder()
+        return caseFlagDetails.stream()
+            .filter(detail -> Objects.equals(detail.getCaseFlagValue().getStatus(), "Active")
+                && YesOrNo.YES.equals(detail.getCaseFlagValue().getHearingRelevant()))
+            .map(detail -> PartyFlagsModel.builder()
                 .partyId(partyId)
                 .partyName(partyName)
                 .flagId(detail.getId())
                 .flagStatus(detail.getCaseFlagValue().getStatus())
                 .flagDescription(detail.getCaseFlagValue().getName())
-                .build()
-            ).collect(Collectors.toList());
-        }
-
-        return Collections.emptyList();
+                .build()).collect(Collectors.toList());
     }
 
     private boolean hasOneOrMoreActiveFlagsOfType(
