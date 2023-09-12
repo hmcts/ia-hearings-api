@@ -5,6 +5,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,6 +87,8 @@ class HearingServiceTest {
 
     @Test
     void testGetHearingLinkValues() {
+        List<Object> result = hearingService.getHearingLinkData(new HearingRequestPayload(CASE_ID));
 
+        assertThat(result).isNotNull();
     }
 }
