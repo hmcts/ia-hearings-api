@@ -2,6 +2,9 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,5 +48,9 @@ public class HearingService {
         AsylumCase asylumCase = coreCaseDataService.getCase(payload.getCaseReference());
 
         return serviceHearingValuesProvider.provideServiceHearingValues(asylumCase, caseReference);
+    }
+
+    public List<Object> getHearingLinkData(@NotNull HearingRequestPayload hearingRequestPayload) {
+        return new ArrayList<>();
     }
 }

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.controllers;
 
-import javax.validation.constraints.NotNull;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,6 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -77,6 +78,32 @@ public class HearingsController {
         @NotNull @RequestBody HearingRequestPayload hearingRequestPayload
     ) {
         return ResponseEntity.ok(hearingService.getServiceHearingValues(hearingRequestPayload));
+    }
+
+    @Operation(
+        summary = "Get service hearings Linked Cases",
+        security =
+            {
+                @SecurityRequirement(name = "Authorization"),
+                @SecurityRequirement(name = "ServiceAuthorization")
+            },
+        responses =
+            {
+                @ApiResponse(
+                    responseCode = "200",
+                    description = "get Hearings Linked case Data successfully",
+                    content = @Content),
+                @ApiResponse(responseCode = "400",
+                    description = "Bad Request",
+                    content = @Content)
+            })
+    @PostMapping(path = "/serviceLinkedCases")
+    @ResponseBody
+    public ResponseEntity<List<Object>> getHearingsLinkData(
+        @Parameter(name = "Hearing values request payload", required = true)
+        @NotNull @RequestBody HearingRequestPayload hearingRequestPayload) {
+        return ResponseEntity.ok(
+            hearingService.getHearingLinkData(hearingRequestPayload));
     }
 
     @Operation(description = "Create a test hearing")

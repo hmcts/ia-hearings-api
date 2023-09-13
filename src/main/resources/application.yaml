@@ -86,6 +86,19 @@ core_case_data:
   api:
     url: ${CCD_URL:http://127.0.0.1:4452}
 
+xui:
+  api:
+    baseUrl: ${XUI_URL:http://localhost:3002}
+
+hearingValues:
+  screenFlowJsonFilePath: ${SCREEN_FLOW_JSON_FILE_PATH:/screenFlowMinusPanel.json}
+  caseCategories: "BFA1-TST"
+  hmctsServiceId: "BFA1"
+
+rd-commondata:
+  api:
+    url: ${REF_DATA_URL:http://localhost:8991}
+
 feign:
   hystrix:
     enabled: true
@@ -115,7 +128,7 @@ idam:
     microservice: ${IA_S2S_MICROSERVICE:iac}
     url: ${S2S_URL:http://127.0.0.1:4502}
   s2s-authorised:
-    services: ${IA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac}
+    services: ${IA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,xui_webapp}
   ia_system_user:
     username: ${IA_SYSTEM_USERNAME:system-user}
     password: ${IA_SYSTEM_PASSWORD:system-password}

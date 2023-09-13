@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
-import java.util.List;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
@@ -17,10 +16,10 @@ public class RespondentDetailsMapper {
             .partyType(PartyType.ORG.getPartyType())
             .partyRole("RESP")
             .organisationDetails(
-                List.of(OrganisationDetailsModel.builder()
+                OrganisationDetailsModel.builder()
                         .organisationType(PartyType.ORG.getPartyType())
                         .name(caseDataMapper.getRespondentName(asylumCase))
-                        .build()))
+                        .build())
             .build();
     }
 }

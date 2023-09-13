@@ -13,7 +13,7 @@ public class PartyDetailsModel {
     private String partyName;
     private String partyRole;
     private IndividualDetailsModel individualDetails;
-    private List<OrganisationDetailsModel> organisationDetails;
+    private OrganisationDetailsModel organisationDetails;
     private List<UnavailabilityDayOfWeekModel> unavailabilityDOW;
     private List<UnavailabilityRangeModel> unavailabilityRanges;
     private String hearingSubChannel;
