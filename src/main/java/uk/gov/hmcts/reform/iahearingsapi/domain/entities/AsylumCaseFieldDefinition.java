@@ -24,7 +24,7 @@ public enum AsylumCaseFieldDefinition {
     APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {
     }),
     WITNESS_LEVEL_FLAGS(
-        "witnessLevelFlags", new TypeReference<List<IdValue<StrategicCaseFlag>>>() {}),
+        "witnessLevelFlags", new TypeReference<List<PartyFlagIdValue>>() {}),
     CASE_FLAGS(
         "caseFlags", new TypeReference<StrategicCaseFlag>(){}),
     LEGAL_REP_NAME(
