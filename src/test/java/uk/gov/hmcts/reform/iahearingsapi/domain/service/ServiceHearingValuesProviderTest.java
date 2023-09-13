@@ -215,7 +215,7 @@ class ServiceHearingValuesProviderTest {
             .publicCaseName(caseReference)
             .caseCategories(List.of(caseCategoryCaseType, caseCategoryCaseSubType))
             .caseAdditionalSecurityFlag(true)
-            .caseDeepLink("http://localhost:3002" + caseDeepLink)
+            .caseDeepLink(baseUrl + caseDeepLink)
             .caserestrictedFlag(false)
             .externalCaseReference(homeOfficeRef)
             .caseManagementLocationCode(BaseLocation.BIRMINGHAM.getId())
