@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.jms;
 import javax.jms.ConnectionFactory;
 import javax.jms.Session;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.qpid.jms.JmsConnectionFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -14,6 +13,7 @@ import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerContainerFactory;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
@@ -40,7 +40,8 @@ public class HearingsJmsConfig {
 
     @Bean
     @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
-    public ConnectionFactory hmcHearingJmsConnectionFactory(@Value("${spring.application.name}") final String clientId) {
+    public ConnectionFactory hmcHearingJmsConnectionFactory(@Value("${spring.application.name}")
+                                                                final String clientId) {
         String connection = String.format(AMQP_CONNECTION_STRING_TEMPLATE, namespace + connectionPostfix, idleTimeout);
         JmsConnectionFactory jmsConnectionFactory = new JmsConnectionFactory(connection);
         jmsConnectionFactory.setUsername(username);
