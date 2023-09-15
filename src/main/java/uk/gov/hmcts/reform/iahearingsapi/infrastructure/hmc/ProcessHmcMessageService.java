@@ -10,6 +10,5 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 @RequiredArgsConstructor
 public class ProcessHmcMessageService {
     public void processEventMessage(HmcMessage hmcMessage) {
-        // TODO: Implement handling of different HMC status
     }
 }
