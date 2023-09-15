@@ -29,6 +29,7 @@ apply plugin: 'project-report'
 apply plugin: 'idea'
 apply plugin: 'io.spring.dependency-management'
 
+
 def versions = [
   junit                 : '5.8.2',
   junitPlatform         : '1.8.2',
@@ -70,7 +71,7 @@ compileTestJava {
 
 tasks.withType(Test) {
   useJUnitPlatform()
-
+  jvmArgs = ["-Xms1724m", "-Xmx5048m"]
   testLogging {
     exceptionFormat = 'full'
   }
