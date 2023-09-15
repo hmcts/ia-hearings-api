@@ -1,11 +1,15 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +27,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HearingRequestGe
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -76,6 +81,17 @@ class HearingServiceTest {
     }
 
     @Test
+    void testCreateTestHearingException() {
+        HmcHearingRequestPayload payload = new HmcHearingRequestPayload();
+
+        when(idamService.getServiceUserToken()).thenThrow(new RuntimeException("Token generation failed"));
+
+        assertThrows(IllegalStateException.class, () -> {
+            hearingService.createHearing(payload);
+        });
+    }
+
+    @Test
     void testGetServiceHearingValues() {
         when(serviceHearingValuesProvider.provideServiceHearingValues(asylumCase, CASE_ID))
             .thenReturn(new ServiceHearingValuesModel());
@@ -95,6 +111,18 @@ class HearingServiceTest {
         HearingGetResponse result = hearingService.getHearing(HEARING_ID);
 
         assertThat(result).isNotNull();
+    }
+
+    @Test
+    void testGetHearingException() {
+        when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
+        when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
+        when(hmcHearingApi.getHearingRequest(anyString(), anyString(), anyString(), any()))
+            .thenThrow(FeignException.class);
+
+        assertThrows(HmcException.class, () -> {
+            hearingService.getHearing(HEARING_ID);
+        });
     }
 
     @Test
