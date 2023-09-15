@@ -89,13 +89,22 @@ public class CaseFlagsToServiceHearingValuesMapper {
     public PriorityType getHearingPriorityType(AsylumCase asylumCase) {
         List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
-        boolean hasActiveAppellantFlag =
-            hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(UNACCOMPANIED_MINOR));
+
+        Optional<List<PartyFlagIdValue>> witnessCaseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
+        List<StrategicCaseFlag> witnessCaseFlags = witnessCaseFlagsOptional
+            .map(list -> list.stream().map(PartyFlagIdValue::getValue).collect(Collectors.toList()))
+            .orElse(Collections.emptyList());
+
         List<StrategicCaseFlag> caseFlags = asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
+
+        boolean hasActiveAppellantFlag =
+            hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(UNACCOMPANIED_MINOR));
+        boolean hasActiveWitnessFlag =
+            hasOneOrMoreActiveFlagsOfType(witnessCaseFlags, List.of(UNACCOMPANIED_MINOR));
         boolean hasActiveCaseFlag = hasOneOrMoreActiveFlagsOfType(caseFlags, List.of(URGENT_CASE));
 
-        if (hasActiveAppellantFlag || hasActiveCaseFlag) {
+        if (hasActiveAppellantFlag || hasActiveWitnessFlag || hasActiveCaseFlag) {
             return PriorityType.URGENT;
         }
 

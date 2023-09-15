@@ -40,6 +40,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
@@ -227,10 +228,8 @@ class ServiceHearingValuesProviderTest {
             .hearingPriorityType(PriorityType.STANDARD)
             .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
-            .hearingLocations(List.of(HearingLocationModel.builder() //TODO: RIA-7135
-                                          .locationId("386417")
-                                          .locationType("court")
-                                          .build()))
+            .hearingLocations(Collections.emptyList())
+            .numberOfPhysicalAttendees(0)
             .facilitiesRequired(Collections.emptyList())
             .listingComments(listingComments)
             .hearingRequester("")
@@ -256,5 +255,17 @@ class ServiceHearingValuesProviderTest {
             .reasonableAdjustments(reasonableAdjustments)
             .otherReasonableAdjustmentsDetails(otherReasonableAdjustmentsDetails)
             .build();
+    }
+
+    @Test
+    void should_find_number_of_physical_attendees() {
+        partyDetails.get(0).setIndividualDetails(IndividualDetailsModel.builder()
+                                                     .preferredHearingChannel("INTER").build());
+        partyDetails.get(1).setIndividualDetails(IndividualDetailsModel.builder()
+                                                     .preferredHearingChannel("INTER").build());
+
+        int expectedPartiesInPerson = serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetails);
+
+        assertEquals(expectedPartiesInPerson, 2);
     }
 }

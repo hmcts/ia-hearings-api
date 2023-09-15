@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
@@ -30,6 +31,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
@@ -45,6 +47,7 @@ public class ServiceHearingValuesProvider {
 
     private static final JSONParser PARSER = new JSONParser(DEFAULT_PERMISSIVE_MODE);
     private static final String SCREEN_FLOW = "screenFlow";
+    private static final String IN_PERSON = "INTER";
 
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
     private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
@@ -79,6 +82,8 @@ public class ServiceHearingValuesProvider {
         Map<String, List<String>> languageAndReasonableAdjustments = languageAndAdjustmentsMapper
             .getLanguageAndAdjustmentsFields(asylumCase);
 
+        List<PartyDetailsModel> partyDetails = getPartyDetails(asylumCase);
+
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
             .hmctsInternalCaseName(hmctsInternalCaseName)
@@ -97,10 +102,8 @@ public class ServiceHearingValuesProvider {
             .hearingWindow(caseDataMapper
                 .getHearingWindowModel())
             .hearingPriorityType(caseFlagsMapper.getHearingPriorityType(asylumCase))
-            .hearingLocations(List.of(HearingLocationModel.builder() //TODO: RIA-7135
-                                          .locationId("386417")
-                                          .locationType("court")
-                                          .build()))
+            .numberOfPhysicalAttendees(getNumberOfPhysicalAttendees(partyDetails))
+            .hearingLocations(Collections.emptyList())
             .facilitiesRequired(Collections.emptyList())
             .listingComments(listingCommentsMapper.getListingComments(asylumCase, caseFlagsMapper, caseDataMapper))
             .hearingRequester("")
@@ -119,7 +122,7 @@ public class ServiceHearingValuesProvider {
                .panelComposition(Collections.emptyList())
                .build())
             .hearingIsLinkedFlag(false)
-            .parties(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+            .parties(partyDetails)
             .caseflags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference))
             .screenFlow(getScreenFlowJson())
             .vocabulary(Collections.emptyList())
@@ -164,5 +167,19 @@ public class ServiceHearingValuesProvider {
         caseCategoryCaseSubType.setCategoryParent(caseCategoriesValue);
 
         return List.of(caseCategoryCaseType, caseCategoryCaseSubType);
+    }
+
+    private List<PartyDetailsModel> getPartyDetails(AsylumCase asylumCase) {
+        return partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper);
+    }
+
+    public int getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {
+
+        return (int) partyDetails.stream()
+            .filter(party -> party.getIndividualDetails() != null
+                             && StringUtils.equals(
+                                 party.getIndividualDetails().getPreferredHearingChannel(),
+                                 IN_PERSON))
+            .count();
     }
 }
