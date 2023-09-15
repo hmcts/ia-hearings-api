@@ -266,7 +266,8 @@ sonarqube {
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/iahearingsapi/infrastructure/config/**," +
-                                 "src/main/java/uk/gov/hmcts/reform/iahearingsapi/Application.java"
+                                 "src/main/java/uk/gov/hmcts/reform/iahearingsapi/Application.java," +
+                                  "src/main/java/uk/gov/hmcts/reform/iahearingsapi/domain/entities/hmc/**"
   }
 }
 
