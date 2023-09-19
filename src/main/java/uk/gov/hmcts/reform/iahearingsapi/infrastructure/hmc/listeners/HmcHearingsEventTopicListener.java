@@ -23,8 +23,9 @@ public class HmcHearingsEventTopicListener {
 
     private final ProcessHmcMessageService processHmcMessageService;
 
-    public HmcHearingsEventTopicListener(@Value("${ia.hmctsServiceId}") String hmctsServiceId,
-                                         ProcessHmcMessageService processHmcMessageService) {
+    public HmcHearingsEventTopicListener(
+        @Value("${ia.hmctsServiceId}") String hmctsServiceId, ProcessHmcMessageService processHmcMessageService) {
+
         this.hmctsServiceId = hmctsServiceId;
         this.processHmcMessageService = processHmcMessageService;
         this.objectMapper = new ObjectMapper();
