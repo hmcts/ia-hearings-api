@@ -23,6 +23,8 @@ class WitnessDetailsMapperTest {
     private AsylumCase asylumCase;
     @Mock
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
+    @Mock
+    private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
 
     @Test
     void should_map_correctly() {
@@ -40,15 +42,15 @@ class WitnessDetailsMapperTest {
             .lastName("witnessFamilyName")
             .preferredHearingChannel("hearingChannel")
             .build();
-        List<PartyDetailsModel> expected = List.of(
-            PartyDetailsModel.builder()
-                .individualDetails(individualDetails)
-                .partyID("partyId")
-                .partyType("IND")
-                .partyRole("WITN")
-                .build()
-        );
+        PartyDetailsModel expectedParty = PartyDetailsModel.builder()
+            .individualDetails(individualDetails)
+            .partyID("partyId")
+            .partyType("IND")
+            .partyRole("WITN")
+            .build();
+        List<PartyDetailsModel> expected = List.of(expectedParty);
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expectedParty)).thenReturn(expectedParty);
 
-        assertEquals(expected, new WitnessDetailsMapper().map(asylumCase, caseDataMapper));
+        assertEquals(expected, new WitnessDetailsMapper(languageAndAdjustmentsMapper).map(asylumCase, caseDataMapper));
     }
 }

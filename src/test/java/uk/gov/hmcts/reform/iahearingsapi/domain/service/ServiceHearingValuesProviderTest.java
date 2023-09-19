@@ -147,11 +147,6 @@ class ServiceHearingValuesProviderTest {
         when(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
         when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper)).thenReturn(partyDetails);
-        when(languageAndAdjustmentsMapper.getLanguageAndAdjustmentsFields(asylumCase)).thenReturn(Map.of(
-            INTERPRETER_LANGUAGE, interpreterLanguage,
-            REASONABLE_ADJUSTMENTS, reasonableAdjustments,
-            OTHER_REASONABLE_ADJUSTMENTS_DETAILS, otherReasonableAdjustmentsDetails
-        ));
 
         caseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
         caseCategoryCaseType.setCategoryValue(caseCategoriesValue);

@@ -78,9 +78,6 @@ public class ServiceHearingValuesProvider {
             .orElseThrow(() ->
                 new RequiredFieldMissingException("List case hearing length is a required field"));
 
-        Map<String, List<String>> languageAndReasonableAdjustments = languageAndAdjustmentsMapper
-            .getLanguageAndAdjustmentsFields(asylumCase);
-
         List<PartyDetailsModel> partyDetails = getPartyDetails(asylumCase);
 
         return ServiceHearingValuesModel.builder()
@@ -128,10 +125,6 @@ public class ServiceHearingValuesProvider {
             .hearingChannels(caseDataMapper
                 .getHearingChannels(asylumCase))
             .hearingLevelParticipantAttendance(Collections.emptyList())
-            .interpreterLanguage(languageAndReasonableAdjustments.get(INTERPRETER_LANGUAGE).get(0))
-            .reasonableAdjustments(languageAndReasonableAdjustments.get(REASONABLE_ADJUSTMENTS))
-            .otherReasonableAdjustmentsDetails(languageAndReasonableAdjustments
-                .get(OTHER_REASONABLE_ADJUSTMENTS_DETAILS))
             .build();
     }
 

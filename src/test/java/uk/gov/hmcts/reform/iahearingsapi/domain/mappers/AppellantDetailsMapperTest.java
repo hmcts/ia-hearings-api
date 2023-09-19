@@ -29,6 +29,8 @@ class AppellantDetailsMapperTest {
     private CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
     @Mock
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
+    @Mock
+    private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
 
     @BeforeEach
     void setup() {
@@ -54,8 +56,10 @@ class AppellantDetailsMapperTest {
             .otherReasonableAdjustmentDetails("")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
 
-        assertEquals(expected, new AppellantDetailsMapper().map(asylumCase, caseFlagsMapper, caseDataMapper));
+        assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+            .map(asylumCase, caseFlagsMapper, caseDataMapper));
     }
 
     @Test
@@ -72,8 +76,10 @@ class AppellantDetailsMapperTest {
             .otherReasonableAdjustmentDetails("Single sex court: Female;")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
 
-        assertEquals(expected, new AppellantDetailsMapper().map(asylumCase, caseFlagsMapper, caseDataMapper));
+        assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+            .map(asylumCase, caseFlagsMapper, caseDataMapper));
     }
 
     @Test
@@ -90,8 +96,10 @@ class AppellantDetailsMapperTest {
             .otherReasonableAdjustmentDetails("Single sex court: Male;")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
 
-        assertEquals(expected, new AppellantDetailsMapper().map(asylumCase, caseFlagsMapper, caseDataMapper));
+        assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+            .map(asylumCase, caseFlagsMapper, caseDataMapper));
     }
 
     private PartyDetailsModel getPartyDetailsModelForAppellant(IndividualDetailsModel individualDetails) {
