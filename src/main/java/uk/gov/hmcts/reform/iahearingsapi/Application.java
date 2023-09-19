@@ -1,10 +1,14 @@
 package uk.gov.hmcts.reform.iahearingsapi;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.core.JmsTemplate;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HearingUpdate;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 
 @Slf4j
 @EnableJms
@@ -20,7 +24,27 @@ public class Application {
 
     public static void main(final String[] args) {
 
-        SpringApplication.run(Application.class, args);
+        // SpringApplication.run(Application.class, args);
 
+        ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
+
+        JmsTemplate jmsTemplate = context.getBean(JmsTemplate.class);
+
+        HmcMessage hmcMessage = HmcMessage.builder()
+            .caseId(123456789L)
+            .hearingId("hearingId")
+            .hmctsServiceCode("BFA1")
+            .hearingUpdate(HearingUpdate.builder()
+               .hearingJudgeId("hearingJudgeId")
+               .hearingRoomId("hearingRoomId")
+               .hmcStatus(HmcStatus.LISTED)
+               .hearingVenueId("hearingVenueId")
+               .hearingListingStatus("hearingListingStatus")
+               .listAssistCaseStatus("listAssistCaseStatus")
+               .listAssistSessionID("listAssistSessionID")
+               .build())
+            .build();
+        log.info("Sending a hearing update message.");
+        jmsTemplate.convertAndSend("ia-hmc-topic", hmcMessage);
     }
 }
