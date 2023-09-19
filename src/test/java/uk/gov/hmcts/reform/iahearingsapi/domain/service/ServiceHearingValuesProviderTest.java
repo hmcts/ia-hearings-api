@@ -60,9 +60,6 @@ class ServiceHearingValuesProviderTest {
     private final String dateRangeEnd = "2023-08-15";
     private final String caseDeepLink = "/cases/case-details/1234567891234567#Overview";
     private final String listingComments = "Customer behaviour: unfriendly";
-    private final List<String> interpreterLanguage = List.of("deu");
-    private final List<String> reasonableAdjustments = List.of("Interpreter: Greek");
-    private final List<String> otherReasonableAdjustmentsDetails = List.of("Support filling in forms: Comment here");
     private final HearingWindowModel hearingWindowModel = HearingWindowModel.builder()
         .dateRangeStart(dateStr)
         .dateRangeEnd(dateRangeEnd)
@@ -241,9 +238,6 @@ class ServiceHearingValuesProviderTest {
             .vocabulary(Collections.emptyList())
             .hearingChannels(hearingChannels)
             .hearingLevelParticipantAttendance(Collections.emptyList())
-            .interpreterLanguage(interpreterLanguage.get(0))
-            .reasonableAdjustments(reasonableAdjustments)
-            .otherReasonableAdjustmentsDetails(otherReasonableAdjustmentsDetails)
             .build();
     }
 
