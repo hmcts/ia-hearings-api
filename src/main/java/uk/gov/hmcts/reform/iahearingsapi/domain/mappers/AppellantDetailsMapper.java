@@ -14,7 +14,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.SingleSexType.MA
 
 import java.util.Collections;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
