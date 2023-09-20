@@ -28,7 +28,6 @@ public class HearingsJmsConfig {
     @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
     public ConnectionFactory hmcHearingsJmsConnectionFactory(ApplicationParams applicationParams) {
 
-        log.info("CONNECTION STRING: {}", applicationParams.getUrlString());
         JmsConnectionFactory jmsConnectionFactory = new JmsConnectionFactory(applicationParams.getUrlString());
         jmsConnectionFactory.setUsername(applicationParams.getUsername());
         jmsConnectionFactory.setPassword(applicationParams.getPassword());
@@ -41,6 +40,7 @@ public class HearingsJmsConfig {
     @Bean
     @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
     public JmsListenerContainerFactory<DefaultMessageListenerContainer> hmcHearingsEventTopicContainerFactory(
+
         ConnectionFactory hmcHearingsJmsConnectionFactory,
         DefaultJmsListenerContainerFactoryConfigurer configurer) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();

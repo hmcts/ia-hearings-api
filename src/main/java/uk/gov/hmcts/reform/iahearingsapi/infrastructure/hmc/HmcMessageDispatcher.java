@@ -9,18 +9,18 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.handlers.MessageHandler;
 
 @Component
-public class Dispatcher<T extends HmcMessage> {
+public class HmcMessageDispatcher<T extends HmcMessage> {
 
     private final List<MessageHandler<T>> handlers;
 
-    public Dispatcher(
+    public HmcMessageDispatcher(
         List<MessageHandler<T>> handlers
     ) {
         requireNonNull(handlers, "Handlers must not be null");
         this.handlers = handlers;
     }
 
-    public void handle(T message) {
+    public void dispatch(T message) {
         requireNonNull(message, "message must not be null");
 
         dispatchToHandlers(message, handlers, DispatchPriority.EARLIEST);

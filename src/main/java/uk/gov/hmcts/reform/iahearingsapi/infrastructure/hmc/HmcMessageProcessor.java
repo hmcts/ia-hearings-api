@@ -10,7 +10,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 @RequiredArgsConstructor
 public class HmcMessageProcessor {
 
-    private final Dispatcher<HmcMessage> dispatcher;
+    private final HmcMessageDispatcher<HmcMessage> dispatcher;
+
     public void processMessage(HmcMessage hmcMessage) {
 
         log.info(
@@ -20,6 +21,6 @@ public class HmcMessageProcessor {
             hmcMessage.getCaseId()
         );
 
-        dispatcher.handle(hmcMessage);
+        dispatcher.dispatch(hmcMessage);
     }
 }
