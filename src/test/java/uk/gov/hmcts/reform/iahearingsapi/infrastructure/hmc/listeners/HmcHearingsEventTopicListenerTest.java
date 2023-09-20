@@ -1,13 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.listeners;
 
-import java.nio.charset.StandardCharsets;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.ArgumentMatchers.eq;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.qpid.jms.message.JmsBytesMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,45 +24,26 @@ class HmcHearingsEventTopicListenerTest {
     @Mock
     private ProcessHmcMessageService processHmcMessageService;
 
-    @Mock
-    private JmsBytesMessage bytesMessage;
-
-    @Mock
-    private ObjectMapper mockObjectMapper;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     @BeforeEach
     public void setUp() {
         hmcHearingsEventTopicListener = new HmcHearingsEventTopicListener(SERVICE_CODE, processHmcMessageService);
-        ReflectionTestUtils.setField(hmcHearingsEventTopicListener, "objectMapper", mockObjectMapper);
         ReflectionTestUtils.setField(hmcHearingsEventTopicListener, "hmctsServiceId", SERVICE_CODE);
     }
 
     @Test
-    public void testOnMessageWithRelevantMessage() throws Exception {
+    public void testOnMessageWithRelevantMessage() {
         HmcMessage hmcMessage = createHmcMessage(SERVICE_CODE);
 
-        byte[] messageBytes = OBJECT_MAPPER.writeValueAsString(hmcMessage).getBytes(StandardCharsets.UTF_8);
-
-        given(bytesMessage.getBodyLength()).willReturn((long) messageBytes.length);
-        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-
-        hmcHearingsEventTopicListener.onMessage(bytesMessage);
+        hmcHearingsEventTopicListener.onMessage(hmcMessage);
 
         verify(processHmcMessageService).processEventMessage(any(HmcMessage.class));
     }
 
     @Test
-    public void testOnMessageWithIrrelevantMessage() throws Exception {
+    public void testOnMessageWithIrrelevantMessage() {
         HmcMessage hmcMessage = createHmcMessage("irrelevantServiceCode");
 
-        byte[] messageBytes = OBJECT_MAPPER.writeValueAsString(hmcMessage).getBytes(StandardCharsets.UTF_8);
-
-        given(bytesMessage.getBodyLength()).willReturn((long) messageBytes.length);
-        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-
-        hmcHearingsEventTopicListener.onMessage(bytesMessage);
+        hmcHearingsEventTopicListener.onMessage(hmcMessage);
 
         verify(processHmcMessageService, never()).processEventMessage(any(HmcMessage.class));
     }
