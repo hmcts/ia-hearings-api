@@ -24,12 +24,6 @@ public class ApplicationParams {
     @Value("${azure.service-bus.hmc-to-hearings-api.idleTimeout}")
     private Long idleTimeout;
 
-    @Value("${azure.service-bus.hmc-to-hearings-api.connectionString}")
-    private String connectionString;
-
-    @Value("${azure.service-bus.hmc-to-hearings-api.topicName}")
-    private String hearingTopic;
-
     public String getUsername() {
         return username;
     }
@@ -40,14 +34,6 @@ public class ApplicationParams {
 
     public String getClientId() {
         return clientId;
-    }
-
-    public String getConnectionString() {
-        return connectionString;
-    }
-
-    public String getHearingTopic() {
-        return hearingTopic;
     }
 
     public String getUrlString() {

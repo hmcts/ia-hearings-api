@@ -12,7 +12,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HearingUpdate;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.ProcessHmcMessageService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
 
 @ExtendWith(MockitoExtension.class)
 class HmcHearingsEventTopicListenerTest {
@@ -22,7 +22,7 @@ class HmcHearingsEventTopicListenerTest {
     private HmcHearingsEventTopicListener hmcHearingsEventTopicListener;
 
     @Mock
-    private ProcessHmcMessageService processHmcMessageService;
+    private HmcMessageProcessor processHmcMessageService;
 
     @BeforeEach
     public void setUp() {
@@ -36,7 +36,7 @@ class HmcHearingsEventTopicListenerTest {
 
         hmcHearingsEventTopicListener.onMessage(hmcMessage);
 
-        verify(processHmcMessageService).processEventMessage(any(HmcMessage.class));
+        verify(processHmcMessageService).processMessage(any(HmcMessage.class));
     }
 
     @Test
@@ -45,7 +45,7 @@ class HmcHearingsEventTopicListenerTest {
 
         hmcHearingsEventTopicListener.onMessage(hmcMessage);
 
-        verify(processHmcMessageService, never()).processEventMessage(any(HmcMessage.class));
+        verify(processHmcMessageService, never()).processMessage(any(HmcMessage.class));
     }
 
     private HmcMessage createHmcMessage(String messageServiceCode) {
