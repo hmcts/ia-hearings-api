@@ -147,7 +147,9 @@ featureFlag:
 
 flags:
   hmc-to-hearings-api:
-    enabled: ${HMC-TO-HEARINGS-API-ENABLED:true}
+    enabled: ${HMC_TO_HEARINGS_API_ENABLED:true}
+  test-hearings-update-message:
+    enabled: ${SEND_TEST_HEARINGS_UPDATE_MESSAGE_ENABLED:}
 
 launchDarkly:
   sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
