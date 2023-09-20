@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.ProcessHmcMessageService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
 
 @Slf4j
 @Component
@@ -13,13 +13,13 @@ public class HmcHearingsEventTopicListener {
 
     private final String hmctsServiceId;
 
-    private final ProcessHmcMessageService processHmcMessageService;
+    private final HmcMessageProcessor hmcMessageProcessor;
 
     public HmcHearingsEventTopicListener(
-        @Value("${ia.hmctsServiceId}") String hmctsServiceId, ProcessHmcMessageService processHmcMessageService) {
+        @Value("${ia.hmctsServiceId}") String hmctsServiceId, HmcMessageProcessor hmcMessageProcessor) {
 
         this.hmctsServiceId = hmctsServiceId;
-        this.processHmcMessageService = processHmcMessageService;
+        this.hmcMessageProcessor = hmcMessageProcessor;
     }
 
     @JmsListener(
@@ -37,7 +37,7 @@ public class HmcHearingsEventTopicListener {
                          + " Case ID {}, and Hearing ID {}.",
                      hmcMessage.getHearingUpdate().getHmcStatus(), caseId, hearingId);
 
-            processHmcMessageService.processEventMessage(hmcMessage);
+            hmcMessageProcessor.processMessage(hmcMessage);
         }
     }
 
