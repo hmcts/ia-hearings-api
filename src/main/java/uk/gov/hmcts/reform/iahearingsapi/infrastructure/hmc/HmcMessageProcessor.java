@@ -15,7 +15,7 @@ public class HmcMessageProcessor {
     public void processMessage(HmcMessage hmcMessage) {
 
         log.info(
-            "HMC hearing update message `{}` received for Hearing ID `{}` and Case ID `{}`",
+            "Processing HMC hearing update message `{}` for Hearing ID `{}` and Case ID `{}`",
             hmcMessage.getHearingUpdate().getHmcStatus(),
             hmcMessage.getHearingId(),
             hmcMessage.getCaseId()

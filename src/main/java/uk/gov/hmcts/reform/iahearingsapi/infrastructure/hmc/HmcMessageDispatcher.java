@@ -21,7 +21,7 @@ public class HmcMessageDispatcher<T extends HmcMessage> {
     }
 
     public void dispatch(T message) {
-        requireNonNull(message, "message must not be null");
+        requireNonNull(message, "Message must not be null");
 
         dispatchToHandlers(message, handlers, DispatchPriority.EARLIEST);
         dispatchToHandlers(message, handlers, DispatchPriority.EARLY);

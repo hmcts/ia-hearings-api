@@ -29,9 +29,13 @@ public class HmcHearingsEventTopicListener {
     )
     public void onMessage(HmcMessage hmcMessage) {
 
+        Long caseId = hmcMessage.getCaseId();
+        String hearingId = hmcMessage.getHearingId();
+
+        log.info("Received {} message from HMC hearings topic for Case ID {}, and Hearing ID {}.",
+                 hmcMessage.getHearingUpdate().getHmcStatus(), caseId, hearingId);
+
         if (isMessageRelevantForService(hmcMessage)) {
-            Long caseId = hmcMessage.getCaseId();
-            String hearingId = hmcMessage.getHearingId();
 
             log.info("Attempting to process message from HMC hearings topic for event {},"
                          + " Case ID {}, and Hearing ID {}.",

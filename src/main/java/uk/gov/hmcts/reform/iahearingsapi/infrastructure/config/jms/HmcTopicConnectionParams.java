@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ApplicationParams {
+public class HmcTopicConnectionParams {
 
     @Value("${spring.application.name}")
     private String clientId;

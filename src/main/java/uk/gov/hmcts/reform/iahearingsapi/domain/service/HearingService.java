@@ -77,7 +77,7 @@ public class HearingService {
         }
     }
 
-    public PartiesNotifiedResponses getPartiesNotifiedResponses(String hearingId) {
+    public PartiesNotifiedResponses getPartiesNotified(String hearingId) {
         log.debug("Requesting Get Parties Notified with Hearing ID {}", hearingId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
@@ -93,7 +93,7 @@ public class HearingService {
         }
     }
 
-    public void updatePartiesNotifiedResponse(
+    public void updatePartiesNotified(
         String hearingId, int requestVersion, LocalDateTime receivedDateTime, PartiesNotified payload) {
         try {
             String serviceUserToken = idamService.getServiceUserToken();

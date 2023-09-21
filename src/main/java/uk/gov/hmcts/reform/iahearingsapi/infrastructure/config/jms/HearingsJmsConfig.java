@@ -26,12 +26,12 @@ public class HearingsJmsConfig {
 
     @Bean
     @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
-    public ConnectionFactory hmcHearingsJmsConnectionFactory(ApplicationParams applicationParams) {
+    public ConnectionFactory hmcHearingsJmsConnectionFactory(HmcTopicConnectionParams hmcTopicConnectionParams) {
 
-        JmsConnectionFactory jmsConnectionFactory = new JmsConnectionFactory(applicationParams.getUrlString());
-        jmsConnectionFactory.setUsername(applicationParams.getUsername());
-        jmsConnectionFactory.setPassword(applicationParams.getPassword());
-        jmsConnectionFactory.setClientID(applicationParams.getClientId());
+        JmsConnectionFactory jmsConnectionFactory = new JmsConnectionFactory(hmcTopicConnectionParams.getUrlString());
+        jmsConnectionFactory.setUsername(hmcTopicConnectionParams.getUsername());
+        jmsConnectionFactory.setPassword(hmcTopicConnectionParams.getPassword());
+        jmsConnectionFactory.setClientID(hmcTopicConnectionParams.getClientId());
         jmsConnectionFactory.setReceiveLocalOnly(true);
 
         return new CachingConnectionFactory(jmsConnectionFactory);
