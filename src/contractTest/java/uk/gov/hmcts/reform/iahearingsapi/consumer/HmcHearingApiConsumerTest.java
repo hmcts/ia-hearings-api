@@ -10,13 +10,11 @@ import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import io.pactfoundation.consumer.dsl.LambdaDsl;
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 
 @PactTestFor(providerName = "hmc_cft_hearings_api", port = "4561")
-@Disabled
 public class HmcHearingApiConsumerTest extends HmcHearingApiConsumerTestBase {
 
     @Pact(provider = "hmc_cft_hearings_api", consumer = "ia_hearingsApi")
@@ -81,29 +79,23 @@ public class HmcHearingApiConsumerTest extends HmcHearingApiConsumerTestBase {
                 .booleanType("privateHearingRequiredFlag", true)
                 .object("panelRequirements", (panelRequirements) -> {
                     panelRequirements.array("roleType", roleType -> roleType.stringType("84"));
-                    panelRequirements.array("authorisationTypes", authorisationTypes ->
-                        authorisationTypes.stringType(""));
-                    panelRequirements.array("authorisationSubType", authorisationSubType ->
-                        authorisationSubType.stringType(""));
-                    panelRequirements.array("panelPreferences", panelPreferences ->
-                        panelPreferences.stringType(""));
-                    panelRequirements.array("panelSpecialisms", panelSpecialisms ->
-                        panelSpecialisms.stringType(""));
+                    panelRequirements.array("authorisationTypes", authorisationTypes -> authorisationTypes.stringType(""));
+                    panelRequirements.array("authorisationSubType", authorisationSubType -> authorisationSubType.stringType(""));
+                    panelRequirements.array("panelPreferences", panelPreferences -> panelPreferences.stringType(""));
+                    panelRequirements.array("panelSpecialisms", panelSpecialisms -> panelSpecialisms.stringType(""));
                 })
                 .booleanType("hearingIsLinkedFlag", false)
                 .array("hearingChannels", hearingChannels -> hearingChannels.stringType("INTER"))
                 .booleanType("autolistFlag", false)
                 .object("caseDetails", (caseDetails) -> {
-                    caseDetails.stringType("hmctsServiceCode", "BFA1");
-                    caseDetails.stringType("caseRef", "1694535157958319");
-                    caseDetails.stringType("externalCaseReference", "111112222");
-                    caseDetails.stringType(
-                        "caseDeepLink",
-                        "http://localhost:3002/cases/case-details/1694535157958319#Overview");
-                    caseDetails.stringType("hmctsInternalCaseName", "mmm nnn");
-                    caseDetails.stringType("publicCaseName", "mmm nnn");
-                    caseDetails.booleanType("caseAdditionalSecurityFlag", true);
-                    caseDetails.booleanType("caseInterpreterRequiredFlag", true);
+                        caseDetails.stringType("hmctsServiceCode", "BFA1");
+                        caseDetails.stringType("caseRef", "1694535157958319");
+                        caseDetails.stringType("externalCaseReference", "111112222");
+                        caseDetails.stringType("caseDeepLink", "http://localhost:3002/cases/case-details/1694535157958319#Overview");
+                        caseDetails.stringType("hmctsInternalCaseName", "mmm nnn");
+                        caseDetails.stringType("publicCaseName", "mmm nnn");
+                        caseDetails.booleanType("caseAdditionalSecurityFlag", true);
+                        caseDetails.booleanType("caseInterpreterRequiredFlag", true);
                 })
                 .array("caseCategories", (caseCategories) -> {
                     caseCategories.object(caseCategory -> {
@@ -192,8 +184,7 @@ public class HmcHearingApiConsumerTest extends HmcHearingApiConsumerTestBase {
                         response.object("serviceData", (serviceData) -> {
                             serviceData.booleanType("hearingNoticeGenerated", true);
                             serviceData.stringType("hearingDate", "2023-09-20T10:09:19.93734");
-                            serviceData.stringType("hearingLocation",
-                                                   "Hatton Cross Tribunal Hearing Centre");
+                            serviceData.stringType("hearingLocation", "Hatton Cross Tribunal Hearing Centre");
                             serviceData.array("days", days -> {
                                 days.object(day -> {
                                     day.stringType("hearingStartDateTime", "2023-09-20T10:09:19.93734");

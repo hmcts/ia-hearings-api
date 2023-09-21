@@ -7,10 +7,8 @@ import au.com.dius.pact.core.model.annotations.Pact;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-@Disabled
 @PactTestFor(providerName = "hmc_cft_hearings_api", port = "4561")
 public class HmcHearingApiPutConsumerTest extends HmcHearingApiConsumerTestBase {
 
