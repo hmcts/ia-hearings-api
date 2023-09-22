@@ -60,20 +60,12 @@
       "screenName": "hearing-judge",
       "navigation": [
         {
-<<<<<<< Updated upstream:src/main/resources/screenFlowMinusPanel.json
-          "resultValue": "hearing-link"
-=======
           "resultValue": "hearing-timing"
->>>>>>> Stashed changes:src/main/resources/screenFlowNoPanelNoLink.json
         }
       ]
     },
     {
-<<<<<<< Updated upstream:src/main/resources/screenFlowMinusPanel.json
-      "screenName": "hearing-link",
-=======
       "screenName": "hearing-timing",
->>>>>>> Stashed changes:src/main/resources/screenFlowNoPanelNoLink.json
       "navigation": [
         {
           "resultValue": "hearing-additional-instructions"
