@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +44,8 @@ class HmcHearingsEventTopicListenerTest {
     public void testOnMessageWithRelevantMessage() throws Exception {
         HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE);
 
-        String message = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
 
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
 
@@ -56,7 +58,8 @@ class HmcHearingsEventTopicListenerTest {
     public void testOnMessageWithIrrelevantMessage() throws Exception {
         HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode");
 
-        String message = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
 
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
 
