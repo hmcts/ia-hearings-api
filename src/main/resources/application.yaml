@@ -159,6 +159,19 @@ ia:
   config:
     validator:
       secret: ${IA_CONFIG_VALIDATOR_SECRET:}
+  hmctsServiceId: ${HMCTS_SERVICE_ID:BFA1}
 
 govUkHolidays:
   url: https://www.gov.uk/
+
+azure:
+  service-bus:
+    connection-postfix: ${HMC_RESPONSE_TOPIC_CONNECTION_POSTFIX:.servicebus.windows.net}
+    hmc-to-hearings-api:
+      namespace: ${HMC_HEARINGS_TOPIC_NAMESPACE:hmc-servicebus-demo}
+      topicName: ${HMC_HEARINGS_TOPIC_NAME:}
+      subscriptionName: ${HMC_HEARINGS_TOPIC_SUBSCRIPTION_NAME:}
+      receiveTimeout: ${HMC_HEARINGS_TOPIC_RECEIVE_TIMEOUT:1}
+      idleTimeout: ${HMC_HEARINGS_TOPIC_IDLE_TIMEOUT:3600000}
+      username: ${HMC_HEARINGS_TOPIC_POLICY_NAME:}
+      password: ${HMC_HEARINGS_TOPIC_ACCESS_KEY:}
