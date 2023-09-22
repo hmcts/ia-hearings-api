@@ -34,12 +34,14 @@ public class HmcHearingsEventTopicListener {
         subscription = "${azure.service-bus.hmc-to-hearings-api.subscriptionName}",
         containerFactory = "hmcHearingsEventTopicContainerFactory"
     )
+
     public void onMessage(byte[] message) throws HmcEventProcessingException {
 
         try {
             HmcMessage hmcMessage = objectMapper.readValue(
                 new String(message, StandardCharsets.UTF_8),
                 HmcMessage.class);
+
             Long caseId = hmcMessage.getCaseId();
             String hearingId = hmcMessage.getHearingId();
 
