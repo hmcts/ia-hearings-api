@@ -10,4 +10,6 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
     HmcHearingApi.class
 })
 @PropertySource("classpath:application.properties")
-public class HmcHearingApiConsumerApplication {}
+public class HmcHearingApiConsumerApplication {
+
+}
