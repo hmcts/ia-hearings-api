@@ -13,6 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedTy
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.SingleSexType.MALE;
 
 import java.util.Collections;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
@@ -21,7 +22,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 
 @Component
+@AllArgsConstructor
 public class AppellantDetailsMapper {
+
+    private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
 
     public PartyDetailsModel map(
         AsylumCase asylumCase,
@@ -47,7 +51,7 @@ public class AppellantDetailsMapper {
             singleSexCourtResponse.append(";");
         }
 
-        return PartyDetailsModel.builder()
+        PartyDetailsModel appellantPartyDetailsModel = PartyDetailsModel.builder()
             .partyID(caseDataMapper.getAppellantPartyId(asylumCase))
             .partyType(PartyType.IND.getPartyType())
             .individualDetails(
@@ -69,5 +73,7 @@ public class AppellantDetailsMapper {
             .unavailabilityDOW(Collections.emptyList())
             .unavailabilityRanges(caseDataMapper.getUnavailabilityRanges(asylumCase))
             .build();
+
+        return languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, appellantPartyDetailsModel);
     }
 }
