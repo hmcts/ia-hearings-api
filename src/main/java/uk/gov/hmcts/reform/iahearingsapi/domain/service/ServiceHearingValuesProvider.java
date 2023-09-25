@@ -4,9 +4,6 @@ import static java.util.Objects.requireNonNull;
 import static net.minidev.json.parser.JSONParser.DEFAULT_PERMISSIVE_MODE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.INTERPRETER_LANGUAGE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.OTHER_REASONABLE_ADJUSTMENTS_DETAILS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.REASONABLE_ADJUSTMENTS;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,21 +12,21 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
@@ -45,6 +42,7 @@ public class ServiceHearingValuesProvider {
 
     private static final JSONParser PARSER = new JSONParser(DEFAULT_PERMISSIVE_MODE);
     private static final String SCREEN_FLOW = "screenFlow";
+    private static final String IN_PERSON = "INTER";
 
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
     private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
@@ -76,8 +74,7 @@ public class ServiceHearingValuesProvider {
             .orElseThrow(() ->
                 new RequiredFieldMissingException("List case hearing length is a required field"));
 
-        Map<String, List<String>> languageAndReasonableAdjustments = languageAndAdjustmentsMapper
-            .getLanguageAndAdjustmentsFields(asylumCase);
+        List<PartyDetailsModel> partyDetails = getPartyDetails(asylumCase);
 
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
@@ -97,10 +94,8 @@ public class ServiceHearingValuesProvider {
             .hearingWindow(caseDataMapper
                 .getHearingWindowModel())
             .hearingPriorityType(caseFlagsMapper.getHearingPriorityType(asylumCase))
-            .hearingLocations(List.of(HearingLocationModel.builder() //TODO: RIA-7135
-                                          .locationId("386417")
-                                          .locationType("court")
-                                          .build()))
+            .numberOfPhysicalAttendees(getNumberOfPhysicalAttendees(partyDetails))
+            .hearingLocations(Collections.emptyList())
             .facilitiesRequired(Collections.emptyList())
             .listingComments(listingCommentsMapper.getListingComments(asylumCase, caseFlagsMapper, caseDataMapper))
             .hearingRequester("")
@@ -119,17 +114,13 @@ public class ServiceHearingValuesProvider {
                .panelComposition(Collections.emptyList())
                .build())
             .hearingIsLinkedFlag(false)
-            .parties(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+            .parties(partyDetails)
             .caseflags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference))
             .screenFlow(getScreenFlowJson())
             .vocabulary(Collections.emptyList())
             .hearingChannels(caseDataMapper
                 .getHearingChannels(asylumCase))
             .hearingLevelParticipantAttendance(Collections.emptyList())
-            .interpreterLanguage(languageAndReasonableAdjustments.get(INTERPRETER_LANGUAGE).get(0))
-            .reasonableAdjustments(languageAndReasonableAdjustments.get(REASONABLE_ADJUSTMENTS))
-            .otherReasonableAdjustmentsDetails(languageAndReasonableAdjustments
-                .get(OTHER_REASONABLE_ADJUSTMENTS_DETAILS))
             .build();
     }
 
@@ -164,5 +155,19 @@ public class ServiceHearingValuesProvider {
         caseCategoryCaseSubType.setCategoryParent(caseCategoriesValue);
 
         return List.of(caseCategoryCaseType, caseCategoryCaseSubType);
+    }
+
+    private List<PartyDetailsModel> getPartyDetails(AsylumCase asylumCase) {
+        return partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper);
+    }
+
+    public int getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {
+
+        return (int) partyDetails.stream()
+            .filter(party -> party.getIndividualDetails() != null
+                             && StringUtils.equals(
+                                 party.getIndividualDetails().getPreferredHearingChannel(),
+                                 IN_PERSON))
+            .count();
     }
 }

@@ -31,10 +31,10 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.REFUSED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper.HEARING_WINDOW_INTERVAL;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -79,9 +79,6 @@ class CaseDataToServiceHearingValuesMapperTest {
         String startDate = "2023-08-01T10:46:48.962301+01:00[Europe/London]";
         ZonedDateTime zonedDateTimeFrom = ZonedDateTime.parse(startDate);
         when(hearingServiceDateProvider.zonedNowWithTime()).thenReturn(zonedDateTimeFrom);
-        String endDate = "2023-08-15T10:46:48.962301+01:00[Europe/London]";
-        when(hearingServiceDateProvider.calculateDueDate(zonedDateTimeFrom, HEARING_WINDOW_INTERVAL))
-            .thenReturn(ZonedDateTime.parse(endDate));
         when(asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(homeOfficeRef));
 
         CaseManagementLocation caseManagementLocation = CaseManagementLocation
@@ -159,10 +156,14 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     @Test
     void getHearingWindowModel_should_return_correct_date_range() {
+        ZonedDateTime expectedDate = ZonedDateTime.now().plusDays(10L);
+        when(hearingServiceDateProvider
+                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 10))
+            .thenReturn(expectedDate);
         HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel();
 
-        assertEquals(hearingWindowModel.getDateRangeStart(), dateStr);
-        assertEquals(hearingWindowModel.getDateRangeEnd(), "2023-08-15");
+        assertEquals(hearingWindowModel.getDateRangeStart(), expectedDate
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
     }
 
     @Test

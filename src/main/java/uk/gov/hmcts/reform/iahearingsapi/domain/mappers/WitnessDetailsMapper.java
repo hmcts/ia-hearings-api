@@ -5,6 +5,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.WitnessDetails;
@@ -14,24 +15,32 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 
 @Component
+@AllArgsConstructor
 public class WitnessDetailsMapper {
+
+    private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
 
     public List<PartyDetailsModel> map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
 
         Optional<List<IdValue<WitnessDetails>>> witnessDetailsOptional = asylumCase.read(WITNESS_DETAILS);
 
         return witnessDetailsOptional.map(idValues -> idValues.stream()
-            .map(IdValue::getValue).map(witnessDetails -> PartyDetailsModel.builder()
-                .partyID(witnessDetails.getWitnessPartyId())
-                .partyType(PartyType.IND.getPartyType())
-                .partyRole("WITN")
-                .individualDetails(
-                    IndividualDetailsModel.builder()
-                        .firstName(witnessDetails.getWitnessName())
-                        .lastName(witnessDetails.getWitnessFamilyName())
-                        .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
-                        .build())
-                .build()).toList()).orElse(Collections.emptyList());
+            .map(IdValue::getValue).map(witnessDetails -> {
 
+                PartyDetailsModel witnessPartyDetailsModel = PartyDetailsModel.builder()
+                    .partyID(witnessDetails.getWitnessPartyId())
+                    .partyType(PartyType.IND.getPartyType())
+                    .partyRole("WITN")
+                    .individualDetails(
+                        IndividualDetailsModel.builder()
+                            .firstName(witnessDetails.getWitnessName())
+                            .lastName(witnessDetails.getWitnessFamilyName())
+                            .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
+                            .build())
+                    .build();
+
+                return languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, witnessPartyDetailsModel);
+            }).toList())
+            .orElse(Collections.emptyList());
     }
 }

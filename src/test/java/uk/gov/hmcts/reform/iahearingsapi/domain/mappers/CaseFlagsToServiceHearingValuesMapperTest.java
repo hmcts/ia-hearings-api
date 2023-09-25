@@ -208,6 +208,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
+        when(asylumCase.read(WITNESS_LEVEL_FLAGS))
+            .thenReturn(Optional.of(List.of(new PartyFlagIdValue("id", new StrategicCaseFlag(caseFlagDetails)))));
 
         assertEquals(PriorityType.URGENT, mapper.getHearingPriorityType(asylumCase));
     }

@@ -60,12 +60,12 @@
       "screenName": "hearing-judge",
       "navigation": [
         {
-          "resultValue": "hearing-link"
+          "resultValue": "hearing-timing"
         }
       ]
     },
     {
-      "screenName": "hearing-link",
+      "screenName": "hearing-timing",
       "navigation": [
         {
           "resultValue": "hearing-additional-instructions"
