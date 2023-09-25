@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.listeners;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jms.annotation.JmsListener;
@@ -33,10 +34,14 @@ public class HmcHearingsEventTopicListener {
         subscription = "${azure.service-bus.hmc-to-hearings-api.subscriptionName}",
         containerFactory = "hmcHearingsEventTopicContainerFactory"
     )
-    public void onMessage(String message) throws HmcEventProcessingException {
+
+    public void onMessage(byte[] message) throws HmcEventProcessingException {
 
         try {
-            HmcMessage hmcMessage = objectMapper.readValue(message, HmcMessage.class);
+            HmcMessage hmcMessage = objectMapper.readValue(
+                new String(message, StandardCharsets.UTF_8),
+                HmcMessage.class);
+
             Long caseId = hmcMessage.getCaseId();
             String hearingId = hmcMessage.getHearingId();
 

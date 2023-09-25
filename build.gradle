@@ -375,13 +375,16 @@ dependencies {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  //pact contract testing
-  contractImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pact_version
-  contractImplementation group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pact_version
 
-  contractImplementation('org.junit.jupiter:junit-jupiter-api:5.8.2')
-  contractImplementation('org.junit.jupiter:junit-jupiter-engine:5.8.2')
-  contractImplementation('org.junit.jupiter:junit-jupiter-api:5.8.2')
+  //pact contract testing
+  contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: '4.1.41'
+  contractTestImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
+  contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'java8', version: '4.1.41'
+  contractTestImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+  contractTestImplementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
+
+  contractTestImplementation sourceSets.main.runtimeClasspath
+  contractTestImplementation sourceSets.test.runtimeClasspath
 
   testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.6.28'
 
@@ -406,6 +409,19 @@ dependencies {
 
   contractImplementation sourceSets.main.runtimeClasspath
   contractImplementation sourceSets.test.runtimeClasspath
+}
+
+idea {
+  module {
+    testSourceDirs += project.sourceSets.integrationTest.java.srcDirs
+    testResourceDirs += project.sourceSets.integrationTest.resources.srcDirs
+    testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
+    testResourceDirs += project.sourceSets.functionalTest.resources.srcDirs
+    testSourceDirs += project.sourceSets.smokeTest.java.srcDirs
+    testResourceDirs += project.sourceSets.smokeTest.resources.srcDirs
+    testSourceDirs += project.sourceSets.contractTest.java.srcDirs
+    testResourceDirs += project.sourceSets.contractTest.resources.srcDirs
+  }
 }
 
 task runAndPublishConsumerPactTests(type: Test) {
