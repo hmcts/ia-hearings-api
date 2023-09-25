@@ -43,7 +43,7 @@ public class HearingServiceDateProvider implements DateProvider {
         return resetTo4PmTime(zonedDateTime);
     }
 
-    private ZonedDateTime addWorkingDays(ZonedDateTime dueDate, int numberOfDays) {
+    public ZonedDateTime addWorkingDays(ZonedDateTime dueDate, int numberOfDays) {
         if (numberOfDays == 0) {
             return dueDate;
         }

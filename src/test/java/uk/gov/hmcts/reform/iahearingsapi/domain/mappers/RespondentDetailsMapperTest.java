@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 
@@ -28,6 +29,11 @@ class RespondentDetailsMapperTest {
             .partyID("partyId")
             .partyType("ORG")
             .partyRole("RESP")
+            .individualDetails(IndividualDetailsModel.builder()
+                                   .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
+                                   .firstName("Home")
+                                   .lastName("Office")
+                                   .build())
             .organisationDetails(
                 OrganisationDetailsModel.builder()
                             .organisationType("ORG")

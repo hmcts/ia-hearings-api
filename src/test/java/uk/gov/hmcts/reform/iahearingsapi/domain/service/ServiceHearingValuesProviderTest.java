@@ -9,16 +9,12 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.INTERPRETER_LANGUAGE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.OTHER_REASONABLE_ADJUSTMENTS_DETAILS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper.REASONABLE_ADJUSTMENTS;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,8 +34,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
@@ -64,9 +60,6 @@ class ServiceHearingValuesProviderTest {
     private final String dateRangeEnd = "2023-08-15";
     private final String caseDeepLink = "/cases/case-details/1234567891234567#Overview";
     private final String listingComments = "Customer behaviour: unfriendly";
-    private final List<String> interpreterLanguage = List.of("deu");
-    private final List<String> reasonableAdjustments = List.of("Interpreter: Greek");
-    private final List<String> otherReasonableAdjustmentsDetails = List.of("Support filling in forms: Comment here");
     private final HearingWindowModel hearingWindowModel = HearingWindowModel.builder()
         .dateRangeStart(dateStr)
         .dateRangeEnd(dateRangeEnd)
@@ -147,11 +140,6 @@ class ServiceHearingValuesProviderTest {
         when(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
         when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper)).thenReturn(partyDetails);
-        when(languageAndAdjustmentsMapper.getLanguageAndAdjustmentsFields(asylumCase)).thenReturn(Map.of(
-            INTERPRETER_LANGUAGE, interpreterLanguage,
-            REASONABLE_ADJUSTMENTS, reasonableAdjustments,
-            OTHER_REASONABLE_ADJUSTMENTS_DETAILS, otherReasonableAdjustmentsDetails
-        ));
 
         caseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
         caseCategoryCaseType.setCategoryValue(caseCategoriesValue);
@@ -227,10 +215,8 @@ class ServiceHearingValuesProviderTest {
             .hearingPriorityType(PriorityType.STANDARD)
             .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
-            .hearingLocations(List.of(HearingLocationModel.builder() //TODO: RIA-7135
-                                          .locationId("386417")
-                                          .locationType("court")
-                                          .build()))
+            .hearingLocations(Collections.emptyList())
+            .numberOfPhysicalAttendees(0)
             .facilitiesRequired(Collections.emptyList())
             .listingComments(listingComments)
             .hearingRequester("")
@@ -252,9 +238,18 @@ class ServiceHearingValuesProviderTest {
             .vocabulary(Collections.emptyList())
             .hearingChannels(hearingChannels)
             .hearingLevelParticipantAttendance(Collections.emptyList())
-            .interpreterLanguage(interpreterLanguage.get(0))
-            .reasonableAdjustments(reasonableAdjustments)
-            .otherReasonableAdjustmentsDetails(otherReasonableAdjustmentsDetails)
             .build();
+    }
+
+    @Test
+    void should_find_number_of_physical_attendees() {
+        partyDetails.get(0).setIndividualDetails(IndividualDetailsModel.builder()
+                                                     .preferredHearingChannel("INTER").build());
+        partyDetails.get(1).setIndividualDetails(IndividualDetailsModel.builder()
+                                                     .preferredHearingChannel("INTER").build());
+
+        int expectedPartiesInPerson = serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetails);
+
+        assertEquals(expectedPartiesInPerson, 2);
     }
 }
