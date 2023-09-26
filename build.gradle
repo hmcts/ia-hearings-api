@@ -386,7 +386,7 @@ dependencies {
   contractTestImplementation sourceSets.main.runtimeClasspath
   contractTestImplementation sourceSets.test.runtimeClasspath
 
-  testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '3.6.28'
+  testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '5.5.0'
 
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 
