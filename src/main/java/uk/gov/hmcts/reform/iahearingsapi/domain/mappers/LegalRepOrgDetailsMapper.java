@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_COMPANY_NAME;
 
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -13,8 +12,6 @@ public class LegalRepOrgDetailsMapper {
 
     public PartyDetailsModel map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
 
-        String legalRepCompanyName = asylumCase.read(LEGAL_REP_COMPANY_NAME, String.class).orElse(null);
-
         return PartyDetailsModel.builder()
             .partyID(caseDataMapper.getLegalRepOrgPartyId(asylumCase))
             .partyType(PartyType.ORG.getPartyType())
@@ -22,7 +19,8 @@ public class LegalRepOrgDetailsMapper {
             .organisationDetails(
                 OrganisationDetailsModel.builder()
                             .organisationType(PartyType.ORG.getPartyType())
-                            .name(legalRepCompanyName)
+                            .name(caseDataMapper.getRespondentName(asylumCase))
+                            .cftOrganisationID(caseDataMapper.getLegalRepOrgPartyId(asylumCase))
                             .build())
             .build();
     }
