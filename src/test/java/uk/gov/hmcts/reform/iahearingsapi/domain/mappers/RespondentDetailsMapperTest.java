@@ -23,7 +23,6 @@ class RespondentDetailsMapperTest {
     void should_map_correctly() {
 
         when(caseDataMapper.getRespondentPartyId(asylumCase)).thenReturn("partyId");
-        when(caseDataMapper.getLegalRepOrgPartyId(asylumCase)).thenReturn("partyId");
         when(caseDataMapper.getRespondentName(asylumCase)).thenReturn("partyName");
 
         PartyDetailsModel expected = PartyDetailsModel.builder()

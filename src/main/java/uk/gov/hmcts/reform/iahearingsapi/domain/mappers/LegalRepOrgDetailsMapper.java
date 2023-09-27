@@ -19,7 +19,7 @@ public class LegalRepOrgDetailsMapper {
             .organisationDetails(
                 OrganisationDetailsModel.builder()
                             .organisationType(PartyType.ORG.getPartyType())
-                            .name(caseDataMapper.getRespondentName(asylumCase))
+                            .name(caseDataMapper.getLegalRepCompanyName(asylumCase))
                             .cftOrganisationID(caseDataMapper.getLegalRepOrgPartyId(asylumCase))
                             .build())
             .build();

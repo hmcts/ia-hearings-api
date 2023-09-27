@@ -23,7 +23,7 @@ class LegalRepOrgDetailsMapperTest {
     void should_map_correctly() {
 
         when(caseDataMapper.getLegalRepOrgPartyId(asylumCase)).thenReturn("partyId");
-        when(caseDataMapper.getRespondentName(asylumCase)).thenReturn("partyName");
+        when(caseDataMapper.getLegalRepCompanyName(asylumCase)).thenReturn("legaRepPartyName");
 
         PartyDetailsModel expected = PartyDetailsModel.builder()
             .partyID("partyId")
@@ -32,7 +32,7 @@ class LegalRepOrgDetailsMapperTest {
             .organisationDetails(
                 OrganisationDetailsModel.builder()
                             .organisationType("ORG")
-                            .name("partyName")
+                            .name("legaRepPartyName")
                             .cftOrganisationID("partyId")
                             .build())
             .build();
