@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,6 +30,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
@@ -72,15 +75,56 @@ class ListCaseHandlerTest {
     }
 
     @Test
+    void should_have_early_dispatch_priority() {
+        assertEquals(DispatchPriority.EARLY, listCaseHandler.getDispatchPriority());
+    }
+
+    @Test
     void should_handle_only_if_service_data_qualifies() {
         assertTrue(listCaseHandler.canHandle(serviceData));
     }
 
     @Test
-    void should_not_handle_if_service_data_unqualified() {
+    void should_not_handle_if_hearing_type_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(COSTS.getKey()));
         assertFalse(listCaseHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_not_handle_if_hmc_status_unqualified() {
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
+            .thenReturn(Optional.of(HmcStatus.CLOSED));
+        assertFalse(listCaseHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_not_handle_if_hearing_channels_on_papers() {
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS, List.class))
+            .thenReturn(Optional.of(List.of(HearingChannel.ONPPRS)));
+        assertFalse(listCaseHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_not_handle_if_hearing_listing_status_unqualified() {
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.class))
+            .thenReturn(Optional.of(ListingStatus.DRAFT));
+        assertFalse(listCaseHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_not_handle_if_list_assist_case_status_unqualified() {
+        when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
+            .thenReturn(Optional.of(ListAssistCaseStatus.CASE_CLOSED));
+        assertFalse(listCaseHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_throw_error_if_cannot_handle() {
+        when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
+            .thenReturn(Optional.of(ListAssistCaseStatus.CASE_CLOSED));
+
+        assertThrows(IllegalStateException.class, () -> listCaseHandler.handle(serviceData));
     }
 
     @Test
