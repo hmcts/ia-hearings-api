@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HearingUpdate;
 
 public class HandlerUtils {
 
@@ -31,7 +30,7 @@ public class HandlerUtils {
     }
 
     public static boolean isListAssistCaseStatus(ServiceData serviceData, ListAssistCaseStatus benchMark) {
-        return serviceData.read(LIST_ASSIST_CASE_STATUS, HearingUpdate.class)
+        return serviceData.read(LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class)
             .map(listAssistCaseStatus -> Objects.equals(listAssistCaseStatus, benchMark))
             .orElse(false);
     }
@@ -44,7 +43,7 @@ public class HandlerUtils {
 
     public static boolean isHearingType(ServiceData serviceData, HearingType benchMark) {
         return serviceData.read(HEARING_TYPE, String.class)
-            .map(hearingType -> Objects.equals(hearingType, benchMark.getKey()))
+            .map(hearingType -> Objects.equals(hearingType, benchMark.toString()))
             .orElse(false);
     }
 }

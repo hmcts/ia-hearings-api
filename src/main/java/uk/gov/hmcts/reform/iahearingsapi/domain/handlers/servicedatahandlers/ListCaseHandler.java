@@ -42,7 +42,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatu
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @Component
 @RequiredArgsConstructor
@@ -51,7 +50,6 @@ public class ListCaseHandler implements ServiceDataHandler<ServiceData> {
     private static final String GLASGOW_EPIMMS_ID = "366559";
     private static final String LISTING_REFERENCE = "LAI";
     private final CoreCaseDataService coreCaseDataService;
-    private final HearingService hearingService;
 
     @Override
     public DispatchPriority getDispatchPriority() {
