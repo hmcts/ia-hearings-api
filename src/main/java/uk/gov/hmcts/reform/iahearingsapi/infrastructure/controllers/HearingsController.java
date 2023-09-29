@@ -26,7 +26,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHea
 
 @Tag(name = "Hearings service")
 @RequestMapping(
-    path = "/asylum",
+    path = "/",
     consumes = MediaType.APPLICATION_JSON_VALUE,
     produces = MediaType.APPLICATION_JSON_VALUE
 )
