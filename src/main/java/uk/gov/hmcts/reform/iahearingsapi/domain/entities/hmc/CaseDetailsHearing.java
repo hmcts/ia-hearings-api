@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -33,8 +34,10 @@ public class CaseDetailsHearing {
 
     private String caseManagementLocationCode;
 
+    @JsonProperty("caserestrictedFlag")
     private boolean caseRestrictedFlag;
 
+    @JsonProperty("caseSLAStartDate")
     private LocalDate caseSlaStartDate;
 
 }

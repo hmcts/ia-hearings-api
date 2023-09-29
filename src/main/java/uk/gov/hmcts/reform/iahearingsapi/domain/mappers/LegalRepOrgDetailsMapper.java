@@ -13,7 +13,7 @@ public class LegalRepOrgDetailsMapper {
 
     public PartyDetailsModel map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
 
-        String legalRepCompanyName = asylumCase.read(LEGAL_REP_COMPANY_NAME, String.class).orElse(null);
+        String legalRepCompanyName = asylumCase.read(LEGAL_REP_COMPANY_NAME, String.class).orElse("n/a");
 
         return PartyDetailsModel.builder()
             .partyID(caseDataMapper.getLegalRepOrgPartyId(asylumCase))

@@ -15,7 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.iahearingsapi.TestUtils;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,30 +42,30 @@ class HmcHearingsEventTopicListenerTest {
 
     @Test
     public void testOnMessageWithRelevantMessage() throws Exception {
-        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE);
+        ServiceData serviceData = TestUtils.createServiceData(SERVICE_CODE);
 
-        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        String stringMessage = OBJECT_MAPPER.writeValueAsString(serviceData);
         byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
 
-        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
+        given(mockObjectMapper.readValue(any(String.class), eq(ServiceData.class))).willReturn(serviceData);
 
         hmcHearingsEventTopicListener.onMessage(message);
 
-        verify(hmcMessageProcessor).processMessage(any(HmcMessage.class));
+        verify(hmcMessageProcessor).processMessage(any(ServiceData.class));
     }
 
     @Test
     public void testOnMessageWithIrrelevantMessage() throws Exception {
-        HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode");
+        ServiceData serviceData = TestUtils.createServiceData("irrelevantServiceCode");
 
-        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        String stringMessage = OBJECT_MAPPER.writeValueAsString(serviceData);
         byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
 
-        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
+        given(mockObjectMapper.readValue(any(String.class), eq(ServiceData.class))).willReturn(serviceData);
 
         hmcHearingsEventTopicListener.onMessage(message);
 
-        verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
+        verify(hmcMessageProcessor, never()).processMessage(any(ServiceData.class));
     }
 
 }

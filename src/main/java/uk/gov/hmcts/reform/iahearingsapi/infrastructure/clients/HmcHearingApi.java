@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.DisableHystrixFeignConfiguration;
@@ -47,6 +48,14 @@ public interface HmcHearingApi {
         @RequestParam(name = "isValid", required = false) Boolean isValid
     );
 
+    @PutMapping(HEARING_ENDPOINT + "/{id}")
+    HearingGetResponse updateHearingRequest(
+        @RequestHeader(AUTHORIZATION) String authorisation,
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestBody UpdateHearingRequest updateHearingRequest,
+        @PathVariable String id
+    );
+
     @GetMapping(value = PARTIES_NOTIFIED_ENDPOINT + "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     PartiesNotifiedResponses getPartiesNotifiedRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
@@ -60,8 +69,9 @@ public interface HmcHearingApi {
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @RequestBody PartiesNotified partiesNotified,
         @PathVariable("id") String hearingId,
-        @RequestParam("version") int requestVersion,
-        @RequestParam("received") @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @RequestParam("version") long requestVersion,
+        @RequestParam("received")
+        @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
         LocalDateTime receivedDateTime
     );
 

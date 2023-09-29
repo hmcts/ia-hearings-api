@@ -61,6 +61,10 @@ public class CaseDetails<T extends CaseData> {
         return caseData;
     }
 
+    public void setCaseData(T caseData) {
+        this.caseData = caseData;
+    }
+
     public LocalDateTime getCreatedDate() {
         return createdDate;
     }

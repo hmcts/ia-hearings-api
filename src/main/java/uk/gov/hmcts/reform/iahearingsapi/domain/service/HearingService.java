@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
@@ -77,6 +78,24 @@ public class HearingService {
         }
     }
 
+    public HearingGetResponse updateHearing(String hearingId, UpdateHearingRequest updateHearingRequest)
+        throws HmcException {
+        log.debug("Sending updated Hearing request for Hearing ID {}", hearingId);
+        try {
+            String serviceUserToken = idamService.getServiceUserToken();
+            String serviceAuthToken = serviceAuthTokenGenerator.generate();
+
+            return hmcHearingApi.updateHearingRequest(
+                serviceUserToken,
+                serviceAuthToken,
+                updateHearingRequest,
+                hearingId);
+        } catch (FeignException ex)  {
+            log.error("Failed to update hearing with Id: {} for HMC", hearingId);
+            throw new HmcException(ex);
+        }
+    }
+
     public PartiesNotifiedResponses getPartiesNotified(String hearingId) {
         log.debug("Requesting Get Parties Notified with Hearing ID {}", hearingId);
         try {
@@ -94,7 +113,7 @@ public class HearingService {
     }
 
     public void updatePartiesNotified(
-        String hearingId, int requestVersion, LocalDateTime receivedDateTime, PartiesNotified payload) {
+        String hearingId, long requestVersion, LocalDateTime receivedDateTime, PartiesNotified payload) {
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();

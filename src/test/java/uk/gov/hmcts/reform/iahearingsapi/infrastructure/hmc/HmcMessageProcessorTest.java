@@ -3,6 +3,9 @@ package uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_UPDATE;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,14 +15,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.TestUtils;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HearingUpdate;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class HmcMessageProcessorTest {
 
     @Mock
-    private HmcMessageDispatcher<HmcMessage> dispatcher;
+    private HmcMessageDispatcher<ServiceData> dispatcher;
 
     private HmcMessageProcessor processor;
 
@@ -30,15 +34,15 @@ class HmcMessageProcessorTest {
 
     @Test
     void should_process_hmc_message() {
-        HmcMessage message = TestUtils.createHmcMessage("BFA1");
+        ServiceData serviceData = TestUtils.createServiceData("BFA1");
 
-        assertNotNull(message.getHearingUpdate().getHmcStatus());
-        assertNotNull(message.getHearingId());
-        assertNotNull(message.getCaseId());
+        assertNotNull(serviceData.read(HEARING_UPDATE, HearingUpdate.class).orElse(null));
+        assertNotNull(serviceData.read(HEARING_ID, HearingUpdate.class).orElse(null));
+        assertNotNull(serviceData.read(CASE_REF, HearingUpdate.class).orElse(null));
 
-        processor.processMessage(message);
+        processor.processMessage(serviceData);
 
-        verify(dispatcher, times(1)).dispatch(message);
+        verify(dispatcher, times(1)).dispatch(serviceData);
     }
 
 }

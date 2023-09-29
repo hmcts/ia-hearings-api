@@ -21,6 +21,8 @@ public enum AsylumCaseFieldDefinition {
         "hmctsCaseNameInternal", new TypeReference<String>() {}),
     LIST_CASE_HEARING_LENGTH(
         "listCaseHearingLength", new TypeReference<String>() {}),
+    LIST_CASE_HEARING_CENTRE(
+        "listCaseHearingCentre", new TypeReference<HearingCentre>(){}),
     APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {
     }),
     WITNESS_LEVEL_FLAGS(
@@ -112,7 +114,13 @@ public enum AsylumCaseFieldDefinition {
         "legalRepOrganisationPartyId", new TypeReference<String>() {}),
 
     SPONSOR_PARTY_ID(
-        "sponsorPartyId", new TypeReference<String>() {});
+        "sponsorPartyId", new TypeReference<String>() {}),
+
+    ARIA_LISTING_REFERENCE(
+        "ariaListingReference",  new TypeReference<String>(){}),
+
+    LIST_CASE_HEARING_DATE(
+        "listCaseHearingDate", new TypeReference<String>(){});
 
     private final String value;
     private final TypeReference typeReference;
