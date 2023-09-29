@@ -43,6 +43,23 @@ public class CoreCaseDataService {
         throw new IllegalArgumentException(errorMessage);
     }
 
+    private StartEventResponse getCase(String userToken,
+                                       String s2sToken,
+                                       String uid,
+                                       String jurisdiction,
+                                       String caseType,
+                                       String caseId,
+                                       Event event) {
+
+        return coreCaseDataApi.startEventForCaseWorker(userToken,
+                                                       s2sToken,
+                                                       uid,
+                                                       jurisdiction,
+                                                       caseType,
+                                                       caseId,
+                                                       event.toString());
+    }
+
     public CaseDetails triggerEvent(Event event, String caseId, AsylumCase asylumCase) {
 
         String userToken;
@@ -88,23 +105,6 @@ public class CoreCaseDataService {
                  caseDetails.getCallbackResponseStatus());
 
         return caseDetails;
-    }
-
-    private StartEventResponse getCase(String userToken,
-                                       String s2sToken,
-                                       String uid,
-                                       String jurisdiction,
-                                       String caseType,
-                                       String caseId,
-                                       Event event) {
-
-        return coreCaseDataApi.startEventForCaseWorker(userToken,
-                                                       s2sToken,
-                                                       uid,
-                                                       jurisdiction,
-                                                       caseType,
-                                                       caseId,
-                                                       event.toString());
     }
 
     private uk.gov.hmcts.reform.ccd.client.model.CaseDetails submitEventForCaseWorker(String userToken,

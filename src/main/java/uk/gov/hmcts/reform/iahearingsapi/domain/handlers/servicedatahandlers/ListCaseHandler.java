@@ -61,10 +61,10 @@ public class ListCaseHandler implements ServiceDataHandler<ServiceData> {
         requireNonNull(serviceData, "serviceData must not be null");
 
         return isHmcStatus(serviceData, HmcStatus.LISTED)
-        && isHearingListingStatus(serviceData, ListingStatus.FIXED)
-        && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED)
-        && !isHearingChannel(serviceData, ONPPRS)
-        && isHearingType(serviceData, SUBSTANTIVE);
+               && isHearingListingStatus(serviceData, ListingStatus.FIXED)
+               && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED)
+               && !isHearingChannel(serviceData, ONPPRS)
+               && isHearingType(serviceData, SUBSTANTIVE);
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
