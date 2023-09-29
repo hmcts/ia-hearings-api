@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.iahearingsapi.TestUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,7 +52,7 @@ class HmcHearingsEventTopicListenerTest {
 
         hmcHearingsEventTopicListener.onMessage(message);
 
-        verify(hmcMessageProcessor).processMessage(any(ServiceData.class));
+        verify(hmcMessageProcessor).processMessage(any(HmcMessage.class));
     }
 
     @Test
@@ -65,7 +66,7 @@ class HmcHearingsEventTopicListenerTest {
 
         hmcHearingsEventTopicListener.onMessage(message);
 
-        verify(hmcMessageProcessor, never()).processMessage(any(ServiceData.class));
+        verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
     }
 
 }

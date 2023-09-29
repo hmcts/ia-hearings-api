@@ -24,9 +24,6 @@ public class TestUtils {
 
         serviceData.write(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE, serviceCode);
         serviceData.write(ServiceDataFieldDefinition.CASE_REF, "1234L");
-        serviceData.write(ServiceDataFieldDefinition.HEARING_ID, "testId");
-        serviceData.write(ServiceDataFieldDefinition.HEARING_UPDATE, HearingUpdate.builder()
-            .hmcStatus(HmcStatus.LISTED).build());
 
         return serviceData;
     }

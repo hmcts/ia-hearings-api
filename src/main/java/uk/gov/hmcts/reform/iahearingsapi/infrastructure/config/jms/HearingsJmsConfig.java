@@ -55,13 +55,13 @@ public class HearingsJmsConfig {
         ConnectionFactory hmcHearingsJmsConnectionFactory,
         DefaultJmsListenerContainerFactoryConfigurer configurer) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(hmcHearingJmsConnectionFactory);
+        factory.setConnectionFactory(hmcHearingsJmsConnectionFactory);
         factory.setReceiveTimeout(receiveTimeout);
         factory.setSubscriptionDurable(Boolean.TRUE);
         factory.setSessionTransacted(Boolean.TRUE);
         factory.setSessionAcknowledgeMode(Session.SESSION_TRANSACTED);
 
-        configurer.configure(factory, hmcHearingJmsConnectionFactory);
+        configurer.configure(factory, hmcHearingsJmsConnectionFactory);
         return factory;
     }
 }

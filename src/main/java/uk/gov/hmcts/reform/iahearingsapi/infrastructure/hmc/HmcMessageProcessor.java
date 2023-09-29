@@ -9,12 +9,11 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HMCTS_SERVICE_CODE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HMC_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,17 +32,18 @@ public class HmcMessageProcessor {
 
     private final HmcMessageDispatcher<ServiceData> dispatcher;
     private final HearingService hearingService;
-    private final ObjectMapper objectMapper;
+
     public void processMessage(HmcMessage hmcMessage) {
 
         log.info(
             "Processing HMC hearing update message for Hearing ID `{}` and Case ID `{}`",
             hmcMessage.getHearingId(), hmcMessage.getCaseId());
 
-        ServiceData serviceData = objectMapper.convertValue(hmcMessage, new TypeReference<>(){});
+        ServiceData serviceData = new ServiceData();
 
         HearingUpdate hearingUpdate = hmcMessage.getHearingUpdate();
         serviceData.write(CASE_REF, hmcMessage.getCaseId());
+        serviceData.write(HMCTS_SERVICE_CODE, hmcMessage.getHmctsServiceCode());
         serviceData.write(HEARING_ID, hmcMessage.getHearingId());
         serviceData.write(NEXT_HEARING_DATE, hearingUpdate.getNextHearingDate());
         serviceData.write(HEARING_VENUE_ID, hearingUpdate.getHearingVenueId());
