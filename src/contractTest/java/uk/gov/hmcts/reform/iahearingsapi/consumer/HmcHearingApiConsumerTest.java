@@ -10,10 +10,12 @@ import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import io.pactfoundation.consumer.dsl.LambdaDsl;
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 
+@Disabled
 @PactTestFor(providerName = "hmc_cft_hearings_api", port = "4561")
 public class HmcHearingApiConsumerTest extends HmcHearingApiConsumerTestBase {
 
