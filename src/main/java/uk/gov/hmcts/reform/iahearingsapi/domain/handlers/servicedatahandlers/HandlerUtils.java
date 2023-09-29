@@ -43,7 +43,7 @@ public class HandlerUtils {
 
     public static boolean isHearingType(ServiceData serviceData, HearingType benchMark) {
         return serviceData.read(HEARING_TYPE, String.class)
-            .map(hearingType -> Objects.equals(hearingType, benchMark.toString()))
+            .map(hearingType -> Objects.equals(hearingType, benchMark.getKey()))
             .orElse(false);
     }
 }

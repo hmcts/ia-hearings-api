@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
@@ -68,7 +69,7 @@ class ListCaseHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
-            .thenReturn(Optional.of(SUBSTANTIVE.toString()));
+            .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
     }
 
     @Test
@@ -79,7 +80,7 @@ class ListCaseHandlerTest {
     @Test
     void should_not_handle_if_service_data_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
-            .thenReturn(Optional.of(COSTS.toString()));
+            .thenReturn(Optional.of(COSTS.getKey()));
         assertFalse(listCaseHandler.canHandle(serviceData));
     }
 

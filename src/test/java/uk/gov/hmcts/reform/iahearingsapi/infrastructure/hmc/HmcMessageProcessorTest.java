@@ -99,7 +99,7 @@ class HmcMessageProcessorTest {
         serviceData.write(ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME,
                                   HEARING_RESPONSE_RECEIVED_DATE_TIME);
         serviceData.write(HEARING_CHANNELS, List.of(HearingChannel.INTER));
-        serviceData.write(HEARING_TYPE, HearingType.SUBSTANTIVE.toString());
+        serviceData.write(HEARING_TYPE, HearingType.SUBSTANTIVE.getKey());
         serviceData.write(DURATION, 150);
 
         ArgumentCaptor<ServiceData> serviceDataArgumentCaptor = ArgumentCaptor.forClass(ServiceData.class);
