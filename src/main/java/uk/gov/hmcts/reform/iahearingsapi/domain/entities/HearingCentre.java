@@ -37,21 +37,21 @@ public enum HearingCentre {
 
     @JsonValue
     private final String value;
-    private final String epimmsId;
+    private final String epimsId;
 
     private static final Map<String, HearingCentre> hearingVenueIdMapping = new HashMap<>();
-    private static final Map<String, HearingCentre> epimmsIdMapping = new HashMap<>();
+    private static final Map<String, HearingCentre> epimsIdMapping = new HashMap<>();
 
     static {
         for (HearingCentre centre : HearingCentre.values()) {
             hearingVenueIdMapping.put(centre.getValue(), centre);
-            epimmsIdMapping.put(centre.getEpimmsId(), centre);
+            epimsIdMapping.put(centre.getEpimsId(), centre);
         }
     }
 
-    HearingCentre(String value, String epimmsId) {
+    HearingCentre(String value, String epimsId) {
         this.value = value;
-        this.epimmsId = epimmsId;
+        this.epimsId = epimsId;
     }
 
     public static Optional<HearingCentre> from(
@@ -66,20 +66,20 @@ public enum HearingCentre {
         return value;
     }
 
-    public String getEpimmsId() {
-        return epimmsId;
+    public String getEpimsId() {
+        return epimsId;
     }
 
-    public static String getEpimmsIdByValue(String value) {
-        return hearingVenueIdMapping.get(value).getEpimmsId();
+    public static String getEpimsIdByValue(String value) {
+        return hearingVenueIdMapping.get(value).getEpimsId();
     }
 
-    public static String getValueByEpimmsId(String epimsId) {
-        return epimmsIdMapping.get(epimsId).getValue();
+    public static String getValueByEpimsId(String epimsId) {
+        return epimsIdMapping.get(epimsId).getValue();
     }
 
-    public static HearingCentre getHearingCentreByEpimmsId(String epimmsId) {
-        return epimmsIdMapping.get(epimmsId);
+    public static HearingCentre getHearingCentreByEpimsId(String epimsId) {
+        return epimsIdMapping.get(epimsId);
     }
 
     @Override

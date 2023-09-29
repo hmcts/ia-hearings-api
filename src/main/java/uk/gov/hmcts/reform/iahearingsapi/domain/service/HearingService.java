@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
@@ -74,24 +73,6 @@ public class HearingService {
                 null);
         } catch (FeignException ex)  {
             log.error("Failed to retrieve hearing with Id: {} from HMC", hearingId);
-            throw new HmcException(ex);
-        }
-    }
-
-    public HearingGetResponse updateHearing(String hearingId, UpdateHearingRequest updateHearingRequest)
-        throws HmcException {
-        log.debug("Sending updated Hearing request for Hearing ID {}", hearingId);
-        try {
-            String serviceUserToken = idamService.getServiceUserToken();
-            String serviceAuthToken = serviceAuthTokenGenerator.generate();
-
-            return hmcHearingApi.updateHearingRequest(
-                serviceUserToken,
-                serviceAuthToken,
-                updateHearingRequest,
-                hearingId);
-        } catch (FeignException ex)  {
-            log.error("Failed to update hearing with Id: {} for HMC", hearingId);
             throw new HmcException(ex);
         }
     }

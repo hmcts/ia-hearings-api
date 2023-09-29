@@ -121,7 +121,7 @@ public class ListCaseHandler implements ServiceDataHandler<ServiceData> {
             && (hearingChannels.contains(VID) || hearingChannels.contains(TEL))) {
             return REMOTE_HEARING;
         }
-        return HearingCentre.getHearingCentreByEpimmsId(venueId);
+        return HearingCentre.getHearingCentreByEpimsId(venueId);
     }
 }
 
