@@ -7,7 +7,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +17,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.AccessTokenProvider;
 
 @ExtendWith(MockitoExtension.class)
 public class CoreCaseDataServiceTest {
@@ -36,12 +34,12 @@ public class CoreCaseDataServiceTest {
     @Mock
     private AuthTokenGenerator authTokenGenerator;
     @Mock
-    AccessTokenProvider accessTokenProvider;
+    IdamService idamService;
 
     @BeforeEach
     void setup() {
         when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
-        when(accessTokenProvider.getAccessToken()).thenReturn(AUTH_TOKEN);
+        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
     }
 
     @Test

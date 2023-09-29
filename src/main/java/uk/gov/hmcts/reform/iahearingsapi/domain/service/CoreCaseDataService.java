@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.ccd.client.model.Classification;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.AccessTokenProvider;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
 
 @Slf4j
@@ -25,7 +24,6 @@ public class CoreCaseDataService {
     private static final String CASE_TYPE = "Asylum";
 
     private final AuthTokenGenerator serviceAuthTokenGenerator;
-    private final AccessTokenProvider accessTokenProvider;
     private final IdamService idamService;
     private final CoreCaseDataApi coreCaseDataApi;
     private final IaCcdConvertService iaCcdConvertService;
