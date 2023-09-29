@@ -2,9 +2,12 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,8 +18,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
+import uk.gov.hmcts.reform.ccd.client.model.Classification;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 
 @ExtendWith(MockitoExtension.class)
 public class CoreCaseDataServiceTest {
@@ -24,6 +31,10 @@ public class CoreCaseDataServiceTest {
     private static final String CASE_ID = "123456789";
     private static final String AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJubGJoN";
     private static final String SERVICE_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.serviceToken";
+    private static final String JURISDICTION = "IA";
+    private static final String CASE_TYPE = "Asylum";
+    private static final String USER_ID = "userId";
+    private static final String EVENT_TOKEN = "eventToken";
 
     @InjectMocks
     private CoreCaseDataService coreCaseDataService;
@@ -35,6 +46,14 @@ public class CoreCaseDataServiceTest {
     private AuthTokenGenerator authTokenGenerator;
     @Mock
     IdamService idamService;
+    @Mock
+    StartEventResponse startEventResponse;
+    @Mock
+    AsylumCase asylumCase;
+    @Mock
+    CaseDetails caseDetails;
+    @Mock
+    UserInfo userInfo;
 
     @BeforeEach
     void setup() {
@@ -46,7 +65,6 @@ public class CoreCaseDataServiceTest {
     public void should_fetch_one_case_by_id() {
 
         CaseDetails caseDetails = mock(CaseDetails.class);
-        AsylumCase asylumCase = mock(AsylumCase.class);
         Map<String, Object> data = new HashMap<>();
         when(caseDetails.getData()).thenReturn(data);
         when(iaCcdConvertService.getCaseData(data)).thenReturn(asylumCase);
@@ -55,6 +73,46 @@ public class CoreCaseDataServiceTest {
         AsylumCase actualAsylumCase = coreCaseDataService.getCase(CASE_ID);
 
         assertEquals(asylumCase, actualAsylumCase);
+    }
+
+    @Test
+    public void should_trigger_event() {
+        when(idamService.getUserInfo()).thenReturn(userInfo);
+        when(userInfo.getUid()).thenReturn(USER_ID);
+
+        when(coreCaseDataApi.startEventForCaseWorker(AUTH_TOKEN,
+                                                     SERVICE_TOKEN,
+                                                     USER_ID,
+                                                     JURISDICTION,
+                                                     CASE_TYPE,
+                                                     CASE_ID,
+                                                     LIST_CASE.toString())).thenReturn(startEventResponse);
+
+        when(startEventResponse.getToken()).thenReturn(EVENT_TOKEN);
+
+        CaseDataContent caseDataContent = CaseDataContent.builder()
+            .event(uk.gov.hmcts.reform.ccd.client.model.Event.builder()
+                       .id(LIST_CASE.toString())
+                       .build())
+            .data(asylumCase)
+            .supplementaryDataRequest(Collections.emptyMap())
+            .securityClassification(Classification.PUBLIC)
+            .eventToken(EVENT_TOKEN)
+            .ignoreWarning(true)
+            .caseReference(CASE_ID)
+            .build();
+
+        when(coreCaseDataApi.submitEventForCaseWorker(eq(AUTH_TOKEN),
+                                                      eq(SERVICE_TOKEN),
+                                                      eq(USER_ID),
+                                                      eq(JURISDICTION),
+                                                      eq(CASE_TYPE),
+                                                      eq(CASE_ID),
+                                                      eq(true),
+                                                      eq(caseDataContent)))
+            .thenReturn(caseDetails);
+
+        assertEquals(caseDetails, coreCaseDataService.triggerEvent(LIST_CASE, CASE_ID, asylumCase));
     }
 
     @Test
