@@ -8,11 +8,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 
 @ExtendWith(MockitoExtension.class)
 class RespondentDetailsMapperTest {
+
+    public static final String HEARING_CHANNEL = "hearingChannel";
 
     @Mock
     private AsylumCase asylumCase;
@@ -24,11 +27,18 @@ class RespondentDetailsMapperTest {
 
         when(caseDataMapper.getRespondentPartyId(asylumCase)).thenReturn("partyId");
         when(caseDataMapper.getRespondentName(asylumCase)).thenReturn("partyName");
+        when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn(HEARING_CHANNEL);
 
         PartyDetailsModel expected = PartyDetailsModel.builder()
             .partyID("partyId")
-            .partyType("ORG")
+            .partyType("IND")
             .partyRole("RESP")
+            .individualDetails(
+                IndividualDetailsModel.builder()
+                    .firstName("Home")
+                    .lastName("Office")
+                    .preferredHearingChannel(HEARING_CHANNEL)
+                    .build())
             .organisationDetails(
                 OrganisationDetailsModel.builder()
                             .organisationType("ORG")
