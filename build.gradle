@@ -140,7 +140,7 @@ configurations {
   smokeTestImplementation.extendsFrom testImplementation
   smokeTestRuntimeOnly.extendsFrom runtimeOnly
 
-  contractImplementation.extendsFrom testImplementation
+  contractTestImplementation.extendsFrom testImplementation
   contractTestRuntimeOnly.extendsFrom runtimeOnly
 }
 
@@ -391,11 +391,11 @@ dependencies {
   }
 
   //pact contract testing
-  contractImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pact_version
-  contractImplementation group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pact_version
+  contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pact_version
+  contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pact_version
 
-  contractImplementation('org.junit.jupiter:junit-jupiter-api:5.8.2')
-  contractImplementation('org.junit.jupiter:junit-jupiter-engine:5.8.2')
+  contractTestImplementation('org.junit.jupiter:junit-jupiter-api:5.8.2')
+  contractTestImplementation('org.junit.jupiter:junit-jupiter-engine:5.8.2')
 
   contractTestImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
   contractTestImplementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
@@ -413,7 +413,7 @@ dependencies {
 
   functionalTestImplementation group: 'org.yaml', name: 'snakeyaml'
 
-  contractImplementation group: 'org.yaml', name: 'snakeyaml'
+  contractTestImplementation group: 'org.yaml', name: 'snakeyaml'
 
   integrationTestImplementation sourceSets.main.runtimeClasspath
   integrationTestImplementation sourceSets.test.runtimeClasspath
@@ -424,8 +424,8 @@ dependencies {
   smokeTestImplementation sourceSets.main.runtimeClasspath
   smokeTestImplementation sourceSets.test.runtimeClasspath
 
-  contractImplementation sourceSets.main.runtimeClasspath
-  contractImplementation sourceSets.test.runtimeClasspath
+  contractTestImplementation sourceSets.main.runtimeClasspath
+  contractTestImplementation sourceSets.test.runtimeClasspath
 }
 
 idea {
