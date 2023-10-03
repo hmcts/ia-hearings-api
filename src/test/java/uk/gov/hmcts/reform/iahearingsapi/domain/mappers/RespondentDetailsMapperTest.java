@@ -15,6 +15,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 @ExtendWith(MockitoExtension.class)
 class RespondentDetailsMapperTest {
 
+    public static final String HEARING_CHANNEL = "hearingChannel";
+
     @Mock
     private AsylumCase asylumCase;
     @Mock
@@ -24,19 +26,24 @@ class RespondentDetailsMapperTest {
     void should_map_correctly() {
 
         when(caseDataMapper.getRespondentPartyId(asylumCase)).thenReturn("partyId");
+        when(caseDataMapper.getRespondentName(asylumCase)).thenReturn("partyName");
+        when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn(HEARING_CHANNEL);
 
         PartyDetailsModel expected = PartyDetailsModel.builder()
             .partyID("partyId")
-            .partyType("ORG")
+            .partyType("IND")
             .partyRole("RESP")
-            .individualDetails(IndividualDetailsModel.builder()
-                                   .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
-                                   .firstName("Home")
-                                   .lastName("Office")
-                                   .build())
+            .individualDetails(
+                IndividualDetailsModel.builder()
+                    .firstName("Home")
+                    .lastName("Office")
+                    .preferredHearingChannel(HEARING_CHANNEL)
+                    .build())
             .organisationDetails(
                 OrganisationDetailsModel.builder()
                             .organisationType("ORG")
+                            .name("partyName")
+                            .cftOrganisationID("partyId")
                             .build())
             .build();
 

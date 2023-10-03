@@ -1,8 +1,9 @@
 package uk.gov.hmcts.reform.iahearingsapi;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 
 import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import net.serenitybdd.rest.SerenityRest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,15 +28,14 @@ public class WelcomeTest {
         RestAssured.baseURI = targetInstance;
         RestAssured.useRelaxedHTTPSValidation();
 
-        String response = SerenityRest.given()
+        Response response = SerenityRest.given()
             .when()
             .get("/")
+            .thenReturn();
+        response
             .then()
             .statusCode(HttpStatus.OK.value())
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and()
-            .extract().body().asString();
-
-        assertThat(response).contains("Welcome to the Hearings API");
+            .contentType(MediaType.APPLICATION_JSON_VALUE);
+        response.then().body(containsString("Welcome to the Hearings API"));
     }
 }

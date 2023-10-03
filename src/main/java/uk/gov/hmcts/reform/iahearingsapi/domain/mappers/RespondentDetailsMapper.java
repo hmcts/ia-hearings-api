@@ -14,17 +14,20 @@ public class RespondentDetailsMapper {
 
         return PartyDetailsModel.builder()
             .partyID(caseDataMapper.getRespondentPartyId(asylumCase))
-            .partyType(PartyType.ORG.getPartyType())
+            .partyType(PartyType.IND.getPartyType())
             .partyRole("RESP")
-            .individualDetails(IndividualDetailsModel.builder()
-                                   .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
-                                   .firstName("Home")
-                                   .lastName("Office")
-                                   .build())
+            // For displaying Respondent as an individual in the Hearings tab Participant attendance page.
+            .individualDetails(
+                IndividualDetailsModel.builder()
+                    .firstName("Home")
+                    .lastName("Office")
+                    .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
+                    .build())
             .organisationDetails(
                 OrganisationDetailsModel.builder()
                         .organisationType(PartyType.ORG.getPartyType())
                         .name(caseDataMapper.getRespondentName(asylumCase))
+                        .cftOrganisationID(caseDataMapper.getRespondentPartyId(asylumCase))
                         .build())
             .build();
     }
