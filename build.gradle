@@ -21,6 +21,7 @@ plugins {
   id 'au.com.dius.pact' version '4.2.14'
   id 'org.flywaydb.flyway' version '9.0.1'
   id 'uk.gov.hmcts.java' version '0.12.43'
+  id 'com.adarshr.test-logger' version '3.2.0'
 }
 
 apply plugin: 'java'
@@ -235,7 +236,6 @@ jacocoTestReport {
 }
 
 pitest {
-  print('./gradlew --version'.execute().text.trim())
   junit5PluginVersion = '1.1.2'
   targetClasses = ['uk.gov.hmcts.reform.iahearingsapi.*']
   excludedClasses = [
@@ -476,4 +476,22 @@ bootJar {
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
+}
+
+testlogger {
+  theme 'standard'
+  showExceptions true
+  showStackTraces true
+  showFullStackTraces false
+  showCauses true
+  slowThreshold 5000
+  showSummary true
+  showSimpleNames false
+  showPassed true
+  showSkipped true
+  showFailed true
+  showStandardStreams false
+  showPassedStandardStreams true
+  showSkippedStandardStreams true
+  showFailedStandardStreams true
 }
