@@ -49,13 +49,11 @@ public class LanguageAndAdjustmentsMapper {
 
         if (individualDetails != null) {
             String partyRole = partyDetails.getPartyRole();
-            String partyFullName = StringUtils
-                .join(individualDetails.getFirstName(), " ", individualDetails.getLastName());
 
             List<StrategicCaseFlag> caseFlags = StringUtils.equals(partyRole, PARTY_ROLE_APPELLANT)
                 ? getAppellantCaseFlags(asylumCase)
                 : StringUtils.equals(partyRole, PARTY_ROLE_WITNESS)
-                ? getWitnessCaseFlags(asylumCase, partyFullName)
+                ? getWitnessCaseFlags(asylumCase, partyDetails.getPartyID())
                 : Collections.emptyList();
 
             List<CaseFlagDetail> activeCaseFlagDetails = filterForActiveCaseFlagDetails(caseFlags);
@@ -158,7 +156,7 @@ public class LanguageAndAdjustmentsMapper {
             .map(Lists::newArrayList).orElse(new ArrayList<>());
     }
 
-    private List<StrategicCaseFlag> getWitnessCaseFlags(AsylumCase asylumCase, String partyFullName) {
+    private List<StrategicCaseFlag> getWitnessCaseFlags(AsylumCase asylumCase, String partyId) {
         List<StrategicCaseFlag> witnessCaseFlags = new ArrayList<>();
 
         Optional<List<PartyFlagIdValue>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
@@ -166,7 +164,7 @@ public class LanguageAndAdjustmentsMapper {
         caseFlagsOptional.ifPresent(witnessFlagIdValues -> {
             List<StrategicCaseFlag> caseFlags = witnessFlagIdValues
                 .stream()
-                .filter(partyFlagIdValue -> partyFlagIdValue.getPartyId().equals(partyFullName))
+                .filter(partyFlagIdValue -> partyFlagIdValue.getPartyId().equals(partyId))
                 .map(PartyFlagIdValue::getValue)
                 .toList();
             if (!caseFlags.isEmpty()) {
@@ -217,7 +215,8 @@ public class LanguageAndAdjustmentsMapper {
         while (i < sortedLanguageFlags.size()) {
             CaseFlagDetail flag = sortedLanguageFlags.get(i);
 
-            if (interpreterLanguageFlag == null && flag.getCaseFlagValue().getSubTypeKey() != null) {
+            boolean isSelectedLanguage = flag.getCaseFlagValue().getSubTypeKey() != null;
+            if (interpreterLanguageFlag == null && isSelectedLanguage) {
                 interpreterLanguageFlag = flag;
             } else {
                 otherLanguageFlags.add(flag);
@@ -225,12 +224,10 @@ public class LanguageAndAdjustmentsMapper {
             i++;
         }
 
-        String interpreterLanguage = null;
-
-        if (interpreterLanguageFlag != null) {
-            interpreterLanguage = interpreterLanguageFlag.getCaseFlagValue().getSubTypeKey();
+        if (interpreterLanguageFlag == null) {
+            return null;
         }
 
-        return interpreterLanguage;
+        return interpreterLanguageFlag.getCaseFlagValue().getSubTypeKey();
     }
 }
