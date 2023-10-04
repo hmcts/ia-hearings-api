@@ -38,7 +38,7 @@ public class LanguageAndAdjustmentsMapperTest {
     private static final String WITNESS_PARTY_ID = "WITN";
     private static final String FIRST_NAME = "firstName";
     private static final String LAST_NAME = "lastName";
-    private static final String FULL_NAME = FIRST_NAME + " " + LAST_NAME;
+    private static final String PARTY_ID = "partyId";
 
     @Mock
     private AsylumCase asylumCase;
@@ -104,27 +104,27 @@ public class LanguageAndAdjustmentsMapperTest {
 
         when(asylumCase.read(WITNESS_LEVEL_FLAGS))
             .thenReturn(Optional.of(List.of(
-                new PartyFlagIdValue(FULL_NAME, new StrategicCaseFlag(List.of(
+                new PartyFlagIdValue(PARTY_ID, new StrategicCaseFlag(List.of(
                     new CaseFlagDetail("id1", CaseFlagValue.builder()
                         .flagCode(EVIDENCE_GIVEN_IN_PRIVATE.getFlagCode())
                         .name("Evidence given in private")
                         .flagComment("asking for privacy")
                         .status("Active")
                         .build())))),
-                new PartyFlagIdValue(FULL_NAME, new StrategicCaseFlag(List.of(
+                new PartyFlagIdValue(PARTY_ID, new StrategicCaseFlag(List.of(
                     new CaseFlagDetail("id2", CaseFlagValue.builder()
                         .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
                         .subTypeValue("Sardinian")
                         .status("Active")
                         .build())))),
-                new PartyFlagIdValue(FULL_NAME, new StrategicCaseFlag(List.of(
+                new PartyFlagIdValue(PARTY_ID, new StrategicCaseFlag(List.of(
                     new CaseFlagDetail("id3", CaseFlagValue.builder()
                         .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
                         .subTypeKey("ita")
                         .subTypeValue("Italian")
                         .status("Active")
                         .build())))),
-                new PartyFlagIdValue(FULL_NAME, new StrategicCaseFlag(List.of(
+                new PartyFlagIdValue(PARTY_ID, new StrategicCaseFlag(List.of(
                     new CaseFlagDetail("id4", CaseFlagValue.builder()
                         .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
                         .subTypeKey("por")
@@ -138,7 +138,7 @@ public class LanguageAndAdjustmentsMapperTest {
                         .subTypeValue("Spanish")
                         .status("Active")
                         .build())))),
-                new PartyFlagIdValue(FULL_NAME, new StrategicCaseFlag(List.of(
+                new PartyFlagIdValue(PARTY_ID, new StrategicCaseFlag(List.of(
                     new CaseFlagDetail("id6", CaseFlagValue.builder()
                         .name("Support filling in forms")
                         .flagComment("comment of r.a. flag")
@@ -152,6 +152,7 @@ public class LanguageAndAdjustmentsMapperTest {
         when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
         when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
+        when(partyDetailsModel.getPartyID()).thenReturn(PARTY_ID);
 
         mapper.processPartyCaseFlags(asylumCase, partyDetailsModel);
 
