@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Event {
 
-    EXAMPLE_EVENT("exampleEvent"),
+    LIST_CASE("listCase"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");

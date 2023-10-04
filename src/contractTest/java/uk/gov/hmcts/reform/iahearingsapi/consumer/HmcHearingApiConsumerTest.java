@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 
-@PactTestFor(providerName = "hmc_cft_hearings_api", port = "4561")
 @Disabled
+@PactTestFor(providerName = "hmc_cft_hearings_api", port = "4561")
 public class HmcHearingApiConsumerTest extends HmcHearingApiConsumerTestBase {
 
     @Pact(provider = "hmc_cft_hearings_api", consumer = "ia_hearingsApi")

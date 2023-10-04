@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 
 @Data
 @NoArgsConstructor
@@ -11,5 +12,5 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 public class PartiesNotified {
 
-    private PartiesNotifiedServiceData serviceData;
+    private ServiceData serviceData;
 }
