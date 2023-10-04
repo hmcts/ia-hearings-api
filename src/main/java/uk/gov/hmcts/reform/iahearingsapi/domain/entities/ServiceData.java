@@ -1,31 +1,25 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.util.HashMap;
 import java.util.Optional;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 
-public class AsylumCase extends HashMap<String, Object> implements CaseData {
+public class ServiceData extends HashMap<String, Object> implements CaseData {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public AsylumCase() {
-        objectMapper.registerModule(new Jdk8Module());
+    public ServiceData() {
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
-    public static AsylumCase copy(AsylumCase original) {
-        AsylumCase copy =  new AsylumCase();
-        copy.putAll(original);
-        return copy;
-    }
-
-    public <T> Optional<T> read(AsylumCaseFieldDefinition extractor, Class<T> type) {
+    public <T> Optional<T> read(ServiceDataFieldDefinition extractor, Class<T> type) {
         return this.read(extractor);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Optional<T> read(AsylumCaseFieldDefinition extractor) {
+    public <T> Optional<T> read(ServiceDataFieldDefinition extractor) {
 
         Object o = this.get(extractor.value());
 
@@ -38,11 +32,11 @@ public class AsylumCase extends HashMap<String, Object> implements CaseData {
         return Optional.of((T) value);
     }
 
-    public <T> void write(AsylumCaseFieldDefinition extractor, T value) {
+    public <T> void write(ServiceDataFieldDefinition extractor, T value) {
         this.put(extractor.value(), value);
     }
 
-    public void clear(AsylumCaseFieldDefinition extractor) {
+    public void clear(ServiceDataFieldDefinition extractor) {
         this.put(extractor.value(), null);
     }
 }

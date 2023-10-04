@@ -366,6 +366,7 @@ dependencies {
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.15.2'
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.15.2'
   implementation group: 'com.fasterxml.jackson', name: 'jackson-bom', version: '2.15.2', ext: 'pom'
+  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
 
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.8.0'
   implementation group: 'com.azure', name: 'azure-core', version: '1.28.0'

@@ -94,7 +94,7 @@ public class HearingService {
     }
 
     public void updatePartiesNotified(
-        String hearingId, int requestVersion, LocalDateTime receivedDateTime, PartiesNotified payload) {
+        String hearingId, long requestVersion, LocalDateTime receivedDateTime, PartiesNotified payload) {
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();

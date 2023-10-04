@@ -72,13 +72,12 @@ security:
     - "caseworker-ia"
   roleEventAccess:
     caseworker-ia-legalrep-solicitor:
-      - "exampleEvent"
     caseworker-ia-admofficer:
-      - "exampleEvent"
+      - "listCase"
+    caseworker-ia-caseworker:
+      - "listCase"
     caseworker-ia-respondentofficer:
-      - "exampleEvent"
     caseworker-ia-iacjudge:
-      - "exampleEvent"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
@@ -175,3 +174,10 @@ azure:
       idleTimeout: ${HMC_HEARINGS_TOPIC_IDLE_TIMEOUT:3600000}
       username: ${HMC_HEARINGS_TOPIC_POLICY_NAME:}
       password: ${HMC_HEARINGS_TOPIC_ACCESS_KEY:}
+
+iaCaseApi:
+  url: ${IA_CASE_API_URL:http://127.0.0.1:8090}
+  aboutToStartPath: "/asylum/ccdAboutToStart"
+  aboutToSubmitPath: "/asylum/ccdAboutToSubmit"
+  midEventPath: "/asylum/ccdMidEvent"
+  ccdSubmittedPath: "/asylum/ccdSubmitted"

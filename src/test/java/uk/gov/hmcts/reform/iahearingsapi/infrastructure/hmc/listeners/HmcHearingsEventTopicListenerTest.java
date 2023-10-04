@@ -57,12 +57,10 @@ class HmcHearingsEventTopicListenerTest {
     @Test
     public void testOnMessageWithIrrelevantMessage() throws Exception {
         HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode");
-
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
         byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
 
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-
         hmcHearingsEventTopicListener.onMessage(message);
 
         verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));

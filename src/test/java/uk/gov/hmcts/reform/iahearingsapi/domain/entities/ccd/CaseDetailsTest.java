@@ -12,7 +12,7 @@ public class CaseDetailsTest {
 
     private final long id = 123L;
     private final String jurisdiction = "IA";
-    private final State state = State.EXAMPLE_STATE;
+    private final State state = State.PREPARE_FOR_HEARING;
     private final CaseData caseData = mock(CaseData.class);
     private final LocalDateTime createdDate = LocalDateTime.parse("2022-01-05T11:00:22");
     private final String classification = "PUBLIC";
