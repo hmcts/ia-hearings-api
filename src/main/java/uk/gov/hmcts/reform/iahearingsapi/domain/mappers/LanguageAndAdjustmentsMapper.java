@@ -214,8 +214,8 @@ public class LanguageAndAdjustmentsMapper {
         int i = 0;
         while (i < sortedLanguageFlags.size()) {
             CaseFlagDetail flag = sortedLanguageFlags.get(i);
-            // Only freetext language flags have the subTypeValue field assigned value
-            boolean isSelectedLanguage = sortedLanguageFlags.get(i).getCaseFlagValue().getSubTypeKey() != null;
+
+            boolean isSelectedLanguage = flag.getCaseFlagValue().getSubTypeKey() != null;
             if (interpreterLanguageFlag == null && isSelectedLanguage) {
                 interpreterLanguageFlag = flag;
             } else {
