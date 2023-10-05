@@ -120,7 +120,53 @@ public enum AsylumCaseFieldDefinition {
         "ariaListingReference",  new TypeReference<String>(){}),
 
     LIST_CASE_HEARING_DATE(
-        "listCaseHearingDate", new TypeReference<String>(){});
+        "listCaseHearingDate", new TypeReference<String>(){}),
+
+    UPDATE_HEARINGS(
+        "updateHearings", new TypeReference<DynamicList>(){}),
+    HEARING_TYPE_VALUE(
+        "hearingTypeValue", new TypeReference<String>(){}),
+    HEARING_CHANNEL_TYPE_VALUE(
+        "hearingChannelTypeValue", new TypeReference<String>(){}),
+
+
+    HEARING_CHANNEL_TYPE_RADIO_BUTTON(
+        "hearingChannelTypeRadioButton", new TypeReference<String>(){}),
+    HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON(
+        "hearingChannelTypeChangingRadioButton", new TypeReference<String>(){}),
+
+    HEARING_LOCATION_VALUE(
+        "hearingLocationValue", new TypeReference<String>(){}),
+
+
+    HEARING_LOCATION_RADIO_BUTTON(
+        "hearingLocationRadioButton", new TypeReference<String>(){}),
+
+    HEARING_LOCATION_CHANGE(
+        "hearingLocationChange", new TypeReference<DynamicList>(){}),
+
+    HEARING_DATE_VALUE(
+        "hearingDateValue", new TypeReference<String>(){}),
+    HEARING_DURATION_VALUE(
+        "hearingDurationValue", new TypeReference<String>(){}),
+    HEARING_DURATION_RADIO_BUTTON(
+        "hearingDurationRadioButton", new TypeReference<String>(){}),
+    HEARING_DURATION_CHANGING_RADIO_BUTTON(
+        "hearingDurationChangingRadioButton", new TypeReference<DynamicList>(){}),
+
+    HEARING_UPDATE_REASON_LIST(
+        "hearingUpdateReasonList", new TypeReference<DynamicList>(){}),
+    HEARING_DATE_RADIO_BUTTON(
+        "hearingDateRadioButton", new TypeReference<String>(){}),
+    HEARING_DATE_CHANGE_DATE(
+        "hearingDateChangeDate", new TypeReference<String>(){}),
+    DATE_TO_BE_FIXED_VALUE(
+        "dateToBeFixedValue", new TypeReference<String>(){}),
+    HEARING_DATE_CHOOSE_A_DATE_RANGE_EARLIEST(
+        "chooseADateRangeEarliest", new TypeReference<String>(){}),
+    HEARING_DATE_CHOOSE_A_DATE_RANGE_LATEST(
+        "chooseADateRangeLatest", new TypeReference<String>(){}),
+    ;
 
     private final String value;
     private final TypeReference typeReference;

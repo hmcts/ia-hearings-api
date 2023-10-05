@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum Event {
 
     LIST_CASE("listCase"),
+    UPDATE_HEARING_REQUEST("updateHearingRequest"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");
