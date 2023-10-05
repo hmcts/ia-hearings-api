@@ -54,7 +54,9 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
     }
 
     @Override
-    public PreSubmitCallbackResponse<AsylumCase> handle(PreSubmitCallbackStage callbackStage, Callback<AsylumCase> callback) {
+    public PreSubmitCallbackResponse<AsylumCase> handle(
+        PreSubmitCallbackStage callbackStage,
+        Callback<AsylumCase> callback) {
         if (!canHandle(callbackStage, callback)) {
             throw new IllegalStateException("Cannot handle callback");
         }
@@ -67,8 +69,11 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
                 HEARING_CHANNEL_TYPE_VALUE,
                 hearingResponse.getHearingDetails().getHearingChannelDescription()
             );
-            HearingChannelTypeChangingRadioButton.from(hearingResponse.getHearingDetails().getHearingChannelDescription()).ifPresent(
-                hct -> asylumCase.write(HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON, hct.name()));
+            HearingChannelTypeChangingRadioButton.from(hearingResponse
+                                                           .getHearingDetails()
+                                                           .getHearingChannelDescription())
+                .ifPresent(
+                    hct -> asylumCase.write(HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON, hct.name()));
             asylumCase.write(
                 HEARING_LOCATION_VALUE,
                 hearingResponse.getHearingDetails().getHearingLocations().get(0).getLocationId()

@@ -50,10 +50,18 @@ public class PreSubmitCallbackDispatcher<T extends CaseData> {
         PreSubmitCallbackResponse<T> callbackResponse =
             new PreSubmitCallbackResponse<>(caseData);
 
-        dispatchToHandlers(callbackStage, callback, sortedCallbackHandlers, callbackResponse, DispatchPriority.EARLIEST);
-        dispatchToHandlers(callbackStage, callback, sortedCallbackHandlers, callbackResponse, DispatchPriority.EARLY);
-        dispatchToHandlers(callbackStage, callback, sortedCallbackHandlers, callbackResponse, DispatchPriority.LATE);
-        dispatchToHandlers(callbackStage, callback, sortedCallbackHandlers, callbackResponse, DispatchPriority.LATEST);
+        dispatchToHandlers(callbackStage, callback, sortedCallbackHandlers,
+                           callbackResponse, DispatchPriority.EARLIEST
+        );
+        dispatchToHandlers(callbackStage, callback, sortedCallbackHandlers,
+                           callbackResponse, DispatchPriority.EARLY
+        );
+        dispatchToHandlers(callbackStage, callback, sortedCallbackHandlers,
+                           callbackResponse, DispatchPriority.LATE
+        );
+        dispatchToHandlers(callbackStage, callback, sortedCallbackHandlers,
+                           callbackResponse, DispatchPriority.LATEST
+        );
 
         return callbackResponse;
     }

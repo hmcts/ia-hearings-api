@@ -123,10 +123,13 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                 DynamicList.class
             );
 
-        return locationUpdate.map(dynamicList -> List.of(HearingLocationModel.builder()
-                                                             .locationId(dynamicList.getValue().getCode())
-                                                             .locationType(persistedHearing.getHearingDetails().getHearingLocations().get(
-                                                                 0).getLocationType()).build()))
+        return locationUpdate.map(dynamicList
+                                      -> List.of(HearingLocationModel.builder()
+                                                     .locationId(dynamicList.getValue().getCode())
+                                                     .locationType(persistedHearing
+                                                                       .getHearingDetails()
+                                                                       .getHearingLocations().get(0)
+                                                                       .getLocationType()).build()))
             .orElseGet(() -> persistedHearing.getHearingDetails().getHearingLocations());
 
     }
@@ -148,7 +151,8 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
             asylumCase.read(
                 HEARING_UPDATE_REASON_LIST,
                 DynamicList.class
-            ).orElseThrow(() -> new IllegalStateException(HEARING_UPDATE_REASON_LIST + " type is not present")).getValue();
+            ).orElseThrow(() -> new IllegalStateException(HEARING_UPDATE_REASON_LIST
+                                                              + " type is not present")).getValue();
 
         return List.of(reasonUpdate.getCode());
 
@@ -171,8 +175,8 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                     String.class
                 ).orElseThrow(() -> new IllegalStateException(DATE_TO_BE_FIXED_VALUE + " type is not present"));
 
-                yield HearingWindowModel.builder().
-                    firstDateTimeMustBe(HearingsUtils.convertToLocalDateFormat(fixedDate).toString()).build();
+                yield HearingWindowModel.builder()
+                    .firstDateTimeMustBe(HearingsUtils.convertToLocalDateFormat(fixedDate).toString()).build();
             }
             case "ChooseADateRange" -> {
                 String earliestDate = asylumCase.read(

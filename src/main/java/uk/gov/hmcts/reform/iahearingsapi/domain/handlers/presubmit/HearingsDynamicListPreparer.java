@@ -50,7 +50,9 @@ public class HearingsDynamicListPreparer implements PreSubmitCallbackHandler<Asy
     }
 
     @Override
-    public PreSubmitCallbackResponse<AsylumCase> handle(PreSubmitCallbackStage callbackStage, Callback<AsylumCase> callback) {
+    public PreSubmitCallbackResponse<AsylumCase> handle(
+        PreSubmitCallbackStage callbackStage,
+        Callback<AsylumCase> callback) {
         if (!canHandle(callbackStage, callback)) {
             throw new IllegalStateException("Cannot handle callback");
         }
@@ -78,7 +80,9 @@ public class HearingsDynamicListPreparer implements PreSubmitCallbackHandler<Asy
     private String mapHearingLabel(CaseHearing caseHearing) {
         return switch (caseHearing.getHmcStatus()) {
             case HEARING_REQUESTED, UPDATE_REQUESTED, UPDATE_SUBMITTED, AWAITING_LISTING, LISTED ->
-                caseHearing.getHearingTypeDescription() + " - " + HearingsUtils.convertToLocalStringFormat(caseHearing.getHearingRequestDateTime());
+                caseHearing.getHearingTypeDescription()
+                    + " - "
+                    + HearingsUtils.convertToLocalStringFormat(caseHearing.getHearingRequestDateTime());
             default -> null;
         };
     }

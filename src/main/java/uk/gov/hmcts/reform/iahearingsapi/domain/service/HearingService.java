@@ -3,10 +3,12 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static java.util.Objects.requireNonNull;
 
 import feign.FeignException;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import javax.validation.constraints.NotNull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,7 +76,8 @@ public class HearingService {
                 serviceUserToken,
                 serviceAuthToken,
                 hearingId,
-                null);
+                null
+            );
         } catch (FeignException ex) {
             log.error("Failed to retrieve hearing with Id: {} from HMC", hearingId);
             throw new HmcException(ex);
@@ -106,7 +109,12 @@ public class HearingService {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
-            return hmcHearingApi.updateHearingRequest(serviceUserToken, serviceAuthToken, updateHearingRequest, hearingId);
+            return hmcHearingApi.updateHearingRequest(
+                serviceUserToken,
+                serviceAuthToken,
+                updateHearingRequest,
+                hearingId
+            );
         } catch (Exception e) {
             throw new IllegalStateException("Service could not complete request to update hearing", e);
         }
@@ -121,7 +129,8 @@ public class HearingService {
             return hmcHearingApi.getPartiesNotifiedRequest(
                 serviceUserToken,
                 serviceAuthToken,
-                hearingId);
+                hearingId
+            );
         } catch (FeignException e) {
             log.error("Failed to retrieve patries notified with Id: {} from HMC", hearingId);
             throw new HmcException(e);
