@@ -130,39 +130,4 @@ public class AsylumPreSubmitCallbackController extends PreSubmitCallbackControll
         return super.ccdAboutToSubmit(callback);
     }
 
-    private ResponseEntity<PreSubmitCallbackResponse<AsylumCase>> performStageRequest(
-        PreSubmitCallbackStage callbackStage,
-        Callback<AsylumCase> callback
-    ) {
-
-        log.info(
-            "Asylum Case CCD `{}` event `{}` received for Case ID `{}`",
-            callbackStage,
-            callback.getEvent(),
-            callback.getCaseDetails().getId()
-        );
-
-        PreSubmitCallbackResponse<AsylumCase> callbackResponse =
-            callbackDispatcher.handle(callbackStage, callback);
-
-        if (!callbackResponse.getErrors().isEmpty()) {
-            log.warn(
-                "Asylum Case CCD `{}` event `{}` handled for Case ID `{}` with errors `{}`",
-                callbackStage,
-                callback.getEvent(),
-                callback.getCaseDetails().getId(),
-                callbackResponse.getErrors()
-            );
-        } else {
-
-            log.info(
-                "Asylum Case CCD `{}` event `{}` handled for Case ID `{}`",
-                callbackStage,
-                callback.getEvent(),
-                callback.getCaseDetails().getId()
-            );
-        }
-
-        return ok(callbackResponse);
-    }
 }

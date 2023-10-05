@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.PreSubmitCallbackDispatcher;
 
-
 import javax.validation.constraints.NotNull;
 
 import static java.util.Objects.requireNonNull;
@@ -42,10 +41,12 @@ public class PreSubmitCallbackController<T extends CaseData> {
         return performStageRequest(PreSubmitCallbackStage.ABOUT_TO_SUBMIT, callback);
     }
 
-    private ResponseEntity<PreSubmitCallbackResponse<T>> performStageRequest(
+
+    ResponseEntity<PreSubmitCallbackResponse<T>> performStageRequest(
         PreSubmitCallbackStage callbackStage,
         Callback<T> callback
     ) {
+
         LOG.info(
             "Asylum Case CCD `{}` event `{}` received for Case ID `{}`",
             callbackStage,
@@ -56,12 +57,23 @@ public class PreSubmitCallbackController<T extends CaseData> {
         PreSubmitCallbackResponse<T> callbackResponse =
             callbackDispatcher.handle(callbackStage, callback);
 
-        LOG.info(
-            "Asylum Case CCD `{}` event `{}` handled for Case ID `{}`",
-            callbackStage,
-            callback.getEvent(),
-            callback.getCaseDetails().getId()
-        );
+        if (!callbackResponse.getErrors().isEmpty()) {
+            LOG.warn(
+                "Asylum Case CCD `{}` event `{}` handled for Case ID `{}` with errors `{}`",
+                callbackStage,
+                callback.getEvent(),
+                callback.getCaseDetails().getId(),
+                callbackResponse.getErrors()
+            );
+        } else {
+
+            LOG.info(
+                "Asylum Case CCD `{}` event `{}` handled for Case ID `{}`",
+                callbackStage,
+                callback.getEvent(),
+                callback.getCaseDetails().getId()
+            );
+        }
 
         return ok(callbackResponse);
     }
