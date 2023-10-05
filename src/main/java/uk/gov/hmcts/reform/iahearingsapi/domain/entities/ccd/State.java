@@ -36,6 +36,7 @@ public enum State {
     DECISION("decision"),
     ENDED("ended"),
     APPEAL_TAKEN_OFFLINE("appealTakenOffline"),
+    UPDATE_HEARING_REQUEST("updateHearingRequest"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");
