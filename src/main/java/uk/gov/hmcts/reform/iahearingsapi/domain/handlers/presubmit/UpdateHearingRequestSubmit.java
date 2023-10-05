@@ -26,8 +26,8 @@ import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL_TYPE_RADIO_BUTTON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DATE_CHANGE_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DATE_CHOOSE_A_DATE_RANGE_EARLIEST;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DATE_CHOOSE_A_DATE_RANGE_LATEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHOOSE_A_DATE_RANGE_EARLIEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHOOSE_A_DATE_RANGE_LATEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DATE_RADIO_BUTTON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATE_TO_BE_FIXED_VALUE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DURATION_CHANGING_RADIO_BUTTON;
@@ -176,16 +176,16 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
             }
             case "ChooseADateRange" -> {
                 String earliestDate = asylumCase.read(
-                    HEARING_DATE_CHOOSE_A_DATE_RANGE_EARLIEST,
+                    CHOOSE_A_DATE_RANGE_EARLIEST,
                     String.class
                 ).orElseThrow(() -> new IllegalStateException(
-                    HEARING_DATE_CHOOSE_A_DATE_RANGE_EARLIEST + " type is not present"));
+                    CHOOSE_A_DATE_RANGE_EARLIEST + " type is not present"));
 
                 String latestDate = asylumCase.read(
-                    HEARING_DATE_CHOOSE_A_DATE_RANGE_LATEST,
+                    CHOOSE_A_DATE_RANGE_LATEST,
                     String.class
                 ).orElseThrow(() -> new IllegalStateException(
-                    HEARING_DATE_CHOOSE_A_DATE_RANGE_LATEST + " type is not present"));
+                    CHOOSE_A_DATE_RANGE_LATEST + " type is not present"));
                 yield HearingWindowModel.builder()
                     .dateRangeStart(earliestDate)
                     .dateRangeEnd(latestDate)
@@ -217,7 +217,7 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
         asylumCase.clear(HEARING_UPDATE_REASON_LIST);
         asylumCase.clear(HEARING_DATE_CHANGE_DATE);
         asylumCase.clear(DATE_TO_BE_FIXED_VALUE);
-        asylumCase.clear(HEARING_DATE_CHOOSE_A_DATE_RANGE_EARLIEST);
-        asylumCase.clear(HEARING_DATE_CHOOSE_A_DATE_RANGE_LATEST);
+        asylumCase.clear(CHOOSE_A_DATE_RANGE_EARLIEST);
+        asylumCase.clear(CHOOSE_A_DATE_RANGE_LATEST);
     }
 }

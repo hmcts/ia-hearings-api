@@ -162,9 +162,9 @@ public enum AsylumCaseFieldDefinition {
         "hearingDateChangeDate", new TypeReference<String>(){}),
     DATE_TO_BE_FIXED_VALUE(
         "dateToBeFixedValue", new TypeReference<String>(){}),
-    HEARING_DATE_CHOOSE_A_DATE_RANGE_EARLIEST(
+    CHOOSE_A_DATE_RANGE_EARLIEST(
         "chooseADateRangeEarliest", new TypeReference<String>(){}),
-    HEARING_DATE_CHOOSE_A_DATE_RANGE_LATEST(
+    CHOOSE_A_DATE_RANGE_LATEST(
         "chooseADateRangeLatest", new TypeReference<String>(){}),
     ;
 
