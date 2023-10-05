@@ -24,8 +24,6 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.AsylumPreSubmitCallbackD
 
 import javax.validation.constraints.NotNull;
 
-import static org.springframework.http.ResponseEntity.ok;
-
 @Slf4j
 @Tag(name = "Asylum Service")
 @RequestMapping(
