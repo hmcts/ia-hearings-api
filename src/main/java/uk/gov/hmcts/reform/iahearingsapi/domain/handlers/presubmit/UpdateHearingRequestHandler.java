@@ -72,8 +72,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
             HearingChannelTypeChangingRadioButton.from(hearingResponse
                                                            .getHearingDetails()
                                                            .getHearingChannelDescription())
-                .ifPresent(
-                    hct -> asylumCase.write(HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON, hct.name()));
+                .ifPresent(hct -> asylumCase.write(HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON, hct.name()));
             asylumCase.write(
                 HEARING_LOCATION_VALUE,
                 hearingResponse.getHearingDetails().getHearingLocations().get(0).getLocationId()

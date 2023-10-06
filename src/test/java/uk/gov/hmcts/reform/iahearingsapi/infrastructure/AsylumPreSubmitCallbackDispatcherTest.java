@@ -1,14 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 import com.google.common.collect.ImmutableSet;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +21,27 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.HearingsDynam
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.CcdEventAuthorizor;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
@@ -273,7 +286,10 @@ public class AsylumPreSubmitCallbackDispatcherTest {
         );
 
         List<PreSubmitCallbackHandler<AsylumCase>> sortedDispatcher =
-            (List<PreSubmitCallbackHandler<AsylumCase>>) ReflectionTestUtils.getField(dispatcher, "sortedCallbackHandlers");
+            (List<PreSubmitCallbackHandler<AsylumCase>>) ReflectionTestUtils.getField(
+                dispatcher,
+                "sortedCallbackHandlers"
+            );
 
         assert sortedDispatcher != null;
         assertEquals(2, sortedDispatcher.size());

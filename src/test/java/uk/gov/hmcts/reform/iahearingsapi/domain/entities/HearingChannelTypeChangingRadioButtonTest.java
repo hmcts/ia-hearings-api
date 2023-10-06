@@ -4,7 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 public class HearingChannelTypeChangingRadioButtonTest {
 
@@ -22,7 +24,8 @@ public class HearingChannelTypeChangingRadioButtonTest {
     void test_from_invalid_value() {
         String invalidValue = "Invalid Value";
 
-        Optional<HearingChannelTypeChangingRadioButton> result = HearingChannelTypeChangingRadioButton.from(invalidValue);
+        Optional<HearingChannelTypeChangingRadioButton> result =
+            HearingChannelTypeChangingRadioButton.from(invalidValue);
 
         assertTrue(result.isEmpty());
     }
