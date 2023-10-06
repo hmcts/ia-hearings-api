@@ -20,7 +20,8 @@ public final class HearingsUtils {
 
     public static LocalDateTime convertToLocalDateFormat(String date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(YYYY_MM_DD);
-        return LocalDateTime.of(LocalDate.parse(date, formatter), LocalDateTime.now().toLocalTime());
+        LocalDate localDate = LocalDate.parse(date, formatter);
+        return localDate.atStartOfDay();
     }
 
     public static LocalDateTime convertToLocalDateTimeFormat(String date) {

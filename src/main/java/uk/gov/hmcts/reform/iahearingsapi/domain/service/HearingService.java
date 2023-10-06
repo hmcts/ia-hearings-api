@@ -89,23 +89,31 @@ public class HearingService {
     ) throws HmcException {
         requireNonNull(caseReference, "Case Reference must not be null");
         log.debug("Sending Get Hearings for caseReference {}", caseReference);
-        String serviceUserToken = idamService.getServiceUserToken();
-        String serviceAuthToken = serviceAuthTokenGenerator.generate();
-        return hmcHearingApi.getHearingsRequest(
-            serviceUserToken,
-            serviceAuthToken,
-            caseReference.toString()
-        );
+        try {
+            String serviceUserToken = idamService.getServiceUserToken();
+            String serviceAuthToken = serviceAuthTokenGenerator.generate();
+            return hmcHearingApi.getHearingsRequest(
+                serviceUserToken,
+                serviceAuthToken,
+                caseReference.toString()
+            );
+        } catch (FeignException ex) {
+            log.error("Failed to retrieve hearings with Id: {} from HMC", caseReference);
+            throw new HmcException(ex);
+        }
     }
 
-    public HearingGetResponse updateHearing(UpdateHearingRequest updateHearingRequest, String hearingId) {
+    public HearingGetResponse updateHearing(
+        UpdateHearingRequest updateHearingRequest,
+        String hearingId
+    ) throws HmcException {
+        log.debug(
+            "Update Hearing for Case ID {}, hearing ID {} and request:\n{}",
+            updateHearingRequest.getCaseDetails().getCaseRef(),
+            hearingId,
+            updateHearingRequest
+        );
         try {
-            log.debug(
-                "Upadte Hearing for Case ID {}, hearing ID {} and request:\n{}",
-                updateHearingRequest.getCaseDetails().getCaseRef(),
-                hearingId,
-                updateHearingRequest
-            );
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
@@ -115,8 +123,9 @@ public class HearingService {
                 updateHearingRequest,
                 hearingId
             );
-        } catch (Exception e) {
-            throw new IllegalStateException("Service could not complete request to update hearing", e);
+        } catch (FeignException ex) {
+            log.error("Failed to update hearing with Id: {} from HMC", hearingId);
+            throw new HmcException(ex);
         }
     }
 
