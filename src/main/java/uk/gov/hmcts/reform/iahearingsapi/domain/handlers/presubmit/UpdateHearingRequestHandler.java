@@ -65,27 +65,40 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
         Optional<DynamicList> selectedHearing = callback.getCaseDetails().getCaseData().read(UPDATE_HEARINGS);
         selectedHearing.ifPresent(hearing -> {
             HearingGetResponse hearingResponse = hearingService.getHearing(hearing.getValue().getCode());
-            asylumCase.write(
-                HEARING_CHANNEL_TYPE_VALUE,
-                hearingResponse.getHearingDetails().getHearingChannelDescription()
-            );
-            HearingChannelTypeChangingRadioButton.from(hearingResponse
-                                                           .getHearingDetails()
-                                                           .getHearingChannelDescription())
-                .ifPresent(hct -> asylumCase.write(HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON, hct.name()));
-            asylumCase.write(
-                HEARING_LOCATION_VALUE,
-                hearingResponse.getHearingDetails().getHearingLocations().get(0).getLocationId()
-            );
-            asylumCase.write(
-                HEARING_DATE_VALUE,
-                getHearingDate(hearingResponse.getHearingDetails().getHearingWindow())
-            );
-            Optional<HearingLength> duration = HearingLength.from(hearingResponse.getHearingDetails().getDuration());
-            duration.ifPresent(hearingLength -> {
-                asylumCase.write(HEARING_DURATION_VALUE, hearingLength.toMeaningFullString());
-                asylumCase.write(HEARING_DURATION_CHANGING_RADIO_BUTTON, String.valueOf(hearingLength.getValue()));
-            });
+            if (hearingResponse.getHearingDetails().getHearingChannelDescription() != null) {
+                asylumCase.write(
+                    HEARING_CHANNEL_TYPE_VALUE,
+                    hearingResponse.getHearingDetails().getHearingChannelDescription()
+                );
+                HearingChannelTypeChangingRadioButton.from(hearingResponse
+                                                               .getHearingDetails()
+                                                               .getHearingChannelDescription())
+                    .ifPresent(hct -> asylumCase.write(HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON, hct.name()));
+            }
+
+            if (hearingResponse.getHearingDetails().getHearingLocations() != null
+                && !hearingResponse.getHearingDetails().getHearingLocations().isEmpty()) {
+                asylumCase.write(
+                    HEARING_LOCATION_VALUE,
+                    hearingResponse.getHearingDetails().getHearingLocations().get(0).getLocationId()
+                );
+            }
+            if (hearingResponse.getHearingDetails().getHearingWindow() != null) {
+                asylumCase.write(
+                    HEARING_DATE_VALUE,
+                    getHearingDate(hearingResponse.getHearingDetails().getHearingWindow())
+                );
+            }
+            if (hearingResponse.getHearingDetails().getDuration() != null) {
+                Optional<HearingLength> duration = HearingLength.from(hearingResponse
+                                                                          .getHearingDetails()
+                                                                          .getDuration());
+                duration.ifPresent(hearingLength -> {
+                    asylumCase.write(HEARING_DURATION_VALUE, hearingLength.toMeaningFullString());
+                    asylumCase.write(HEARING_DURATION_CHANGING_RADIO_BUTTON, String.valueOf(hearingLength.getValue()));
+                });
+            }
+
         });
 
         return new PreSubmitCallbackResponse<>(asylumCase);

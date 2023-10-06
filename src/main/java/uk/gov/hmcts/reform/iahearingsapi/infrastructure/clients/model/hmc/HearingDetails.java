@@ -60,7 +60,7 @@ public class HearingDetails {
 
 
     public String getHearingChannelDescription() {
-        if (hearingChannels.isEmpty()) {
+        if (hearingChannels == null || hearingChannels.isEmpty()) {
             return "";
         }
 
