@@ -24,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.core.io.ResourceLoader;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
@@ -97,8 +98,10 @@ class ServiceHearingValuesProviderTest {
     private PartyDetailsMapper partyDetailsMapper;
     @Mock
     private ListingCommentsMapper listingCommentsMapper;
+
+    @Mock
+    private ResourceLoader resourceLoader;
     private String baseUrl = "http://localhost:3002";
-    private String screenFlowJsonFilePath = "/screenFlowTest.json";
     private String caseCategoriesValue = "BFA1-TST";
     private String serviceId = "BFA1";
 
@@ -154,11 +157,11 @@ class ServiceHearingValuesProviderTest {
             caseFlagsMapper,
             languageAndAdjustmentsMapper,
             partyDetailsMapper,
-            listingCommentsMapper
+            listingCommentsMapper,
+            resourceLoader
         );
 
         serviceHearingValuesProvider.setBaseUrl(baseUrl);
-        serviceHearingValuesProvider.setScreenFlowJsonFilePath(screenFlowJsonFilePath);
         serviceHearingValuesProvider.setCaseCategoriesValue(caseCategoriesValue);
         serviceHearingValuesProvider.setServiceId(serviceId);
     }
