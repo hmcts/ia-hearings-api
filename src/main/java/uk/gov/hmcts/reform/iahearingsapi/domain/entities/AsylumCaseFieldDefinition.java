@@ -166,6 +166,10 @@ public enum AsylumCaseFieldDefinition {
         "chooseADateRangeEarliest", new TypeReference<String>(){}),
     CHOOSE_A_DATE_RANGE_LATEST(
         "chooseADateRangeLatest", new TypeReference<String>(){}),
+    END_APPEAL_OUTCOME(
+        "endAppealOutcome", new TypeReference<String>(){}),
+    REQUIRE_MANUAL_HEARINGS_CANCELLATION(
+        "requireManualHearingsCancellation", new TypeReference<String>(){}),
     ;
 
     private final String value;

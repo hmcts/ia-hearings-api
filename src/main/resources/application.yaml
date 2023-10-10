@@ -75,12 +75,14 @@ security:
     caseworker-ia-admofficer:
       - "listCase"
       - "updateHearingRequest"
+      - "endAppeal"
     caseworker-ia-caseworker:
       - "listCase"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
     caseworker-ia-caseofficer:
       - "updateHearingRequest"
+      - "endAppeal"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}

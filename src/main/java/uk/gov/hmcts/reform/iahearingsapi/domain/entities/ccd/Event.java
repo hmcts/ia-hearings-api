@@ -7,6 +7,7 @@ public enum Event {
 
     LIST_CASE("listCase"),
     UPDATE_HEARING_REQUEST("updateHearingRequest"),
+    END_APPEAL("endAppeal"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");
