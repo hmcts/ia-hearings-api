@@ -94,7 +94,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
                                                                           .getHearingDetails()
                                                                           .getDuration());
                 duration.ifPresent(hearingLength -> {
-                    asylumCase.write(HEARING_DURATION_VALUE, hearingLength.toMeaningFullString());
+                    asylumCase.write(HEARING_DURATION_VALUE, hearingLength.convertToHourMinuteString());
                     asylumCase.write(HEARING_DURATION_CHANGING_RADIO_BUTTON, String.valueOf(hearingLength.getValue()));
                 });
             }

@@ -43,7 +43,7 @@ public enum HearingLength {
         return String.valueOf(value);
     }
 
-    public String toMeaningFullString() {
+    public String convertToHourMinuteString() {
 
         int hours = value / 60;
         int remainingMinutes = value % 60;

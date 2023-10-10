@@ -35,8 +35,8 @@ public class HearingLengthTest {
 
     @Test
     void test_to_meaning_full_string() {
-        assertEquals("1 hour", HearingLength.LENGTH_1_HOUR.toMeaningFullString());
-        assertEquals("2 hours 30 minutes", HearingLength.LENGTH_2_HOURS_30_MINUTES.toMeaningFullString());
-        assertEquals("4 hours 30 minutes", HearingLength.LENGTH_4_HOURS_30_MINUTES.toMeaningFullString());
+        assertEquals("1 hour", HearingLength.LENGTH_1_HOUR.convertToHourMinuteString());
+        assertEquals("2 hours 30 minutes", HearingLength.LENGTH_2_HOURS_30_MINUTES.convertToHourMinuteString());
+        assertEquals("4 hours 30 minutes", HearingLength.LENGTH_4_HOURS_30_MINUTES.convertToHourMinuteString());
     }
 }
