@@ -13,25 +13,26 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
 import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_EARLIEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_LATEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_YES_NO;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_YES_NO;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_UPDATE_REASON;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 
 
 @Component
@@ -70,12 +71,12 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
             throw new IllegalStateException("Cannot handle callback");
         }
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
-        Optional<DynamicList> selectedHearing = callback.getCaseDetails().getCaseData().read(UPDATE_HEARINGS);
+        Optional<DynamicList> selectedHearing = callback.getCaseDetails().getCaseData().read(CHANGE_HEARINGS);
         selectedHearing.ifPresent(hearing -> {
             String hearingId = selectedHearing.get().getValue().getCode();
             boolean firstAvailableDate = false;
             String hearingDateChangeType = asylumCase.read(
-                HEARING_DATE_CHANGE_DATE,
+                CHANGE_HEARING_DATE_TYPE,
                 String.class
             ).orElse("");
             if (hearingDateChangeType.equals("FirstAvailableDate")) {
@@ -136,7 +137,7 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                                                           + " type is not present")).getValue().getCode();
     }
 
-    private HearingWindowModel updateHearingWindow(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
+    private HearingWindowModel updateHearingWindow(AsylumCase asylumCase) {
 
         String hearingDateChangeType = asylumCase.read(
             CHANGE_HEARING_DATE_TYPE,

@@ -3,8 +3,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -16,13 +14,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,19 +28,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_EARLIEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_LATEST;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_YES_NO;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_UPDATE_REASON;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 
@@ -68,25 +65,11 @@ class UpdateHearingsRequestSubmitTest {
     private final String updateHearingsCode = "code 1";
     UpdateHearingRequestSubmit updateHearingRequestSubmit;
 
-    private final String locationId = "1234";
-    private final String locationType = "court";
     private final DynamicList reasonCode = new DynamicList(new Value(
         "hearing-type-change",
         "Different hearing mode required"
     ), null);
-    private final List<HearingLocationModel> hearingLocations = List.of(HearingLocationModel
-                                                                            .builder()
-                                                                            .locationId(locationId)
-                                                                            .locationType(locationType)
-                                                                            .build());
-    private final HearingWindowModel hearingWindow = HearingWindowModel
-        .builder()
-        .dateRangeStart("2023-01-15")
-        .dateRangeEnd("2023-01-26")
-        .build();
 
-    @Captor
-    private ArgumentCaptor<UpdateHearingRequest> updateHearingRequestArgumentCaptor;
     private AsylumCase asylumCase;
 
     @BeforeEach
@@ -94,7 +77,7 @@ class UpdateHearingsRequestSubmitTest {
 
         asylumCase = new AsylumCase();
         DynamicList dynamicListOfHearings = new DynamicList(updateHearingsCode);
-        asylumCase.write(UPDATE_HEARINGS, dynamicListOfHearings);
+        asylumCase.write(CHANGE_HEARINGS, dynamicListOfHearings);
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(UPDATE_HEARING_REQUEST);
@@ -144,8 +127,6 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_send_an_update_of_the_hearing_locations() {
-        setDefaultHearingDetails();
-
         asylumCase.write(LIST_CASE_HEARING_CENTRE, new DynamicList(new Value("9999", "9999"), null));
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
@@ -171,7 +152,6 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_send_an_update_of_the_hearing_window_date_to_be_fixed() {
-        setDefaultHearingDetails();
         asylumCase.write(CHANGE_HEARING_DATE_TYPE, "DateToBeFixed");
         asylumCase.write(LIST_CASE_HEARING_DATE, "2023-12-02");
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
@@ -201,7 +181,6 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_send_an_update_of_the_hearing_window_choose_a_date_range() {
-        setDefaultHearingDetails();
         asylumCase.write(CHANGE_HEARING_DATE_TYPE, "ChooseADateRange");
         asylumCase.write(CHANGE_HEARING_DATE_RANGE_EARLIEST, "2023-12-02");
         asylumCase.write(CHANGE_HEARING_DATE_RANGE_LATEST, "2023-12-26");
@@ -232,8 +211,8 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_send_an_update_of_the_hearing_window_first_available_date() {
-        asylumCase.write(HEARING_DATE_CHANGE_DATE, "FirstAvailableDate");
-        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
+        asylumCase.write(CHANGE_HEARING_DATE_TYPE, "FirstAvailableDate");
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
             ABOUT_TO_SUBMIT,
@@ -256,7 +235,6 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_throw_an_exception_if_no_start_date_range_is_set() {
-        setDefaultHearingDetails();
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
         asylumCase.write(CHANGE_HEARING_DATE_TYPE, "DateToBeFixed");
         assertThrows(
@@ -268,9 +246,8 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_throw_an_exception_if_no_fixed_date_is_set() {
-        setDefaultHearingDetails();
-        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
-        asylumCase.write(HEARING_DATE_CHANGE_DATE, "ChooseADateRange");
+        asylumCase.write(CHANGE_HEARING_DATE_TYPE, reasonCode);
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, "ChooseADateRange");
         assertThrows(
             IllegalStateException.class,
             () -> updateHearingRequestSubmit.handle(ABOUT_TO_SUBMIT, callback),
