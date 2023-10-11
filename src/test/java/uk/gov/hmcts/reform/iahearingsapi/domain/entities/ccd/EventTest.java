@@ -11,10 +11,11 @@ public class EventTest {
         assertEquals("listCase", Event.LIST_CASE.toString());
         assertEquals("updateHearingRequest", Event.UPDATE_HEARING_REQUEST.toString());
         assertEquals("unknown", Event.UNKNOWN.toString());
+        assertEquals("endAppeal", Event.END_APPEAL.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(3, Event.values().length);
+        assertEquals(4, Event.values().length);
     }
 }
