@@ -57,8 +57,13 @@ class UpdateHearingsRequestSubmitTest {
     private CaseDetails<AsylumCase> caseDetails;
     @Mock
     private HearingService hearingService;
+
+    @Mock
+    UpdateHearingPayloadService updateHearingPayloadService;
     @Mock
     HearingGetResponse hearingGetResponse;
+    @Mock
+    UpdateHearingRequest updateHearingRequest;
     HearingDetails hearingDetails = new HearingDetails();
     private final String updateHearingsCode = "code 1";
     UpdateHearingRequestSubmit updateHearingRequestSubmit;
@@ -89,21 +94,30 @@ class UpdateHearingsRequestSubmitTest {
 
         asylumCase = new AsylumCase();
         DynamicList dynamicListOfHearings = new DynamicList(updateHearingsCode);
-        asylumCase.write(CHANGE_HEARINGS, dynamicListOfHearings);
+        asylumCase.write(UPDATE_HEARINGS, dynamicListOfHearings);
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(UPDATE_HEARING_REQUEST);
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(hearingGetResponse);
         when(hearingService.updateHearing(any(UpdateHearingRequest.class), any())).thenReturn(
             hearingGetResponse);
+        when(updateHearingRequest.getHearingDetails()).thenReturn(hearingDetails);
+        when(updateHearingPayloadService.createUpdateHearingPayload(
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any()
+        )).thenReturn(updateHearingRequest);
 
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
-        updateHearingRequestSubmit = new UpdateHearingRequestSubmit(hearingService);
+        updateHearingRequestSubmit = new UpdateHearingRequestSubmit(hearingService, updateHearingPayloadService);
     }
 
     @Test
     void should_send_an_update_of_the_hearing_channels() {
-        setDefaultHearingDetails();
 
         asylumCase.write(HEARING_CHANNEL, "TEL");
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
@@ -113,15 +127,18 @@ class UpdateHearingsRequestSubmitTest {
             callback
         );
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1))
-            .updateHearing(updateHearingRequestArgumentCaptor.capture(), any());
-        UpdateHearingRequest updateHearingRequestSent = updateHearingRequestArgumentCaptor.getValue();
+        verify(hearingService, times(1)).updateHearing(any(), any());
 
-        assertEquals(
-            List.of("TEL"),
-            updateHearingRequestSent.getHearingDetails().getHearingChannels()
+        verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            updateHearingsCode,
+            Optional.of("TEL"),
+            Optional.empty(),
+            Optional.empty(),
+            reasonCode.getValue().getCode(),
+            false,
+            null
         );
-        assertEqualsHearingDetails(updateHearingRequestSent);
+
         verifyFieldsAreCleared();
     }
 
@@ -137,21 +154,18 @@ class UpdateHearingsRequestSubmitTest {
             callback
         );
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1))
-            .updateHearing(updateHearingRequestArgumentCaptor.capture(), any());
-        UpdateHearingRequest updateHearingRequestSent = updateHearingRequestArgumentCaptor.getValue();
+        verify(hearingService, times(1)).updateHearing(any(), any());
 
-        List<HearingLocationModel> newHearingLocation = List.of(HearingLocationModel
-                                                                    .builder()
-                                                                    .locationId("9999")
-                                                                    .locationType("court")
-                                                                    .build());
-
-        assertEquals(
-            newHearingLocation,
-            updateHearingRequestSent.getHearingDetails().getHearingLocations()
+        verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            updateHearingsCode,
+            Optional.empty(),
+            Optional.of("9999"),
+            Optional.empty(),
+            reasonCode.getValue().getCode(),
+            false,
+            null
         );
-        assertEqualsHearingDetails(updateHearingRequestSent);
+
         verifyFieldsAreCleared();
     }
 
@@ -167,19 +181,21 @@ class UpdateHearingsRequestSubmitTest {
             callback
         );
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1))
-            .updateHearing(updateHearingRequestArgumentCaptor.capture(), any());
-        UpdateHearingRequest updateHearingRequestSent = updateHearingRequestArgumentCaptor.getValue();
+        verify(hearingService, times(1)).updateHearing(any(), any());
         HearingWindowModel newHearingWindow = HearingWindowModel
             .builder()
             .firstDateTimeMustBe("2023-12-02T00:00")
             .build();
 
-        assertEquals(
-            newHearingWindow,
-            updateHearingRequestSent.getHearingDetails().getHearingWindow()
+        verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            updateHearingsCode,
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            reasonCode.getValue().getCode(),
+            false,
+            newHearingWindow
         );
-        assertEqualsHearingDetails(updateHearingRequestSent);
         verifyFieldsAreCleared();
     }
 
@@ -196,19 +212,45 @@ class UpdateHearingsRequestSubmitTest {
             callback
         );
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1))
-            .updateHearing(updateHearingRequestArgumentCaptor.capture(), any());
-        UpdateHearingRequest updateHearingRequestSent = updateHearingRequestArgumentCaptor.getValue();
         HearingWindowModel newHearingWindow = HearingWindowModel
             .builder()
             .dateRangeStart("2023-12-02")
             .dateRangeEnd("2023-12-26")
             .build();
-        assertEquals(
-            newHearingWindow,
-            updateHearingRequestSent.getHearingDetails().getHearingWindow()
+
+        verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            updateHearingsCode,
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            reasonCode.getValue().getCode(),
+            false,
+            newHearingWindow
         );
-        assertEqualsHearingDetails(updateHearingRequestSent);
+        verifyFieldsAreCleared();
+    }
+
+    @Test
+    void should_send_an_update_of_the_hearing_window_first_available_date() {
+        asylumCase.write(HEARING_DATE_CHANGE_DATE, "FirstAvailableDate");
+        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
+
+        PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
+            ABOUT_TO_SUBMIT,
+            callback
+        );
+        assertEquals(asylumCase, callbackResponse.getData());
+        verify(hearingService, times(1)).updateHearing(any(), any());
+
+        verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            updateHearingsCode,
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            reasonCode.getValue().getCode(),
+            true,
+            null
+        );
         verifyFieldsAreCleared();
     }
 
@@ -220,15 +262,15 @@ class UpdateHearingsRequestSubmitTest {
         assertThrows(
             IllegalStateException.class,
             () -> updateHearingRequestSubmit.handle(ABOUT_TO_SUBMIT, callback),
-            "LIST_CASE_HEARING_DATE type is not present"
+            "DATE_TO_BE_FIXED_VALUE type is not present"
         );
     }
 
     @Test
     void should_throw_an_exception_if_no_fixed_date_is_set() {
         setDefaultHearingDetails();
-        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
-        asylumCase.write(CHANGE_HEARING_DATE_TYPE, "ChooseADateRange");
+        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
+        asylumCase.write(HEARING_DATE_CHANGE_DATE, "ChooseADateRange");
         assertThrows(
             IllegalStateException.class,
             () -> updateHearingRequestSubmit.handle(ABOUT_TO_SUBMIT, callback),
@@ -238,7 +280,6 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_throw_an_exception_if_no_latest_date_range_is_set() {
-        setDefaultHearingDetails();
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
         asylumCase.write(CHANGE_HEARING_DATE_TYPE, "ChooseADateRange");
         asylumCase.write(CHANGE_HEARING_DATE_RANGE_EARLIEST, "2023-12-02");
@@ -251,8 +292,6 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_send_an_update_of_the_hearing_duration() {
-        setDefaultHearingDetails();
-
         asylumCase.write(LIST_CASE_HEARING_LENGTH, new DynamicList(new Value("240", "240"), null));
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
@@ -261,21 +300,21 @@ class UpdateHearingsRequestSubmitTest {
             callback
         );
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1))
-            .updateHearing(updateHearingRequestArgumentCaptor.capture(), any());
-        UpdateHearingRequest updateHearingRequestSent = updateHearingRequestArgumentCaptor.getValue();
 
-        assertEquals(
-            240,
-            updateHearingRequestSent.getHearingDetails().getDuration()
+        verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            updateHearingsCode,
+            Optional.empty(),
+            Optional.empty(),
+            Optional.of(240),
+            reasonCode.getValue().getCode(),
+            false,
+            null
         );
-        assertEqualsHearingDetails(updateHearingRequestSent);
         verifyFieldsAreCleared();
     }
 
     @Test
     void should_throw_an_exception_if_there_are_no_reason_codes() {
-        setDefaultHearingDetails();
         assertThrows(
             IllegalStateException.class,
             () -> updateHearingRequestSubmit.handle(ABOUT_TO_SUBMIT, callback),
@@ -283,35 +322,6 @@ class UpdateHearingsRequestSubmitTest {
         );
     }
 
-
-    private void assertEqualsHearingDetails(UpdateHearingRequest updateHearingRequestSent) {
-        verify(hearingService, times(1)).getHearing(updateHearingsCode);
-
-        assertEquals(
-            hearingDetails.getHearingChannels(),
-            updateHearingRequestSent.getHearingDetails().getHearingChannels()
-        );
-        assertEquals(
-            hearingDetails.getHearingLocations(),
-            updateHearingRequestSent.getHearingDetails().getHearingLocations()
-        );
-        assertEquals(
-            hearingDetails.getHearingWindow(),
-            updateHearingRequestSent.getHearingDetails().getHearingWindow()
-        );
-        assertEquals(hearingDetails.getDuration(), updateHearingRequestSent.getHearingDetails().getDuration());
-        assertEquals(
-            hearingDetails.getAmendReasonCodes(),
-            updateHearingRequestSent.getHearingDetails().getAmendReasonCodes()
-        );
-    }
-
-    private void setDefaultHearingDetails() {
-        hearingDetails.setHearingChannels(List.of("INTER"));
-        hearingDetails.setHearingLocations(hearingLocations);
-        hearingDetails.setDuration(120);
-        hearingDetails.setHearingWindow(hearingWindow);
-    }
 
     private void verifyFieldsAreCleared() {
         assertEquals(asylumCase.read(CHANGE_HEARINGS), Optional.empty());

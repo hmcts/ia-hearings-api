@@ -5,21 +5,16 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -45,11 +40,14 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
 
     HearingService hearingService;
 
+    UpdateHearingPayloadService updateHearingPayloadService;
 
     public UpdateHearingRequestSubmit(
-        HearingService hearingService
+        HearingService hearingService,
+        UpdateHearingPayloadService updateHearingPayloadService
     ) {
         this.hearingService = hearingService;
+        this.updateHearingPayloadService = updateHearingPayloadService;
     }
 
     @Override
@@ -72,29 +70,28 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
             throw new IllegalStateException("Cannot handle callback");
         }
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
-        Optional<DynamicList> selectedHearing = callback.getCaseDetails().getCaseData().read(CHANGE_HEARINGS);
+        Optional<DynamicList> selectedHearing = callback.getCaseDetails().getCaseData().read(UPDATE_HEARINGS);
         selectedHearing.ifPresent(hearing -> {
             String hearingId = selectedHearing.get().getValue().getCode();
-            HearingGetResponse persistedHearing = hearingService.getHearing(hearingId);
-
-            HearingDetails hearingDetails = HearingDetails.builder()
-                .hearingChannels(getHearingChannels(asylumCase, persistedHearing))
-                .hearingLocations(getLocations(asylumCase, persistedHearing))
-                .duration(getDuration(asylumCase, persistedHearing))
-                .amendReasonCodes(getReasons(asylumCase))
-                .hearingWindow(updateHearingWindow(asylumCase, persistedHearing))
-                .build();
-
-
-            UpdateHearingRequest updateHearingRequest = UpdateHearingRequest.builder()
-                .requestDetails(persistedHearing.getRequestDetails())
-                .caseDetails(persistedHearing.getCaseDetails())
-                .hearingDetails(buildHearingDetails(persistedHearing.getHearingDetails(), hearingDetails))
-                .partyDetails(persistedHearing.getPartyDetails())
-                .build();
+            boolean firstAvailableDate = false;
+            String hearingDateChangeType = asylumCase.read(
+                HEARING_DATE_CHANGE_DATE,
+                String.class
+            ).orElse("");
+            if (hearingDateChangeType.equals("FirstAvailableDate")) {
+                firstAvailableDate = true;
+            }
 
             HearingGetResponse hearingUpdated = hearingService.updateHearing(
-                updateHearingRequest,
+                updateHearingPayloadService.createUpdateHearingPayload(
+                    hearingId,
+                    getHearingChannels(asylumCase),
+                    getLocations(asylumCase),
+                    getDuration(asylumCase),
+                    getReason(asylumCase),
+                    firstAvailableDate,
+                    updateHearingWindow(asylumCase)
+                ),
                 hearingId
             );
 
@@ -108,56 +105,35 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
     }
 
 
-    private List<String> getHearingChannels(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
+    private Optional<String> getHearingChannels(AsylumCase asylumCase) {
         Optional<DynamicList> hearingChannels = asylumCase.read(
             HEARING_CHANNEL,
             DynamicList.class
         );
 
-        return hearingChannels.map(hearingChannel -> List.of(hearingChannel.getValue().getCode())
-        ).orElseGet(() -> persistedHearing.getHearingDetails().getHearingChannels());
+        return hearingChannels.map(hearingChannel -> hearingChannel.getValue().getCode());
     }
 
-    private List<HearingLocationModel> getLocations(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
-        Optional<HearingCentre> locationUpdate =
-            asylumCase.read(
-                LIST_CASE_HEARING_CENTRE,
-                HearingCentre.class
-            );
-
-        return locationUpdate.map(location
-                                      -> List.of(HearingLocationModel.builder()
-                                                     .locationId(location.getEpimsId())
-                                                     .locationType(persistedHearing
-                                                                       .getHearingDetails()
-                                                                       .getHearingLocations().get(0)
-                                                                       .getLocationType()).build()))
-            .orElseGet(() -> persistedHearing.getHearingDetails().getHearingLocations());
-
+    private Optional<String> getLocations(AsylumCase asylumCase) {
+        return asylumCase.read(
+            LIST_CASE_HEARING_CENTRE,
+            HearingCentre.class
+        ).map(HearingCentre::getEpimsId);
     }
 
-    private Integer getDuration(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
-        Optional<String> durationUpdate =
-            asylumCase.read(
-                LIST_CASE_HEARING_LENGTH,
-                String.class
-            );
-
-        return durationUpdate.map(Integer::parseInt)
-            .orElseGet(() -> persistedHearing.getHearingDetails().getDuration());
-
+    private Optional<Integer> getDuration(AsylumCase asylumCase) {
+        return asylumCase.read(
+            LIST_CASE_HEARING_LENGTH,
+            String.class
+        ).map(Integer::parseInt);
     }
 
-    private List<String> getReasons(AsylumCase asylumCase) {
-        Value reasonUpdate =
-            asylumCase.read(
-                CHANGE_HEARING_UPDATE_REASON,
-                DynamicList.class
-            ).orElseThrow(() -> new IllegalStateException(CHANGE_HEARING_UPDATE_REASON
-                                                              + " type is not present")).getValue();
-
-        return List.of(reasonUpdate.getCode());
-
+    private String getReason(AsylumCase asylumCase) {
+        return asylumCase.read(
+            CHANGE_HEARING_UPDATE_REASON,
+            DynamicList.class
+        ).orElseThrow(() -> new IllegalStateException(CHANGE_HEARING_UPDATE_REASON
+                                                          + " type is not present")).getValue().getCode();
     }
 
     private HearingWindowModel updateHearingWindow(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
@@ -166,8 +142,9 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
             CHANGE_HEARING_DATE_TYPE,
             String.class
         ).orElse("");
+
         if (hearingDateChangeType.isEmpty()) {
-            return persistedHearing.getHearingDetails().getHearingWindow();
+            return null;
         }
 
         return switch (hearingDateChangeType) {
@@ -202,14 +179,6 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
         };
     }
 
-    private HearingDetails buildHearingDetails(HearingDetails hearingDetails, HearingDetails updatedHearingsDetails) {
-        hearingDetails.setHearingChannels(updatedHearingsDetails.getHearingChannels());
-        hearingDetails.setHearingLocations(updatedHearingsDetails.getHearingLocations());
-        hearingDetails.setDuration(updatedHearingsDetails.getDuration());
-        hearingDetails.setAmendReasonCodes(updatedHearingsDetails.getAmendReasonCodes());
-        hearingDetails.setHearingWindow(updatedHearingsDetails.getHearingWindow());
-        return hearingDetails;
-    }
 
     private void clearFields(AsylumCase asylumCase) {
         asylumCase.clear(CHANGE_HEARINGS);
