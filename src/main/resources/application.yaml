@@ -78,6 +78,8 @@ security:
       - "listCase"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
+    caseworker-ia-system:
+      - "handleHearingException"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
