@@ -31,19 +31,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHOOSE_A_DATE_RANGE_EARLIEST;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHOOSE_A_DATE_RANGE_LATEST;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATE_TO_BE_FIXED_VALUE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL_TYPE_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DATE_CHANGE_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DATE_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DURATION_CHANGING_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DURATION_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION_CHANGE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_UPDATE_REASON_LIST;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.UPDATE_HEARINGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_EARLIEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_LATEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_UPDATE_REASON;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 
@@ -89,7 +89,7 @@ class UpdateHearingsRequestSubmitTest {
 
         asylumCase = new AsylumCase();
         DynamicList dynamicListOfHearings = new DynamicList(updateHearingsCode);
-        asylumCase.write(UPDATE_HEARINGS, dynamicListOfHearings);
+        asylumCase.write(CHANGE_HEARINGS, dynamicListOfHearings);
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(UPDATE_HEARING_REQUEST);
@@ -105,8 +105,8 @@ class UpdateHearingsRequestSubmitTest {
     void should_send_an_update_of_the_hearing_channels() {
         setDefaultHearingDetails();
 
-        asylumCase.write(HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON, "TEL");
-        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
+        asylumCase.write(HEARING_CHANNEL, "TEL");
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
             ABOUT_TO_SUBMIT,
@@ -129,8 +129,8 @@ class UpdateHearingsRequestSubmitTest {
     void should_send_an_update_of_the_hearing_locations() {
         setDefaultHearingDetails();
 
-        asylumCase.write(HEARING_LOCATION_CHANGE, new DynamicList(new Value("9999", "9999"), null));
-        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
+        asylumCase.write(LIST_CASE_HEARING_CENTRE, new DynamicList(new Value("9999", "9999"), null));
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
             ABOUT_TO_SUBMIT,
@@ -158,9 +158,9 @@ class UpdateHearingsRequestSubmitTest {
     @Test
     void should_send_an_update_of_the_hearing_window_date_to_be_fixed() {
         setDefaultHearingDetails();
-        asylumCase.write(HEARING_DATE_CHANGE_DATE, "DateToBeFixed");
-        asylumCase.write(DATE_TO_BE_FIXED_VALUE, "2023-12-02");
-        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
+        asylumCase.write(CHANGE_HEARING_DATE_TYPE, "DateToBeFixed");
+        asylumCase.write(LIST_CASE_HEARING_DATE, "2023-12-02");
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
             ABOUT_TO_SUBMIT,
@@ -186,10 +186,10 @@ class UpdateHearingsRequestSubmitTest {
     @Test
     void should_send_an_update_of_the_hearing_window_choose_a_date_range() {
         setDefaultHearingDetails();
-        asylumCase.write(HEARING_DATE_CHANGE_DATE, "ChooseADateRange");
-        asylumCase.write(CHOOSE_A_DATE_RANGE_EARLIEST, "2023-12-02");
-        asylumCase.write(CHOOSE_A_DATE_RANGE_LATEST, "2023-12-26");
-        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
+        asylumCase.write(CHANGE_HEARING_DATE_TYPE, "ChooseADateRange");
+        asylumCase.write(CHANGE_HEARING_DATE_RANGE_EARLIEST, "2023-12-02");
+        asylumCase.write(CHANGE_HEARING_DATE_RANGE_LATEST, "2023-12-26");
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
             ABOUT_TO_SUBMIT,
@@ -215,20 +215,20 @@ class UpdateHearingsRequestSubmitTest {
     @Test
     void should_throw_an_exception_if_no_start_date_range_is_set() {
         setDefaultHearingDetails();
-        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
-        asylumCase.write(HEARING_DATE_CHANGE_DATE, "DateToBeFixed");
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
+        asylumCase.write(CHANGE_HEARING_DATE_TYPE, "DateToBeFixed");
         assertThrows(
             IllegalStateException.class,
             () -> updateHearingRequestSubmit.handle(ABOUT_TO_SUBMIT, callback),
-            "DATE_TO_BE_FIXED_VALUE type is not present"
+            "LIST_CASE_HEARING_DATE type is not present"
         );
     }
 
     @Test
     void should_throw_an_exception_if_no_fixed_date_is_set() {
         setDefaultHearingDetails();
-        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
-        asylumCase.write(HEARING_DATE_CHANGE_DATE, "ChooseADateRange");
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
+        asylumCase.write(CHANGE_HEARING_DATE_TYPE, "ChooseADateRange");
         assertThrows(
             IllegalStateException.class,
             () -> updateHearingRequestSubmit.handle(ABOUT_TO_SUBMIT, callback),
@@ -239,9 +239,9 @@ class UpdateHearingsRequestSubmitTest {
     @Test
     void should_throw_an_exception_if_no_latest_date_range_is_set() {
         setDefaultHearingDetails();
-        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
-        asylumCase.write(HEARING_DATE_CHANGE_DATE, "ChooseADateRange");
-        asylumCase.write(CHOOSE_A_DATE_RANGE_EARLIEST, "2023-12-02");
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
+        asylumCase.write(CHANGE_HEARING_DATE_TYPE, "ChooseADateRange");
+        asylumCase.write(CHANGE_HEARING_DATE_RANGE_EARLIEST, "2023-12-02");
         assertThrows(
             IllegalStateException.class,
             () -> updateHearingRequestSubmit.handle(ABOUT_TO_SUBMIT, callback),
@@ -253,8 +253,8 @@ class UpdateHearingsRequestSubmitTest {
     void should_send_an_update_of_the_hearing_duration() {
         setDefaultHearingDetails();
 
-        asylumCase.write(HEARING_DURATION_CHANGING_RADIO_BUTTON, new DynamicList(new Value("240", "240"), null));
-        asylumCase.write(HEARING_UPDATE_REASON_LIST, reasonCode);
+        asylumCase.write(LIST_CASE_HEARING_LENGTH, new DynamicList(new Value("240", "240"), null));
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
             ABOUT_TO_SUBMIT,
@@ -314,19 +314,19 @@ class UpdateHearingsRequestSubmitTest {
     }
 
     private void verifyFieldsAreCleared() {
-        assertEquals(asylumCase.read(UPDATE_HEARINGS), Optional.empty());
-        assertEquals(asylumCase.read(HEARING_CHANNEL_TYPE_RADIO_BUTTON), Optional.of("no"));
-        assertEquals(asylumCase.read(HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON), Optional.empty());
-        assertEquals(asylumCase.read(HEARING_LOCATION_RADIO_BUTTON), Optional.of("no"));
-        assertEquals(asylumCase.read(HEARING_LOCATION_CHANGE), Optional.empty());
-        assertEquals(asylumCase.read(HEARING_DURATION_CHANGING_RADIO_BUTTON), Optional.empty());
-        assertEquals(asylumCase.read(HEARING_DURATION_RADIO_BUTTON), Optional.of("no"));
-        assertEquals(asylumCase.read(HEARING_UPDATE_REASON_LIST), Optional.empty());
-        assertEquals(asylumCase.read(HEARING_DATE_CHANGE_DATE), Optional.empty());
-        assertEquals(asylumCase.read(HEARING_DATE_RADIO_BUTTON), Optional.of("no"));
-        assertEquals(asylumCase.read(DATE_TO_BE_FIXED_VALUE), Optional.empty());
-        assertEquals(asylumCase.read(CHOOSE_A_DATE_RANGE_EARLIEST), Optional.empty());
-        assertEquals(asylumCase.read(CHOOSE_A_DATE_RANGE_LATEST), Optional.empty());
+        assertEquals(asylumCase.read(CHANGE_HEARINGS), Optional.empty());
+        assertEquals(asylumCase.read(CHANGE_HEARING_TYPE_YES_NO), Optional.of("no"));
+        assertEquals(asylumCase.read(HEARING_CHANNEL), Optional.empty());
+        assertEquals(asylumCase.read(CHANGE_HEARING_LOCATION_YES_NO), Optional.of("no"));
+        assertEquals(asylumCase.read(LIST_CASE_HEARING_CENTRE), Optional.empty());
+        assertEquals(asylumCase.read(LIST_CASE_HEARING_LENGTH), Optional.empty());
+        assertEquals(asylumCase.read(CHANGE_HEARING_DURATION_YES_NO), Optional.of("no"));
+        assertEquals(asylumCase.read(CHANGE_HEARING_UPDATE_REASON), Optional.empty());
+        assertEquals(asylumCase.read(CHANGE_HEARING_DATE_TYPE), Optional.empty());
+        assertEquals(asylumCase.read(CHANGE_HEARING_DATE_YES_NO), Optional.of("no"));
+        assertEquals(asylumCase.read(LIST_CASE_HEARING_DATE), Optional.empty());
+        assertEquals(asylumCase.read(CHANGE_HEARING_DATE_RANGE_EARLIEST), Optional.empty());
+        assertEquals(asylumCase.read(CHANGE_HEARING_DATE_RANGE_LATEST), Optional.empty());
     }
 
 }

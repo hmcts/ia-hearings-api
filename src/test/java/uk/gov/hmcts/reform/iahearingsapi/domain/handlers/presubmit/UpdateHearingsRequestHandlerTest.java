@@ -25,13 +25,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL_TYPE_VALUE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DATE_VALUE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DURATION_CHANGING_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DURATION_VALUE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION_VALUE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.UPDATE_HEARINGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_VALUE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_VALUE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_VALUE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_VALUE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.MID_EVENT;
 
@@ -59,7 +59,7 @@ class UpdateHearingsRequestHandlerTest {
 
         AsylumCase asylumCase = new AsylumCase();
         DynamicList dynamicListOfHearings = new DynamicList(updateHearingsCode);
-        asylumCase.write(UPDATE_HEARINGS, dynamicListOfHearings);
+        asylumCase.write(CHANGE_HEARINGS, dynamicListOfHearings);
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(UPDATE_HEARING_REQUEST);
@@ -79,11 +79,11 @@ class UpdateHearingsRequestHandlerTest {
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
         assertEquals(
-            callbackResponse.getData().read(HEARING_CHANNEL_TYPE_VALUE, String.class).get(),
+            callbackResponse.getData().read(CHANGE_HEARING_TYPE_VALUE, String.class).get(),
             "In Person"
         );
         assertEquals(
-            callbackResponse.getData().read(HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON, String.class).get(),
+            callbackResponse.getData().read(HEARING_CHANNEL, String.class).get(),
             "INTER"
         );
     }
@@ -105,7 +105,7 @@ class UpdateHearingsRequestHandlerTest {
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
         assertEquals(
-            callbackResponse.getData().read(HEARING_LOCATION_VALUE, String.class).get(), "1234");
+            callbackResponse.getData().read(CHANGE_HEARING_LOCATION_VALUE, String.class).get(), "1234");
     }
 
     @Test
@@ -122,7 +122,7 @@ class UpdateHearingsRequestHandlerTest {
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
-        assertEquals(callbackResponse.getData().read(HEARING_DATE_VALUE, String.class).get(), "20 January 2023");
+        assertEquals(callbackResponse.getData().read(CHANGE_HEARING_DATE_VALUE, String.class).get(), "20 January 2023");
     }
 
     @Test
@@ -141,7 +141,7 @@ class UpdateHearingsRequestHandlerTest {
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
         assertEquals(callbackResponse.getData()
-                         .read(HEARING_DATE_VALUE, String.class).get(), "15 January 2023 - 26 January 2023");
+                         .read(CHANGE_HEARING_DATE_VALUE, String.class).get(), "15 January 2023 - 26 January 2023");
 
     }
 
@@ -155,9 +155,9 @@ class UpdateHearingsRequestHandlerTest {
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
-        assertEquals(callbackResponse.getData().read(HEARING_DURATION_VALUE, String.class).get(), "2 hours");
+        assertEquals(callbackResponse.getData().read(CHANGE_HEARING_DURATION_VALUE, String.class).get(), "2 hours");
         assertEquals(
-            callbackResponse.getData().read(HEARING_DURATION_CHANGING_RADIO_BUTTON, DynamicList.class).get(),
+            callbackResponse.getData().read(LIST_CASE_HEARING_LENGTH, DynamicList.class).get(),
             new DynamicList(new Value("120", "120"), null)
         );
     }

@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.UPDATE_HEARINGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_START;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLATION_SUBMITTED;
@@ -91,19 +91,19 @@ class HearingsDynamicListPreparerTest {
         assertNotNull(callbackResponse);
         verify(hearingService, times(1)).getHearings(caseId);
         assertEquals(asylumCase
-                         .read(UPDATE_HEARINGS, DynamicList.class).get().getListItems().size(), 2);
+                         .read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().size(), 2);
         assertEquals(asylumCase
-                         .read(UPDATE_HEARINGS, DynamicList.class).get().getListItems().get(0).getCode(), "1");
+                         .read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(0).getCode(), "1");
         assertEquals(
             asylumCase
-                .read(UPDATE_HEARINGS, DynamicList.class).get().getListItems().get(0).getLabel(),
+                .read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(0).getLabel(),
             "Case Management Review - 20 January 2023"
         );
         assertEquals(
-            asylumCase.read(UPDATE_HEARINGS, DynamicList.class).get().getListItems().get(1).getCode(), "2");
+            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(1).getCode(), "2");
         assertEquals(
             asylumCase
-                .read(UPDATE_HEARINGS, DynamicList.class).get().getListItems().get(1).getLabel(),
+                .read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(1).getLabel(),
             "Bail - 21 January 2023"
         );
         assertEquals(asylumCase, callbackResponse.getData());
@@ -144,12 +144,12 @@ class HearingsDynamicListPreparerTest {
 
         assertNotNull(callbackResponse);
         verify(hearingService, times(1)).getHearings(caseId);
-        assertEquals(asylumCase.read(UPDATE_HEARINGS, DynamicList.class)
+        assertEquals(asylumCase.read(CHANGE_HEARINGS, DynamicList.class)
                          .get().getListItems().size(), 1);
-        assertEquals(asylumCase.read(UPDATE_HEARINGS, DynamicList.class)
+        assertEquals(asylumCase.read(CHANGE_HEARINGS, DynamicList.class)
                          .get().getListItems().get(0).getCode(), "3");
         assertEquals(
-            asylumCase.read(UPDATE_HEARINGS, DynamicList.class)
+            asylumCase.read(CHANGE_HEARINGS, DynamicList.class)
                 .get().getListItems().get(0).getLabel(),
             "Case Management Review - 20 January 2023"
         );
