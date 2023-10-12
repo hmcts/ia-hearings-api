@@ -1,0 +1,12 @@
+{
+  "screenFlow": [
+    {
+      "screenName": "hearing-requirements",
+      "navigation": [
+        {
+          "resultValue": "hearing-facilities"
+        }
+      ]
+    }
+  ]
+}

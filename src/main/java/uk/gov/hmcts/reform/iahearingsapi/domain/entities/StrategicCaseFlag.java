@@ -17,25 +17,20 @@ public class StrategicCaseFlag {
 
     String partyName;
     String roleOnCase;
-
     @JsonProperty("details")
     List<CaseFlagDetail> details;
 
-    public StrategicCaseFlag(String partyNameForDisplay, String roleOnCase) {
-        this.partyName = partyNameForDisplay;
+    public StrategicCaseFlag(String partyName, String roleOnCase, List<CaseFlagDetail> details) {
+        this.partyName = partyName;
         this.roleOnCase = roleOnCase;
-        this.details = Collections.emptyList();
+        this.details = details != null ? details : Collections.emptyList();
     }
 
-    public StrategicCaseFlag(String partyNameForDisplay, String roleOnCase, List<CaseFlagDetail> details) {
-        this.partyName = partyNameForDisplay;
-        this.roleOnCase = roleOnCase;
-        this.details = details;
+    public StrategicCaseFlag(List<CaseFlagDetail> details) {
+        this(null, null, details);
     }
 
     public StrategicCaseFlag() {
-        this.details = Collections.emptyList();
-        this.partyName = null;
-        this.roleOnCase = null;
+        this(null, null, Collections.emptyList());
     }
 }

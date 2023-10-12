@@ -8,7 +8,7 @@ public class StateTest {
 
     @Test
     void has_correct_values() {
-        assertEquals("exampleState", State.EXAMPLE_STATE.toString());
+        assertEquals("prepareForHearing", State.PREPARE_FOR_HEARING.toString());
 
         assertEquals("unknown", State.UNKNOWN.toString());
     }

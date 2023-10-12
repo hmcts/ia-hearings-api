@@ -8,7 +8,7 @@ public class EventTest {
 
     @Test
     void has_correct_values() {
-        assertEquals("exampleEvent", Event.EXAMPLE_EVENT.toString());
+        assertEquals("listCase", Event.LIST_CASE.toString());
 
         assertEquals("unknown", Event.UNKNOWN.toString());
     }

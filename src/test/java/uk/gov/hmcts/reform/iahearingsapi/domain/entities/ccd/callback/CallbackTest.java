@@ -21,7 +21,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 @ExtendWith(MockitoExtension.class)
 public class CallbackTest {
 
-    private final Event event = Event.EXAMPLE_EVENT;
+    private final Event event = Event.LIST_CASE;
     private final Optional<CaseDetails<CaseData>> caseDetailsBefore = Optional.empty();
     @Mock
     private CaseDetails<CaseData> caseDetails;

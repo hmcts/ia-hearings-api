@@ -9,7 +9,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
 
 import java.util.Collections;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,10 +29,12 @@ class AppellantDetailsMapperTest {
     private CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
     @Mock
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
+    @Mock
+    private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
 
     @BeforeEach
     void setup() {
-        when(caseDataMapper.getPartyId()).thenReturn("partyId");
+        when(caseDataMapper.getAppellantPartyId(asylumCase)).thenReturn("partyId");
         when(asylumCase.read(JOURNEY_TYPE, String.class)).thenReturn(Optional.of(REP.getValue()));
     }
 
@@ -55,8 +56,10 @@ class AppellantDetailsMapperTest {
             .otherReasonableAdjustmentDetails("")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
 
-        assertEquals(expected, new AppellantDetailsMapper().map(asylumCase, caseFlagsMapper, caseDataMapper));
+        assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+            .map(asylumCase, caseFlagsMapper, caseDataMapper));
     }
 
     @Test
@@ -73,8 +76,10 @@ class AppellantDetailsMapperTest {
             .otherReasonableAdjustmentDetails("Single sex court: Female;")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
 
-        assertEquals(expected, new AppellantDetailsMapper().map(asylumCase, caseFlagsMapper, caseDataMapper));
+        assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+            .map(asylumCase, caseFlagsMapper, caseDataMapper));
     }
 
     @Test
@@ -91,8 +96,10 @@ class AppellantDetailsMapperTest {
             .otherReasonableAdjustmentDetails("Single sex court: Male;")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
 
-        assertEquals(expected, new AppellantDetailsMapper().map(asylumCase, caseFlagsMapper, caseDataMapper));
+        assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+            .map(asylumCase, caseFlagsMapper, caseDataMapper));
     }
 
     private PartyDetailsModel getPartyDetailsModelForAppellant(IndividualDetailsModel individualDetails) {

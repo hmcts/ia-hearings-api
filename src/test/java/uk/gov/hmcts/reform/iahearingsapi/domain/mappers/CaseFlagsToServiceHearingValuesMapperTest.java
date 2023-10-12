@@ -29,7 +29,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFla
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus.IN_CUSTODY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus.IN_DETENTION;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,8 +43,8 @@ import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.PartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlag;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
@@ -57,17 +56,16 @@ class CaseFlagsToServiceHearingValuesMapperTest {
 
     private final String caseReference = "caseReference";
     private final String flagAmendUrl = "/cases/case-details/" + caseReference + "#Case%20flags";
-    private final String partyId = "partyId";
     private CaseFlagsToServiceHearingValuesMapper mapper;
 
     @Mock
     private AsylumCase asylumCase;
+
     @Mock
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
 
     @BeforeEach
     void setup() {
-        when(caseDataMapper.getPartyId()).thenReturn(partyId);
         mapper = new CaseFlagsToServiceHearingValuesMapper(caseDataMapper);
     }
 
@@ -75,8 +73,6 @@ class CaseFlagsToServiceHearingValuesMapperTest {
     void getPublicCaseName_should_return_case_reference() {
 
         StrategicCaseFlag caseLevelFlag = new StrategicCaseFlag(
-            "",
-            "",
             List.of(new CaseFlagDetail("id1", CaseFlagValue.builder()
                 .flagCode(ANONYMITY.getFlagCode())
                 .status("Active")
@@ -104,7 +100,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertTrue(mapper.getCaseAdditionalSecurityFlag(asylumCase));
 
@@ -113,7 +109,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertTrue(mapper.getCaseAdditionalSecurityFlag(asylumCase));
     }
@@ -124,8 +120,6 @@ class CaseFlagsToServiceHearingValuesMapperTest {
         assertFalse(mapper.getCaseAdditionalSecurityFlag(asylumCase));
 
         StrategicCaseFlag appellantFlags = new StrategicCaseFlag(
-            "",
-            "",
             List.of(new CaseFlagDetail("id1", CaseFlagValue.builder()
                         .flagCode(UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR.getFlagCode())
                         .status("Inactive")
@@ -145,7 +139,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertFalse(mapper.getAutoListFlag(asylumCase));
 
@@ -166,9 +160,9 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build())));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
         when(asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("", "",
+            .thenReturn(Optional.of(new StrategicCaseFlag(
                 List.of(new CaseFlagDetail(
                     "id1",
                     CaseFlagValue.builder()
@@ -190,7 +184,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Inactive")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertTrue(mapper.getAutoListFlag(asylumCase));
     }
@@ -204,7 +198,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertEquals(PriorityType.URGENT, mapper.getHearingPriorityType(asylumCase));
 
@@ -213,7 +207,9 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
+        when(asylumCase.read(WITNESS_LEVEL_FLAGS))
+            .thenReturn(Optional.of(List.of(new PartyFlagIdValue("id", new StrategicCaseFlag(caseFlagDetails)))));
 
         assertEquals(PriorityType.URGENT, mapper.getHearingPriorityType(asylumCase));
     }
@@ -229,14 +225,14 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Inactive")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
             .flagCode(ANONYMITY.getFlagCode())
             .status("Active")
             .build()));
         when(asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertEquals(PriorityType.STANDARD, mapper.getHearingPriorityType(asylumCase));
     }
@@ -259,7 +255,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagComment(flagComment)
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertEquals(listingComments, mapper.getListingComments(asylumCase));
     }
@@ -287,7 +283,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagComment(flagComment)
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         String additionalInstructionsTribunalResponse = "Additional instructions";
         when(asylumCase.read(ADDITIONAL_INSTRUCTIONS_TRIBUNAL_RESPONSE, String.class))
@@ -308,7 +304,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertTrue(mapper.getPrivateHearingRequiredFlag(asylumCase));
     }
@@ -324,7 +320,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Inactive")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertFalse(mapper.getPrivateHearingRequiredFlag(asylumCase));
     }
@@ -338,7 +334,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertTrue(mapper.getCaseInterpreterRequiredFlag(asylumCase));
 
@@ -347,7 +343,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertTrue(mapper.getCaseInterpreterRequiredFlag(asylumCase));
 
@@ -355,8 +351,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
             .status("Active")
             .build()));
-        List<IdValue<StrategicCaseFlag>> witnessCaseFlag = List.of(
-            new IdValue<>("witness1",
+        List<PartyFlagIdValue> witnessCaseFlag = List.of(
+            new PartyFlagIdValue("partyId1",
                           new StrategicCaseFlag(
                               "witness1",
                               "",
@@ -370,7 +366,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         witnessCaseFlag = List.of(
-            new IdValue<>("witness2",
+            new PartyFlagIdValue("partyId2",
                           new StrategicCaseFlag(
                               "witness2",
                               "",
@@ -391,7 +387,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Inactive")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertFalse(mapper.getCaseInterpreterRequiredFlag(asylumCase));
     }
@@ -401,8 +397,6 @@ class CaseFlagsToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(new StrategicCaseFlag(
-                "case1",
-                "",
                 List.of(new CaseFlagDetail("id1", CaseFlagValue.builder()
                     .flagCode(ANONYMITY.getFlagCode())
                     .name(ANONYMITY.getName())
@@ -415,14 +409,13 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagAmendUrl(flagAmendUrl)
             .flags(List.of(
                 PartyFlagsModel.builder()
-                    .partyId(partyId)
-                    .partyName("case1")
+                    .partyId(null)
+                    .partyName(null)
                     .flagId("id1")
                     .flagStatus("Active")
                     .flagDescription(ANONYMITY.getName())
                     .build()
-            ))
-            .build();
+            )).build();
 
         Caseflags actual = mapper.getCaseFlags(asylumCase, caseReference);
         assertNotNull(actual);
@@ -431,6 +424,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
 
     @Test
     void getCaseFlags_should_return_valid_case_flag_object_with_a_list_of_flags() {
+
+        when(caseDataMapper.getAppellantPartyId(asylumCase)).thenReturn("appellantPartyId");
 
         List<CaseFlagDetail> appellantCaseFlagDetails = Arrays.asList(
             new CaseFlagDetail("id4", CaseFlagValue.builder()
@@ -453,9 +448,9 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                 .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(
-                new StrategicCaseFlag("appellant1","", appellantCaseFlagDetails)));
-        List<IdValue<StrategicCaseFlag>> witnessCaseFlag = List.of(
-            new IdValue<>("witness3",
+                new StrategicCaseFlag("appellant1", "", appellantCaseFlagDetails)));
+        List<PartyFlagIdValue> witnessCaseFlag = List.of(
+            new PartyFlagIdValue("witnessPartyId",
                           new StrategicCaseFlag(
                               "witness3",
                               "",
@@ -473,14 +468,14 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagAmendUrl(flagAmendUrl)
             .flags(List.of(
                 PartyFlagsModel.builder()
-                    .partyId(partyId)
+                    .partyId("appellantPartyId")
                     .partyName("appellant1")
                     .flagId("id4")
                     .flagStatus("Active")
                     .flagDescription(LITIGATION_FRIEND.getName())
                     .build(),
                 PartyFlagsModel.builder()
-                    .partyId(partyId)
+                    .partyId("witnessPartyId")
                     .partyName("witness3")
                     .flagId("id7")
                     .flagStatus("Active")
@@ -498,8 +493,6 @@ class CaseFlagsToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(new StrategicCaseFlag(
-                "",
-                "",
                 Arrays.asList(
                     new CaseFlagDetail("id2", CaseFlagValue.builder()
                         .flagCode(URGENT_CASE.getFlagCode())
@@ -527,7 +520,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertEquals(IN_DETENTION.getValue(), mapper.getCustodyStatus(asylumCase));
     }
@@ -541,7 +534,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertEquals(IN_CUSTODY.getValue(), mapper.getCustodyStatus(asylumCase));
     }
@@ -555,7 +548,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertTrue(mapper.getVulnerableFlag(asylumCase));
 
@@ -564,7 +557,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Active")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertTrue(mapper.getVulnerableFlag(asylumCase));
     }
@@ -579,7 +572,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .status("Inactive")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertFalse(mapper.getVulnerableFlag(asylumCase));
     }
@@ -594,7 +587,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagCode(VULNERABLE_USER.getFlagCode()).status("Active")
             .flagComment(vulnerableUser).build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertEquals(vulnerableUser, mapper.getVulnerableDetails(asylumCase));
 
@@ -604,7 +597,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagComment(unaccompaniedMinor)
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertEquals(vulnerableUser + ";" + unaccompaniedMinor, mapper.getVulnerableDetails(asylumCase));
     }
@@ -626,7 +619,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagComment("Unaccompanied minor")
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag("","", caseFlagDetails)));
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertNull(mapper.getVulnerableDetails(asylumCase));
     }

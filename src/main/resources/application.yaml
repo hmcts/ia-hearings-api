@@ -72,19 +72,31 @@ security:
     - "caseworker-ia"
   roleEventAccess:
     caseworker-ia-legalrep-solicitor:
-      - "exampleEvent"
     caseworker-ia-admofficer:
-      - "exampleEvent"
+      - "listCase"
+    caseworker-ia-caseworker:
+      - "listCase"
     caseworker-ia-respondentofficer:
-      - "exampleEvent"
     caseworker-ia-iacjudge:
-      - "exampleEvent"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
 core_case_data:
   api:
     url: ${CCD_URL:http://127.0.0.1:4452}
+
+xui:
+  api:
+    baseUrl: ${XUI_URL:http://localhost:3002}
+
+hearingValues:
+  screenFlowJsonFilePath: ${SCREEN_FLOW_JSON_FILE_PATH:/screenFlowNoPanelNoLink.json}
+  caseCategories: "BFA1-TST"
+  hmctsServiceId: "BFA1"
+
+rd-commondata:
+  api:
+    url: ${REF_DATA_URL:http://localhost:8991}
 
 feign:
   hystrix:
@@ -115,7 +127,7 @@ idam:
     microservice: ${IA_S2S_MICROSERVICE:iac}
     url: ${S2S_URL:http://127.0.0.1:4502}
   s2s-authorised:
-    services: ${IA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac}
+    services: ${IA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,xui_webapp}
   ia_system_user:
     username: ${IA_SYSTEM_USERNAME:system-user}
     password: ${IA_SYSTEM_PASSWORD:system-password}
@@ -146,6 +158,26 @@ ia:
   config:
     validator:
       secret: ${IA_CONFIG_VALIDATOR_SECRET:}
+  hmctsServiceId: ${HMCTS_SERVICE_ID:BFA1}
 
 govUkHolidays:
   url: https://www.gov.uk/
+
+azure:
+  service-bus:
+    connection-postfix: ${HMC_RESPONSE_TOPIC_CONNECTION_POSTFIX:.servicebus.windows.net}
+    hmc-to-hearings-api:
+      namespace: ${HMC_HEARINGS_TOPIC_NAMESPACE:hmc-servicebus-demo}
+      topicName: ${HMC_HEARINGS_TOPIC_NAME:}
+      subscriptionName: ${HMC_HEARINGS_TOPIC_SUBSCRIPTION_NAME:}
+      receiveTimeout: ${HMC_HEARINGS_TOPIC_RECEIVE_TIMEOUT:1}
+      idleTimeout: ${HMC_HEARINGS_TOPIC_IDLE_TIMEOUT:3600000}
+      username: ${HMC_HEARINGS_TOPIC_POLICY_NAME:}
+      password: ${HMC_HEARINGS_TOPIC_ACCESS_KEY:}
+
+iaCaseApi:
+  url: ${IA_CASE_API_URL:http://127.0.0.1:8090}
+  aboutToStartPath: "/asylum/ccdAboutToStart"
+  aboutToSubmitPath: "/asylum/ccdAboutToSubmit"
+  midEventPath: "/asylum/ccdMidEvent"
+  ccdSubmittedPath: "/asylum/ccdSubmitted"

@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -23,16 +22,19 @@ class LegalRepOrgDetailsMapperTest {
     @Test
     void should_map_correctly() {
 
-        when(caseDataMapper.getPartyId()).thenReturn("partyId");
+        when(caseDataMapper.getLegalRepOrgPartyId(asylumCase)).thenReturn("partyId");
+        when(caseDataMapper.getLegalRepCompanyName(asylumCase)).thenReturn("legaRepPartyName");
 
         PartyDetailsModel expected = PartyDetailsModel.builder()
             .partyID("partyId")
             .partyType("ORG")
             .partyRole("LGRP")
             .organisationDetails(
-                List.of(OrganisationDetailsModel.builder()
+                OrganisationDetailsModel.builder()
                             .organisationType("ORG")
-                            .build()))
+                            .name("legaRepPartyName")
+                            .cftOrganisationID("partyId")
+                            .build())
             .build();
 
         assertEquals(expected, new LegalRepOrgDetailsMapper().map(asylumCase, caseDataMapper));

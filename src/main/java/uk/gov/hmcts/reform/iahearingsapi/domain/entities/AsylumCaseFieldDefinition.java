@@ -21,10 +21,12 @@ public enum AsylumCaseFieldDefinition {
         "hmctsCaseNameInternal", new TypeReference<String>() {}),
     LIST_CASE_HEARING_LENGTH(
         "listCaseHearingLength", new TypeReference<String>() {}),
+    LIST_CASE_HEARING_CENTRE(
+        "listCaseHearingCentre", new TypeReference<HearingCentre>(){}),
     APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {
     }),
     WITNESS_LEVEL_FLAGS(
-        "witnessLevelFlags", new TypeReference<List<IdValue<StrategicCaseFlag>>>() {}),
+        "witnessLevelFlags", new TypeReference<List<PartyFlagIdValue>>() {}),
     CASE_FLAGS(
         "caseFlags", new TypeReference<StrategicCaseFlag>(){}),
     LEGAL_REP_NAME(
@@ -97,9 +99,28 @@ public enum AsylumCaseFieldDefinition {
             "isAdditionalAdjustmentsAllowed", new TypeReference<String>() {}),
 
     IS_SINGLE_SEX_COURT_ALLOWED(
-        "isSingleSexCourtAllowed", new TypeReference<String>() {});
+        "isSingleSexCourtAllowed", new TypeReference<String>() {}),
 
+    INTERPRETER_DETAILS(
+        "interpreterDetails", new TypeReference<List<IdValue<InterpreterDetails>>>() {}),
 
+    APPELLANT_PARTY_ID(
+        "appellantPartyId", new TypeReference<String>() {}),
+
+    LEGAL_REP_INDIVIDUAL_PARTY_ID(
+        "legalRepIndividualPartyId", new TypeReference<String>() {}),
+
+    LEGAL_REP_ORGANISATION_PARTY_ID(
+        "legalRepOrganisationPartyId", new TypeReference<String>() {}),
+
+    SPONSOR_PARTY_ID(
+        "sponsorPartyId", new TypeReference<String>() {}),
+
+    ARIA_LISTING_REFERENCE(
+        "ariaListingReference",  new TypeReference<String>(){}),
+
+    LIST_CASE_HEARING_DATE(
+        "listCaseHearingDate", new TypeReference<String>(){});
 
     private final String value;
     private final TypeReference typeReference;
