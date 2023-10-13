@@ -128,7 +128,7 @@ class HmcMessageDispatcherTest {
     void should_not_allow_null_argument() {
 
         assertThatThrownBy(() -> dispatcher.dispatch(null))
-            .hasMessage("Message must not be null")
+            .hasMessage("Service data must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
     }
 }

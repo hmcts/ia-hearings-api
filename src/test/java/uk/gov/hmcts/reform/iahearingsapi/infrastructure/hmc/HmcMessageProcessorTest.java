@@ -42,7 +42,8 @@ class HmcMessageProcessorTest {
     private static final String HEARING_ID = "2000000050";
     private static final LocalDateTime NEXT_HEARING_DATE = LocalDateTime.of(2023, 9, 29, 12, 0);
     private static final String HEARING_VENUE_ID = "1111";
-    private static final HmcStatus HMC_STATUS = HmcStatus.LISTED;
+    private static final HmcStatus HMC_STATUS_LISTED = HmcStatus.LISTED;
+    private static final HmcStatus HMC_STATUS_EXCEPTION = HmcStatus.EXCEPTION;
     private static final ListingStatus HEARING_LISTING_STATUS = ListingStatus.FIXED;
     private static final ListAssistCaseStatus LIST_ASSIST_CASE_STATUS = ListAssistCaseStatus.LISTED;
     private static final LocalDateTime HEARING_RESPONSE_RECEIVED_DATE_TIME = LocalDateTime.of(2023, 9, 29, 11, 0);
@@ -67,7 +68,7 @@ class HmcMessageProcessorTest {
     }
 
     @Test
-    void should_process_hmc_message() {
+    void should_process_hmc_message_when_hmc_status_not_exception() {
 
         when(hmcMessage.getCaseId()).thenReturn(CASE_ID);
         when(hmcMessage.getHmctsServiceCode()).thenReturn(HMCTS_SERVICE_CODE);
@@ -75,7 +76,7 @@ class HmcMessageProcessorTest {
         when(hmcMessage.getHearingUpdate()).thenReturn(hearingUpdate);
         when(hearingUpdate.getNextHearingDate()).thenReturn(NEXT_HEARING_DATE);
         when(hearingUpdate.getHearingVenueId()).thenReturn(HEARING_VENUE_ID);
-        when(hearingUpdate.getHmcStatus()).thenReturn(HMC_STATUS);
+        when(hearingUpdate.getHmcStatus()).thenReturn(HMC_STATUS_LISTED);
         when(hearingUpdate.getHearingListingStatus()).thenReturn(HEARING_LISTING_STATUS);
         when(hearingUpdate.getListAssistCaseStatus()).thenReturn(LIST_ASSIST_CASE_STATUS);
         when(hearingUpdate.getHearingResponseReceivedDateTime()).thenReturn(HEARING_RESPONSE_RECEIVED_DATE_TIME);
@@ -93,7 +94,7 @@ class HmcMessageProcessorTest {
         serviceData.write(ServiceDataFieldDefinition.HEARING_ID, HEARING_ID);
         serviceData.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, NEXT_HEARING_DATE);
         serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, HEARING_VENUE_ID);
-        serviceData.write(ServiceDataFieldDefinition.HMC_STATUS, HMC_STATUS);
+        serviceData.write(ServiceDataFieldDefinition.HMC_STATUS, HMC_STATUS_LISTED);
         serviceData.write(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, HEARING_LISTING_STATUS);
         serviceData.write(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, LIST_ASSIST_CASE_STATUS);
         serviceData.write(ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME,
@@ -117,6 +118,33 @@ class HmcMessageProcessorTest {
                                              HEARING_CHANNELS.value(),
                                              HEARING_TYPE.value(),
                                              DURATION.value())));
+    }
+
+    @Test
+    void should_process_hmc_message_when_hmc_status_exception() {
+
+        when(hmcMessage.getCaseId()).thenReturn(CASE_ID);
+        when(hmcMessage.getHmctsServiceCode()).thenReturn(HMCTS_SERVICE_CODE);
+        when(hmcMessage.getHearingId()).thenReturn(HEARING_ID);
+        when(hmcMessage.getHearingUpdate()).thenReturn(hearingUpdate);
+        when(hearingUpdate.getHmcStatus()).thenReturn(HMC_STATUS_EXCEPTION);
+
+        processor.processMessage(hmcMessage);
+
+        ServiceData serviceData = new ServiceData();
+        serviceData.write(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE, HMCTS_SERVICE_CODE);
+        serviceData.write(CASE_REF, CASE_ID);
+        serviceData.write(ServiceDataFieldDefinition.HEARING_ID, HEARING_ID);
+        serviceData.write(ServiceDataFieldDefinition.HMC_STATUS, HMC_STATUS_EXCEPTION);
+
+        ArgumentCaptor<ServiceData> serviceDataArgumentCaptor = ArgumentCaptor.forClass(ServiceData.class);
+        verify(dispatcher, times(1)).dispatch(serviceDataArgumentCaptor.capture());
+
+        ServiceData argument = serviceDataArgumentCaptor.getValue();
+        assertTrue(argument.keySet().containsAll(Set.of(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE.value(),
+                                                        ServiceDataFieldDefinition.HEARING_ID.value(),
+                                                        ServiceDataFieldDefinition.HMC_STATUS.value(),
+                                                        CASE_REF.value())));
     }
 
 }
