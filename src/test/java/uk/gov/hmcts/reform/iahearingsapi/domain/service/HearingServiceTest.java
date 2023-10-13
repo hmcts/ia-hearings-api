@@ -119,7 +119,7 @@ class HearingServiceTest {
         when(serviceHearingValuesProvider.provideServiceHearingValues(asylumCase, CASE_ID))
             .thenReturn(new ServiceHearingValuesModel());
 
-        ServiceHearingValuesModel result = hearingService.getServiceHearingValues(new HearingRequestPayload(CASE_ID));
+        ServiceHearingValuesModel result = hearingService.getServiceHearingValues(new HearingRequestPayload(CASE_ID, null));
 
         assertThat(result).isNotNull();
         verify(serviceHearingValuesProvider, times(1))
@@ -204,7 +204,7 @@ class HearingServiceTest {
 
     @Test
     void testGetHearingLinkValues() {
-        List<Object> result = hearingService.getHearingLinkData(new HearingRequestPayload(CASE_ID));
+        List<Object> result = hearingService.getHearingLinkData(new HearingRequestPayload(CASE_ID, null));
 
         assertThat(result).isNotNull();
     }
