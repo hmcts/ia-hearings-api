@@ -21,7 +21,7 @@ public class HmcMessageDispatcher<T extends ServiceData> {
     }
 
     public void dispatch(T serviceData) {
-        requireNonNull(serviceData, "Message must not be null");
+        requireNonNull(serviceData, "Service data must not be null");
 
         dispatchToHandlers(serviceData, handlers, DispatchPriority.EARLIEST);
         dispatchToHandlers(serviceData, handlers, DispatchPriority.EARLY);

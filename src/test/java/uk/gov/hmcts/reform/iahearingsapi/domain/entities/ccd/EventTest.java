@@ -9,12 +9,12 @@ public class EventTest {
     @Test
     void has_correct_values() {
         assertEquals("listCase", Event.LIST_CASE.toString());
-
+        assertEquals("handleHearingException", Event.HANDLE_HEARING_EXCEPTION.toString());
         assertEquals("unknown", Event.UNKNOWN.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(2, Event.values().length);
+        assertEquals(3, Event.values().length);
     }
 }
