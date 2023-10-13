@@ -76,6 +76,8 @@ security:
       - "listCase"
     caseworker-ia-caseworker:
       - "listCase"
+    caseworker-ia-system:
+      - "updateHMCResponse"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
 

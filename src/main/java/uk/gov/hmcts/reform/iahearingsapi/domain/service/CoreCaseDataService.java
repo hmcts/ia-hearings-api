@@ -96,7 +96,7 @@ public class CoreCaseDataService {
                                                             s2sToken,
                                                             uid,
                                                             caseId,
-                                                            asylumCase,
+                                                            startEventResponse.getCaseDetails().getData(),
                                                             event,
                                                             true,
                                                             startEventResponse.getToken());
@@ -138,4 +138,39 @@ public class CoreCaseDataService {
                                                         request);
     }
 
+    public void triggerEventCraig(Event updateHmcResponse, String caseId, AsylumCase asylumCase) {
+
+        String userToken;
+        String s2sToken;
+        String uid;
+        try {
+            userToken = idamService.getServiceUserToken();
+            log.info("System user token has been generated for event: {}, caseId: {}.", updateHmcResponse, caseId);
+
+            s2sToken = serviceAuthTokenGenerator.generate();
+            log.info("S2S token has been generated for event: {}, caseId: {}.", updateHmcResponse, caseId);
+
+            uid = idamService.getUserInfo().getUid();
+            log.info("System user id has been fetched for event: {}, caseId: {}.", updateHmcResponse, caseId);
+
+        } catch (IdentityManagerResponseException ex) {
+
+            log.error("Unauthorized access to getCaseById: {}", ex.getMessage());
+            throw new IdentityManagerResponseException(ex.getMessage(), ex);
+        }
+
+        CaseDataContent request = CaseDataContent.builder()
+            .event(uk.gov.hmcts.reform.ccd.client.model.Event.builder()
+                       .id(updateHmcResponse.toString())
+                       .build())
+            .data(asylumCase)
+            .supplementaryDataRequest(Collections.emptyMap())
+            .securityClassification(Classification.PUBLIC)
+            .ignoreWarning(true)
+            .caseReference(caseId)
+            .build();
+
+        coreCaseDataApi.createEvent(userToken, s2sToken, caseId, request);
+
+    }
 }
