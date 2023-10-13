@@ -8,6 +8,11 @@ public enum Event {
     LIST_CASE("listCase"),
     UPDATE_HEARING_REQUEST("updateHearingRequest"),
     END_APPEAL("endAppeal"),
+    START_APPEAL("startAppeal"),
+    EDIT_APPEAL("editAppeal"),
+    SUBMIT_APPEAL("submitAppeal"),
+    PAY_AND_SUBMIT_APPEAL("payAndSubmitAppeal"),
+    LIST_CASE_FOR_FT_ONLY("listCaseForFTOnly"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");

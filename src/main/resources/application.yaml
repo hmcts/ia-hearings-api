@@ -71,7 +71,15 @@ security:
   authorisedRoles:
     - "caseworker-ia"
   roleEventAccess:
+    citizen:
+      - "startAppeal"
+      - "editAppeal"
+      - "submitAppeal"
     caseworker-ia-legalrep-solicitor:
+      - "startAppeal"
+      - "editAppeal"
+      - "payAndSubmitAppeal"
+      - "submitAppeal"
     caseworker-ia-admofficer:
       - "listCase"
       - "updateHearingRequest"
@@ -83,6 +91,7 @@ security:
     caseworker-ia-caseofficer:
       - "updateHearingRequest"
       - "endAppeal"
+      - "listCaseForFTOnly"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
