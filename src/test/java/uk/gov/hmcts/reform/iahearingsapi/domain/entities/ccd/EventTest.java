@@ -16,7 +16,7 @@ public class EventTest {
         assertEquals("startAppeal", Event.START_APPEAL.toString());
         assertEquals("editAppeal", Event.EDIT_APPEAL.toString());
         assertEquals("submitAppeal", Event.SUBMIT_APPEAL.toString());
-        assertEquals("listCaseForFTOnly", Event.LIST_CASE.toString());
+        assertEquals("listCaseForFTOnly", Event.LIST_CASE_FOR_FT_ONLY.toString());
     }
 
     @Test
