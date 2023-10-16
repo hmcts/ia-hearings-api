@@ -92,6 +92,8 @@ security:
       - "updateHearingRequest"
       - "endAppeal"
       - "listCaseForFTOnly"
+    caseworker-ia-system:
+      - "handleHearingException"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}

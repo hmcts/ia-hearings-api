@@ -7,6 +7,7 @@ public enum Event {
 
     LIST_CASE("listCase"),
     UPDATE_HEARING_REQUEST("updateHearingRequest"),
+    HANDLE_HEARING_EXCEPTION("handleHearingException"),
     END_APPEAL("endAppeal"),
     START_APPEAL("startAppeal"),
     EDIT_APPEAL("editAppeal"),
