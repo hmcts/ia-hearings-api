@@ -22,7 +22,7 @@ public class EventTest {
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(9, Event.values().length);
+        assertEquals(10, Event.values().length);
 
     }
 }
