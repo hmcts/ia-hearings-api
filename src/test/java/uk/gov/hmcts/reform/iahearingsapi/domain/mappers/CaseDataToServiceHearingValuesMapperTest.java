@@ -65,7 +65,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityType;
 class CaseDataToServiceHearingValuesMapperTest {
 
     private final String homeOfficeRef = "homeOfficeRef";
-    private final String dateStr = "2023-08-01";
     private CaseDataToServiceHearingValuesMapper mapper;
     @Mock
     private DateProvider hearingServiceDateProvider;
@@ -75,7 +74,6 @@ class CaseDataToServiceHearingValuesMapperTest {
     @BeforeEach
     void setup() {
 
-        when(hearingServiceDateProvider.now()).thenReturn(LocalDate.parse(dateStr));
         String startDate = "2023-08-01T10:46:48.962301+01:00[Europe/London]";
         ZonedDateTime zonedDateTimeFrom = ZonedDateTime.parse(startDate);
         when(hearingServiceDateProvider.zonedNowWithTime()).thenReturn(zonedDateTimeFrom);
@@ -164,12 +162,6 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         assertEquals(hearingWindowModel.getDateRangeStart(), expectedDate
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-    }
-
-    @Test
-    void getCaseSlaStartDate_should_return_valid_date() {
-
-        assertEquals(mapper.getCaseSlaStartDate(), dateStr);
     }
 
     @Test

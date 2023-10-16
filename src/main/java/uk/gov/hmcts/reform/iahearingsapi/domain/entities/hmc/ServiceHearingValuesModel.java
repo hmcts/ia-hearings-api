@@ -41,9 +41,6 @@ public class ServiceHearingValuesModel {
 
     private String caseManagementLocationCode;
 
-    @JsonProperty("caseSLAStartDate")
-    private String caseSlaStartDate;
-
     private boolean autoListFlag;
 
     private String hearingType;
