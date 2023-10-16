@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UncheckedIOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,12 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.FileCopyUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StartEventDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.SubmitEventDetails;
@@ -42,7 +38,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDataContent;
 @SpringBootTest(classes = {Application.class})
 @Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("functional")
 public class CcdCaseCreationTest {
 
     @Value("classpath:templates/start-appeal.json")
@@ -109,7 +104,6 @@ public class CcdCaseCreationTest {
         caseOfficerToken = idamAuthProvider.getCaseOfficerToken();
 
         legalRepUserId = idamAuthProvider.getUserId(legalRepToken);
-//        systemUserId = idamAuthProvider.getUserId(systemUserToken);
         caseOfficerUserId = idamAuthProvider.getUserId(caseOfficerToken);
 
         Map<String, Object> data = getStartAppealData();
@@ -154,6 +148,7 @@ public class CcdCaseCreationTest {
 
         paymentReference = submitEventDetails.getData().get("paymentReference").toString();
     }
+
     private void listCase() {
         caseData.put("listCaseHearingLength", "120");
 
