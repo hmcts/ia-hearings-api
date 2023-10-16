@@ -25,8 +25,8 @@ feign:
   client:
     config:
       default:
-        connectTimeout: 50000
-        readTimeout: 50000
+        connectTimeout: 500000
+        readTimeout: 500000
 
 spring:
   security:
