@@ -11,7 +11,6 @@ public enum Event {
     START_APPEAL("startAppeal"),
     EDIT_APPEAL("editAppeal"),
     SUBMIT_APPEAL("submitAppeal"),
-    PAY_AND_SUBMIT_APPEAL("payAndSubmitAppeal"),
     LIST_CASE_FOR_FT_ONLY("listCaseForFTOnly"),
 
     @JsonEnumDefaultValue
