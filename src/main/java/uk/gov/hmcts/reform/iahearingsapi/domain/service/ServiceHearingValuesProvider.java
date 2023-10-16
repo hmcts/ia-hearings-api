@@ -5,8 +5,7 @@ import static net.minidev.json.parser.JSONParser.DEFAULT_PERMISSIVE_MODE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 
-import java.io.File;
-import java.io.FileInputStream;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -20,6 +19,8 @@ import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -49,12 +50,9 @@ public class ServiceHearingValuesProvider {
     private final LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
     private final PartyDetailsMapper partyDetailsMapper;
     private final ListingCommentsMapper listingCommentsMapper;
-
+    private final ResourceLoader resourceLoader;
     @Value("${xui.api.baseUrl}")
     private String baseUrl;
-
-    @Value("${hearingValues.screenFlowJsonFilePath}")
-    private String screenFlowJsonFilePath;
 
     @Value("${hearingValues.caseCategories}")
     private String caseCategoriesValue;
@@ -125,13 +123,17 @@ public class ServiceHearingValuesProvider {
     }
 
     public JSONArray getScreenFlowJson() {
-        JSONArray screenFlowValue = null;
+
         JSONObject screenFlowJson = null;
+        JSONArray screenFlowValue = null;
+        JSONParser parser = new JSONParser(DEFAULT_PERMISSIVE_MODE);
+        Resource resource = resourceLoader.getResource("classpath:screenFlowNoPanelNoLink.json");
 
-        File file = new File(requireNonNull(getClass().getResource(screenFlowJsonFilePath)).getFile());
-
-        try (InputStream inputStream = new FileInputStream(file)) {
-            screenFlowJson = (JSONObject) PARSER.parse(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+        try (InputStream inputStream = resource.getInputStream()) {
+            screenFlowJson =
+                (JSONObject)
+                    parser.parse(
+                        new InputStreamReader(inputStream, StandardCharsets.UTF_8));
         } catch (Exception e) {
             log.error(e.getMessage());
         }

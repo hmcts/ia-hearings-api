@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingRequestDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HearingUpdate;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
@@ -42,18 +43,23 @@ public class HmcMessageProcessor {
         ServiceData serviceData = new ServiceData();
 
         HearingUpdate hearingUpdate = hmcMessage.getHearingUpdate();
+
+        HmcStatus hmcStatus = hearingUpdate.getHmcStatus();
+        serviceData.write(HMC_STATUS, hmcStatus);
         serviceData.write(CASE_REF, hmcMessage.getCaseId());
         serviceData.write(HMCTS_SERVICE_CODE, hmcMessage.getHmctsServiceCode());
         serviceData.write(HEARING_ID, hmcMessage.getHearingId());
-        serviceData.write(NEXT_HEARING_DATE, hearingUpdate.getNextHearingDate());
-        serviceData.write(HEARING_VENUE_ID, hearingUpdate.getHearingVenueId());
-        serviceData.write(HMC_STATUS, hearingUpdate.getHmcStatus());
-        serviceData.write(HEARING_LISTING_STATUS, hearingUpdate.getHearingListingStatus());
-        serviceData.write(LIST_ASSIST_CASE_STATUS, hearingUpdate.getListAssistCaseStatus());
-        serviceData.write(HEARING_RESPONSE_RECEIVED_DATE_TIME, hearingUpdate.getHearingResponseReceivedDateTime());
 
-        HearingGetResponse hearingGetResponse = hearingService.getHearing(hmcMessage.getHearingId());
-        addExtraDataFromHearingResponse(serviceData, hearingGetResponse);
+        if (!hmcStatus.equals(HmcStatus.EXCEPTION)) {
+            serviceData.write(NEXT_HEARING_DATE, hearingUpdate.getNextHearingDate());
+            serviceData.write(HEARING_VENUE_ID, hearingUpdate.getHearingVenueId());
+            serviceData.write(HEARING_LISTING_STATUS, hearingUpdate.getHearingListingStatus());
+            serviceData.write(LIST_ASSIST_CASE_STATUS, hearingUpdate.getListAssistCaseStatus());
+            serviceData.write(HEARING_RESPONSE_RECEIVED_DATE_TIME, hearingUpdate.getHearingResponseReceivedDateTime());
+
+            HearingGetResponse hearingGetResponse = hearingService.getHearing(hmcMessage.getHearingId());
+            addExtraDataFromHearingResponse(serviceData, hearingGetResponse);
+        }
 
         dispatcher.dispatch(serviceData);
     }
