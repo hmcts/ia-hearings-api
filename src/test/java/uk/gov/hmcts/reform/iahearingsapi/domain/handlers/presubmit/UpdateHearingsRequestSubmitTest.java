@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
@@ -127,7 +128,7 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_send_an_update_of_the_hearing_locations() {
-        asylumCase.write(LIST_CASE_HEARING_CENTRE, new DynamicList(new Value("9999", "9999"), null));
+        asylumCase.write(LIST_CASE_HEARING_CENTRE, HearingCentre.BRADFORD);
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
@@ -140,7 +141,7 @@ class UpdateHearingsRequestSubmitTest {
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             updateHearingsCode,
             Optional.empty(),
-            Optional.of("9999"),
+            Optional.of(HearingCentre.BRADFORD.getEpimsId()),
             Optional.empty(),
             reasonCode.getValue().getCode(),
             false,
@@ -153,7 +154,7 @@ class UpdateHearingsRequestSubmitTest {
     @Test
     void should_send_an_update_of_the_hearing_window_date_to_be_fixed() {
         asylumCase.write(CHANGE_HEARING_DATE_TYPE, "DateToBeFixed");
-        asylumCase.write(LIST_CASE_HEARING_DATE, "2023-12-02");
+        asylumCase.write(LIST_CASE_HEARING_DATE, "2023-12-02T00:00:00.000");
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
@@ -246,8 +247,8 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_throw_an_exception_if_no_fixed_date_is_set() {
-        asylumCase.write(CHANGE_HEARING_DATE_TYPE, reasonCode);
-        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, "ChooseADateRange");
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
+        asylumCase.write(CHANGE_HEARING_DATE_TYPE, "ChooseADateRange");
         assertThrows(
             IllegalStateException.class,
             () -> updateHearingRequestSubmit.handle(ABOUT_TO_SUBMIT, callback),
@@ -269,7 +270,7 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_send_an_update_of_the_hearing_duration() {
-        asylumCase.write(LIST_CASE_HEARING_LENGTH, new DynamicList(new Value("240", "240"), null));
+        asylumCase.write(LIST_CASE_HEARING_LENGTH, "240");
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(

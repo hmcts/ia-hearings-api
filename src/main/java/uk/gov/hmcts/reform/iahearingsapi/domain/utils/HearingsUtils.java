@@ -12,6 +12,7 @@ public final class HearingsUtils {
 
     public static final String YYYY_MM_DD = "yyyy-MM-dd";
     public static final String DD_MMMM_YYYY = "dd MMMM yyyy";
+    public static final String YYYY_MM_DD_HH_mm_ss_sss = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
     public static String convertToLocalStringFormat(LocalDateTime dateTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DD_MMMM_YYYY);
@@ -25,6 +26,7 @@ public final class HearingsUtils {
     }
 
     public static LocalDateTime convertToLocalDateTimeFormat(String date) {
-        return LocalDateTime.parse(date);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(YYYY_MM_DD_HH_mm_ss_sss);
+        return LocalDateTime.parse(date, formatter);
     }
 }

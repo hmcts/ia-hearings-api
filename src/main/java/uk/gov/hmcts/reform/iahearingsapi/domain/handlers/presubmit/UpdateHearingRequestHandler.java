@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandle
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -68,20 +69,23 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
         Optional<DynamicList> selectedHearing = callback.getCaseDetails().getCaseData().read(CHANGE_HEARINGS);
         selectedHearing.ifPresent(hearing -> {
             HearingGetResponse hearingResponse = hearingService.getHearing(hearing.getValue().getCode());
-            if (hearingResponse.getHearingDetails().getHearingChannelDescription() != null) {
+            if (hearingResponse.getHearingDetails().getHearingChannels() != null
+                && !hearingResponse.getHearingDetails().getHearingChannels().isEmpty()) {
                 asylumCase.write(
                     CHANGE_HEARING_TYPE_VALUE,
                     hearingResponse.getHearingDetails().getHearingChannelDescription()
                 );
-                List<Value >hearingChannels = Arrays.stream(HearingChannel
-                    .values())
+                List<Value> hearingChannels = Arrays.stream(HearingChannel
+                                                                .values())
                     .map(hearingChannel -> new Value(hearingChannel.name(), hearingChannel.getLabel()))
                     .toList();
                 asylumCase.write(HEARING_CHANNEL, new DynamicList(
-                    new Value("", ""),
+                    new Value(
+                        hearingResponse.getHearingDetails().getHearingChannels().get(0),
+                        hearingResponse.getHearingDetails().getHearingChannelDescription()
+                    ),
                     hearingChannels
                 ));
-
             }
 
             if (hearingResponse.getHearingDetails().getHearingLocations() != null
@@ -124,7 +128,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
                 hearingDate = hearingDate + " - " + dateRangeEnd;
             }
         } else if (hearingWindowModel.getFirstDateTimeMustBe() != null) {
-            hearingDate = HearingsUtils.convertToLocalStringFormat(HearingsUtils.convertToLocalDateTimeFormat(
+            hearingDate = HearingsUtils.convertToLocalStringFormat(LocalDateTime.parse(
                 hearingWindowModel.getFirstDateTimeMustBe()));
         }
         return hearingDate;

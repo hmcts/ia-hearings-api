@@ -156,7 +156,7 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                 ).orElseThrow(() -> new IllegalStateException(LIST_CASE_HEARING_DATE + " type is not present"));
 
                 yield HearingWindowModel.builder()
-                    .firstDateTimeMustBe(HearingsUtils.convertToLocalDateFormat(fixedDate).toString()).build();
+                    .firstDateTimeMustBe(HearingsUtils.convertToLocalDateTimeFormat(fixedDate).toString()).build();
             }
             case "ChooseADateRange" -> {
                 String earliestDate = asylumCase.read(

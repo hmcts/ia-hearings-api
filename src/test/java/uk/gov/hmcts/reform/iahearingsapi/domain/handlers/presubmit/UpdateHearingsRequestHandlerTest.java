@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
@@ -83,7 +82,7 @@ class UpdateHearingsRequestHandlerTest {
             "In Person"
         );
         assertEquals(
-            callbackResponse.getData().read(HEARING_CHANNEL, String.class).get(),
+            callbackResponse.getData().read(HEARING_CHANNEL, DynamicList.class).get().getValue().getCode(),
             "INTER"
         );
     }
@@ -157,8 +156,8 @@ class UpdateHearingsRequestHandlerTest {
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
         assertEquals(callbackResponse.getData().read(CHANGE_HEARING_DURATION_VALUE, String.class).get(), "2 hours");
         assertEquals(
-            callbackResponse.getData().read(LIST_CASE_HEARING_LENGTH, DynamicList.class).get(),
-            new DynamicList(new Value("120", "120"), null)
+            callbackResponse.getData().read(LIST_CASE_HEARING_LENGTH, String.class).get(),
+            "120"
         );
     }
 }
