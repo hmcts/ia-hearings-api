@@ -16,19 +16,12 @@ public class RespondentDetailsMapper {
             .partyID(caseDataMapper.getRespondentPartyId(asylumCase))
             .partyType(PartyType.IND.getPartyType())
             .partyRole("RESP")
-            // For displaying Respondent as an individual in the Hearings tab Participant attendance page.
             .individualDetails(
                 IndividualDetailsModel.builder()
-                    .firstName("Home")
-                    .lastName("Office")
+                    .firstName(caseDataMapper.getRespondentName(asylumCase))
+                    .lastName("(Home Office)")
                     .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
                     .build())
-            .organisationDetails(
-                OrganisationDetailsModel.builder()
-                        .organisationType(PartyType.ORG.getPartyType())
-                        .name(caseDataMapper.getRespondentName(asylumCase))
-                        .cftOrganisationID(caseDataMapper.getRespondentPartyId(asylumCase))
-                        .build())
             .build();
     }
 }

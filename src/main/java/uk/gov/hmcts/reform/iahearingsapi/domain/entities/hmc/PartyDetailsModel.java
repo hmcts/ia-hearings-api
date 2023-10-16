@@ -16,5 +16,4 @@ public class PartyDetailsModel {
     private OrganisationDetailsModel organisationDetails;
     private List<UnavailabilityDayOfWeekModel> unavailabilityDOW;
     private List<UnavailabilityRangeModel> unavailabilityRanges;
-    private String hearingSubChannel;
 }
