@@ -74,13 +74,12 @@ security:
     caseworker-ia-legalrep-solicitor:
     caseworker-ia-admofficer:
       - "listCase"
-      - "updateHearingRequest"
     caseworker-ia-caseworker:
       - "listCase"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
-    caseworker-ia-caseofficer:
-      - "updateHearingRequest"
+    caseworker-ia-system:
+      - "handleHearingException"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
