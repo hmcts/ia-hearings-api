@@ -11,11 +11,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.util.AuthorizationHeadersProvider;
 
 @SpringBootTest
-@ActiveProfiles("functional")
 public class WelcomeTest {
 
     @Value("${WelcomeTesttargetInstance}") private String targetInstance;

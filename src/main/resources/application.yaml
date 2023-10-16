@@ -78,7 +78,6 @@ security:
     caseworker-ia-legalrep-solicitor:
       - "startAppeal"
       - "editAppeal"
-      - "payAndSubmitAppeal"
       - "submitAppeal"
     caseworker-ia-admofficer:
       - "listCase"

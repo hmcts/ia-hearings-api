@@ -10,13 +10,11 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTIN
 import io.restassured.http.Header;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
-@ActiveProfiles("functional")
 public class EndAppealRequestSubmitHandlerFunctionalTest extends CcdCaseCreationTest {
 
     @Test
@@ -47,7 +45,7 @@ public class EndAppealRequestSubmitHandlerFunctionalTest extends CcdCaseCreation
     }
 
     @Test
-    void should_fail_on_submit_end_appeal_if_case_id_cant_be_found() {
+    void should_fail_to_submit_end_appeal_due_to_case_id_cant_be_found() {
         AsylumCase asylumCase = new AsylumCase();
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
             00000111,

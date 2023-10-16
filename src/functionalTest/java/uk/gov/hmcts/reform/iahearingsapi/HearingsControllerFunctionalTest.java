@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,10 +11,8 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 
-@ActiveProfiles("functional")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
 
@@ -62,9 +59,10 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
 
         assertNotNull(hearingId);
     }
+
     @Test
     @Order(3)
-    void should_fail_on_create_hearing_if_case_id_doesnt_match() {
+    void should_fail_to_create_hearing_if_case_id_doesnt_match() {
         HearingRequestPayload payloadWithInvalidId = HearingRequestPayload.builder()
             .caseReference("invalidId")
             .build();
