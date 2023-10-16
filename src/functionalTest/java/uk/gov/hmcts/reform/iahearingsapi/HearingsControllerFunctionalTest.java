@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import io.restassured.http.Header;
@@ -21,7 +23,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
 
     @Test
     @Order(1)
-    public void should_create_hearing_successfully() {
+    void should_create_hearing_successfully() {
         HearingRequestPayload payload = HearingRequestPayload.builder()
             .caseReference(getCaseId())
             .build();
@@ -41,7 +43,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
 
     @Test
     @Order(2)
-    public void should_get_hearing_id_successfully() {
+    void should_get_hearing_id_successfully() {
         systemUserToken = idamAuthProvider.getSystemUserToken();
         s2sToken = s2sAuthTokenGenerator.generate();
 
@@ -62,7 +64,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
     }
     @Test
     @Order(3)
-    public void should_fail_on_create_hearing_if_caseId_doesnt_match() {
+    void should_fail_on_create_hearing_if_case_id_doesnt_match() {
         HearingRequestPayload payloadWithInvalidId = HearingRequestPayload.builder()
             .caseReference("invalidId")
             .build();
@@ -82,13 +84,13 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
 
     @Test
     @Order(4)
-    public void should_get_hearings_values_successfully() {
+    void should_get_hearings_values_successfully() {
         HearingRequestPayload payload = HearingRequestPayload.builder()
             .caseReference(getCaseId())
-            .hearingId(String.valueOf(hearingId))
+            .hearingId("hearingId")
             .build();
 
-        Response response = given(hearingsSpecification)
+        given(hearingsSpecification)
             .when()
             .contentType("application/json")
             .header(new Header(AUTHORIZATION, systemUserToken))
@@ -96,8 +98,43 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .body(payload)
             .post("/serviceHearingValues")
             .then()
-            .extract().response();
+            .statusCode(HttpStatus.SC_OK)
+            .assertThat().body("hmctsServiceID", notNullValue())
+            .assertThat().body("hmctsInternalCaseName", notNullValue())
+            .assertThat().body("publicCaseName", notNullValue())
+            .assertThat().body("caseCategories", notNullValue())
+            .assertThat().body("caseDeepLink", notNullValue())
+            .assertThat().body("hearingPriorityType", notNullValue())
+            .assertThat().body("hearingLocations", notNullValue())
+            .assertThat().body("facilitiesRequired", notNullValue())
+            .assertThat().body("listingComments", notNullValue())
+            .assertThat().body("hearingRequester", notNullValue())
+            .assertThat().body("leadJudgeContractType", notNullValue())
+            .assertThat().body("judiciary", notNullValue())
+            .assertThat().body("parties", notNullValue())
+            .assertThat().body("caseflags", notNullValue())
+            .assertThat().body("vocabulary", notNullValue())
+            .assertThat().body("hearingChannels", notNullValue())
+            .assertThat().body("hearingLevelParticipantAttendance", notNullValue());
+    }
 
-        assertEquals(200, response.getStatusCode());
+    @Test
+    @Order(5)
+    void should_fail_on_hearings_values_if_case_id_invalid() {
+        HearingRequestPayload payload = HearingRequestPayload.builder()
+            .caseReference("invalidCaseId")
+            .hearingId("hearingId")
+            .build();
+
+        given(hearingsSpecification)
+            .when()
+            .contentType("application/json")
+            .header(new Header(AUTHORIZATION, systemUserToken))
+            .header(new Header(SERVICE_AUTHORIZATION, s2sToken))
+            .body(payload)
+            .post("/serviceHearingValues")
+            .then()
+            .statusCode(HttpStatus.SC_BAD_REQUEST);
+
     }
 }
