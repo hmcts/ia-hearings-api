@@ -13,10 +13,14 @@ public class EventTest {
         assertEquals("handleHearingException", Event.HANDLE_HEARING_EXCEPTION.toString());
         assertEquals("unknown", Event.UNKNOWN.toString());
         assertEquals("endAppeal", Event.END_APPEAL.toString());
+        assertEquals("startAppeal", Event.START_APPEAL.toString());
+        assertEquals("editAppeal", Event.EDIT_APPEAL.toString());
+        assertEquals("submitAppeal", Event.SUBMIT_APPEAL.toString());
+        assertEquals("listCaseForFTOnly", Event.LIST_CASE.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(4, Event.values().length);
+        assertEquals(9, Event.values().length);
     }
 }

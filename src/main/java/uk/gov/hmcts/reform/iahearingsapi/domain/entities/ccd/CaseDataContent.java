@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd;
 
 import java.util.Map;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
