@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +16,7 @@ import org.springframework.lang.NonNull;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceHearingValuesModel {
 
     @NonNull

@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.SingleSexType;
@@ -53,7 +55,6 @@ class AppellantDetailsMapperTest {
             .hearingChannelEmail(Collections.emptyList())
             .hearingChannelPhone(Collections.emptyList())
             .preferredHearingChannel("hearingChannel")
-            .otherReasonableAdjustmentDetails("")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
         when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
