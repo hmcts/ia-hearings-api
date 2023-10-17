@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.util;
 
 import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserI
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
 
 @Service
+@Slf4j
 public class IdamAuthProvider {
 
     @Value("${idam.redirectUrl}")
@@ -38,13 +40,18 @@ public class IdamAuthProvider {
         map.add("password", password);
         map.add("scope", userScope);
 
+        log.info("idamRedirectUri: " + idamRedirectUri);
+        log.info("idamClientSecret: " + idamClientSecret);
+        log.info("username: " + username);
+        log.info("password: " + password);
+
         try {
 
             Token tokenResponse = idamApi.token(map);
             return "Bearer " + tokenResponse.getAccessToken();
         } catch (FeignException ex) {
 
-            throw new IdentityManagerResponseException("Could not get system user token from IDAM", ex);
+            throw new IdentityManagerResponseException("Could not get user token from IDAM", ex);
         }
 
     }
