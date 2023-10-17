@@ -88,7 +88,6 @@ security:
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
     caseworker-ia-caseofficer:
-      - "updateHearingRequest"
       - "endAppeal"
       - "listCaseForFTOnly"
     caseworker-ia-system:
