@@ -14,7 +14,7 @@ def product = "ia"
 def component = "hearings-api"
 
 def secrets = [
-  'ia-${env}': [
+  'ia-demo': [
 
     secret('idam-client-id', 'IA_IDAM_CLIENT_ID'),
     secret('idam-secret', 'IA_IDAM_SECRET'),
@@ -80,6 +80,7 @@ withPipeline(type, product, component) {
   env.S2S_URL = "http://rpe-service-auth-provider-demo.service.core-compute-demo.internal"
   env.PACT_BROKER_FULL_URL = "https://pact-broker.platform.hmcts.net"
   env.HMC_API_URL = "http://hmc-cft-hearing-service-demo.service.core-compute-demo.internal"
+  env.TEST_URL = "http://ia-hearings-api-demo.service.core-compute-demo.internal"
 
   enableAksStagingDeployment()
   disableLegacyDeployment()
@@ -89,7 +90,7 @@ withPipeline(type, product, component) {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
 
-  afterAlways('functionalTest:aat') {
+  afterAlways('functionalTest:demo') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
 
