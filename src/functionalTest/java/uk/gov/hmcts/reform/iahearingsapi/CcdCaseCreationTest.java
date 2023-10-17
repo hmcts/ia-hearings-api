@@ -15,13 +15,12 @@ import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.FileCopyUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -34,10 +33,8 @@ import uk.gov.hmcts.reform.iahearingsapi.util.IdamAuthProvider;
 import uk.gov.hmcts.reform.iahearingsapi.util.MapValueExpander;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDataContent;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = {Application.class})
-@Slf4j
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SpringBootTest()
+@ActiveProfiles("functional")
 public class CcdCaseCreationTest {
 
     @Value("classpath:templates/start-appeal.json")
@@ -79,9 +76,16 @@ public class CcdCaseCreationTest {
 
     @Autowired
     private CcdDataApi ccdApi;
+    protected boolean setupHasStarted;
+    protected boolean setupIsDone;
 
-    @BeforeAll
-    public void setup() {
+    protected void setup() {
+        if (setupHasStarted || setupIsDone) {
+            return;
+        }
+
+        setupHasStarted = true;
+
         hearingsSpecification = new RequestSpecBuilder()
             .setBaseUri(targetInstance)
             .setRelaxedHTTPSValidation()
@@ -95,6 +99,8 @@ public class CcdCaseCreationTest {
         startAppeal();
         submitAppeal();
         listCase();
+
+        setupIsDone = true;
     }
 
     private void startAppeal() {

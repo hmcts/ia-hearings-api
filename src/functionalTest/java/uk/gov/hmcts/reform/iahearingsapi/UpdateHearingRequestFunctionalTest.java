@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import static io.restassured.RestAssured.given;
 import static java.lang.Long.parseLong;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
@@ -11,13 +12,23 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTIN
 import io.restassured.http.Header;
 import io.restassured.response.Response;
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
+@ActiveProfiles("functional")
 public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
+    @BeforeEach
+    void checkCaseExists() {
+        setup();
+        await().until(() -> {
+            return setupIsDone;
+        });
+    }
 
     @Test
     void should_prepare_update_hearing_request_successfully() {
