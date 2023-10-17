@@ -1,22 +1,30 @@
 package uk.gov.hmcts.reform.iahearingsapi;
 
 import static io.restassured.RestAssured.given;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import io.restassured.http.Header;
 import io.restassured.response.Response;
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@ActiveProfiles("functional")
 class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
-
-    private int hearingId;
+    @BeforeEach
+    void checkCaseExists() {
+        setup();
+        await().until(() -> {
+            return setupIsDone;
+        });
+    }
 
     @Test
     @Order(1)
@@ -40,28 +48,6 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
 
     @Test
     @Order(2)
-    void should_get_hearing_id_successfully() {
-        systemUserToken = idamAuthProvider.getSystemUserToken();
-        s2sToken = s2sAuthTokenGenerator.generate();
-
-        hearingId = given(hmcApiSpecification)
-            .when()
-            .contentType("application/json")
-            .header(new Header(AUTHORIZATION, systemUserToken))
-            .header(new Header(SERVICE_AUTHORIZATION, s2sToken))
-            .get("/hearings/" + getCaseId())
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .extract()
-            .body()
-            .jsonPath()
-            .get("caseHearings[0].hearingID");
-
-        assertNotNull(hearingId);
-    }
-
-    @Test
-    @Order(3)
     void should_fail_to_create_hearing_if_case_id_doesnt_match() {
         HearingRequestPayload payloadWithInvalidId = HearingRequestPayload.builder()
             .caseReference("invalidId")
@@ -81,7 +67,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
     }
 
     @Test
-    @Order(4)
+    @Order(3)
     void should_get_hearings_values_successfully() {
         HearingRequestPayload payload = HearingRequestPayload.builder()
             .caseReference(getCaseId())
@@ -91,7 +77,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
         given(hearingsSpecification)
             .when()
             .contentType("application/json")
-            .header(new Header(AUTHORIZATION, systemUserToken))
+            .header(new Header(AUTHORIZATION, legalRepToken))
             .header(new Header(SERVICE_AUTHORIZATION, s2sToken))
             .body(payload)
             .post("/serviceHearingValues")
@@ -117,7 +103,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
     }
 
     @Test
-    @Order(5)
+    @Order(4)
     void should_fail_on_hearings_values_if_case_id_invalid() {
         HearingRequestPayload payload = HearingRequestPayload.builder()
             .caseReference("invalidCaseId")
@@ -127,7 +113,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
         given(hearingsSpecification)
             .when()
             .contentType("application/json")
-            .header(new Header(AUTHORIZATION, systemUserToken))
+            .header(new Header(AUTHORIZATION, legalRepToken))
             .header(new Header(SERVICE_AUTHORIZATION, s2sToken))
             .body(payload)
             .post("/serviceHearingValues")
