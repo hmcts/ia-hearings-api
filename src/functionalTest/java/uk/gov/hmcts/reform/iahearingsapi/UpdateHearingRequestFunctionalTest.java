@@ -115,8 +115,11 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
             .then()
             .log().all(true)
             .extract().response();
-
         assertEquals(200, response.getStatusCode());
+
+        log.info("caseId: " + getCaseId());
+        log.info("caseOfficerToken: " + caseOfficerToken);
+        log.info("s2sToken: " + s2sToken);
     }
 
     @Test

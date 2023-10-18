@@ -57,6 +57,9 @@ public class EndAppealRequestSubmitHandlerFunctionalTest extends CcdCaseCreation
             .extract().response();
 
         assertEquals(200, response.getStatusCode());
+        log.info("caseId: " + getCaseId());
+        log.info("caseOfficerToken: " + caseOfficerToken);
+        log.info("s2sToken: " + s2sToken);
     }
 
     @Test
