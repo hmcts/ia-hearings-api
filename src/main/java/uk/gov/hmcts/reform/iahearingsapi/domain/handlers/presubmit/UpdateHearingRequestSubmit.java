@@ -4,38 +4,35 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL_TYPE_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DATE_CHANGE_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHOOSE_A_DATE_RANGE_EARLIEST;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHOOSE_A_DATE_RANGE_LATEST;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DATE_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATE_TO_BE_FIXED_VALUE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DURATION_CHANGING_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_DURATION_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION_CHANGE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION_RADIO_BUTTON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_UPDATE_REASON_LIST;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.UPDATE_HEARINGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_EARLIEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_LATEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_UPDATE_REASON;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 
 
 @Component
@@ -44,11 +41,14 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
 
     HearingService hearingService;
 
+    UpdateHearingPayloadService updateHearingPayloadService;
 
     public UpdateHearingRequestSubmit(
-        HearingService hearingService
+        HearingService hearingService,
+        UpdateHearingPayloadService updateHearingPayloadService
     ) {
         this.hearingService = hearingService;
+        this.updateHearingPayloadService = updateHearingPayloadService;
     }
 
     @Override
@@ -71,29 +71,28 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
             throw new IllegalStateException("Cannot handle callback");
         }
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
-        Optional<DynamicList> selectedHearing = callback.getCaseDetails().getCaseData().read(UPDATE_HEARINGS);
+        Optional<DynamicList> selectedHearing = callback.getCaseDetails().getCaseData().read(CHANGE_HEARINGS);
         selectedHearing.ifPresent(hearing -> {
             String hearingId = selectedHearing.get().getValue().getCode();
-            HearingGetResponse persistedHearing = hearingService.getHearing(hearingId);
-
-            HearingDetails hearingDetails = HearingDetails.builder()
-                .hearingChannels(getHearingChannels(asylumCase, persistedHearing))
-                .hearingLocations(getLocations(asylumCase, persistedHearing))
-                .duration(getDuration(asylumCase, persistedHearing))
-                .amendReasonCodes(getReasons(asylumCase))
-                .hearingWindow(updateHearingWindow(asylumCase, persistedHearing))
-                .build();
-
-
-            UpdateHearingRequest updateHearingRequest = UpdateHearingRequest.builder()
-                .requestDetails(persistedHearing.getRequestDetails())
-                .caseDetails(persistedHearing.getCaseDetails())
-                .hearingDetails(buildHearingDetails(persistedHearing.getHearingDetails(), hearingDetails))
-                .partyDetails(persistedHearing.getPartyDetails())
-                .build();
+            boolean firstAvailableDate = false;
+            String hearingDateChangeType = asylumCase.read(
+                CHANGE_HEARING_DATE_TYPE,
+                String.class
+            ).orElse("");
+            if (hearingDateChangeType.equals("FirstAvailableDate")) {
+                firstAvailableDate = true;
+            }
 
             HearingGetResponse hearingUpdated = hearingService.updateHearing(
-                updateHearingRequest,
+                updateHearingPayloadService.createUpdateHearingPayload(
+                    hearingId,
+                    getHearingChannels(asylumCase),
+                    getLocations(asylumCase),
+                    getDuration(asylumCase),
+                    getReason(asylumCase),
+                    firstAvailableDate,
+                    updateHearingWindow(asylumCase)
+                ),
                 hearingId
             );
 
@@ -107,89 +106,70 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
     }
 
 
-    private List<String> getHearingChannels(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
-        Optional<String> hearingChannels = asylumCase.read(
-            HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON,
-            String.class
+    private Optional<String> getHearingChannels(AsylumCase asylumCase) {
+        Optional<DynamicList> hearingChannels = asylumCase.read(
+            HEARING_CHANNEL,
+            DynamicList.class
         );
 
-        return hearingChannels.map(List::of).orElseGet(() -> persistedHearing.getHearingDetails().getHearingChannels());
+        return hearingChannels.map(hearingChannel -> hearingChannel.getValue().getCode());
     }
 
-    private List<HearingLocationModel> getLocations(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
-        Optional<DynamicList> locationUpdate =
-            asylumCase.read(
-                HEARING_LOCATION_CHANGE,
-                DynamicList.class
-            );
-
-        return locationUpdate.map(dynamicList
-                                      -> List.of(HearingLocationModel.builder()
-                                                     .locationId(dynamicList.getValue().getCode())
-                                                     .locationType(persistedHearing
-                                                                       .getHearingDetails()
-                                                                       .getHearingLocations().get(0)
-                                                                       .getLocationType()).build()))
-            .orElseGet(() -> persistedHearing.getHearingDetails().getHearingLocations());
-
+    private Optional<String> getLocations(AsylumCase asylumCase) {
+        return asylumCase.read(
+            LIST_CASE_HEARING_CENTRE,
+            HearingCentre.class
+        ).map(HearingCentre::getEpimsId);
     }
 
-    private Integer getDuration(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
-        Optional<DynamicList> durationUpdate =
-            asylumCase.read(
-                HEARING_DURATION_CHANGING_RADIO_BUTTON,
-                DynamicList.class
-            );
-
-        return durationUpdate.map(dynamicList -> Integer.parseInt(dynamicList.getValue().getCode()))
-            .orElseGet(() -> persistedHearing.getHearingDetails().getDuration());
-
+    private Optional<Integer> getDuration(AsylumCase asylumCase) {
+        return asylumCase.read(
+            LIST_CASE_HEARING_LENGTH,
+            String.class
+        ).map(Integer::parseInt);
     }
 
-    private List<String> getReasons(AsylumCase asylumCase) {
-        Value reasonUpdate =
-            asylumCase.read(
-                HEARING_UPDATE_REASON_LIST,
-                DynamicList.class
-            ).orElseThrow(() -> new IllegalStateException(HEARING_UPDATE_REASON_LIST
-                                                              + " type is not present")).getValue();
-
-        return List.of(reasonUpdate.getCode());
-
+    private String getReason(AsylumCase asylumCase) {
+        return asylumCase.read(
+            CHANGE_HEARING_UPDATE_REASON,
+            DynamicList.class
+        ).orElseThrow(() -> new IllegalStateException(CHANGE_HEARING_UPDATE_REASON
+                                                          + " type is not present")).getValue().getCode();
     }
 
-    private HearingWindowModel updateHearingWindow(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
+    private HearingWindowModel updateHearingWindow(AsylumCase asylumCase) {
 
         String hearingDateChangeType = asylumCase.read(
-            HEARING_DATE_CHANGE_DATE,
+            CHANGE_HEARING_DATE_TYPE,
             String.class
         ).orElse("");
+
         if (hearingDateChangeType.isEmpty()) {
-            return persistedHearing.getHearingDetails().getHearingWindow();
+            return null;
         }
 
         return switch (hearingDateChangeType) {
             case "DateToBeFixed" -> {
                 String fixedDate = asylumCase.read(
-                    DATE_TO_BE_FIXED_VALUE,
+                    LIST_CASE_HEARING_DATE,
                     String.class
-                ).orElseThrow(() -> new IllegalStateException(DATE_TO_BE_FIXED_VALUE + " type is not present"));
+                ).orElseThrow(() -> new IllegalStateException(LIST_CASE_HEARING_DATE + " type is not present"));
 
                 yield HearingWindowModel.builder()
-                    .firstDateTimeMustBe(HearingsUtils.convertToLocalDateFormat(fixedDate).toString()).build();
+                    .firstDateTimeMustBe(HearingsUtils.convertToLocalDateTimeFormat(fixedDate).toString()).build();
             }
             case "ChooseADateRange" -> {
                 String earliestDate = asylumCase.read(
-                    CHOOSE_A_DATE_RANGE_EARLIEST,
+                    CHANGE_HEARING_DATE_RANGE_EARLIEST,
                     String.class
                 ).orElseThrow(() -> new IllegalStateException(
-                    CHOOSE_A_DATE_RANGE_EARLIEST + " type is not present"));
+                    CHANGE_HEARING_DATE_RANGE_EARLIEST + " type is not present"));
 
                 String latestDate = asylumCase.read(
-                    CHOOSE_A_DATE_RANGE_LATEST,
+                    CHANGE_HEARING_DATE_RANGE_LATEST,
                     String.class
                 ).orElseThrow(() -> new IllegalStateException(
-                    CHOOSE_A_DATE_RANGE_LATEST + " type is not present"));
+                    CHANGE_HEARING_DATE_RANGE_LATEST + " type is not present"));
                 yield HearingWindowModel.builder()
                     .dateRangeStart(earliestDate)
                     .dateRangeEnd(latestDate)
@@ -200,28 +180,20 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
         };
     }
 
-    private HearingDetails buildHearingDetails(HearingDetails hearingDetails, HearingDetails updatedHearingsDetails) {
-        hearingDetails.setHearingChannels(updatedHearingsDetails.getHearingChannels());
-        hearingDetails.setHearingLocations(updatedHearingsDetails.getHearingLocations());
-        hearingDetails.setDuration(updatedHearingsDetails.getDuration());
-        hearingDetails.setAmendReasonCodes(updatedHearingsDetails.getAmendReasonCodes());
-        hearingDetails.setHearingWindow(updatedHearingsDetails.getHearingWindow());
-        return hearingDetails;
-    }
 
     private void clearFields(AsylumCase asylumCase) {
-        asylumCase.clear(UPDATE_HEARINGS);
-        asylumCase.write(HEARING_CHANNEL_TYPE_RADIO_BUTTON, "no");
-        asylumCase.clear(HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON);
-        asylumCase.write(HEARING_LOCATION_RADIO_BUTTON, "no");
-        asylumCase.clear(HEARING_LOCATION_CHANGE);
-        asylumCase.write(HEARING_DURATION_RADIO_BUTTON, "no");
-        asylumCase.clear(HEARING_DURATION_CHANGING_RADIO_BUTTON);
-        asylumCase.write(HEARING_DATE_RADIO_BUTTON, "no");
-        asylumCase.clear(HEARING_UPDATE_REASON_LIST);
-        asylumCase.clear(HEARING_DATE_CHANGE_DATE);
-        asylumCase.clear(DATE_TO_BE_FIXED_VALUE);
-        asylumCase.clear(CHOOSE_A_DATE_RANGE_EARLIEST);
-        asylumCase.clear(CHOOSE_A_DATE_RANGE_LATEST);
+        asylumCase.clear(CHANGE_HEARINGS);
+        asylumCase.write(CHANGE_HEARING_TYPE_YES_NO, "no");
+        asylumCase.clear(HEARING_CHANNEL);
+        asylumCase.write(CHANGE_HEARING_LOCATION_YES_NO, "no");
+        asylumCase.clear(LIST_CASE_HEARING_CENTRE);
+        asylumCase.write(CHANGE_HEARING_DURATION_YES_NO, "no");
+        asylumCase.clear(LIST_CASE_HEARING_LENGTH);
+        asylumCase.write(CHANGE_HEARING_DATE_YES_NO, "no");
+        asylumCase.clear(CHANGE_HEARING_UPDATE_REASON);
+        asylumCase.clear(CHANGE_HEARING_DATE_TYPE);
+        asylumCase.clear(LIST_CASE_HEARING_DATE);
+        asylumCase.clear(CHANGE_HEARING_DATE_RANGE_EARLIEST);
+        asylumCase.clear(CHANGE_HEARING_DATE_RANGE_LATEST);
     }
 }

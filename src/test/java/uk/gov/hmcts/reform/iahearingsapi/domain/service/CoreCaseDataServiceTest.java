@@ -102,6 +102,9 @@ public class CoreCaseDataServiceTest {
             .caseReference(CASE_ID)
             .build();
 
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+        when(startEventResponse.getCaseDetails().getData()).thenReturn(asylumCase);
+
         when(coreCaseDataApi.submitEventForCaseWorker(eq(AUTH_TOKEN),
                                                       eq(SERVICE_TOKEN),
                                                       eq(USER_ID),
@@ -111,6 +114,7 @@ public class CoreCaseDataServiceTest {
                                                       eq(true),
                                                       eq(caseDataContent)))
             .thenReturn(caseDetails);
+
 
         assertEquals(caseDetails, coreCaseDataService.triggerEvent(LIST_CASE, CASE_ID, asylumCase));
     }

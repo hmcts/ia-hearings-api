@@ -7,6 +7,8 @@ public enum Event {
 
     LIST_CASE("listCase"),
     UPDATE_HEARING_REQUEST("updateHearingRequest"),
+    HANDLE_HEARING_EXCEPTION("handleHearingException"),
+    UPDATE_HMC_RESPONSE("updateHMCResponse"),
     END_APPEAL("endAppeal"),
 
     @JsonEnumDefaultValue

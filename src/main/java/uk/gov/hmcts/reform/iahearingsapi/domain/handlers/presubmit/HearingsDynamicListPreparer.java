@@ -21,7 +21,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.UPDATE_HEARINGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 
 
 @Component
@@ -65,7 +65,7 @@ public class HearingsDynamicListPreparer implements PreSubmitCallbackHandler<Asy
             mapCaseHearingsValuesToDynamicListValues(hearings.getCaseHearings())
         );
 
-        asylumCase.write(UPDATE_HEARINGS, dynamicListOfHearings);
+        asylumCase.write(CHANGE_HEARINGS, dynamicListOfHearings);
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
 

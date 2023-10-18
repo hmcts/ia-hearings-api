@@ -90,13 +90,13 @@ public enum AsylumCaseFieldDefinition {
         "singleSexCourtTribunalResponse", new TypeReference<String>() {}),
 
     IS_VULNERABILITIES_ALLOWED(
-            "isVulnerabilitiesAllowed", new TypeReference<String>() {}),
+        "isVulnerabilitiesAllowed", new TypeReference<String>() {}),
 
     IS_MULTIMEDIA_ALLOWED(
-            "isMultimediaAllowed", new TypeReference<String>() {}),
+        "isMultimediaAllowed", new TypeReference<String>() {}),
 
     IS_ADDITIONAL_ADJUSTMENTS_ALLOWED(
-            "isAdditionalAdjustmentsAllowed", new TypeReference<String>() {}),
+        "isAdditionalAdjustmentsAllowed", new TypeReference<String>() {}),
 
     IS_SINGLE_SEX_COURT_ALLOWED(
         "isSingleSexCourtAllowed", new TypeReference<String>() {}),
@@ -122,52 +122,32 @@ public enum AsylumCaseFieldDefinition {
     LIST_CASE_HEARING_DATE(
         "listCaseHearingDate", new TypeReference<String>(){}),
 
-    UPDATE_HEARINGS(
-        "updateHearings", new TypeReference<DynamicList>(){}),
-    HEARING_TYPE_VALUE(
-        "hearingTypeValue", new TypeReference<String>(){}),
-    HEARING_CHANNEL_TYPE_VALUE(
-        "hearingChannelTypeValue", new TypeReference<String>(){}),
-
-
-    HEARING_CHANNEL_TYPE_RADIO_BUTTON(
-        "hearingChannelTypeRadioButton", new TypeReference<String>(){}),
-    HEARING_CHANNEL_TYPE_CHANGING_RADIO_BUTTON(
-        "hearingChannelTypeChangingRadioButton", new TypeReference<String>(){}),
-
-    HEARING_LOCATION_VALUE(
-        "hearingLocationValue", new TypeReference<String>(){}),
-
-
-    HEARING_LOCATION_RADIO_BUTTON(
-        "hearingLocationRadioButton", new TypeReference<String>(){}),
-
-    HEARING_LOCATION_CHANGE(
-        "hearingLocationChange", new TypeReference<DynamicList>(){}),
-
-    HEARING_DATE_VALUE(
-        "hearingDateValue", new TypeReference<String>(){}),
-    HEARING_DURATION_VALUE(
-        "hearingDurationValue", new TypeReference<String>(){}),
-    HEARING_DURATION_RADIO_BUTTON(
-        "hearingDurationRadioButton", new TypeReference<String>(){}),
-    HEARING_DURATION_CHANGING_RADIO_BUTTON(
-        "hearingDurationChangingRadioButton", new TypeReference<DynamicList>(){}),
-
-    HEARING_UPDATE_REASON_LIST(
-        "hearingUpdateReasonList", new TypeReference<DynamicList>(){}),
-    HEARING_DATE_RADIO_BUTTON(
-        "hearingDateRadioButton", new TypeReference<String>(){}),
-    HEARING_DATE_CHANGE_DATE(
-        "hearingDateChangeDate", new TypeReference<String>(){}),
-    DATE_TO_BE_FIXED_VALUE(
-        "dateToBeFixedValue", new TypeReference<String>(){}),
-    CHOOSE_A_DATE_RANGE_EARLIEST(
-        "chooseADateRangeEarliest", new TypeReference<String>(){}),
-    CHOOSE_A_DATE_RANGE_LATEST(
-        "chooseADateRangeLatest", new TypeReference<String>(){}),
-    END_APPEAL_OUTCOME(
-        "endAppealOutcome", new TypeReference<String>(){}),
+    CHANGE_HEARINGS(
+        "changeHearings", new TypeReference<DynamicList>(){}),
+    CHANGE_HEARING_TYPE(
+        "changeHearingType", new TypeReference<String>(){}),
+    CHANGE_HEARING_TYPE_YES_NO(
+        "changeHearingTypeYesNo", new TypeReference<String>(){}),
+    CHANGE_HEARING_LOCATION(
+        "changeHearingLocation", new TypeReference<String>(){}),
+    CHANGE_HEARING_LOCATION_YES_NO(
+        "changeHearingLocationYesNo", new TypeReference<String>(){}),
+    CHANGE_HEARING_DATE(
+        "changeHearingDate", new TypeReference<String>(){}),
+    CHANGE_HEARING_DURATION(
+        "changeHearingDuration", new TypeReference<String>(){}),
+    CHANGE_HEARING_DURATION_YES_NO(
+        "changeHearingDurationYesNo", new TypeReference<String>(){}),
+    CHANGE_HEARING_UPDATE_REASON(
+        "changeHearingUpdateReason", new TypeReference<DynamicList>(){}),
+    CHANGE_HEARING_DATE_YES_NO(
+        "changeHearingDateYesNo", new TypeReference<String>(){}),
+    CHANGE_HEARING_DATE_TYPE(
+        "changeHearingDateType", new TypeReference<String>(){}),
+    CHANGE_HEARING_DATE_RANGE_EARLIEST(
+        "changeHearingDateRangeEarliest", new TypeReference<String>(){}),
+    CHANGE_HEARING_DATE_RANGE_LATEST(
+        "changeHearingDateRangeLatest", new TypeReference<String>(){}),
     REQUIRE_MANUAL_HEARINGS_CANCELLATION(
         "requireManualHearingsCancellation", new TypeReference<String>(){}),
     ;

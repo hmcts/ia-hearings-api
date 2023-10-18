@@ -83,6 +83,9 @@ security:
     caseworker-ia-caseofficer:
       - "updateHearingRequest"
       - "endAppeal"
+    caseworker-ia-system:
+      - "handleHearingException"
+      - "updateHMCResponse"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}

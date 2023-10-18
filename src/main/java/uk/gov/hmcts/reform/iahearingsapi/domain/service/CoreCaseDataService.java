@@ -96,7 +96,7 @@ public class CoreCaseDataService {
                                                             s2sToken,
                                                             uid,
                                                             caseId,
-                                                            asylumCase,
+                                                            startEventResponse.getCaseDetails().getData(),
                                                             event,
                                                             true,
                                                             startEventResponse.getToken());

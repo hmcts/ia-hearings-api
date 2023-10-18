@@ -28,7 +28,7 @@ public class HearingsUtilsTest {
 
     @Test
     void testConvertToLocalDateTimeFormat() {
-        String dateTimeStr = "2023-10-06T12:00:00";
+        String dateTimeStr = "2023-10-06T12:00:00.000";
 
         LocalDateTime localDateTime = HearingsUtils.convertToLocalDateTimeFormat(dateTimeStr);
 
