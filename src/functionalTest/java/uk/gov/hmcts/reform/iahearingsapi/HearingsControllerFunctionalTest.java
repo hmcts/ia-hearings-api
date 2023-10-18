@@ -35,6 +35,10 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .caseReference(getCaseId())
             .build();
 
+        log.info("caseId: " + getCaseId());
+        log.info("caseOfficerToken: " + legalRepToken);
+        log.info("s2sToken: " + s2sToken);
+
         Response response = given(hearingsSpecification)
             .when()
             .contentType("application/json")
