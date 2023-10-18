@@ -124,18 +124,18 @@ public enum AsylumCaseFieldDefinition {
 
     CHANGE_HEARINGS(
         "changeHearings", new TypeReference<DynamicList>(){}),
-    CHANGE_HEARING_TYPE_VALUE(
-        "changeHearingTypeValue", new TypeReference<String>(){}),
+    CHANGE_HEARING_TYPE(
+        "changeHearingType", new TypeReference<String>(){}),
     CHANGE_HEARING_TYPE_YES_NO(
         "changeHearingTypeYesNo", new TypeReference<String>(){}),
-    CHANGE_HEARING_LOCATION_VALUE(
-        "changeHearingLocationValue", new TypeReference<String>(){}),
+    CHANGE_HEARING_LOCATION(
+        "changeHearingLocation", new TypeReference<String>(){}),
     CHANGE_HEARING_LOCATION_YES_NO(
         "changeHearingLocationYesNo", new TypeReference<String>(){}),
-    CHANGE_HEARING_DATE_VALUE(
-        "changeHearingDateValue", new TypeReference<String>(){}),
-    CHANGE_HEARING_DURATION_VALUE(
-        "changeHearingDurationValue", new TypeReference<String>(){}),
+    CHANGE_HEARING_DATE(
+        "changeHearingDate", new TypeReference<String>(){}),
+    CHANGE_HEARING_DURATION(
+        "changeHearingDuration", new TypeReference<String>(){}),
     CHANGE_HEARING_DURATION_YES_NO(
         "changeHearingDurationYesNo", new TypeReference<String>(){}),
     CHANGE_HEARING_UPDATE_REASON(

@@ -25,11 +25,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_VALUE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_VALUE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_VALUE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_VALUE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.MID_EVENT;
@@ -78,7 +78,7 @@ class UpdateHearingsRequestHandlerTest {
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
         assertEquals(
-            callbackResponse.getData().read(CHANGE_HEARING_TYPE_VALUE, String.class).get(),
+            callbackResponse.getData().read(CHANGE_HEARING_TYPE, String.class).get(),
             "In Person"
         );
         assertEquals(
@@ -104,7 +104,7 @@ class UpdateHearingsRequestHandlerTest {
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
         assertEquals(
-            callbackResponse.getData().read(CHANGE_HEARING_LOCATION_VALUE, String.class).get(), "1234");
+            callbackResponse.getData().read(CHANGE_HEARING_LOCATION, String.class).get(), "1234");
     }
 
     @Test
@@ -121,7 +121,7 @@ class UpdateHearingsRequestHandlerTest {
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
-        assertEquals(callbackResponse.getData().read(CHANGE_HEARING_DATE_VALUE, String.class).get(), "20 January 2023");
+        assertEquals(callbackResponse.getData().read(CHANGE_HEARING_DATE, String.class).get(), "20 January 2023");
     }
 
     @Test
@@ -140,7 +140,7 @@ class UpdateHearingsRequestHandlerTest {
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
         assertEquals(callbackResponse.getData()
-                         .read(CHANGE_HEARING_DATE_VALUE, String.class).get(), "15 January 2023 - 26 January 2023");
+                         .read(CHANGE_HEARING_DATE, String.class).get(), "15 January 2023 - 26 January 2023");
 
     }
 
@@ -154,7 +154,7 @@ class UpdateHearingsRequestHandlerTest {
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
-        assertEquals(callbackResponse.getData().read(CHANGE_HEARING_DURATION_VALUE, String.class).get(), "2 hours");
+        assertEquals(callbackResponse.getData().read(CHANGE_HEARING_DURATION, String.class).get(), "2 hours");
         assertEquals(
             callbackResponse.getData().read(LIST_CASE_HEARING_LENGTH, String.class).get(),
             "120"
