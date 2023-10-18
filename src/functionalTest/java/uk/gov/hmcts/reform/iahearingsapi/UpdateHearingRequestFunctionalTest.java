@@ -11,6 +11,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 import io.restassured.http.Header;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
+@Slf4j
 @ActiveProfiles("functional")
 public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
@@ -44,6 +46,10 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
 
         Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails), UPDATE_HEARING_REQUEST);
 
+        log.info("caseId: " + getCaseId());
+        log.info("caseOfficerToken: " + caseOfficerToken);
+        log.info("s2sToken: " + s2sToken);
+
         given(hearingsSpecification)
             .when()
             .contentType("application/json")
@@ -53,6 +59,7 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
             .post("/asylum/ccdAboutToStart")
             .then()
             .statusCode(HttpStatus.SC_OK)
+            .log().all(true)
             .assertThat().body("data.changeHearings", notNullValue());
     }
 
@@ -78,6 +85,7 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
             .body(callback)
             .post("/asylum/ccdAboutToStart")
             .then()
+            .log().all(true)
             .extract().response();
 
         assertEquals(401, response.getStatusCode());
@@ -105,6 +113,7 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
             .body(callback)
             .post("/asylum/ccdMidEvent")
             .then()
+            .log().all(true)
             .extract().response();
 
         assertEquals(200, response.getStatusCode());
@@ -132,6 +141,7 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
             .body(callback)
             .post("/asylum/ccdMidEvent")
             .then()
+            .log().all(true)
             .extract().response();
 
         assertEquals(401, response.getStatusCode());
@@ -159,6 +169,7 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
             .body(callback)
             .post("/asylum/ccdAboutToSubmit")
             .then()
+            .log().all(true)
             .extract().response();
 
         assertEquals(200, response.getStatusCode());
@@ -186,6 +197,7 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
             .body(callback)
             .post("/asylum/ccdAboutToSubmit")
             .then()
+            .log().all(true)
             .extract().response();
 
         assertEquals(401, response.getStatusCode());

@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import io.restassured.http.Header;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 
+@Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ActiveProfiles("functional")
 class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
@@ -41,6 +43,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .body(payload)
             .post("/test")
             .then()
+            .log().all(true)
             .extract().response();
 
         assertEquals(200, response.getStatusCode());
@@ -61,6 +64,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .body(payloadWithInvalidId)
             .post("/test")
             .then()
+            .log().all(true)
             .extract().response();
 
         assertEquals(400, response.getStatusCode());
@@ -83,6 +87,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .post("/serviceHearingValues")
             .then()
             .statusCode(HttpStatus.SC_OK)
+            .log().all(true)
             .assertThat().body("hmctsServiceID", notNullValue())
             .assertThat().body("hmctsInternalCaseName", notNullValue())
             .assertThat().body("publicCaseName", notNullValue())
@@ -118,6 +123,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .body(payload)
             .post("/serviceHearingValues")
             .then()
+            .log().all(true)
             .statusCode(HttpStatus.SC_BAD_REQUEST);
 
     }
