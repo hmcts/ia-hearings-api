@@ -53,7 +53,6 @@ class AppellantDetailsMapperTest {
             .hearingChannelEmail(Collections.emptyList())
             .hearingChannelPhone(Collections.emptyList())
             .preferredHearingChannel("hearingChannel")
-            .otherReasonableAdjustmentDetails("")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
         when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
