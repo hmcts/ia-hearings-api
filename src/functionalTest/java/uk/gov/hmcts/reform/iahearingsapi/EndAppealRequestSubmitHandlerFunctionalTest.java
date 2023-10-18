@@ -10,6 +10,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_AP
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 import io.restassured.http.Header;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
 @ActiveProfiles("functional")
+@Slf4j
 public class EndAppealRequestSubmitHandlerFunctionalTest extends CcdCaseCreationTest {
 
     @BeforeEach
@@ -51,6 +53,7 @@ public class EndAppealRequestSubmitHandlerFunctionalTest extends CcdCaseCreation
             .body(callback)
             .post("/asylum/ccdAboutToSubmit")
             .then()
+            .log().all(true)
             .extract().response();
 
         assertEquals(200, response.getStatusCode());
@@ -78,6 +81,7 @@ public class EndAppealRequestSubmitHandlerFunctionalTest extends CcdCaseCreation
             .body(callback)
             .post("/asylum/ccdAboutToSubmit")
             .then()
+            .log().all(true)
             .extract().response();
 
         assertEquals(500, response.getStatusCode());
