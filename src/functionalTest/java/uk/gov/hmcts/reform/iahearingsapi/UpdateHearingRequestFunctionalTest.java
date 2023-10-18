@@ -44,12 +44,12 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
             "securityClassification"
         );
 
-        Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails), UPDATE_HEARING_REQUEST);
-
         log.info("caseId: " + getCaseId());
         log.info("caseOfficerToken: " + caseOfficerToken);
         log.info("s2sToken: " + s2sToken);
 
+
+        Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails), UPDATE_HEARING_REQUEST);
         given(hearingsSpecification)
             .when()
             .contentType("application/json")
