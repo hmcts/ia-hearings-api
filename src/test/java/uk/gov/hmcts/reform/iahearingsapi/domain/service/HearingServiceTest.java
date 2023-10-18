@@ -6,13 +6,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import feign.FeignException;
+
 import java.time.LocalDateTime;
 import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,10 +27,13 @@ import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HearingRequestGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
@@ -55,6 +61,8 @@ class HearingServiceTest {
     private CoreCaseDataService coreCaseDataService;
     @Mock
     private ServiceHearingValuesProvider serviceHearingValuesProvider;
+    @Mock
+    private UpdateHearingRequest updateHearingRequest;
     @Mock
     private AsylumCase asylumCase;
     @InjectMocks
@@ -137,6 +145,60 @@ class HearingServiceTest {
     }
 
     @Test
+    void testGetHearings() {
+        when(hmcHearingApi.getHearingsRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, HEARING_ID))
+            .thenReturn(new HearingsGetResponse());
+
+        HearingsGetResponse result = hearingService.getHearings(Long.parseLong(HEARING_ID));
+
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    void testGetHearingsException() {
+        when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
+        when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
+        when(hmcHearingApi.getHearingsRequest(anyString(), anyString(), anyString()))
+            .thenThrow(FeignException.class);
+
+        assertThrows(HmcException.class, () -> {
+            hearingService.getHearings(Long.parseLong(HEARING_ID));
+        });
+    }
+
+    @Test
+    void testUpdateHearing() {
+        when(hmcHearingApi.updateHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, updateHearingRequest,
+                                                HEARING_ID
+        )).thenReturn(new HearingGetResponse());
+        CaseDetailsHearing caseDetailsHearing = mock(CaseDetailsHearing.class);
+        when(updateHearingRequest.getCaseDetails()).thenReturn(caseDetailsHearing);
+        when(caseDetailsHearing.getCaseRef()).thenReturn("caseRef");
+
+        HearingGetResponse result = hearingService.updateHearing(
+            updateHearingRequest,
+            HEARING_ID
+        );
+
+        assertThat(result).isNotNull();
+    }
+
+    @Test
+    void testUpdateHearingException() {
+        when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
+        when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
+        when(hmcHearingApi.updateHearingRequest(anyString(), anyString(), any(UpdateHearingRequest.class), anyString()))
+            .thenThrow(FeignException.class);
+        CaseDetailsHearing caseDetailsHearing = mock(CaseDetailsHearing.class);
+        when(updateHearingRequest.getCaseDetails()).thenReturn(caseDetailsHearing);
+        when(caseDetailsHearing.getCaseRef()).thenReturn("caseRef");
+
+        assertThrows(HmcException.class, () -> {
+            hearingService.updateHearing(updateHearingRequest, HEARING_ID);
+        });
+    }
+
+    @Test
     void testGetHearingLinkValues() {
         List<Object> result = hearingService.getHearingLinkData(new HearingRequestPayload(CASE_ID));
 
@@ -176,7 +238,8 @@ class HearingServiceTest {
             payload,
             HEARING_ID,
             1,
-            receivedDateTime);
+            receivedDateTime
+        );
     }
 
     @Test
@@ -192,7 +255,8 @@ class HearingServiceTest {
                 any(PartiesNotified.class),
                 anyString(),
                 anyLong(),
-                any(LocalDateTime.class));
+                any(LocalDateTime.class)
+            );
 
         assertThrows(HmcException.class, () -> {
             hearingService.updatePartiesNotified(HEARING_ID, 1, receivedDateTime, payload);

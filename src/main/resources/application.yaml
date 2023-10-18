@@ -74,6 +74,9 @@ security:
     caseworker-ia-legalrep-solicitor:
     caseworker-ia-admofficer:
       - "listCase"
+      -  "updateHearingRequest"
+    caseworker-ia-caseofficer:
+      - "updateHearingRequest"
     caseworker-ia-caseworker:
       - "listCase"
     caseworker-ia-respondentofficer:
