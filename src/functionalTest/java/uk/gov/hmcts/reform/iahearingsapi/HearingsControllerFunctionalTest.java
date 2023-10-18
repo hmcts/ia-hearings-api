@@ -26,6 +26,14 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
         await().until(() -> {
             return setupIsDone;
         });
+
+        log.info("caseId: " + getCaseId());
+        log.info("caseOfficerToken: " + caseOfficerToken);
+        log.info("s2sToken: " + s2sToken);
+
+        log.error("caseId: " + getCaseId());
+        log.error("caseOfficerToken: " + caseOfficerToken);
+        log.error("s2sToken: " + s2sToken);
     }
 
     @Test
