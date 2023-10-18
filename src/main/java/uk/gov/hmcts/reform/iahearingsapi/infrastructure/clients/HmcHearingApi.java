@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
@@ -31,6 +32,7 @@ public interface HmcHearingApi {
 
     String SERVICE_AUTHORIZATION = "ServiceAuthorization";
     String HEARING_ENDPOINT = "/hearing";
+    String HEARINGS_ENDPOINT = "/hearings";
     String PARTIES_NOTIFIED_ENDPOINT = "/partiesNotified";
 
     @PostMapping(value = HEARING_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -46,6 +48,13 @@ public interface HmcHearingApi {
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @PathVariable String id,
         @RequestParam(name = "isValid", required = false) Boolean isValid
+    );
+
+    @GetMapping(HEARINGS_ENDPOINT + "/{id}")
+    HearingsGetResponse getHearingsRequest(
+        @RequestHeader(AUTHORIZATION) String authorisation,
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @PathVariable String id
     );
 
     @PutMapping(HEARING_ENDPOINT + "/{id}")

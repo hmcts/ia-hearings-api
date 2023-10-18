@@ -55,5 +55,22 @@ public class HearingDetails {
     private boolean multiDayHearing;
 
     private List<String> hearingChannels;
+    private String caseSLAStartDate;
+    private String caserestrictedFlag;
 
+
+    public String getHearingChannelDescription() {
+        if (hearingChannels == null || hearingChannels.isEmpty()) {
+            return "";
+        }
+
+        return switch (hearingChannels.get(0)) {
+            case "INTER" -> "In Person";
+            case "VID" -> "Video";
+            case "TEL" -> "Telephone";
+            case "ONPPRS" -> "On the Papers";
+            case "NA" -> "Not in Attendance";
+            default -> throw new IllegalStateException("Unexpected value: " + hearingType);
+        };
+    }
 }

@@ -3,10 +3,12 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static java.util.Objects.requireNonNull;
 
 import feign.FeignException;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import javax.validation.constraints.NotNull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,9 +16,11 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
@@ -35,9 +39,11 @@ public class HearingService {
 
     public HmcHearingResponse createHearing(HmcHearingRequestPayload hearingPayload) {
         try {
-            log.debug("Creating Hearing for Case ID {} and request:\n{}",
-                      hearingPayload.getCaseDetails().getCaseRef(),
-                      hearingPayload);
+            log.debug(
+                "Creating Hearing for Case ID {} and request:\n{}",
+                hearingPayload.getCaseDetails().getCaseRef(),
+                hearingPayload
+            );
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
@@ -70,9 +76,55 @@ public class HearingService {
                 serviceUserToken,
                 serviceAuthToken,
                 hearingId,
-                null);
-        } catch (FeignException ex)  {
+                null
+            );
+        } catch (FeignException ex) {
             log.error("Failed to retrieve hearing with Id: {} from HMC", hearingId);
+            throw new HmcException(ex);
+        }
+    }
+
+    public HearingsGetResponse getHearings(
+        Long caseReference
+    ) throws HmcException {
+        requireNonNull(caseReference, "Case Reference must not be null");
+        log.debug("Sending Get Hearings for caseReference {}", caseReference);
+        try {
+            String serviceUserToken = idamService.getServiceUserToken();
+            String serviceAuthToken = serviceAuthTokenGenerator.generate();
+            return hmcHearingApi.getHearingsRequest(
+                serviceUserToken,
+                serviceAuthToken,
+                caseReference.toString()
+            );
+        } catch (FeignException ex) {
+            log.error("Failed to retrieve hearings with Id: {} from HMC", caseReference);
+            throw new HmcException(ex);
+        }
+    }
+
+    public HearingGetResponse updateHearing(
+        UpdateHearingRequest updateHearingRequest,
+        String hearingId
+    ) throws HmcException {
+        log.debug(
+            "Update Hearing for Case ID {}, hearing ID {} and request:\n{}",
+            updateHearingRequest.getCaseDetails().getCaseRef(),
+            hearingId,
+            updateHearingRequest
+        );
+        try {
+            String serviceUserToken = idamService.getServiceUserToken();
+            String serviceAuthToken = serviceAuthTokenGenerator.generate();
+
+            return hmcHearingApi.updateHearingRequest(
+                serviceUserToken,
+                serviceAuthToken,
+                updateHearingRequest,
+                hearingId
+            );
+        } catch (FeignException ex) {
+            log.error("Failed to update hearing with Id: {} from HMC", hearingId);
             throw new HmcException(ex);
         }
     }
@@ -86,7 +138,8 @@ public class HearingService {
             return hmcHearingApi.getPartiesNotifiedRequest(
                 serviceUserToken,
                 serviceAuthToken,
-                hearingId);
+                hearingId
+            );
         } catch (FeignException e) {
             log.error("Failed to retrieve patries notified with Id: {} from HMC", hearingId);
             throw new HmcException(e);
@@ -107,7 +160,7 @@ public class HearingService {
                 requestVersion,
                 receivedDateTime
             );
-        } catch (FeignException ex)  {
+        } catch (FeignException ex) {
             log.error("Failed to update partiesNotified with Id: {} from HMC", hearingId);
             throw new HmcException(ex);
         }
