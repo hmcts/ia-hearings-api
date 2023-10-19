@@ -148,7 +148,8 @@ public enum AsylumCaseFieldDefinition {
         "changeHearingDateRangeEarliest", new TypeReference<String>(){}),
     CHANGE_HEARING_DATE_RANGE_LATEST(
         "changeHearingDateRangeLatest", new TypeReference<String>(){}),
-    ;
+    ADJOURNMENT_DETAILS_HEARING(
+        "adjournmentDetailsHearing", new TypeReference<DynamicList>(){});
 
     private final String value;
     private final TypeReference typeReference;
