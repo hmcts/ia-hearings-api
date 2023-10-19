@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -25,10 +24,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
@@ -49,8 +44,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class HearingServiceTest {
 
-    private static final String NO_BEARER_TOKEN = "token";
-    private static final String USER_TOKEN = "Bearer token";
+    private static final String IDAM_OAUTH2_TOKEN = "TestOauth2Token";
     private static final String SERVICE_AUTHORIZATION = "TestServiceAuthorization";
     private static final long VERSION = 1;
     private static final String CASE_ID = "1625080769409918";
@@ -71,12 +65,6 @@ class HearingServiceTest {
     private UpdateHearingRequest updateHearingRequest;
     @Mock
     private AsylumCase asylumCase;
-    @Mock
-    private SecurityContext securityContext;
-    @Mock
-    private Jwt jwt;
-    @Mock
-    private Authentication authentication;
     @InjectMocks
     private HearingService hearingService;
 
@@ -85,17 +73,12 @@ class HearingServiceTest {
 
     @BeforeEach
     void setup() {
-        when(idamService.getServiceUserToken()).thenReturn(USER_TOKEN);
+        when(idamService.getServiceUserToken()).thenReturn(IDAM_OAUTH2_TOKEN);
         when(serviceAuthTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION);
         when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
 
         receivedDateTime = LocalDateTime.now();
         payload = PartiesNotified.builder().build();
-
-        SecurityContextHolder.setContext(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(jwt);
-        when(jwt.getTokenValue()).thenReturn(NO_BEARER_TOKEN);
     }
 
     @Test
@@ -106,7 +89,7 @@ class HearingServiceTest {
             .versionNumber(VERSION)
             .build();
 
-        when(hmcHearingApi.createHearingRequest(USER_TOKEN, SERVICE_AUTHORIZATION, payload))
+        when(hmcHearingApi.createHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, payload))
             .thenReturn(response);
 
         HmcHearingResponse result = hearingService.createHearing(payload);
@@ -141,7 +124,7 @@ class HearingServiceTest {
 
     @Test
     void testGetHearing() {
-        when(hmcHearingApi.getHearingRequest(USER_TOKEN, SERVICE_AUTHORIZATION, HEARING_ID, null))
+        when(hmcHearingApi.getHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, HEARING_ID, null))
             .thenReturn(new HearingGetResponse());
 
         HearingGetResponse result = hearingService.getHearing(HEARING_ID);
@@ -163,7 +146,7 @@ class HearingServiceTest {
 
     @Test
     void testGetHearings() {
-        when(hmcHearingApi.getHearingsRequest(USER_TOKEN, SERVICE_AUTHORIZATION, HEARING_ID))
+        when(hmcHearingApi.getHearingsRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, HEARING_ID))
             .thenReturn(new HearingsGetResponse());
 
         HearingsGetResponse result = hearingService.getHearings(Long.parseLong(HEARING_ID));
@@ -185,7 +168,7 @@ class HearingServiceTest {
 
     @Test
     void testUpdateHearing() {
-        when(hmcHearingApi.updateHearingRequest(USER_TOKEN, SERVICE_AUTHORIZATION, updateHearingRequest,
+        when(hmcHearingApi.updateHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, updateHearingRequest,
                                                 HEARING_ID
         )).thenReturn(new HearingGetResponse());
         CaseDetailsHearing caseDetailsHearing = mock(CaseDetailsHearing.class);
@@ -224,7 +207,7 @@ class HearingServiceTest {
 
     @Test
     void testGetPartiesNotified() {
-        when(hmcHearingApi.getPartiesNotifiedRequest(any(), eq(SERVICE_AUTHORIZATION), eq(HEARING_ID)))
+        when(hmcHearingApi.getPartiesNotifiedRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, HEARING_ID))
             .thenReturn(new PartiesNotifiedResponses());
 
         PartiesNotifiedResponses result = hearingService.getPartiesNotified(HEARING_ID);
@@ -250,7 +233,7 @@ class HearingServiceTest {
         hearingService.updatePartiesNotified(HEARING_ID, 1, receivedDateTime, payload);
 
         verify(hmcHearingApi, times(1)).updatePartiesNotifiedRequest(
-            USER_TOKEN,
+            IDAM_OAUTH2_TOKEN,
             SERVICE_AUTHORIZATION,
             payload,
             HEARING_ID,
