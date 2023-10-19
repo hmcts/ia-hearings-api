@@ -101,9 +101,9 @@ class ServiceHearingValuesProviderTest {
 
     @Mock
     private ResourceLoader resourceLoader;
-    private String baseUrl = "http://localhost:3002";
+    private final String baseUrl = "http://localhost:3002";
     private String caseCategoriesValue = "BFA1-TST";
-    private String serviceId = "BFA1";
+    private final String serviceId = "BFA1";
 
     @BeforeEach
     void setup() {
@@ -129,8 +129,8 @@ class ServiceHearingValuesProviderTest {
         when(caseDataMapper.getHearingWindowModel()).thenReturn(hearingWindowModel);
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase))
             .thenReturn(BaseLocation.BIRMINGHAM.getId());
-        when(caseDataMapper.getCaseSlaStartDate()).thenReturn(dateStr);
         when(caseDataMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);
+        when(caseDataMapper.getCaseSlaStartDate()).thenReturn(dateStr);
         when(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
             .thenReturn(caseReference);
         when(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);

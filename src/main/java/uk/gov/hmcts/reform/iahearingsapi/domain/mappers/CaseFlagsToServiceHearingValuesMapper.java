@@ -256,7 +256,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
             .map(detail -> PartyFlagsModel.builder()
                 .partyId(partyId)
                 .partyName(partyName)
-                .flagId(detail.getId())
+                .flagId(detail.getCaseFlagValue().getFlagCode())
                 .flagStatus(detail.getCaseFlagValue().getStatus())
                 .flagDescription(detail.getCaseFlagValue().getName())
                 .build()).collect(Collectors.toList());

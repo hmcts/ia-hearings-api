@@ -44,7 +44,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityType;
 @RequiredArgsConstructor
 public class CaseDataToServiceHearingValuesMapper {
 
-    static final int HEARING_DATE_START_INTERVAL_DEFAULT = 10;
+    static final int HEARING_WINDOW_INTERVAL_DEFAULT = 10;
 
     private final DateProvider hearingServiceDateProvider;
 
@@ -82,11 +82,13 @@ public class CaseDataToServiceHearingValuesMapper {
 
     public HearingWindowModel getHearingWindowModel() {
         ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
-        String dateRangeStart = hearingServiceDateProvider
-            .calculateDueDate(now, HEARING_DATE_START_INTERVAL_DEFAULT)
+        String dateRangeStart = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String dateRangeEnd = hearingServiceDateProvider
+            .calculateDueDate(now, HEARING_WINDOW_INTERVAL_DEFAULT)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         return HearingWindowModel.builder()
             .dateRangeStart(dateRangeStart)
+            .dateRangeEnd(dateRangeEnd)
             .build();
     }
 

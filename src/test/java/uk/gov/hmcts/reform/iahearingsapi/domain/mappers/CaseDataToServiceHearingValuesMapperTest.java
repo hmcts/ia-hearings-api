@@ -74,7 +74,6 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     @BeforeEach
     void setup() {
-
         when(hearingServiceDateProvider.now()).thenReturn(LocalDate.parse(dateStr));
         String startDate = "2023-08-01T10:46:48.962301+01:00[Europe/London]";
         ZonedDateTime zonedDateTimeFrom = ZonedDateTime.parse(startDate);
@@ -156,13 +155,17 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     @Test
     void getHearingWindowModel_should_return_correct_date_range() {
-        ZonedDateTime expectedDate = ZonedDateTime.now().plusDays(10L);
+        ZonedDateTime expectedStartDate = ZonedDateTime.now();
+        ZonedDateTime expectedEndDate = expectedStartDate.plusDays(10L);
+        when(hearingServiceDateProvider.zonedNowWithTime()).thenReturn(expectedStartDate);
         when(hearingServiceDateProvider
                  .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 10))
-            .thenReturn(expectedDate);
+            .thenReturn(expectedEndDate);
         HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel();
 
-        assertEquals(hearingWindowModel.getDateRangeStart(), expectedDate
+        assertEquals(hearingWindowModel.getDateRangeStart(), expectedStartDate
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        assertEquals(hearingWindowModel.getDateRangeEnd(), expectedEndDate
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
     }
 

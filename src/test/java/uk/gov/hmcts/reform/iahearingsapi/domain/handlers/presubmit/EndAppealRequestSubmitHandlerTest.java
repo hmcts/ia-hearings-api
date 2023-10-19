@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
 import java.util.List;
 import java.util.Optional;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -11,6 +13,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.END_APPEAL_OUTCOME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUIRE_MANUAL_HEARINGS_CANCELLATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_APPEAL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HMC_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +60,19 @@ class EndAppealRequestSubmitHandlerTest {
         when(callback.getEvent()).thenReturn(END_APPEAL);
 
         endAppealRequestSubmitHandler = new EndAppealRequestSubmitHandler(hearingService);
+    }
+
+    @Test
+    void should_handle_successfully() {
+        assertTrue(endAppealRequestSubmitHandler.canHandle(ABOUT_TO_SUBMIT, callback));
+    }
+
+    @Test
+    void should_fail_to_handle_if_invalid_event() {
+        when(callback.getEvent()).thenReturn(UPDATE_HMC_RESPONSE);
+        assertThatThrownBy(() -> endAppealRequestSubmitHandler.handle(ABOUT_TO_SUBMIT, callback))
+            .hasMessage("Cannot handle callback")
+            .isExactlyInstanceOf(IllegalStateException.class);
     }
 
     @ParameterizedTest

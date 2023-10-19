@@ -169,7 +169,6 @@ public class HearingService {
         }
     }
 
-
     public ResponseEntity<HmcHearingResponse> deleteHearing(Long hearingId, String cancellationReason) {
         log.debug("Requesting Get Parties Notified with Hearing ID {}", hearingId);
         try {

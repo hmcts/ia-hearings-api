@@ -51,24 +51,29 @@ public class AppellantDetailsMapper {
             singleSexCourtResponse.append(";");
         }
 
+        IndividualDetailsModel individualDetails =
+            IndividualDetailsModel.builder()
+                .custodyStatus(caseFlagsMapper.getCustodyStatus(asylumCase))
+                .vulnerabilityDetails(caseFlagsMapper.getVulnerableDetails(asylumCase))
+                .vulnerableFlag(caseFlagsMapper.getVulnerableFlag(asylumCase))
+                .firstName(caseDataMapper.getName(asylumCase, APPELLANT_GIVEN_NAMES))
+                .lastName(caseDataMapper.getName(asylumCase, APPELLANT_FAMILY_NAME))
+                .title(asylumCase.read(APPELLANT_TITLE, String.class).orElse(null))
+                .hearingChannelEmail(
+                    caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef))
+                .hearingChannelPhone(
+                    caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef))
+                .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
+                .build();
+
+        if (!singleSexCourtResponse.isEmpty()) {
+            individualDetails.setOtherReasonableAdjustmentDetails(singleSexCourtResponse.toString());
+        }
+
         PartyDetailsModel appellantPartyDetailsModel = PartyDetailsModel.builder()
             .partyID(caseDataMapper.getAppellantPartyId(asylumCase))
             .partyType(PartyType.IND.getPartyType())
-            .individualDetails(
-                IndividualDetailsModel.builder()
-                    .custodyStatus(caseFlagsMapper.getCustodyStatus(asylumCase))
-                    .vulnerabilityDetails(caseFlagsMapper.getVulnerableDetails(asylumCase))
-                    .vulnerableFlag(caseFlagsMapper.getVulnerableFlag(asylumCase))
-                    .firstName(caseDataMapper.getName(asylumCase, APPELLANT_GIVEN_NAMES))
-                    .lastName(caseDataMapper.getName(asylumCase, APPELLANT_FAMILY_NAME))
-                    .title(asylumCase.read(APPELLANT_TITLE, String.class).orElse(null))
-                    .hearingChannelEmail(
-                        caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef))
-                    .hearingChannelPhone(
-                        caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef))
-                    .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
-                    .otherReasonableAdjustmentDetails(singleSexCourtResponse.toString())
-                    .build())
+            .individualDetails(individualDetails)
             .partyRole("APEL")
             .unavailabilityDOW(Collections.emptyList())
             .unavailabilityRanges(caseDataMapper.getUnavailabilityRanges(asylumCase))
