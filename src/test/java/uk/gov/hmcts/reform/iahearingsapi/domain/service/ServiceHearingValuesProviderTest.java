@@ -130,6 +130,7 @@ class ServiceHearingValuesProviderTest {
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase))
             .thenReturn(BaseLocation.BIRMINGHAM.getId());
         when(caseDataMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);
+        when(caseDataMapper.getCaseSlaStartDate()).thenReturn(dateStr);
         when(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
             .thenReturn(caseReference);
         when(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);
@@ -209,6 +210,7 @@ class ServiceHearingValuesProviderTest {
             .caserestrictedFlag(false)
             .externalCaseReference(homeOfficeRef)
             .caseManagementLocationCode(BaseLocation.BIRMINGHAM.getId())
+            .caseSlaStartDate(dateStr)
             .autoListFlag(false)
             .hearingType(null)
             .hearingWindow(hearingWindowModel)
