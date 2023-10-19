@@ -16,6 +16,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
@@ -28,6 +32,8 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserI
 @ExtendWith(MockitoExtension.class)
 public class CoreCaseDataServiceTest {
 
+    private static final String NO_BEARER_TOKEN = "token";
+    private static final String USER_TOKEN = "Bearer token";
     private static final String CASE_ID = "123456789";
     private static final String AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJubGJoN";
     private static final String SERVICE_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.serviceToken";
@@ -54,11 +60,21 @@ public class CoreCaseDataServiceTest {
     CaseDetails caseDetails;
     @Mock
     UserInfo userInfo;
+    @Mock
+    SecurityContext securityContext;
+    @Mock
+    Jwt jwt;
+    @Mock
+    Authentication authentication;
 
     @BeforeEach
     void setup() {
         when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
-        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
+
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(jwt);
+        when(jwt.getTokenValue()).thenReturn(NO_BEARER_TOKEN);
     }
 
     @Test
@@ -68,7 +84,7 @@ public class CoreCaseDataServiceTest {
         Map<String, Object> data = new HashMap<>();
         when(caseDetails.getData()).thenReturn(data);
         when(iaCcdConvertService.getCaseData(data)).thenReturn(asylumCase);
-        when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(caseDetails);
+        when(coreCaseDataApi.getCase(USER_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(caseDetails);
 
         AsylumCase actualAsylumCase = coreCaseDataService.getCase(CASE_ID);
 
@@ -80,7 +96,7 @@ public class CoreCaseDataServiceTest {
         when(idamService.getUserInfo()).thenReturn(userInfo);
         when(userInfo.getUid()).thenReturn(USER_ID);
 
-        when(coreCaseDataApi.startEventForCaseWorker(AUTH_TOKEN,
+        when(coreCaseDataApi.startEventForCaseWorker(USER_TOKEN,
                                                      SERVICE_TOKEN,
                                                      USER_ID,
                                                      JURISDICTION,
@@ -105,7 +121,7 @@ public class CoreCaseDataServiceTest {
         when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
         when(startEventResponse.getCaseDetails().getData()).thenReturn(asylumCase);
 
-        when(coreCaseDataApi.submitEventForCaseWorker(eq(AUTH_TOKEN),
+        when(coreCaseDataApi.submitEventForCaseWorker(eq(USER_TOKEN),
                                                       eq(SERVICE_TOKEN),
                                                       eq(USER_ID),
                                                       eq(JURISDICTION),
@@ -122,7 +138,7 @@ public class CoreCaseDataServiceTest {
     @Test
     public void should_throw_exception() {
 
-        when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(null);
+        when(coreCaseDataApi.getCase(USER_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(null);
 
         assertThatThrownBy(() -> coreCaseDataService.getCase(CASE_ID))
             .hasMessage(String.format("Case %s not found", CASE_ID))

@@ -42,6 +42,9 @@ public class ServiceHearingValuesModel {
 
     private String externalCaseReference;
 
+    @JsonProperty("caseSLAStartDate")
+    private String caseSlaStartDate;
+
     private String caseManagementLocationCode;
 
     private boolean autoListFlag;

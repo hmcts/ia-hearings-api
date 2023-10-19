@@ -92,6 +92,10 @@ public class CaseDataToServiceHearingValuesMapper {
             .build();
     }
 
+    public String getCaseSlaStartDate() {
+        return hearingServiceDateProvider.now().toString();
+    }
+
     public String getCaseDeepLink(String caseReference) {
         return String.format("/cases/case-details/%s#Overview", caseReference);
     }
