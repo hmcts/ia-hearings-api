@@ -18,6 +18,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -98,6 +99,11 @@ public class SecurityConfiguration {
 
     public Map<String, List<Event>> getRoleEventAccess() {
         return roleEventAccess;
+    }
+
+    public static String getUserToken() {
+        return "Bearer " + ((Jwt) SecurityContextHolder.getContext().getAuthentication()
+            .getPrincipal()).getTokenValue();
     }
 
 }
