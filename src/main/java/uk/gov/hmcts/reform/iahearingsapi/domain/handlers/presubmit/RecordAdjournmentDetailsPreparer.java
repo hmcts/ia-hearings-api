@@ -19,7 +19,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @Component
 @Slf4j
-public class RecordAdjournmentDetailsPreparer extends HearingsDynamicListPreparer implements PreSubmitCallbackHandler<AsylumCase> {
+public class RecordAdjournmentDetailsPreparer extends HearingsDynamicListPreparer
+    implements PreSubmitCallbackHandler<AsylumCase> {
 
     public RecordAdjournmentDetailsPreparer(HearingService hearingService) {
         super(hearingService);
