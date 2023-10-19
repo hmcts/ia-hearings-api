@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.SecurityConfiguration.getUserToken;
 
 import feign.FeignException;
 
@@ -44,14 +45,16 @@ public class HearingService {
                 hearingPayload.getCaseDetails().getCaseRef(),
                 hearingPayload
             );
-            String serviceUserToken = idamService.getServiceUserToken();
+
+            String userToken = getUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
-            return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken, hearingPayload);
+            return hmcHearingApi.createHearingRequest(userToken, serviceAuthToken, hearingPayload);
         } catch (Exception e) {
             throw new IllegalStateException("Service could not complete request to create hearing", e);
         }
     }
+
 
     public ServiceHearingValuesModel getServiceHearingValues(HearingRequestPayload payload) {
         String caseReference = payload.getCaseReference();
@@ -69,11 +72,11 @@ public class HearingService {
     public HearingGetResponse getHearing(String hearingId) throws HmcException {
         log.debug("Sending Get Hearings with Hearing ID {}", hearingId);
         try {
-            String serviceUserToken = idamService.getServiceUserToken();
+            String userToken = getUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
             return hmcHearingApi.getHearingRequest(
-                serviceUserToken,
+                userToken,
                 serviceAuthToken,
                 hearingId,
                 null
@@ -90,10 +93,10 @@ public class HearingService {
         requireNonNull(caseReference, "Case Reference must not be null");
         log.debug("Sending Get Hearings for caseReference {}", caseReference);
         try {
-            String serviceUserToken = idamService.getServiceUserToken();
+            String userToken = getUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
             return hmcHearingApi.getHearingsRequest(
-                serviceUserToken,
+                userToken,
                 serviceAuthToken,
                 caseReference.toString()
             );
@@ -114,11 +117,11 @@ public class HearingService {
             updateHearingRequest
         );
         try {
-            String serviceUserToken = idamService.getServiceUserToken();
+            String userToken = getUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
             return hmcHearingApi.updateHearingRequest(
-                serviceUserToken,
+                userToken,
                 serviceAuthToken,
                 updateHearingRequest,
                 hearingId
@@ -132,11 +135,11 @@ public class HearingService {
     public PartiesNotifiedResponses getPartiesNotified(String hearingId) {
         log.debug("Requesting Get Parties Notified with Hearing ID {}", hearingId);
         try {
-            String serviceUserToken = idamService.getServiceUserToken();
+            String userToken = getUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
             return hmcHearingApi.getPartiesNotifiedRequest(
-                serviceUserToken,
+                userToken,
                 serviceAuthToken,
                 hearingId
             );
@@ -149,11 +152,11 @@ public class HearingService {
     public void updatePartiesNotified(
         String hearingId, long requestVersion, LocalDateTime receivedDateTime, PartiesNotified payload) {
         try {
-            String serviceUserToken = idamService.getServiceUserToken();
+            String userToken = getUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
             hmcHearingApi.updatePartiesNotifiedRequest(
-                serviceUserToken,
+                userToken,
                 serviceAuthToken,
                 payload,
                 hearingId,
@@ -165,5 +168,4 @@ public class HearingService {
             throw new HmcException(ex);
         }
     }
-
 }

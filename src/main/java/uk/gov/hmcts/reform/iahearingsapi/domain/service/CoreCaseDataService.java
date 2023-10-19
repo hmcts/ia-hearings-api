@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import java.util.Collections;
 import java.util.Map;
+import static uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.SecurityConfiguration.getUserToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class CoreCaseDataService {
     public AsylumCase getCase(String caseId) {
         try {
             CaseDetails caseDetails = coreCaseDataApi
-                .getCase(idamService.getServiceUserToken(), serviceAuthTokenGenerator.generate(), caseId);
+                .getCase(getUserToken(), serviceAuthTokenGenerator.generate(), caseId);
             if (caseDetails != null) {
                 return iaCcdConvertService.getCaseData(caseDetails.getData());
             }
@@ -61,14 +62,9 @@ public class CoreCaseDataService {
     }
 
     public CaseDetails triggerEvent(Event event, String caseId, AsylumCase asylumCase) {
-
-        String userToken;
         String s2sToken;
         String uid;
         try {
-            userToken = idamService.getServiceUserToken();
-            log.info("System user token has been generated for event: {}, caseId: {}.", event, caseId);
-
             s2sToken = serviceAuthTokenGenerator.generate();
             log.info("S2S token has been generated for event: {}, caseId: {}.", event, caseId);
 
@@ -80,6 +76,8 @@ public class CoreCaseDataService {
             log.error("Unauthorized access to getCaseById: {}", ex.getMessage());
             throw new IdentityManagerResponseException(ex.getMessage(), ex);
         }
+
+        String userToken = getUserToken();
 
         // Get case details by id
         final StartEventResponse startEventResponse = getCase(userToken,
