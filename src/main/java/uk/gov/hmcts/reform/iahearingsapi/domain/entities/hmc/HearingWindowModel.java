@@ -11,4 +11,5 @@ public class HearingWindowModel {
 
     private String dateRangeStart;
     private String dateRangeEnd;
+    private String firstDateTimeMustBe;
 }
