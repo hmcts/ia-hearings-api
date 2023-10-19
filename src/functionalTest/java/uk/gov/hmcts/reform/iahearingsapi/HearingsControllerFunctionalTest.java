@@ -30,10 +30,6 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
         log.info("caseId: " + getCaseId());
         log.info("caseOfficerToken: " + caseOfficerToken);
         log.info("s2sToken: " + s2sToken);
-
-        log.error("caseId: " + getCaseId());
-        log.error("caseOfficerToken: " + caseOfficerToken);
-        log.error("s2sToken: " + s2sToken);
     }
 
     @Test
@@ -46,7 +42,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
         Response response = given(hearingsSpecification)
             .when()
             .contentType("application/json")
-            .header(new Header(AUTHORIZATION, legalRepToken))
+            .header(new Header(AUTHORIZATION, caseOfficerToken))
             .header(new Header(SERVICE_AUTHORIZATION, s2sToken))
             .body(payload)
             .post("/test")
@@ -71,7 +67,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
         Response response = given(hearingsSpecification)
             .when()
             .contentType("application/json")
-            .header(new Header(AUTHORIZATION, legalRepToken))
+            .header(new Header(AUTHORIZATION, caseOfficerToken))
             .header(new Header(SERVICE_AUTHORIZATION, s2sToken))
             .body(payloadWithInvalidId)
             .post("/test")
@@ -80,10 +76,6 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .extract().response();
 
         assertEquals(400, response.getStatusCode());
-
-        log.info("caseId: " + getCaseId());
-        log.info("legalRepToken: " + legalRepToken);
-        log.info("s2sToken: " + s2sToken);
     }
 
     @Test
@@ -97,7 +89,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
         given(hearingsSpecification)
             .when()
             .contentType("application/json")
-            .header(new Header(AUTHORIZATION, legalRepToken))
+            .header(new Header(AUTHORIZATION, caseOfficerToken))
             .header(new Header(SERVICE_AUTHORIZATION, s2sToken))
             .body(payload)
             .post("/serviceHearingValues")
@@ -134,7 +126,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
         given(hearingsSpecification)
             .when()
             .contentType("application/json")
-            .header(new Header(AUTHORIZATION, legalRepToken))
+            .header(new Header(AUTHORIZATION, caseOfficerToken))
             .header(new Header(SERVICE_AUTHORIZATION, s2sToken))
             .body(payload)
             .post("/serviceHearingValues")

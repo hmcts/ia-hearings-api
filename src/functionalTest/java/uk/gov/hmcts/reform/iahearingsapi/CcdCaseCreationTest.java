@@ -50,11 +50,9 @@ public class CcdCaseCreationTest {
     protected Map<String, Object> caseData;
     protected String s2sToken;
     protected String legalRepToken;
-    protected String systemUserToken;
     protected String caseOfficerToken;
     private String legalRepUserId;
     private String caseOfficerUserId;
-    private String systemUserId;
     public String paymentReference;
 
     private static final String jurisdiction = "IA";
