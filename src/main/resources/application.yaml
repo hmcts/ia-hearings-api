@@ -74,9 +74,11 @@ security:
     caseworker-ia-legalrep-solicitor:
     caseworker-ia-admofficer:
       - "listCase"
-      -  "updateHearingRequest"
+      - "updateHearingRequest"
+      - "recordAdjournmentDetails"
     caseworker-ia-caseofficer:
       - "updateHearingRequest"
+      - "recordAdjournmentDetails"
     caseworker-ia-caseworker:
       - "listCase"
     caseworker-ia-respondentofficer:
@@ -84,6 +86,7 @@ security:
     caseworker-ia-system:
       - "handleHearingException"
       - "updateHMCResponse"
+      - "recordAdjournmentDetails"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
