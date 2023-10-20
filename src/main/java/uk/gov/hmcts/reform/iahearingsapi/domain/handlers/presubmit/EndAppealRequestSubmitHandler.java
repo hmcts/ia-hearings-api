@@ -99,17 +99,11 @@ public class EndAppealRequestSubmitHandler implements PreSubmitCallbackHandler<A
         String cancellationReason = null;
 
         if (endAppealOutcome.isPresent()) {
-            switch (endAppealOutcome.get()) {
-                case WITHDRAWN -> {
-                    cancellationReason = "withdraw";
-                }
-                case ABANDONED -> {
-                    cancellationReason = "abandoned";
-                }
-                default -> {
-                    cancellationReason = "n/a";
-                }
-            }
+            cancellationReason = switch (endAppealOutcome.get()) {
+                case WITHDRAWN -> "withdraw";
+                case ABANDONED -> "abandoned";
+                default -> "n/a";
+            };
         }
         return cancellationReason;
     }
