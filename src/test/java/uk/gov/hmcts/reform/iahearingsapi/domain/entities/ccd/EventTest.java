@@ -14,10 +14,11 @@ public class EventTest {
         assertEquals("updateHMCResponse", Event.UPDATE_HMC_RESPONSE.toString());
         assertEquals("recordAdjournmentDetails", Event.RECORD_ADJOURNMENT_DETAILS.toString());
         assertEquals("unknown", Event.UNKNOWN.toString());
+        assertEquals("endAppeal", Event.END_APPEAL.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(6, Event.values().length);
+        assertEquals(7, Event.values().length);
     }
 }

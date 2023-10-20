@@ -10,6 +10,7 @@ public enum Event {
     HANDLE_HEARING_EXCEPTION("handleHearingException"),
     UPDATE_HMC_RESPONSE("updateHMCResponse"),
     RECORD_ADJOURNMENT_DETAILS("recordAdjournmentDetails"),
+    END_APPEAL("endAppeal"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");

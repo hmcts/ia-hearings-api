@@ -76,11 +76,11 @@ security:
       - "listCase"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
-    caseworker-ia-caseofficer:
+      - "endAppeal"
+    caseworker-ia-caseworker:
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
-    caseworker-ia-caseworker:
-      - "listCase"
+      - "endAppeal"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
     caseworker-ia-system:
