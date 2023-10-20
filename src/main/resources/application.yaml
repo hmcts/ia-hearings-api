@@ -75,17 +75,18 @@ security:
     caseworker-ia-admofficer:
       - "listCase"
       - "updateHearingRequest"
+      - "recordAdjournmentDetails"
       - "endAppeal"
     caseworker-ia-caseworker:
-      - "listCase"
+      - "updateHearingRequest"
+      - "recordAdjournmentDetails"
+      - "endAppeal"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
-    caseworker-ia-caseofficer:
-      - "updateHearingRequest"
-      - "endAppeal"
     caseworker-ia-system:
       - "handleHearingException"
       - "updateHMCResponse"
+      - "recordAdjournmentDetails"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
