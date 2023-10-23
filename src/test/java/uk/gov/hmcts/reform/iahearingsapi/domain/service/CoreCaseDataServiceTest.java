@@ -102,9 +102,6 @@ public class CoreCaseDataServiceTest {
             .caseReference(CASE_ID)
             .build();
 
-        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
-        when(startEventResponse.getCaseDetails().getData()).thenReturn(asylumCase);
-
         when(coreCaseDataApi.submitEventForCaseWorker(eq(AUTH_TOKEN),
                                                       eq(SERVICE_TOKEN),
                                                       eq(USER_ID),

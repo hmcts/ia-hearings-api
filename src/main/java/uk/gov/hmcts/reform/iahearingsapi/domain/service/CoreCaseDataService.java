@@ -60,7 +60,7 @@ public class CoreCaseDataService {
                                                        event.toString());
     }
 
-    public CaseDetails triggerEvent(Event event, String caseId, AsylumCase asylumCase) {
+    public CaseDetails triggerEvent(Event event, String caseId, Map<String, Object> caseDataUpdates) {
 
         String userToken;
         String s2sToken;
@@ -91,12 +91,13 @@ public class CoreCaseDataService {
                                                              event);
 
         log.info("Case details found for the caseId: {}", caseId);
-
+        Map<String, Object> caseDetailsMap = startEventResponse.getCaseDetails().getData();
+        caseDetailsMap.putAll(caseDataUpdates);
         CaseDetails caseDetails = submitEventForCaseWorker(userToken,
                                                             s2sToken,
                                                             uid,
                                                             caseId,
-                                                            startEventResponse.getCaseDetails().getData(),
+                                                            caseDetailsMap,
                                                             event,
                                                             true,
                                                             startEventResponse.getToken());

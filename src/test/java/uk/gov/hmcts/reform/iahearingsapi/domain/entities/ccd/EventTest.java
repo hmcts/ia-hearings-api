@@ -15,10 +15,11 @@ public class EventTest {
         assertEquals("recordAdjournmentDetails", Event.RECORD_ADJOURNMENT_DETAILS.toString());
         assertEquals("unknown", Event.UNKNOWN.toString());
         assertEquals("endAppeal", Event.END_APPEAL.toString());
+        assertEquals("editCaseListing", Event.EDIT_CASE_LISTING.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(7, Event.values().length);
+        assertEquals(8, Event.values().length);
     }
 }
