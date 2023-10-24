@@ -80,8 +80,6 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
         String caseId = serviceData.read(CASE_REF, String.class)
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
 
-        // CaseDetails caseDetails = coreCaseDataService.getCaseDetails(caseId);
-
         AsylumCase asylumCase = coreCaseDataService.getCase(caseId);
 
         Optional<List<HearingChannel>> optionalHearingChannels = serviceData.read(HEARING_CHANNELS);
