@@ -19,9 +19,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -95,35 +93,23 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
         int duration = serviceData.read(DURATION, Integer.class)
             .orElseThrow(() -> new IllegalStateException("duration can not be null"));
 
-        Boolean sendEditListingEvent = sendEditListingEventIfHearingIsUpdated(
+        sendEditListingEventIfHearingIsUpdated(
             asylumCase,
+            caseId,
             nextHearingDate,
             hearingVenueId,
             hearingChannels,
             duration
         );
-
-        if (sendEditListingEvent) {
-            Map<String, Object> caseData = new HashMap<>();
-            caseData.put(
-                LIST_CASE_HEARING_DATE.value(),
-                HandlerUtils.getHearingDateAndTime(nextHearingDate, hearingChannels, hearingVenueId)
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
-            );
-            caseData.put(LIST_CASE_HEARING_LENGTH.value(), String.valueOf(duration));
-            caseData.put(LIST_CASE_HEARING_CENTRE.value(), HandlerUtils.getLocation(hearingChannels, hearingVenueId));
-            log.info("Sending `{}` event for case ID `{}`", EDIT_CASE_LISTING, caseId);
-            coreCaseDataService.triggerEvent(EDIT_CASE_LISTING, caseId, caseData);
-        }
-
         return new ServiceDataResponse<>(serviceData);
     }
 
-    private Boolean sendEditListingEventIfHearingIsUpdated(AsylumCase asylumCase,
-                                                           LocalDateTime nextHearingDate,
-                                                           String nextHearingVenueId,
-                                                           List<HearingChannel> nextHearingChannelList,
-                                                           Integer nextDuration) {
+    private void sendEditListingEventIfHearingIsUpdated(AsylumCase asylumCase,
+                                                        String caseId,
+                                                        LocalDateTime nextHearingDate,
+                                                        String nextHearingVenueId,
+                                                        List<HearingChannel> nextHearingChannelList,
+                                                        Integer nextDuration) {
         LocalDateTime currentHearingDate = LocalDateTime.parse(asylumCase.read(
             LIST_CASE_HEARING_DATE,
             String.class
@@ -140,7 +126,7 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
             LIST_CASE_HEARING_LENGTH,
             String.class
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingLength can not be null"));
-
+        boolean sendUpdate = false;
         final String nextHearingChannel = nextHearingChannelList.get(0).name();
         nextHearingDate = nextHearingDate.truncatedTo(ChronoUnit.SECONDS);
 
@@ -148,11 +134,31 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
             nextHearingVenueId = REMOTE_HEARING.getEpimsId();
         }
 
-        return (!currentHearingDate.equals(nextHearingDate)
-            || !currentVenueId.equals(nextHearingVenueId)
-            || !currentHearingChannel.equals(nextHearingChannel)
-            || (nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name())
-            && !currentDuration.equals(String.valueOf(nextDuration))));
+        if (!currentHearingDate.equals(nextHearingDate)) {
+            asylumCase.write(
+                LIST_CASE_HEARING_DATE,
+                HandlerUtils.getHearingDateAndTime(nextHearingDate, nextHearingChannelList, nextHearingVenueId)
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
+            );
+            sendUpdate = true;
+        }
+        if (!currentHearingChannel.equals(nextHearingChannel) || !currentVenueId.equals(nextHearingVenueId)) {
+            asylumCase.write(
+                LIST_CASE_HEARING_CENTRE,
+                HandlerUtils.getLocation(nextHearingChannelList, nextHearingVenueId)
+            );
+            sendUpdate = true;
+        }
+        if ((nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name()))
+            && !currentDuration.equals(String.valueOf(nextDuration))) {
+            asylumCase.write(LIST_CASE_HEARING_LENGTH, String.valueOf(nextDuration));
+            sendUpdate = true;
+        }
+
+        if (sendUpdate) {
+            log.info("Sending `{}` event for case ID `{}`", EDIT_CASE_LISTING, caseId);
+            coreCaseDataService.triggerEvent(EDIT_CASE_LISTING, caseId, asylumCase);
+        }
     }
 }
 

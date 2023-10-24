@@ -89,17 +89,12 @@ public class CoreCaseDataServiceTest {
                                                      LIST_CASE.toString())).thenReturn(startEventResponse);
 
         when(startEventResponse.getToken()).thenReturn(EVENT_TOKEN);
-        Map<String, Object> data = new HashMap<>();
-        data.put("data1", "value1");
-        when(caseDetails.getData()).thenReturn(data);
-
-        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
 
         CaseDataContent caseDataContent = CaseDataContent.builder()
             .event(uk.gov.hmcts.reform.ccd.client.model.Event.builder()
                        .id(LIST_CASE.toString())
                        .build())
-            .data(data)
+            .data(asylumCase)
             .supplementaryDataRequest(Collections.emptyMap())
             .securityClassification(Classification.PUBLIC)
             .eventToken(EVENT_TOKEN)

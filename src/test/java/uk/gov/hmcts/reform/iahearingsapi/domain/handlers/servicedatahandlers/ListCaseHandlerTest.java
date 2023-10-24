@@ -17,9 +17,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -143,16 +141,16 @@ class ListCaseHandlerTest {
             .thenReturn(Optional.of(150));
 
         listCaseHandler.handle(serviceData);
-        Map<String, Object> caseData = new HashMap<>();
-        caseData.put(ARIA_LISTING_REFERENCE.value(), LISTING_REFERENCE);
-        caseData.put(LIST_CASE_HEARING_DATE.value(),
+
+        verify(asylumCase).write(ARIA_LISTING_REFERENCE, LISTING_REFERENCE);
+        verify(asylumCase).write(LIST_CASE_HEARING_DATE,
                                  LocalDateTime.of(2023, 9, 29, 9, 45)
                                      .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
-        caseData.put(LIST_CASE_HEARING_LENGTH.value(), "150");
-        caseData.put(LIST_CASE_HEARING_CENTRE.value(), HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
+        verify(asylumCase).write(LIST_CASE_HEARING_LENGTH, "150");
+        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
 
 
-        verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, caseData);
+        verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, asylumCase);
     }
 }
 

@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
@@ -15,9 +16,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
@@ -72,6 +71,8 @@ public class ListCaseHandler implements ServiceDataHandler<ServiceData> {
         final String caseId = serviceData.read(CASE_REF, String.class)
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
 
+        AsylumCase asylumCase = coreCaseDataService.getCase(caseId);
+
         Optional<List<HearingChannel>> optionalHearingChannels = serviceData.read(HEARING_CHANNELS);
         List<HearingChannel> hearingChannels = optionalHearingChannels
             .orElseThrow(() -> new IllegalStateException("hearingChannels can not be empty"));
@@ -84,16 +85,15 @@ public class ListCaseHandler implements ServiceDataHandler<ServiceData> {
 
         int duration = serviceData.read(DURATION, Integer.class)
             .orElseThrow(() -> new IllegalStateException("duration can not be null"));
-        Map<String, Object> caseData = new HashMap<>();
-        caseData.put(ARIA_LISTING_REFERENCE.value(), LISTING_REFERENCE);
-        caseData.put(LIST_CASE_HEARING_DATE.value(),
+        asylumCase.write(ARIA_LISTING_REFERENCE, LISTING_REFERENCE);
+        asylumCase.write(LIST_CASE_HEARING_DATE,
                          HandlerUtils.getHearingDateAndTime(nextHearingDate, hearingChannels, hearingVenueId)
                              .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
-        caseData.put(LIST_CASE_HEARING_LENGTH.value(), String.valueOf(duration));
-        caseData.put(LIST_CASE_HEARING_CENTRE.value(), HandlerUtils.getLocation(hearingChannels, hearingVenueId));
+        asylumCase.write(LIST_CASE_HEARING_LENGTH, String.valueOf(duration));
+        asylumCase.write(LIST_CASE_HEARING_CENTRE, HandlerUtils.getLocation(hearingChannels, hearingVenueId));
 
         log.info("Sending `{}` event for  Case ID `{}`", LIST_CASE, caseId);
-        coreCaseDataService.triggerEvent(LIST_CASE, caseId, caseData);
+        coreCaseDataService.triggerEvent(LIST_CASE, caseId, asylumCase);
 
         return new ServiceDataResponse<>(serviceData);
     }

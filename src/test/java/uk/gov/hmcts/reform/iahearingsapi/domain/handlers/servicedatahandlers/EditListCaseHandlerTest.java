@@ -19,7 +19,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -58,8 +57,6 @@ class EditListCaseHandlerTest {
     private static final String HEARING_VENUE_ID = GLASGOW_EPIMMS_ID;
     @Mock
     CoreCaseDataService coreCaseDataService;
-    @Mock
-    HearingService hearingService;
     @Mock
     ServiceData serviceData;
     @Mock
@@ -146,12 +143,12 @@ class EditListCaseHandlerTest {
 
         listCaseHandler.handle(serviceData);
 
-        Map<String, Object> caseData = getCaseDataMapping();
-        caseData.put(LIST_CASE_HEARING_DATE.value(),
-                     LocalDateTime.of(2023, 9, 30, 9, 45)
-                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
-
-        verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, caseData);
+        verify(asylumCase).write(
+            LIST_CASE_HEARING_DATE,
+            LocalDateTime.of(2023, 9, 30, 9, 45)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
+        );
+        verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, asylumCase);
     }
 
     @Test
@@ -165,11 +162,15 @@ class EditListCaseHandlerTest {
 
         Map<String, Object> caseData = getCaseDataMapping();
         caseData.put(LIST_CASE_HEARING_CENTRE.value(), HearingCentre.BRADFORD);
-        caseData.put(LIST_CASE_HEARING_DATE.value(),
-                     LocalDateTime.of(2023, 9, 29, 10, 0)
-                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
-
-        verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, caseData);
+        verify(asylumCase).write(
+            LIST_CASE_HEARING_CENTRE, HearingCentre.BRADFORD
+        );
+        verify(asylumCase).write(
+            LIST_CASE_HEARING_DATE,
+            LocalDateTime.of(2023, 9, 29, 10, 0)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
+        );
+        verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, asylumCase);
     }
 
     @Test
@@ -184,11 +185,13 @@ class EditListCaseHandlerTest {
 
         listCaseHandler.handle(serviceData);
 
-        Map<String, Object> caseData = getCaseDataMapping();
-        caseData.put(LIST_CASE_HEARING_CENTRE.value(), HearingCentre.REMOTE_HEARING);
-        caseData.put(LIST_CASE_HEARING_LENGTH.value(), "100");
-
-        verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, caseData);
+        verify(asylumCase).write(
+            LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING
+        );
+        verify(asylumCase).write(
+            LIST_CASE_HEARING_LENGTH,"100"
+        );
+        verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, asylumCase);
     }
 
     @Test
@@ -203,11 +206,13 @@ class EditListCaseHandlerTest {
 
         listCaseHandler.handle(serviceData);
 
-        Map<String, Object> caseData = getCaseDataMapping();
-        caseData.put(LIST_CASE_HEARING_CENTRE.value(), HearingCentre.REMOTE_HEARING);
-        caseData.put(LIST_CASE_HEARING_LENGTH.value(), "100");
-
-        verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, caseData);
+        verify(asylumCase).write(
+            LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING
+        );
+        verify(asylumCase).write(
+            LIST_CASE_HEARING_LENGTH,"100"
+        );
+        verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, asylumCase);
     }
 
     private void initializeServiceData() {
