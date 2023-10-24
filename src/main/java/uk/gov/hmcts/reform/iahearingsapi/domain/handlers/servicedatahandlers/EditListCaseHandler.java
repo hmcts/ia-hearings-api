@@ -65,7 +65,9 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
 
         return isHmcStatus(serviceData, HmcStatus.LISTED)
             && isHearingListingStatus(serviceData, ListingStatus.FIXED)
-            && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED)
+            && (isListAssistCaseStatus(serviceData, ListAssistCaseStatus.PREPARE_FOR_HEARING)
+            || isListAssistCaseStatus(serviceData, ListAssistCaseStatus.FINAL_BUNDLING)
+            || isListAssistCaseStatus(serviceData, ListAssistCaseStatus.PRE_HEARING))
             && !isHearingChannel(serviceData, ONPPRS)
             && isHearingType(serviceData, SUBSTANTIVE);
     }
