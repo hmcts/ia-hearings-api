@@ -149,7 +149,6 @@ class ListCaseHandlerTest {
         verify(asylumCase).write(LIST_CASE_HEARING_LENGTH, "150");
         verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
 
-
         verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, asylumCase);
     }
 }
