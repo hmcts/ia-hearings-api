@@ -69,7 +69,7 @@ public class ListCaseHandler implements ServiceDataHandler<ServiceData> {
             throw new IllegalStateException("Cannot handle service data");
         }
 
-        String caseId = serviceData.read(CASE_REF, String.class)
+        final String caseId = serviceData.read(CASE_REF, String.class)
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
 
         Optional<List<HearingChannel>> optionalHearingChannels = serviceData.read(HEARING_CHANNELS);

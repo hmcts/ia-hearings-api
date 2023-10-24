@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatu
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -53,10 +52,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandl
 @RequiredArgsConstructor
 public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
 
-    private static final String GLASGOW_EPIMMS_ID = "366559";
-    private static final String LISTING_REFERENCE = "LAI";
     private final CoreCaseDataService coreCaseDataService;
-    private final HearingService hearingService;
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -132,31 +128,31 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
             LIST_CASE_HEARING_DATE,
             String.class
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingDate can not be null")));
-        String currentVenueId = asylumCase.read(
+        currentHearingDate = currentHearingDate.truncatedTo(ChronoUnit.SECONDS);
+        final String currentVenueId = asylumCase.read(
             LIST_CASE_HEARING_CENTRE,
             HearingCentre.class
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingCentre can not be null")).getEpimsId();
         DynamicList currentHearingChannels = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
             .orElseThrow(() -> new IllegalStateException("hearingChannel can not be null"));
-        String currentHearingChannel = currentHearingChannels.getValue().getCode();
-        String currentDuration = asylumCase.read(
+        final String currentHearingChannel = currentHearingChannels.getValue().getCode();
+        final String currentDuration = asylumCase.read(
             LIST_CASE_HEARING_LENGTH,
             String.class
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingLength can not be null"));
 
-        String nextHearingChannel = nextHearingChannelList.get(0).name();
-        currentHearingDate = currentHearingDate.truncatedTo(ChronoUnit.SECONDS);
+        final String nextHearingChannel = nextHearingChannelList.get(0).name();
         nextHearingDate = nextHearingDate.truncatedTo(ChronoUnit.SECONDS);
 
         if (nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name())) {
             nextHearingVenueId = REMOTE_HEARING.getEpimsId();
         }
 
-        return (!currentHearingDate.equals(nextHearingDate) ||
-            !currentVenueId.equals(nextHearingVenueId) ||
-            !currentHearingChannel.equals(nextHearingChannel) ||
-            (nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name()) &&
-                !currentDuration.equals(String.valueOf(nextDuration))));
+        return (!currentHearingDate.equals(nextHearingDate)
+            || !currentVenueId.equals(nextHearingVenueId)
+            || !currentHearingChannel.equals(nextHearingChannel)
+            || (nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name())
+            && !currentDuration.equals(String.valueOf(nextDuration))));
     }
 }
 
