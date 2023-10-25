@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -15,11 +17,14 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandle
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
 import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_EARLIEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_LATEST;
@@ -33,6 +38,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CANCEL_HEARINGS_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
 
 @Component
@@ -71,7 +79,7 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
             throw new IllegalStateException("Cannot handle callback");
         }
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
-        Optional<DynamicList> selectedHearing = callback.getCaseDetails().getCaseData().read(CHANGE_HEARINGS);
+        Optional<DynamicList> selectedHearing = asylumCase.read(CHANGE_HEARINGS);
         selectedHearing.ifPresent(hearing -> {
             String hearingId = selectedHearing.get().getValue().getCode();
             boolean firstAvailableDate = false;
@@ -83,21 +91,24 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                 firstAvailableDate = true;
             }
 
-            HearingGetResponse hearingUpdated = hearingService.updateHearing(
-                updateHearingPayloadService.createUpdateHearingPayload(
-                    hearingId,
-                    getHearingChannels(asylumCase),
-                    getLocations(asylumCase),
-                    getDuration(asylumCase),
-                    getReason(asylumCase),
-                    firstAvailableDate,
-                    updateHearingWindow(asylumCase)
-                ),
-                hearingId
-            );
+            try {
+                hearingService.updateHearing(
+                    updateHearingPayloadService.createUpdateHearingPayload(
+                        hearingId,
+                        getHearingChannels(asylumCase),
+                        getLocations(asylumCase),
+                        getDuration(asylumCase),
+                        getReason(asylumCase),
+                        firstAvailableDate,
+                        updateHearingWindow(asylumCase)
+                    ),
+                    hearingId
+                );
 
-            if (hearingUpdated != null) {
                 clearFields(asylumCase);
+
+            } catch (HmcException e) {
+                asylumCase.write(MANUAL_UPDATE_HEARING_REQUIRED, YES);
             }
         });
 

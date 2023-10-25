@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -24,6 +25,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
@@ -36,6 +39,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HearingRequestGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
@@ -261,5 +265,19 @@ class HearingServiceTest {
         assertThrows(HmcException.class, () -> {
             hearingService.updatePartiesNotified(HEARING_ID, 1, receivedDateTime, payload);
         });
+    }
+
+    @Test
+    void testDeleteHearing() {
+        when(hmcHearingApi.deleteHearing(eq(IDAM_OAUTH2_TOKEN), eq(SERVICE_AUTHORIZATION),
+            eq(Long.valueOf(HEARING_ID)), any(DeleteHearingRequest.class)))
+            .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+        ResponseEntity<HmcHearingResponse> result = hearingService.deleteHearing(
+            Long.valueOf(HEARING_ID),
+            "cancellationReason"
+        );
+
+        assertThat(result).isNotNull();
     }
 }
