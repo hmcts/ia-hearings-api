@@ -96,11 +96,13 @@ public class LanguageAndAdjustmentsMapper {
     private void separateLanguageAndReasonableAdjustmentFlags(List<CaseFlagDetail> activeCaseFlagDetails,
                                                               List<CaseFlagDetail> languageFlags,
                                                               List<CaseFlagDetail> reasonableAdjustmentsFlags) {
+
         activeCaseFlagDetails
             .forEach(flagDetail -> {
                 if (isLanguageCaseFlag(flagDetail)) {
                     languageFlags.add(flagDetail);
-                } else if (isReasonableAdjustmentFlag(flagDetail)) {
+                }
+                if (isReasonableAdjustmentFlag(flagDetail)) {
                     reasonableAdjustmentsFlags.add(flagDetail);
                 }
             });
