@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
@@ -58,6 +59,8 @@ class EditListCaseHandlerTest {
     @Mock
     CoreCaseDataService coreCaseDataService;
     @Mock
+    StartEventResponse startEventResponse;
+    @Mock
     ServiceData serviceData;
     @Mock
     AsylumCase asylumCase;
@@ -66,9 +69,7 @@ class EditListCaseHandlerTest {
     @BeforeEach
     public void setUp() {
 
-        editListCaseHandler =
-            new EditListCaseHandler(coreCaseDataService);
-
+        editListCaseHandler = new EditListCaseHandler(coreCaseDataService);
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.class))
@@ -148,7 +149,7 @@ class EditListCaseHandlerTest {
             LocalDateTime.of(2023, 9, 30, 9, 45)
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
         );
-        verify(coreCaseDataService).triggerEvent(EDIT_CASE_LISTING, CASE_REF, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REF, startEventResponse, asylumCase);
     }
 
     @Test
@@ -165,7 +166,7 @@ class EditListCaseHandlerTest {
         verify(asylumCase).write(
             LIST_CASE_HEARING_CENTRE, HearingCentre.BRADFORD
         );
-        verify(coreCaseDataService).triggerEvent(EDIT_CASE_LISTING, CASE_REF, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REF, startEventResponse, asylumCase);
     }
 
     @Test
@@ -184,9 +185,9 @@ class EditListCaseHandlerTest {
             LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING
         );
         verify(asylumCase).write(
-            LIST_CASE_HEARING_LENGTH,"100"
+            LIST_CASE_HEARING_LENGTH, "100"
         );
-        verify(coreCaseDataService).triggerEvent(EDIT_CASE_LISTING, CASE_REF, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REF, startEventResponse, asylumCase);
     }
 
     @Test
@@ -205,16 +206,20 @@ class EditListCaseHandlerTest {
             LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING
         );
         verify(asylumCase).write(
-            LIST_CASE_HEARING_LENGTH,"100"
+            LIST_CASE_HEARING_LENGTH, "100"
         );
-        verify(coreCaseDataService).triggerEvent(EDIT_CASE_LISTING, CASE_REF, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REF, startEventResponse, asylumCase);
     }
 
     private void initializeServiceData() {
-        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REF))
+            .thenReturn(startEventResponse);
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class))
+            .thenReturn(Optional.of(CASE_REF));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
             .thenReturn(Optional.of(HEARING_ID));
-        when(coreCaseDataService.getCase(CASE_REF)).thenReturn(asylumCase);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse))
+            .thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))

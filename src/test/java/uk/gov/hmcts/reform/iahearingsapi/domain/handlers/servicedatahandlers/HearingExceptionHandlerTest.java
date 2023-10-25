@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HANDLE_HEARING_EXCEPTION;
 
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.webjars.NotFoundException;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
@@ -35,6 +37,8 @@ class HearingExceptionHandlerTest {
     CoreCaseDataService coreCaseDataService;
     @Mock
     ServiceData serviceData;
+    @Mock
+    StartEventResponse startEventResponse;
     @Mock
     AsylumCase asylumCase;
 
@@ -78,11 +82,14 @@ class HearingExceptionHandlerTest {
             .thenReturn(Optional.of(HmcStatus.EXCEPTION));
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class))
             .thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.getCase(CASE_REF)).thenReturn(asylumCase);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF)).thenReturn(startEventResponse);
 
         hearingExceptionHandler.handle(serviceData);
 
-        verify(coreCaseDataService).triggerEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, startEventResponse,
+                                                       asylumCase
+        );
     }
 
     @Test
@@ -91,11 +98,14 @@ class HearingExceptionHandlerTest {
             .thenReturn(Optional.of(HmcStatus.EXCEPTION));
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class))
             .thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.getCase(CASE_REF)).thenThrow(new NotFoundException("Case not found"));
+        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF))
+            .thenThrow(new NotFoundException("Case not found"));
 
         hearingExceptionHandler.handle(serviceData);
 
-        verify(coreCaseDataService, never()).triggerEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, asylumCase);
+        verify(coreCaseDataService, never()).triggerSubmitEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, startEventResponse,
+                                                                asylumCase
+        );
     }
 }
 
