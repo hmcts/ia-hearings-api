@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
@@ -78,7 +79,8 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
         String caseId = serviceData.read(CASE_REF, String.class)
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
 
-        AsylumCase asylumCase = coreCaseDataService.getCase(caseId);
+        StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, caseId);
+        AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
         Optional<List<HearingChannel>> optionalHearingChannels = serviceData.read(HEARING_CHANNELS);
         List<HearingChannel> hearingChannels = optionalHearingChannels
@@ -94,6 +96,7 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
             .orElseThrow(() -> new IllegalStateException("duration can not be null"));
 
         sendEditListingEventIfHearingIsUpdated(
+            startEventResponse,
             asylumCase,
             caseId,
             nextHearingDate,
@@ -104,7 +107,8 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
         return new ServiceDataResponse<>(serviceData);
     }
 
-    private void sendEditListingEventIfHearingIsUpdated(AsylumCase asylumCase,
+    private void sendEditListingEventIfHearingIsUpdated(StartEventResponse startEventResponse,
+                                                        AsylumCase asylumCase,
                                                         String caseId,
                                                         LocalDateTime nextHearingDate,
                                                         String nextHearingVenueId,
@@ -157,7 +161,7 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
 
         if (sendUpdate) {
             log.info("Sending `{}` event for case ID `{}`", EDIT_CASE_LISTING, caseId);
-            coreCaseDataService.triggerEvent(EDIT_CASE_LISTING, caseId, asylumCase);
+            coreCaseDataService.triggerSubmitEvent(EDIT_CASE_LISTING, caseId, startEventResponse, asylumCase);
         }
     }
 }

@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
@@ -74,7 +75,8 @@ public class ListCaseHandler implements ServiceDataHandler<ServiceData> {
         final String caseId = serviceData.read(CASE_REF, String.class)
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
 
-        AsylumCase asylumCase = coreCaseDataService.getCase(caseId);
+        StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(LIST_CASE, caseId);
+        AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
         Optional<List<HearingChannel>> optionalHearingChannels = serviceData.read(HEARING_CHANNELS);
         List<HearingChannel> hearingChannels = optionalHearingChannels
@@ -90,15 +92,17 @@ public class ListCaseHandler implements ServiceDataHandler<ServiceData> {
             .orElseThrow(() -> new IllegalStateException("duration can not be null"));
         asylumCase.write(ARIA_LISTING_REFERENCE, LISTING_REFERENCE);
         asylumCase.write(LIST_CASE_HEARING_DATE,
-                         HandlerUtils.getHearingDateAndTime(nextHearingDate, hearingChannels, hearingVenueId)
-                             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
+            HandlerUtils.getHearingDateAndTime(nextHearingDate, hearingChannels, hearingVenueId)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
         asylumCase.write(LIST_CASE_HEARING_LENGTH, String.valueOf(duration));
         asylumCase.write(LIST_CASE_HEARING_CENTRE, HandlerUtils.getLocation(hearingChannels, hearingVenueId));
-        asylumCase.write(HEARING_CHANNEL, new DynamicList(new Value(hearingChannels.get(0).name(),
-                                                                    hearingChannels.get(0).getLabel()), null));
+        asylumCase.write(HEARING_CHANNEL, new DynamicList(new Value(
+            hearingChannels.get(0).name(),
+            hearingChannels.get(0).getLabel()
+        ), null));
 
         log.info("Sending `{}` event for  Case ID `{}`", LIST_CASE, caseId);
-        coreCaseDataService.triggerEvent(LIST_CASE, caseId, asylumCase);
+        coreCaseDataService.triggerSubmitEvent(LIST_CASE, caseId, startEventResponse, asylumCase);
 
         return new ServiceDataResponse<>(serviceData);
     }
