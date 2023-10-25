@@ -93,7 +93,7 @@ public class LanguageAndAdjustmentsMapperTest {
         mapper.processPartyCaseFlags(asylumCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("bfi");
-        verify(reasonableAdjustments, times(1)).addAll(List.of("RA0018"));
+        verify(reasonableAdjustments, times(1)).addAll(List.of("RA0042", "RA0018"));
         verify(individualDetailsModel, times(1))
             .setOtherReasonableAdjustmentDetails("Interpreter: German; "
                                                  + "Support filling in forms: comment of r.a. flag;");
