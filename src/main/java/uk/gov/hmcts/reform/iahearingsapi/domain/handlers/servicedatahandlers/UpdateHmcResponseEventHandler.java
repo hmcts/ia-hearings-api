@@ -44,7 +44,7 @@ public class UpdateHmcResponseEventHandler implements ServiceDataHandler<Service
             .map(yesOrNo -> yesOrNo.equals(YES))
             .orElse(false);
 
-        if (!isIntegrated){
+        if (!isIntegrated) {
             StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(UPDATE_HMC_RESPONSE, caseId);
             AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
             coreCaseDataService.triggerSubmitEvent(UPDATE_HMC_RESPONSE, caseId, startEventResponse, asylumCase);
