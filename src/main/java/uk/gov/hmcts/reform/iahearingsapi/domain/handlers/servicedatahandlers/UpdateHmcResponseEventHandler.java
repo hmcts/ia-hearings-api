@@ -12,8 +12,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_INTEGRATED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HMC_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
 
 @Component
@@ -37,11 +39,16 @@ public class UpdateHmcResponseEventHandler implements ServiceDataHandler<Service
         String caseId = serviceData.read(CASE_REF, String.class)
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
 
-        StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(UPDATE_HMC_RESPONSE, caseId);
-        AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
+        AsylumCase asylumCaseRead = coreCaseDataService.getCase(caseId);
+        boolean isIntegrated = asylumCaseRead.read(IS_INTEGRATED)
+            .map(yesOrNo -> yesOrNo.equals(YES))
+            .orElse(false);
 
-        coreCaseDataService.triggerSubmitEvent(UPDATE_HMC_RESPONSE, caseId, startEventResponse, asylumCase);
-
+        if (!isIntegrated){
+            StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(UPDATE_HMC_RESPONSE, caseId);
+            AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
+            coreCaseDataService.triggerSubmitEvent(UPDATE_HMC_RESPONSE, caseId, startEventResponse, asylumCase);
+        }
         return new ServiceDataResponse<>(serviceData);
     }
 }

@@ -68,6 +68,7 @@ public class UpdateHmcResponseEventHandlerTest {
     void should_trigger_update_hmc_response_event() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+        when(coreCaseDataService.getCase(CASE_REF)).thenReturn(asylumCase);
         when(coreCaseDataService.startCaseEvent(UPDATE_HMC_RESPONSE, CASE_REF)).thenReturn(startEventResponse);
 
         handler.handle(serviceData);

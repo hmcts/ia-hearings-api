@@ -154,6 +154,8 @@ public enum AsylumCaseFieldDefinition {
         "endAppealOutcome", new TypeReference<String>(){}),
     REQUIRE_MANUAL_HEARINGS_CANCELLATION(
         "requireManualHearingsCancellation", new TypeReference<String>(){}),
+    IS_INTEGRATED(
+        "isIntegrated", new TypeReference<YesOrNo>(){})
     ;
 
     private final String value;
