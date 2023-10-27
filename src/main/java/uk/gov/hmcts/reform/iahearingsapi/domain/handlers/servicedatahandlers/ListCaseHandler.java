@@ -99,7 +99,10 @@ public class ListCaseHandler implements ServiceDataHandler<ServiceData> {
         asylumCase.write(HEARING_CHANNEL, new DynamicList(new Value(
             hearingChannels.get(0).name(),
             hearingChannels.get(0).getLabel()
-        ), null));
+        ), List.of(new Value(
+            hearingChannels.get(0).name(),
+            hearingChannels.get(0).getLabel()
+        ))));
 
         log.info("Sending `{}` event for  Case ID `{}`", LIST_CASE, caseId);
         coreCaseDataService.triggerSubmitEvent(LIST_CASE, caseId, startEventResponse, asylumCase);

@@ -156,7 +156,9 @@ class ListCaseHandlerTest {
         verify(asylumCase).write(LIST_CASE_HEARING_LENGTH, "150");
         verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
         verify(asylumCase).write(HEARING_CHANNEL, new DynamicList(new Value(HearingChannel.INTER.name(),
-                                                                            HearingChannel.INTER.getLabel()), null));
+                                                                            HearingChannel.INTER.getLabel()),
+                                                                  List.of(new Value(HearingChannel.INTER.name(),
+                                                                            HearingChannel.INTER.getLabel()))));
 
         verify(coreCaseDataService).triggerSubmitEvent(LIST_CASE, CASE_REF,startEventResponse, asylumCase);
     }
