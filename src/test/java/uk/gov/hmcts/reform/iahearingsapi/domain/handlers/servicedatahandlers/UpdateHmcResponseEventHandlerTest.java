@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
@@ -34,6 +35,8 @@ public class UpdateHmcResponseEventHandlerTest {
     ServiceData serviceData;
     @Mock
     AsylumCase asylumCase;
+    @Mock
+    StartEventResponse startEventResponse;
     private static final String CASE_REF = "1111";
     private UpdateHmcResponseEventHandler handler;
 
@@ -64,11 +67,13 @@ public class UpdateHmcResponseEventHandlerTest {
     @Test
     void should_trigger_update_hmc_response_event() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(coreCaseDataService.getCase(CASE_REF)).thenReturn(asylumCase);
+        when(coreCaseDataService.startCaseEvent(UPDATE_HMC_RESPONSE, CASE_REF)).thenReturn(startEventResponse);
 
         handler.handle(serviceData);
 
-        verify(coreCaseDataService).triggerEvent(UPDATE_HMC_RESPONSE, CASE_REF, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(UPDATE_HMC_RESPONSE, CASE_REF, startEventResponse, asylumCase);
     }
 
 }

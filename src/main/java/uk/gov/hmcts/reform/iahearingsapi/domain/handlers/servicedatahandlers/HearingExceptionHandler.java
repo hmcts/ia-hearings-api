@@ -8,6 +8,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandl
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
@@ -44,18 +45,19 @@ public class HearingExceptionHandler implements ServiceDataHandler<ServiceData> 
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
 
         AsylumCase asylumCase = null;
-
+        StartEventResponse startEventResponse = null;
         try {
-            asylumCase = coreCaseDataService.getCase(caseId);
+            startEventResponse = coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, caseId);
+            asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
         } catch (Exception e) {
             log.error("Cannot get case {} when trying to retrieve it to trigger handleHearingException."
-                      + "core-case-data-api threw an exception with following message: {}",
-                      caseId,
-                      e.getMessage());
+                    + "core-case-data-api threw an exception with following message: {}",
+                caseId,
+                e.getMessage());
         }
 
         if (asylumCase != null) {
-            coreCaseDataService.triggerEvent(HANDLE_HEARING_EXCEPTION, caseId, asylumCase);
+            coreCaseDataService.triggerSubmitEvent(HANDLE_HEARING_EXCEPTION, caseId, startEventResponse, asylumCase);
         }
 
         return new ServiceDataResponse<>(serviceData);

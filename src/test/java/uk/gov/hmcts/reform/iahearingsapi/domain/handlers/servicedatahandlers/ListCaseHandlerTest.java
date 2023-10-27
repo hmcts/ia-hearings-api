@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
@@ -26,10 +27,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
@@ -51,6 +55,8 @@ class ListCaseHandlerTest {
     CoreCaseDataService coreCaseDataService;
     @Mock
     ServiceData serviceData;
+    @Mock
+    StartEventResponse startEventResponse;
     @Mock
     AsylumCase asylumCase;
 
@@ -130,7 +136,8 @@ class ListCaseHandlerTest {
     @Test
     void should_trigger_case_listing() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.getCase(CASE_REF)).thenReturn(asylumCase);
+        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REF)).thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
@@ -148,8 +155,12 @@ class ListCaseHandlerTest {
                                      .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
         verify(asylumCase).write(LIST_CASE_HEARING_LENGTH, "150");
         verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
+        verify(asylumCase).write(HEARING_CHANNEL, new DynamicList(new Value(HearingChannel.INTER.name(),
+                                                                            HearingChannel.INTER.getLabel()),
+                                                                  List.of(new Value(HearingChannel.INTER.name(),
+                                                                            HearingChannel.INTER.getLabel()))));
 
-        verify(coreCaseDataService).triggerEvent(LIST_CASE, CASE_REF, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(LIST_CASE, CASE_REF,startEventResponse, asylumCase);
     }
 }
 
