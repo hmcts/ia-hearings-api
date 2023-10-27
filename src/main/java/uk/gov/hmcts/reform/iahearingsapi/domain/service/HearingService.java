@@ -182,7 +182,7 @@ public class HearingService {
                 new DeleteHearingRequest(Arrays.asList(cancellationReason))
             );
         } catch (FeignException e) {
-            log.error("Failed to retrieve patries notified with Id: {} from HMC", hearingId);
+            log.error("Failed to retrieve parties notified with Id: {} from HMC", hearingId);
             throw new HmcException(e);
         }
     }
