@@ -77,7 +77,7 @@ security:
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
       - "endAppeal"
-    caseworker-ia-caseworker:
+    caseworker-ia-caseofficer:
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
       - "endAppeal"

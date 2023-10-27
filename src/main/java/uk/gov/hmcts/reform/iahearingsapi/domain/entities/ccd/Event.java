@@ -11,6 +11,7 @@ public enum Event {
     UPDATE_HMC_RESPONSE("updateHMCResponse"),
     RECORD_ADJOURNMENT_DETAILS("recordAdjournmentDetails"),
     END_APPEAL("endAppeal"),
+    EDIT_CASE_LISTING("editCaseListing"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");

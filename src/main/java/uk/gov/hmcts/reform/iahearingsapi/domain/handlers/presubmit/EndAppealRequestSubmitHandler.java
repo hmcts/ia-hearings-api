@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.Optional;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.END_APPEAL_OUTCOME;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUIRE_MANUAL_HEARINGS_CANCELLATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CANCEL_HEARINGS_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLATION_REQUESTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLATION_SUBMITTED;
@@ -13,7 +13,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CA
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CLOSED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.EXCEPTION;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
@@ -24,6 +23,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
 @Component
 @Slf4j
@@ -70,21 +70,20 @@ public class EndAppealRequestSubmitHandler implements PreSubmitCallbackHandler<A
         Optional<String> endAppealOutcome = asylumCase.read(END_APPEAL_OUTCOME);
         String cancellationReason = mapToRefData(endAppealOutcome);
 
-        HearingsGetResponse hearings = hearingService.getHearings(callback.getCaseDetails().getId());
-        hearings.getCaseHearings()
-            .stream()
-            .filter(hearing -> canBeCanceled(hearing))
-            .forEach(
-                hearing -> {
-                    HttpStatus responseCode =
+        try {
+            HearingsGetResponse hearings = hearingService.getHearings(callback.getCaseDetails().getId());
+            hearings.getCaseHearings()
+                .stream()
+                .filter(hearing -> canBeCanceled(hearing))
+                .forEach(
+                    hearing -> {
                         hearingService
                             .deleteHearing(Long.valueOf(hearing.getHearingRequestId()), cancellationReason)
                             .getStatusCode();
-
-                    if (!responseCode.equals(HttpStatus.OK)) {
-                        asylumCase.write(REQUIRE_MANUAL_HEARINGS_CANCELLATION, YES);
-                    }
-                });
+                    });
+        } catch (HmcException e) {
+            asylumCase.write(MANUAL_CANCEL_HEARINGS_REQUIRED, YES);
+        }
 
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
