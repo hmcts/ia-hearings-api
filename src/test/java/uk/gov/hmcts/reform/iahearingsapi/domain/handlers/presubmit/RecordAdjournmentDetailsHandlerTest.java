@@ -52,8 +52,11 @@ class RecordAdjournmentDetailsHandlerTest {
 
     @BeforeEach
     void setUp() {
-        when(asylumCase.read(HEARING_CANCELLATION_REASON, String.class)).thenReturn(Optional.of(CANCELLATION_REASON));
-        when(asylumCase.read(ADJOURNMENT_DETAILS_HEARING, DynamicList.class)).thenReturn(Optional.of(new DynamicList(HEARING_ID)));
+        when(asylumCase.read(HEARING_CANCELLATION_REASON, String.class))
+            .thenReturn(Optional.of(CANCELLATION_REASON));
+
+        when(asylumCase.read(ADJOURNMENT_DETAILS_HEARING, DynamicList.class))
+            .thenReturn(Optional.of(new DynamicList(HEARING_ID)));
 
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
