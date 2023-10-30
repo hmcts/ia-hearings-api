@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
@@ -34,6 +35,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
 
@@ -85,6 +87,7 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                 firstAvailableDate = true;
             }
 
+            YesOrNo manualUpdateHearingRequired = NO;
             try {
                 hearingService.updateHearing(
                     updateHearingPayloadService.createUpdateHearingPayload(
@@ -102,10 +105,10 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                 clearFields(asylumCase);
 
             } catch (HmcException e) {
-                asylumCase.write(MANUAL_UPDATE_HEARING_REQUIRED, YES);
+                manualUpdateHearingRequired = YES;
             }
+            asylumCase.write(MANUAL_UPDATE_HEARING_REQUIRED, manualUpdateHearingRequired);
         });
-
 
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
