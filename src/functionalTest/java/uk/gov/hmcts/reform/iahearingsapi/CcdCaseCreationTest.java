@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.specification.RequestSpecification;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ import uk.gov.hmcts.reform.iahearingsapi.util.IdamAuthProvider;
 import uk.gov.hmcts.reform.iahearingsapi.util.MapValueExpander;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDataContent;
 
+@Slf4j
 @SpringBootTest()
 @ActiveProfiles("functional")
 public class CcdCaseCreationTest {
@@ -92,6 +94,9 @@ public class CcdCaseCreationTest {
             .setBaseUri(hmcInstance)
             .setRelaxedHTTPSValidation()
             .build();
+
+        log.info("hmcInstance: " + hmcInstance);
+        log.info("targetInstance: " + targetInstance);
 
         startAppeal();
         submitAppeal();
