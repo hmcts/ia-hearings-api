@@ -66,12 +66,7 @@ public class CcdCaseCreationTest {
 
     @Value("${hmc.baseUrl}")
     protected String hmcInstance;
-    protected final String targetInstance =
-        StringUtils.defaultIfBlank(
-            System.getenv("TEST_URL"),
-            "http://localhost:8100"
-        );
-
+    protected final String targetInstance = "http://ia-hearings-api-demo.service.core-compute-demo.internal";
 
     @Autowired
     private CcdDataApi ccdApi;

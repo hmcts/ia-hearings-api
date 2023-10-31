@@ -5,7 +5,6 @@ java:
   aadIdentityName: ia
   ingressHost: ia-hearings-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   environment:
-    TEST_URL: "http://ia-hearings-api-demo.service.core-compute-demo.internal"
     CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     AAC_URL: "http://aac-manage-case-assignment-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     CCD_GW_URL: "http://dm-store-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
