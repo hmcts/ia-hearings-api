@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -65,7 +66,11 @@ public class CcdCaseCreationTest {
 
     @Value("${hmc.baseUrl}")
     protected String hmcInstance;
-    protected final String targetInstance = "http://ia-hearings-api-demo.service.core-compute-demo.internal";
+    protected final String targetInstance =
+        StringUtils.defaultIfBlank(
+            System.getenv("HEARINGS_API_URL"),
+            "http://localhost:8100"
+        );
 
     @Autowired
     private CcdDataApi ccdApi;
