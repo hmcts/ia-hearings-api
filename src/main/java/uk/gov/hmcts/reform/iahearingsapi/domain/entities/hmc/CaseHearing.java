@@ -36,7 +36,7 @@ public class CaseHearing {
             case "BFA1-COS" -> "Costs";
             case "BFA1-BAI" -> "Bail";
             case "BFA1-SUB" -> "Substantive";
-            default -> throw new IllegalStateException("Unexpected value: " + hearingType);
+            default -> "BBA3-substantive";
         };
     }
 }
