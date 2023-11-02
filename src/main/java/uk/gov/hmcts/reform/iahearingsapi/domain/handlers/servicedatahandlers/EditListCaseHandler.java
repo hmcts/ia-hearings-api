@@ -13,8 +13,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 
@@ -24,36 +22,25 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.FINAL_BUNDLING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PRE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.INTER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingChannel;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingListingStatus;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingType;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHmcStatus;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
+public class EditListCaseHandler extends SubstantiveListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
     private static final String GLASGOW_EPIMMS_ID = "366559";
@@ -68,17 +55,13 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
     ) {
         requireNonNull(serviceData, "serviceData must not be null");
 
-        String caseId = serviceData.read(CASE_REF, String.class)
-            .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
-
-        State caseState = coreCaseDataService.getCaseState(caseId);
+        String caseId = getCaseReference(serviceData);
+        State caseState = coreCaseDataService
+            .getCaseState(caseId);
         List<State> targetStates = Arrays.asList(PREPARE_FOR_HEARING, FINAL_BUNDLING, PRE_HEARING);
 
-        return isHmcStatus(serviceData, HmcStatus.LISTED)
-            && isHearingListingStatus(serviceData, ListingStatus.FIXED)
-            && targetStates.contains(caseState)
-            && !isHearingChannel(serviceData, ONPPRS)
-            && isHearingType(serviceData, SUBSTANTIVE);
+        return isSubstantiveListedHearing(serviceData)
+            && targetStates.contains(caseState);
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
@@ -86,24 +69,19 @@ public class EditListCaseHandler implements ServiceDataHandler<ServiceData> {
             throw new IllegalStateException("Cannot handle service data");
         }
 
-        String caseId = serviceData.read(CASE_REF, String.class)
-            .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
+        String caseId = getCaseReference(serviceData);
 
         StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, caseId);
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
-        Optional<List<HearingChannel>> optionalHearingChannels = serviceData.read(HEARING_CHANNELS);
-        List<HearingChannel> hearingChannels = optionalHearingChannels
-            .orElseThrow(() -> new IllegalStateException("hearingChannels can not be empty"));
+        List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
 
         LocalDateTime nextHearingDate = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
             .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
 
-        String hearingVenueId = serviceData.read(HEARING_VENUE_ID, String.class)
-            .orElseThrow(() -> new IllegalStateException("hearingVenueId can not be null"));
+        String hearingVenueId = getHearingVenueId(serviceData);
 
-        int duration = serviceData.read(DURATION, Integer.class)
-            .orElseThrow(() -> new IllegalStateException("duration can not be null"));
+        int duration = getHearingDuration(serviceData);
 
         sendEditListingEventIfHearingIsUpdated(
             startEventResponse,
