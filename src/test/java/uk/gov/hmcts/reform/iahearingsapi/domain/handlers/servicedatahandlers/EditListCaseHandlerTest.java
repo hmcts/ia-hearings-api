@@ -153,7 +153,8 @@ class EditListCaseHandlerTest {
             LocalDateTime.of(2023, 9, 30, 9, 45)
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
         );
-        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
     @Test
@@ -170,7 +171,8 @@ class EditListCaseHandlerTest {
         verify(asylumCase).write(
             LIST_CASE_HEARING_CENTRE, HearingCentre.BRADFORD
         );
-        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
     @Test
@@ -191,7 +193,8 @@ class EditListCaseHandlerTest {
         verify(asylumCase).write(
             LIST_CASE_HEARING_LENGTH, "100"
         );
-        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
     @Test
@@ -212,7 +215,8 @@ class EditListCaseHandlerTest {
         verify(asylumCase).write(
             LIST_CASE_HEARING_LENGTH, "100"
         );
-        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
     private void initializeServiceData() {
