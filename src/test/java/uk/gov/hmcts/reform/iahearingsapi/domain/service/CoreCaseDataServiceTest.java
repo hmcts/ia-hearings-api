@@ -6,11 +6,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Classification;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 
 @ExtendWith(MockitoExtension.class)
@@ -75,6 +76,19 @@ public class CoreCaseDataServiceTest {
         AsylumCase actualAsylumCase = coreCaseDataService.getCase(CASE_ID);
 
         assertEquals(asylumCase, actualAsylumCase);
+    }
+
+    @Test
+    public void should_get_case_status() {
+        CaseDetails caseDetails = CaseDetails.builder().state("listing").build();
+
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
+        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
+        when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(caseDetails);
+
+        State caseState = coreCaseDataService.getCaseState(CASE_ID);
+
+        assertEquals(caseState, LISTING);
     }
 
     @Test

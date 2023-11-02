@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.ccd.client.model.Classification;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
 
 @Slf4j
@@ -57,18 +58,11 @@ public class CoreCaseDataService {
     }
 
     public AsylumCase getCase(String caseId) {
-        try {
-            CaseDetails caseDetails = coreCaseDataApi
-                .getCase(idamService.getServiceUserToken(), serviceAuthTokenGenerator.generate(), caseId);
-            if (caseDetails != null) {
-                return iaCcdConvertService.getCaseData(caseDetails.getData());
-            }
-        } catch (Exception ex) {
-            log.error("Case {} not found due to: {}", caseId, ex.getMessage());
-        }
-        String errorMessage = String.format("Case %s not found", caseId);
-        log.error(errorMessage);
-        throw new IllegalArgumentException(errorMessage);
+        return iaCcdConvertService.getCaseData(getCaseDetails(caseId).getData());
+    }
+
+    public State getCaseState(String caseId) {
+        return State.get(getCaseDetails(caseId).getState());
     }
 
     public CaseDetails triggerSubmitEvent(Event event,
@@ -92,6 +86,21 @@ public class CoreCaseDataService {
         );
 
         return caseDetails;
+    }
+
+    public CaseDetails getCaseDetails(String caseId) {
+        try {
+            CaseDetails caseDetails = coreCaseDataApi
+                .getCase(idamService.getServiceUserToken(), serviceAuthTokenGenerator.generate(), caseId);
+            if (caseDetails != null) {
+                return caseDetails;
+            }
+        } catch (Exception ex) {
+            log.error("Case {} not found due to: {}", caseId, ex.getMessage());
+        }
+        String errorMessage = String.format("Case %s not found", caseId);
+        log.error(errorMessage);
+        throw new IllegalArgumentException(errorMessage);
     }
 
     private uk.gov.hmcts.reform.ccd.client.model.CaseDetails submitEventForCaseWorker(String userToken,

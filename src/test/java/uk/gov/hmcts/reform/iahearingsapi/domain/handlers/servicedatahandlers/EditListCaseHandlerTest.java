@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinit
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 
@@ -39,8 +38,11 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPEAL_SUBMITTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 
@@ -52,7 +54,7 @@ class EditListCaseHandlerTest {
 
     private static final String GLASGOW_EPIMMS_ID = "366559";
     private static final String LISTING_REFERENCE = "LAI";
-    private static final String CASE_REF = "1111";
+    private static final String CASE_REFERENCE = "1111";
     private static final String HEARING_ID = "12345";
     private static final LocalDateTime NEXT_HEARING_DATE = LocalDateTime.of(2023, 9, 29, 12, 0);
     private static final String HEARING_VENUE_ID = GLASGOW_EPIMMS_ID;
@@ -70,12 +72,13 @@ class EditListCaseHandlerTest {
     public void setUp() {
 
         editListCaseHandler = new EditListCaseHandler(coreCaseDataService);
+        when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERENCE));
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.class))
             .thenReturn(Optional.of(ListingStatus.FIXED));
-        when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
-            .thenReturn(Optional.of(ListAssistCaseStatus.PREPARE_FOR_HEARING));
+        when(coreCaseDataService.getCaseState(CASE_REFERENCE))
+            .thenReturn(PREPARE_FOR_HEARING);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
@@ -121,16 +124,17 @@ class EditListCaseHandlerTest {
     }
 
     @Test
-    void should_not_handle_if_list_assist_case_status_unqualified() {
-        when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
-            .thenReturn(Optional.of(ListAssistCaseStatus.CASE_CLOSED));
+    void should_not_handle_if_case_status_unqualified() {
+        when(coreCaseDataService.getCaseState(CASE_REFERENCE))
+            .thenReturn(APPEAL_SUBMITTED);
+
         assertFalse(editListCaseHandler.canHandle(serviceData));
     }
 
     @Test
     void should_throw_error_if_cannot_handle() {
-        when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
-            .thenReturn(Optional.of(ListAssistCaseStatus.CASE_CLOSED));
+        when(coreCaseDataService.getCaseState(CASE_REFERENCE))
+            .thenReturn(APPEAL_SUBMITTED);
 
         assertThrows(IllegalStateException.class, () -> editListCaseHandler.handle(serviceData));
     }
@@ -149,7 +153,7 @@ class EditListCaseHandlerTest {
             LocalDateTime.of(2023, 9, 30, 9, 45)
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
         );
-        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
     @Test
@@ -166,7 +170,7 @@ class EditListCaseHandlerTest {
         verify(asylumCase).write(
             LIST_CASE_HEARING_CENTRE, HearingCentre.BRADFORD
         );
-        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
     @Test
@@ -187,7 +191,7 @@ class EditListCaseHandlerTest {
         verify(asylumCase).write(
             LIST_CASE_HEARING_LENGTH, "100"
         );
-        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
     @Test
@@ -208,14 +212,14 @@ class EditListCaseHandlerTest {
         verify(asylumCase).write(
             LIST_CASE_HEARING_LENGTH, "100"
         );
-        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
     private void initializeServiceData() {
-        when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REF))
+        when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REFERENCE))
             .thenReturn(startEventResponse);
-        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class))
-            .thenReturn(Optional.of(CASE_REF));
+        when(serviceData.read(CASE_REF, String.class))
+            .thenReturn(Optional.of(CASE_REFERENCE));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
             .thenReturn(Optional.of(HEARING_ID));
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse))
