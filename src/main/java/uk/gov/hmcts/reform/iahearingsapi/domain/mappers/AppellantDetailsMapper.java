@@ -58,7 +58,6 @@ public class AppellantDetailsMapper {
                 .vulnerableFlag(caseFlagsMapper.getVulnerableFlag(asylumCase))
                 .firstName(caseDataMapper.getName(asylumCase, APPELLANT_GIVEN_NAMES))
                 .lastName(caseDataMapper.getName(asylumCase, APPELLANT_FAMILY_NAME))
-                .title(asylumCase.read(APPELLANT_TITLE, String.class).orElse(null))
                 .hearingChannelEmail(
                     caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef))
                 .hearingChannelPhone(
