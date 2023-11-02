@@ -104,10 +104,4 @@ public class ServiceHearingValuesModel {
 
     @NonNull
     private List<String> hearingLevelParticipantAttendance;
-
-    private String interpreterLanguage;
-
-    private List<String> reasonableAdjustments;
-
-    private List<String> otherReasonableAdjustmentsDetails;
 }

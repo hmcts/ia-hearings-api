@@ -86,7 +86,9 @@ public class LanguageAndAdjustmentsMapper {
             }
 
             if (!otherReasonableAdjustments.isEmpty()) {
-                individualDetails.setOtherReasonableAdjustmentDetails(otherReasonableAdjustments + ";");
+                individualDetails.setOtherReasonableAdjustmentDetails(
+                    Optional.ofNullable(individualDetails.getOtherReasonableAdjustmentDetails()).orElse("")
+                        + otherReasonableAdjustments + ";");
             }
         }
 
