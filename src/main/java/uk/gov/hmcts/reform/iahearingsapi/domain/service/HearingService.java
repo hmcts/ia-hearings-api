@@ -52,12 +52,7 @@ public class HearingService {
 
             return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken, hearingPayload);
         } catch (Exception e) {
-            throw new IllegalStateException("Service could not complete request to create hearing: "
-                + e.getMessage()
-                + " cause: "
-                + e.getCause()
-                + " stacktrace: "
-                + e.getStackTrace(), e);
+            throw new IllegalStateException("Service could not complete request to create hearing", e);
         }
     }
 

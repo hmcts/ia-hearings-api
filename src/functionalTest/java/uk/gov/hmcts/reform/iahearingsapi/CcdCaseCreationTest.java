@@ -22,14 +22,13 @@ import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.FileCopyUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StartEventDetails;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.SubmitEventDetails;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.CcdDataApi;
+import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
+import uk.gov.hmcts.reform.ccd.client.model.Event;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.iahearingsapi.util.IdamAuthProvider;
 import uk.gov.hmcts.reform.iahearingsapi.util.MapValueExpander;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDataContent;
 
 @Slf4j
 @SpringBootTest()
@@ -73,7 +72,7 @@ public class CcdCaseCreationTest {
         );
 
     @Autowired
-    private CcdDataApi ccdApi;
+    private CoreCaseDataApi coreCaseDataApi;
 
     protected void setup() {
         hearingsSpecification = new RequestSpecBuilder()
@@ -109,16 +108,21 @@ public class CcdCaseCreationTest {
         MapValueExpander.expandValues(data);
 
         String eventId = "startAppeal";
-        StartEventDetails startEventDetails =
-            ccdApi.startCaseCreation(legalRepToken, s2sToken, legalRepUserId, jurisdiction, caseType, eventId);
+        StartEventResponse startEventDetails =
+            coreCaseDataApi.startForCaseworker(legalRepToken, s2sToken, legalRepUserId, jurisdiction, caseType, eventId);
 
-        Map<String, Object> event = new HashMap<>();
-        event.put("id", eventId);
-        CaseDataContent content =
-            new CaseDataContent(null, data, event, startEventDetails.getToken(), true);
+        Event event = Event.builder().id(eventId).build();
 
-        CaseDetails<AsylumCase> caseDetails =
-            ccdApi.submitCaseCreation(legalRepToken, s2sToken, legalRepUserId, jurisdiction, caseType, content);
+        CaseDataContent content = CaseDataContent.builder()
+            .caseReference(null)
+            .data(data)
+            .event(event)
+            .eventToken(startEventDetails.getToken())
+            .ignoreWarning(true)
+            .build();
+
+        CaseDetails caseDetails =
+            coreCaseDataApi.submitForCaseworker(legalRepToken, s2sToken, legalRepUserId, jurisdiction, caseType, true, content);
 
         caseId = caseDetails.getId();
     }
@@ -131,35 +135,39 @@ public class CcdCaseCreationTest {
         MapValueExpander.expandValues(caseData);
 
         String eventId = "submitAppeal";
-        StartEventDetails startEventDetails =
-            ccdApi.startEvent(legalRepToken, s2sToken, legalRepUserId, jurisdiction,
+        StartEventResponse startEventDetails =
+            coreCaseDataApi.startEventForCaseWorker(legalRepToken, s2sToken, legalRepUserId, jurisdiction,
                               caseType, String.valueOf(caseId), eventId);
 
-        Map<String, Object> event = new HashMap<>();
-        event.put("id", eventId);
-        CaseDataContent content =
-            new CaseDataContent(String.valueOf(caseId), caseData, event, startEventDetails.getToken(), true);
+        Event event = Event.builder().id(eventId).build();
+        CaseDataContent content = CaseDataContent.builder()
+            .caseReference(String.valueOf(caseId))
+            .data(caseData)
+            .event(event)
+            .eventToken(startEventDetails.getToken())
+            .ignoreWarning(true)
+            .build();
 
-        SubmitEventDetails submitEventDetails =
-            ccdApi.submitEvent(legalRepToken, s2sToken, String.valueOf(caseId), content);
-
-        paymentReference = submitEventDetails.getData().get("paymentReference").toString();
+        coreCaseDataApi.createEvent(legalRepToken, s2sToken, String.valueOf(caseId), content);
     }
 
     private void listCase() {
         caseData.put("listCaseHearingLength", "120");
 
         String eventId = "listCaseForFTOnly";
-        StartEventDetails startEventDetails =
-            ccdApi.startEvent(caseOfficerToken, s2sToken, caseOfficerUserId, jurisdiction,
-                caseType, String.valueOf(caseId), eventId);
+        StartEventResponse startEventDetails =
+            coreCaseDataApi.startEvent(caseOfficerToken, s2sToken, String.valueOf(caseId), eventId);
 
-        Map<String, Object> event = new HashMap<>();
-        event.put("id", eventId);
-        CaseDataContent content =
-            new CaseDataContent(String.valueOf(caseId), caseData, event, startEventDetails.getToken(), true);
+        Event event = Event.builder().id(eventId).build();
+        CaseDataContent content = CaseDataContent.builder()
+            .caseReference(String.valueOf(caseId))
+            .data(caseData)
+            .event(event)
+            .eventToken(startEventDetails.getToken())
+            .ignoreWarning(true)
+            .build();
 
-        ccdApi.submitEvent(caseOfficerToken, s2sToken, String.valueOf(caseId), content);
+        coreCaseDataApi.createEvent(caseOfficerToken, s2sToken, String.valueOf(caseId), content);
     }
 
     private Map<String, Object> getStartAppealData() {
