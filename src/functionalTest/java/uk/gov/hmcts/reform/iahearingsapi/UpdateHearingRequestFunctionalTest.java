@@ -2,10 +2,12 @@ package uk.gov.hmcts.reform.iahearingsapi;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import static io.restassured.RestAssured.given;
 import static java.lang.Long.parseLong;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
@@ -27,21 +29,17 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
     void checkCaseExists() {
         setup();
-        await().until(() -> {
-            return setupIsDone;
+        await().timeout(1, TimeUnit.MINUTES).untilAsserted(() -> {
+            assertTrue(setupIsDone);
         });
-
-        log.info("caseId: " + getCaseId());
-        log.info("caseOfficerToken: " + caseOfficerToken);
-        log.info("s2sToken: " + s2sToken);
-
-        log.error("caseId: " + getCaseId());
-        log.error("caseOfficerToken: " + caseOfficerToken);
-        log.error("s2sToken: " + s2sToken);
     }
 
     @Test
     void should_prepare_update_hearing_request_successfully() {
+        log.info("caseId: " + getCaseId());
+        log.info("caseOfficerToken: " + caseOfficerToken);
+        log.info("s2sToken: " + s2sToken);
+
         AsylumCase asylumCase = new AsylumCase();
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
             parseLong(getCaseId()),
@@ -51,11 +49,6 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
             LocalDateTime.now(),
             "securityClassification"
         );
-
-        log.info("caseId: " + getCaseId());
-        log.info("caseOfficerToken: " + caseOfficerToken);
-        log.info("s2sToken: " + s2sToken);
-
 
         Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails), UPDATE_HEARING_REQUEST);
         given(hearingsSpecification)

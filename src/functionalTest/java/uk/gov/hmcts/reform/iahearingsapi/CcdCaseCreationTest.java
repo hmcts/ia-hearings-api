@@ -45,15 +45,15 @@ public class CcdCaseCreationTest {
     @Autowired
     protected AuthTokenGenerator s2sAuthTokenGenerator;
 
-    protected RequestSpecification hearingsSpecification;
-    protected RequestSpecification hmcApiSpecification;
+    protected static RequestSpecification hearingsSpecification;
+    protected static RequestSpecification hmcApiSpecification;
 
-    private long caseId;
+    private static long caseId;
     protected Map<String, Object> caseData;
-    protected String s2sToken;
-    protected String legalRepToken;
+    protected static String s2sToken;
+    protected static String legalRepToken;
     protected String systemUserToken;
-    protected String caseOfficerToken;
+    protected static String caseOfficerToken;
     private String legalRepUserId;
     private String caseOfficerUserId;
     private String systemUserId;
@@ -74,8 +74,8 @@ public class CcdCaseCreationTest {
 
     @Autowired
     private CcdDataApi ccdApi;
-    protected boolean setupHasStarted;
-    protected boolean setupIsDone;
+    protected static boolean setupHasStarted;
+    protected static boolean setupIsDone;
 
     protected void setup() {
         if (setupHasStarted || setupIsDone) {
