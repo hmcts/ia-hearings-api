@@ -2,12 +2,9 @@ package uk.gov.hmcts.reform.iahearingsapi;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import static io.restassured.RestAssured.given;
 import static java.lang.Long.parseLong;
-import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
@@ -29,9 +26,6 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
     void checkCaseExists() {
         setup();
-        await().timeout(1, TimeUnit.MINUTES).untilAsserted(() -> {
-            assertTrue(setupIsDone);
-        });
     }
 
     @Test

@@ -1,10 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi;
 
-import java.util.concurrent.TimeUnit;
 import static io.restassured.RestAssured.given;
-import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import io.restassured.http.Header;
 import io.restassured.response.Response;
@@ -25,9 +22,6 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
     void checkCaseExists() {
         setup();
-        await().timeout(1, TimeUnit.MINUTES).untilAsserted(() -> {
-            assertTrue(setupIsDone);
-        });
 
         log.info("caseId: " + getCaseId());
         log.info("caseOfficerToken: " + caseOfficerToken);

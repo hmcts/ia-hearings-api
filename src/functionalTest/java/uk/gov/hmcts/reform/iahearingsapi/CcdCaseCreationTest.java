@@ -74,16 +74,8 @@ public class CcdCaseCreationTest {
 
     @Autowired
     private CcdDataApi ccdApi;
-    protected static boolean setupHasStarted;
-    protected static boolean setupIsDone;
 
     protected void setup() {
-        if (setupHasStarted || setupIsDone) {
-            return;
-        }
-
-        setupHasStarted = true;
-
         hearingsSpecification = new RequestSpecBuilder()
             .setBaseUri(targetInstance)
             .setRelaxedHTTPSValidation()
@@ -100,8 +92,6 @@ public class CcdCaseCreationTest {
         startAppeal();
         submitAppeal();
         listCase();
-
-        setupIsDone = true;
     }
 
     private void startAppeal() {
