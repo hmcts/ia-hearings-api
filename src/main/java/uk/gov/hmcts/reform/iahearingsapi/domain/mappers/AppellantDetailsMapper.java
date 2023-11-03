@@ -4,7 +4,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_FAMILY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PHONE_NUMBER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_TITLE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.EMAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_SINGLE_SEX_COURT_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MOBILE_NUMBER;
@@ -58,7 +57,6 @@ public class AppellantDetailsMapper {
                 .vulnerableFlag(caseFlagsMapper.getVulnerableFlag(asylumCase))
                 .firstName(caseDataMapper.getName(asylumCase, APPELLANT_GIVEN_NAMES))
                 .lastName(caseDataMapper.getName(asylumCase, APPELLANT_FAMILY_NAME))
-                .title(asylumCase.read(APPELLANT_TITLE, String.class).orElse(null))
                 .hearingChannelEmail(
                     caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef))
                 .hearingChannelPhone(
