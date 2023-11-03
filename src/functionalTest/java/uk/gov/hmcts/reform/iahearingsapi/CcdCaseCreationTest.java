@@ -109,7 +109,8 @@ public class CcdCaseCreationTest {
 
         String eventId = "startAppeal";
         StartEventResponse startEventDetails =
-            coreCaseDataApi.startForCaseworker(legalRepToken, s2sToken, legalRepUserId, jurisdiction, caseType, eventId);
+            coreCaseDataApi.startForCaseworker(legalRepToken, s2sToken, legalRepUserId,
+                jurisdiction, caseType, eventId);
 
         Event event = Event.builder().id(eventId).build();
 
@@ -122,7 +123,8 @@ public class CcdCaseCreationTest {
             .build();
 
         CaseDetails caseDetails =
-            coreCaseDataApi.submitForCaseworker(legalRepToken, s2sToken, legalRepUserId, jurisdiction, caseType, true, content);
+            coreCaseDataApi.submitForCaseworker(legalRepToken, s2sToken, legalRepUserId,
+                jurisdiction, caseType, true, content);
 
         caseId = caseDetails.getId();
     }
