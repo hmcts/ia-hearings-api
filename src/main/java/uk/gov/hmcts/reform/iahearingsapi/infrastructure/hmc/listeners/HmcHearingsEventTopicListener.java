@@ -37,9 +37,12 @@ public class HmcHearingsEventTopicListener {
 
     public void onMessage(byte[] message) throws HmcEventProcessingException {
 
+        String stringMessage = new String(message, StandardCharsets.UTF_8);
+        log.info("Message received: {}", stringMessage);
+
         try {
             HmcMessage hmcMessage = objectMapper.readValue(
-                new String(message, StandardCharsets.UTF_8),
+                stringMessage,
                 HmcMessage.class);
 
             Long caseId = hmcMessage.getCaseId();
