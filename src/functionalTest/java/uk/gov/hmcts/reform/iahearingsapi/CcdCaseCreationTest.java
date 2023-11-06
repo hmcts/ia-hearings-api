@@ -98,9 +98,11 @@ public class CcdCaseCreationTest {
 
         legalRepToken = idamAuthProvider.getLegalRepToken();
         caseOfficerToken = idamAuthProvider.getCaseOfficerToken();
+        systemUserToken = idamAuthProvider.getSystemUserToken();
 
         legalRepUserId = idamAuthProvider.getUserId(legalRepToken);
         caseOfficerUserId = idamAuthProvider.getUserId(caseOfficerToken);
+        systemUserId = idamAuthProvider.getUserId(systemUserToken);
 
         Map<String, Object> data = getStartAppealData();
         data.put("paAppealTypePaymentOption", "payNow");
@@ -158,7 +160,7 @@ public class CcdCaseCreationTest {
 
         String eventId = "listCaseForFTOnly";
         StartEventResponse startEventDetails =
-            coreCaseDataApi.startEvent(caseOfficerToken, s2sToken, String.valueOf(caseId), eventId);
+            coreCaseDataApi.startEvent(systemUserToken, s2sToken, String.valueOf(caseId), eventId);
 
         Event event = Event.builder().id(eventId).build();
         CaseDataContent content = CaseDataContent.builder()
@@ -169,7 +171,7 @@ public class CcdCaseCreationTest {
             .ignoreWarning(true)
             .build();
 
-        coreCaseDataApi.createEvent(caseOfficerToken, s2sToken, String.valueOf(caseId), content);
+        coreCaseDataApi.createEvent(systemUserToken, s2sToken, String.valueOf(caseId), content);
     }
 
     private Map<String, Object> getStartAppealData() {
