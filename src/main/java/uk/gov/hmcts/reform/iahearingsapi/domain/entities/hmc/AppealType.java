@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
-import java.util.Optional;
-import static java.util.Arrays.stream;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum AppealType {
