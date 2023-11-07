@@ -155,9 +155,9 @@ public enum AsylumCaseFieldDefinition {
     IS_INTEGRATED(
         "isIntegrated", new TypeReference<YesOrNo>(){}),
     MANUAL_CANCEL_HEARINGS_REQUIRED(
-        "manualCancelHearingsRequired", new TypeReference<YesOrNo>(){}),
+        "manualCanHearingRequired", new TypeReference<YesOrNo>(){}),
     MANUAL_UPDATE_HEARING_REQUIRED(
-        "manualUpdateHearingsRequired", new TypeReference<YesOrNo>(){}),
+        "manualUpdHearingRequired", new TypeReference<YesOrNo>(){}),
     HEARING_ADJOURNMENT_WHEN(
         "hearingAdjournmentWhen", new TypeReference<HearingAdjournmentDay>(){}),
     RELIST_CASE_IMMEDIATELY(
