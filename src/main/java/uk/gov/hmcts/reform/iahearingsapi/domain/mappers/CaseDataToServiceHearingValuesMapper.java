@@ -82,13 +82,11 @@ public class CaseDataToServiceHearingValuesMapper {
 
     public HearingWindowModel getHearingWindowModel() {
         ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
-        String dateRangeStart = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String dateRangeEnd = hearingServiceDateProvider
+        String dateRangeStart = hearingServiceDateProvider
             .calculateDueDate(now, HEARING_WINDOW_INTERVAL_DEFAULT)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         return HearingWindowModel.builder()
             .dateRangeStart(dateRangeStart)
-            .dateRangeEnd(dateRangeEnd)
             .build();
     }
 
