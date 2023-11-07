@@ -4,6 +4,7 @@ import java.util.List;
 import com.fasterxml.jackson.core.type.TypeReference;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 
 public enum AsylumCaseFieldDefinition {
 
@@ -165,7 +166,11 @@ public enum AsylumCaseFieldDefinition {
     UPDATE_HMC_REQUEST_SUCCESS(
         "updateHmcRequestSuccess", new TypeReference<YesOrNo>() {}),
     HEARING_CANCELLATION_REASON(
-        "hearingCancellationReason", new TypeReference<String>(){})
+        "hearingCancellationReason", new TypeReference<String>(){}),
+    DEPORTATION_ORDER_OPTIONS(
+        "deportationOrderOptions", new TypeReference<YesOrNo>(){}),
+    APPEAL_TYPE(
+        "appealType", new TypeReference<AppealType>(){}),
     ;
 
     private final String value;
