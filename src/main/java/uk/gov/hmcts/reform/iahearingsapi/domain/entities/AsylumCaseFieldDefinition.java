@@ -152,14 +152,12 @@ public enum AsylumCaseFieldDefinition {
         "adjournmentDetailsHearing", new TypeReference<DynamicList>(){}),
     END_APPEAL_OUTCOME(
         "endAppealOutcome", new TypeReference<String>(){}),
-    REQUIRE_MANUAL_HEARINGS_CANCELLATION(
-        "requireManualHearingsCancellation", new TypeReference<String>(){}),
     IS_INTEGRATED(
         "isIntegrated", new TypeReference<YesOrNo>(){}),
     MANUAL_CANCEL_HEARINGS_REQUIRED(
-        "manualCancelHearingsRequired", new TypeReference<YesOrNo>(){}),
+        "manualCanHearingRequired", new TypeReference<YesOrNo>(){}),
     MANUAL_UPDATE_HEARING_REQUIRED(
-        "manualUpdateHearingRequired", new TypeReference<YesOrNo>(){}),
+        "manualUpdHearingRequired", new TypeReference<YesOrNo>(){}),
     HEARING_ADJOURNMENT_WHEN(
         "hearingAdjournmentWhen", new TypeReference<HearingAdjournmentDay>(){}),
     RELIST_CASE_IMMEDIATELY(
