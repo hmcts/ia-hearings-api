@@ -89,13 +89,13 @@ withPipeline(type, product, component) {
   disableLegacyDeployment()
   loadVaultSecrets(secrets)
 
-//  afterAlways('functionalTest:preview') {
-//    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
-//  }
-//
-//  afterAlways('functionalTest:demo') {
-//    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
-//  }
+  afterAlways('functionalTest:preview') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+  }
+
+  afterAlways('functionalTest:demo') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+  }
 
   enableSlackNotifications('#ia-tech')
 

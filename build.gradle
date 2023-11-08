@@ -85,14 +85,14 @@ java {
 }
 
 sourceSets {
-//  functionalTest {
-//    java {
-//      compileClasspath += main.output
-//      runtimeClasspath += main.output
-//      srcDir file('src/functionalTest/java')
-//    }
-//    resources.srcDir file('src/functionalTest/resources')
-//  }
+  functionalTest {
+    java {
+      compileClasspath += main.output
+      runtimeClasspath += main.output
+      srcDir file('src/functionalTest/java')
+    }
+    resources.srcDir file('src/functionalTest/resources')
+  }
 
   integrationTest {
     java {
@@ -126,9 +126,9 @@ processIntegrationTestResources {
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-//processFunctionalTestResources {
-//  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//}
+processFunctionalTestResources {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 
 configurations {
   functionalTestImplementation.extendsFrom testImplementation
@@ -166,15 +166,15 @@ test {
   forkEvery = 1
 }
 
-//task functional(type: Test, description: 'Runs the functional tests.', group: 'Verification') {
-//  systemProperty "scenario", System.getProperty('scenario')
-//  testClassesDirs = sourceSets.functionalTest.output.classesDirs
-//  classpath = sourceSets.functionalTest.runtimeClasspath
-//  finalizedBy aggregate
-//  testLogging {
-//    showStackTraces = true
-//  }
-//}
+task functional(type: Test, description: 'Runs the functional tests.', group: 'Verification') {
+  systemProperty "scenario", System.getProperty('scenario')
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  finalizedBy aggregate
+  testLogging {
+    showStackTraces = true
+  }
+}
 
 task integration(type: Test, description: 'Runs the integration tests.', group: 'Verification') {
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
@@ -214,7 +214,7 @@ tasks.withType(Checkstyle).each { checkstyleTask ->
 pmd {
   toolVersion = "6.41.0"
   ignoreFailures = true
-  sourceSets = [sourceSets.main, sourceSets.test, sourceSets.integrationTest, sourceSets.smokeTest]
+  sourceSets = [sourceSets.main, sourceSets.test, sourceSets.functionalTest, sourceSets.integrationTest, sourceSets.smokeTest]
   reportsDir = file("$project.buildDir/reports/pmd")
   ruleSets = [
     'category/java/errorprone.xml',
@@ -437,8 +437,8 @@ idea {
   module {
     testSourceDirs += project.sourceSets.integrationTest.java.srcDirs
     testResourceDirs += project.sourceSets.integrationTest.resources.srcDirs
-//    testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
-//    testResourceDirs += project.sourceSets.functionalTest.resources.srcDirs
+    testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
+    testResourceDirs += project.sourceSets.functionalTest.resources.srcDirs
     testSourceDirs += project.sourceSets.smokeTest.java.srcDirs
     testResourceDirs += project.sourceSets.smokeTest.resources.srcDirs
     testSourceDirs += project.sourceSets.contractTest.java.srcDirs
