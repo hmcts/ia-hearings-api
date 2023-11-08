@@ -307,12 +307,12 @@ class ServiceHearingValuesProviderTest {
             Arguments.of(
                 YesOrNo.YES,
                 AppealType.PA,
-                CaseTypeValue.RPD
+                CaseTypeValue.PAD
             ),
             Arguments.of(
                 YesOrNo.YES,
                 RP,
-                CaseTypeValue.PAD
+                CaseTypeValue.RPD
             ),
             Arguments.of(
                 YesOrNo.NO,
@@ -337,12 +337,12 @@ class ServiceHearingValuesProviderTest {
             Arguments.of(
                 YesOrNo.NO,
                 AppealType.PA,
-                CaseTypeValue.RPX
+                CaseTypeValue.PAX
             ),
             Arguments.of(
                 YesOrNo.NO,
                 RP,
-                CaseTypeValue.PAX
+                CaseTypeValue.RPX
             )
         );
     }
