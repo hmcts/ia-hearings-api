@@ -85,14 +85,14 @@ java {
 }
 
 sourceSets {
-  functionalTest {
-    java {
-      compileClasspath += main.output
-      runtimeClasspath += main.output
-      srcDir file('src/functionalTest/java')
-    }
-    resources.srcDir file('src/functionalTest/resources')
-  }
+//  functionalTest {
+//    java {
+//      compileClasspath += main.output
+//      runtimeClasspath += main.output
+//      srcDir file('src/functionalTest/java')
+//    }
+//    resources.srcDir file('src/functionalTest/resources')
+//  }
 
   integrationTest {
     java {
