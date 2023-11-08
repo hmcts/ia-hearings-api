@@ -437,8 +437,8 @@ idea {
   module {
     testSourceDirs += project.sourceSets.integrationTest.java.srcDirs
     testResourceDirs += project.sourceSets.integrationTest.resources.srcDirs
-    testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
-    testResourceDirs += project.sourceSets.functionalTest.resources.srcDirs
+//    testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
+//    testResourceDirs += project.sourceSets.functionalTest.resources.srcDirs
     testSourceDirs += project.sourceSets.smokeTest.java.srcDirs
     testResourceDirs += project.sourceSets.smokeTest.resources.srcDirs
     testSourceDirs += project.sourceSets.contractTest.java.srcDirs
