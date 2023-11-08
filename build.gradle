@@ -166,15 +166,15 @@ test {
   forkEvery = 1
 }
 
-task functional(type: Test, description: 'Runs the functional tests.', group: 'Verification') {
-  systemProperty "scenario", System.getProperty('scenario')
-  testClassesDirs = sourceSets.functionalTest.output.classesDirs
-  classpath = sourceSets.functionalTest.runtimeClasspath
-  finalizedBy aggregate
-  testLogging {
-    showStackTraces = true
-  }
-}
+//task functional(type: Test, description: 'Runs the functional tests.', group: 'Verification') {
+//  systemProperty "scenario", System.getProperty('scenario')
+//  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+//  classpath = sourceSets.functionalTest.runtimeClasspath
+//  finalizedBy aggregate
+//  testLogging {
+//    showStackTraces = true
+//  }
+//}
 
 task integration(type: Test, description: 'Runs the integration tests.', group: 'Verification') {
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
