@@ -3,13 +3,11 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static java.util.Objects.requireNonNull;
 
 import feign.FeignException;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.validation.constraints.NotNull;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -70,7 +68,7 @@ public class HearingService {
     }
 
     public HearingGetResponse getHearing(String hearingId) throws HmcException {
-        log.debug("Sending Get Hearings with Hearing ID {}", hearingId);
+        log.info("Sending GetHearings request with Hearing ID {}", hearingId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
