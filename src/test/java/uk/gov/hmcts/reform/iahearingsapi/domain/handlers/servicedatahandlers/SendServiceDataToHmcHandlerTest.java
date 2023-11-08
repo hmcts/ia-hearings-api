@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_REQUEST_VERSION_NUMBER;
@@ -59,7 +60,7 @@ public class SendServiceDataToHmcHandlerTest {
     }
 
     @Test
-    void should_trigger_case_listing() {
+    void should_update_partiesNotified() {
         when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.AWAITING_LISTING));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
         when(serviceData.read(HEARING_REQUEST_VERSION_NUMBER, Long.class)).thenReturn(Optional.of(VERSION_NUMBER));
@@ -76,5 +77,65 @@ public class SendServiceDataToHmcHandlerTest {
                                                      eq(VERSION_NUMBER),
                                                      eq(HEARING_RESPONSE_RECEIVED_DATE_TIME),
                                                      eq(partiesNotified));
+    }
+
+    @Test
+    void should_not_update_partiesNotified_if_receivedDateTime_not_present() {
+        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.AWAITING_LISTING));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
+        when(serviceData.read(HEARING_REQUEST_VERSION_NUMBER, Long.class)).thenReturn(Optional.of(VERSION_NUMBER));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME, LocalDateTime.class))
+            .thenReturn(Optional.empty());
+
+        PartiesNotified partiesNotified = PartiesNotified.builder()
+            .serviceData(serviceData)
+            .build();
+
+        sendServiceDataToHmcHandler.handle(serviceData);
+
+        verify(hearingService, never()).updatePartiesNotified(eq(HEARING_ID),
+                                                     eq(VERSION_NUMBER),
+                                                     eq(HEARING_RESPONSE_RECEIVED_DATE_TIME),
+                                                     eq(partiesNotified));
+    }
+
+    @Test
+    void should_not_update_partiesNotified_if_versionNumber_not_present() {
+        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.AWAITING_LISTING));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
+        when(serviceData.read(HEARING_REQUEST_VERSION_NUMBER, Long.class)).thenReturn(Optional.empty());
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME, LocalDateTime.class))
+            .thenReturn(Optional.of(HEARING_RESPONSE_RECEIVED_DATE_TIME));
+
+        PartiesNotified partiesNotified = PartiesNotified.builder()
+            .serviceData(serviceData)
+            .build();
+
+        sendServiceDataToHmcHandler.handle(serviceData);
+
+        verify(hearingService, never()).updatePartiesNotified(eq(HEARING_ID),
+                                                              eq(VERSION_NUMBER),
+                                                              eq(HEARING_RESPONSE_RECEIVED_DATE_TIME),
+                                                              eq(partiesNotified));
+    }
+
+    @Test
+    void should_not_update_partiesNotified_if_neither_versionNumber_and_receivedDateTime_present() {
+        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.AWAITING_LISTING));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
+        when(serviceData.read(HEARING_REQUEST_VERSION_NUMBER, Long.class)).thenReturn(Optional.empty());
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME, LocalDateTime.class))
+            .thenReturn(Optional.empty());
+
+        PartiesNotified partiesNotified = PartiesNotified.builder()
+            .serviceData(serviceData)
+            .build();
+
+        sendServiceDataToHmcHandler.handle(serviceData);
+
+        verify(hearingService, never()).updatePartiesNotified(eq(HEARING_ID),
+                                                              eq(VERSION_NUMBER),
+                                                              eq(HEARING_RESPONSE_RECEIVED_DATE_TIME),
+                                                              eq(partiesNotified));
     }
 }
