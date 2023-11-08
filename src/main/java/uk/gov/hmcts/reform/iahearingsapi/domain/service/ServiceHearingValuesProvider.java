@@ -181,7 +181,7 @@ public class ServiceHearingValuesProvider {
     private static CaseTypeValue getCaseTypeValue(AsylumCase asylumCase) {
         boolean hasDeportationOrder = asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)
             .map(deportation -> deportation == YesOrNo.YES)
-            .orElseThrow(() -> new RequiredFieldMissingException("Deportation Order is a required field"));
+            .orElse(false);
 
         AppealType appealType = asylumCase.read(APPEAL_TYPE, AppealType.class)
             .orElseThrow(() -> new RequiredFieldMissingException("Appeal Type is a required field"));
@@ -191,8 +191,8 @@ public class ServiceHearingValuesProvider {
             case EA -> hasDeportationOrder ? EAD : EAX;
             case EU -> hasDeportationOrder ? EUD : EUX;
             case DC -> hasDeportationOrder ? DCD : DCX;
-            case PA -> hasDeportationOrder ? RPD : RPX;
-            case RP -> hasDeportationOrder ? PAD : PAX;
+            case PA -> hasDeportationOrder ? PAD : PAX;
+            case RP -> hasDeportationOrder ? RPD : RPX;
         };
 
         return caseTypeValue;
