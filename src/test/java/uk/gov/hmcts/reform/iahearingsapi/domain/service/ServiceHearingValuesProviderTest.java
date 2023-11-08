@@ -158,12 +158,12 @@ class ServiceHearingValuesProviderTest {
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(RP));
 
         caseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
-        caseCategoryCaseType.setCategoryValue(CaseTypeValue.PAD.getValue());
+        caseCategoryCaseType.setCategoryValue(CaseTypeValue.RPD.getValue());
         caseCategoryCaseType.setCategoryParent("");
 
         caseCategoryCaseSubType.setCategoryType(CategoryType.CASE_SUB_TYPE);
-        caseCategoryCaseSubType.setCategoryValue(CaseTypeValue.PAD.getValue());
-        caseCategoryCaseSubType.setCategoryParent(CaseTypeValue.PAD.getValue());
+        caseCategoryCaseSubType.setCategoryValue(CaseTypeValue.RPD.getValue());
+        caseCategoryCaseSubType.setCategoryParent(CaseTypeValue.RPD.getValue());
 
         serviceHearingValuesProvider = new ServiceHearingValuesProvider(
             caseDataMapper,
