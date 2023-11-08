@@ -416,6 +416,7 @@ dependencies {
   integrationTestImplementation group: 'org.yaml', name: 'snakeyaml'
 
   functionalTestImplementation group: 'org.yaml', name: 'snakeyaml'
+  functionalTestImplementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'
 
   contractTestImplementation group: 'org.yaml', name: 'snakeyaml'
 
@@ -494,7 +495,7 @@ testlogger {
   showPassed true
   showSkipped true
   showFailed true
-  showStandardStreams false
+  showStandardStreams true
   showPassedStandardStreams true
   showSkippedStandardStreams true
   showFailedStandardStreams true

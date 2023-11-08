@@ -14,7 +14,7 @@ def product = "ia"
 def component = "hearings-api"
 
 def secrets = [
-  'ia-${env}': [
+  'ia-demo': [
 
     secret('idam-client-id', 'IA_IDAM_CLIENT_ID'),
     secret('idam-secret', 'IA_IDAM_SECRET'),
@@ -50,11 +50,14 @@ def secrets = [
     secret('test-law-firm-share-case-a-username', 'TEST_LAW_FIRM_SHARE_CASE_A_USERNAME'),
     secret('test-law-firm-share-case-a-password', 'TEST_LAW_FIRM_SHARE_CASE_A_PASSWORD'),
 
-    secret('test-law-firm-org-success-username', 'TEST_LAW_FIRM_ORG_SUCCESS_USERNAME'),
-    secret('test-law-firm-org-success-password', 'TEST_LAW_FIRM_ORG_SUCCESS_PASSWORD'),
+    secret('test-law-firm-share-case-a-username', 'TEST_LAW_FIRM_ORG_SUCCESS_USERNAME'),
+    secret('test-law-firm-share-case-a-password', 'TEST_LAW_FIRM_ORG_SUCCESS_PASSWORD'),
 
     secret('test-law-firm-org-deleted-username', 'TEST_LAW_FIRM_ORG_DELETED_USERNAME'),
     secret('test-law-firm-org-deleted-password', 'TEST_LAW_FIRM_ORG_DELETED_PASSWORD'),
+
+    secret('system-username', 'IA_SYSTEM_USERNAME'),
+    secret('system-password', 'IA_SYSTEM_PASSWORD'),
 
   ]
 ]
@@ -70,16 +73,17 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 
 withPipeline(type, product, component) {
 
-  env.IA_HOME_OFFICE_INTEGRATION_API_URL = "http://ia-home-office-integration-api-aat.service.core-compute-aat.internal/"
-  env.IA_IDAM_REDIRECT_URI = "https://ia-hearings-api-aat.service.core-compute-aat.internal/oauth2/callback"
-  env.CCD_URL = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
-  env.CCD_GW_URL = "http://dm-store-aat.service.core-compute-aat.internal"
-  env.DM_URL = "http://dm-store-aat.service.core-compute-aat.internal"
-  env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
-  env.OPEN_ID_IDAM_URL = "https://idam-web-public.aat.platform.hmcts.net"
-  env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+  env.IA_HOME_OFFICE_INTEGRATION_API_URL = "http://ia-home-office-integration-api-demo.service.core-compute-demo.internal/"
+  env.IA_IDAM_REDIRECT_URI = "https://ia-hearings-api-demo.service.core-compute-demo.internal/oauth2/callback"
+  env.CCD_URL = "http://ccd-data-store-api-demo.service.core-compute-demo.internal"
+  env.CCD_GW_URL = "http://dm-store-demo.service.core-compute-demo.internal"
+  env.DM_URL = "http://dm-store-demo.service.core-compute-demo.internal"
+  env.IDAM_URL = "https://idam-api.demo.platform.hmcts.net"
+  env.OPEN_ID_IDAM_URL = "https://idam-web-public.demo.platform.hmcts.net"
+  env.S2S_URL = "http://rpe-service-auth-provider-demo.service.core-compute-demo.internal"
   env.PACT_BROKER_FULL_URL = "https://pact-broker.platform.hmcts.net"
-  env.HMC_API_URL = "http://hmc-cft-hearing-service-aat.service.core-compute-aat.internal"
+  env.HMC_API_URL = "http://hmc-cft-hearing-service-demo.service.core-compute-demo.internal"
+  env.HEARINGS_API_URL = "http://ia-hearings-api-demo.service.core-compute-demo.internal"
 
   enableAksStagingDeployment()
   disableLegacyDeployment()
@@ -89,7 +93,7 @@ withPipeline(type, product, component) {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
 
-  afterAlways('functionalTest:aat') {
+  afterAlways('functionalTest:demo') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
   }
 
