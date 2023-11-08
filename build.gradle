@@ -126,9 +126,9 @@ processIntegrationTestResources {
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-processFunctionalTestResources {
-  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
+//processFunctionalTestResources {
+//  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//}
 
 configurations {
   functionalTestImplementation.extendsFrom testImplementation
