@@ -96,6 +96,7 @@ class UpdateHearingsRequestSubmitTest {
             any(),
             any(),
             any(),
+            any(),
             any()
         )).thenReturn(updateHearingRequest);
 
@@ -117,6 +118,7 @@ class UpdateHearingsRequestSubmitTest {
         verify(hearingService, times(1)).updateHearing(any(), any());
 
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
             Optional.of("TEL"),
             Optional.empty(),
@@ -142,6 +144,7 @@ class UpdateHearingsRequestSubmitTest {
         verify(hearingService, times(1)).updateHearing(any(), any());
 
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
             Optional.empty(),
             Optional.of(HearingCentre.BRADFORD.getEpimsId()),
@@ -172,6 +175,7 @@ class UpdateHearingsRequestSubmitTest {
             .build();
 
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
             Optional.empty(),
             Optional.empty(),
@@ -202,6 +206,7 @@ class UpdateHearingsRequestSubmitTest {
             .build();
 
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
             Optional.empty(),
             Optional.empty(),
@@ -226,6 +231,7 @@ class UpdateHearingsRequestSubmitTest {
         verify(hearingService, times(1)).updateHearing(any(), any());
 
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
             Optional.empty(),
             Optional.empty(),
@@ -283,6 +289,7 @@ class UpdateHearingsRequestSubmitTest {
         assertEquals(asylumCase, callbackResponse.getData());
 
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
             Optional.empty(),
             Optional.empty(),

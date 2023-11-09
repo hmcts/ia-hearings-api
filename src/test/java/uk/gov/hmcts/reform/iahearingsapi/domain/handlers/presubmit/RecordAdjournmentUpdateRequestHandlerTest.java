@@ -105,7 +105,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
     void should_send_update_if_relist_case_immediately(YesOrNo relistCaseImmediately) {
         asylumCase.write(RELIST_CASE_IMMEDIATELY, relistCaseImmediately);
 
-        when(updateHearingPayloadService.createUpdateHearingPayload(null, null, null,
+        when(updateHearingPayloadService.createUpdateHearingPayload(asylumCase, null, null, null,
                                                                     null, null, false, null))
             .thenReturn(updateHearingRequest);
 

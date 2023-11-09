@@ -10,6 +10,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType.RP;
 
@@ -183,6 +185,18 @@ class ServiceHearingValuesProviderTest {
     void should_get_service_hearing_values() throws JSONException {
 
         ServiceHearingValuesModel expected = buildTestValues();
+        ServiceHearingValuesModel actual = serviceHearingValuesProvider
+            .provideServiceHearingValues(asylumCase, caseReference);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void should_get_service_hearing_values_with_facilities_when_s94B_is_enabled() throws JSONException {
+        when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
+
+        ServiceHearingValuesModel expected = buildTestValues();
+        expected.setFacilitiesRequired(List.of(IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString()));
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
             .provideServiceHearingValues(asylumCase, caseReference);
 

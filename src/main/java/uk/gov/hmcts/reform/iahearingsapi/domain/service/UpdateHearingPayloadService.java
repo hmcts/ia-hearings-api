@@ -2,14 +2,20 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 
 @Component
 @Slf4j
@@ -24,6 +30,7 @@ public class UpdateHearingPayloadService {
     }
 
     public UpdateHearingRequest createUpdateHearingPayload(
+        AsylumCase asylumCase,
         String hearingId,
         Optional<String> hearingChannels,
         Optional<String> locationCode,
@@ -50,7 +57,7 @@ public class UpdateHearingPayloadService {
         return UpdateHearingRequest.builder()
             .requestDetails(persistedHearing.getRequestDetails())
             .caseDetails(persistedHearing.getCaseDetails())
-            .hearingDetails(buildHearingDetails(persistedHearing.getHearingDetails(), hearingDetails))
+            .hearingDetails(buildHearingDetails(asylumCase, persistedHearing.getHearingDetails(), hearingDetails))
             .partyDetails(persistedHearing.getPartyDetails())
             .build();
     }
@@ -89,12 +96,29 @@ public class UpdateHearingPayloadService {
     }
 
 
-    private HearingDetails buildHearingDetails(HearingDetails hearingDetails, HearingDetails updatedHearingsDetails) {
+    private HearingDetails buildHearingDetails(AsylumCase asylumCase, HearingDetails hearingDetails,
+                                               HearingDetails updatedHearingsDetails) {
         hearingDetails.setHearingChannels(updatedHearingsDetails.getHearingChannels());
         hearingDetails.setHearingLocations(updatedHearingsDetails.getHearingLocations());
         hearingDetails.setDuration(updatedHearingsDetails.getDuration());
         hearingDetails.setAmendReasonCodes(updatedHearingsDetails.getAmendReasonCodes());
         hearingDetails.setHearingWindow(updatedHearingsDetails.getHearingWindow());
+        hearingDetails.setFacilitiesRequired(getFacilitiesRequired(asylumCase, hearingDetails.getFacilitiesRequired()));
+
         return hearingDetails;
+    }
+
+    private List<String> getFacilitiesRequired(AsylumCase asylumCase, List<String> facilities) {
+        List<String> filteredFacilities = new ArrayList<>(facilities);
+        if (MapperUtils.isS94B(asylumCase)
+            && !facilities.contains(IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString())) {
+            filteredFacilities.add(IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString());
+        } else if (!MapperUtils.isS94B(asylumCase)) {
+            filteredFacilities = facilities
+                .stream()
+                .filter(it -> !it.equals(IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString()))
+                .collect(Collectors.toList());
+        }
+        return filteredFacilities;
     }
 }

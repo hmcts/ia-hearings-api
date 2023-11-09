@@ -107,6 +107,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
         try {
             hearingService.updateHearing(
                 updateHearingPayloadService.createUpdateHearingPayload(
+                    asylumCase,
                     hearingId,
                     getHearingChannels(asylumCase),
                     getLocations(asylumCase),

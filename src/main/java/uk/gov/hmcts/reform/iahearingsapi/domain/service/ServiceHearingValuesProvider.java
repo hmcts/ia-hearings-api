@@ -6,6 +6,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DEPORTATION_ORDER_OPTIONS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCD;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EAD;
@@ -50,6 +51,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearing
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 
 @Slf4j
@@ -111,7 +113,9 @@ public class ServiceHearingValuesProvider {
             .hearingPriorityType(caseFlagsMapper.getHearingPriorityType(asylumCase))
             .numberOfPhysicalAttendees(getNumberOfPhysicalAttendees(partyDetails))
             .hearingLocations(Collections.emptyList())
-            .facilitiesRequired(Collections.emptyList())
+            .facilitiesRequired(MapperUtils.isS94B(asylumCase)
+                                    ? List.of(IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString())
+                                    : Collections.emptyList())
             .listingComments(listingCommentsMapper.getListingComments(asylumCase, caseFlagsMapper, caseDataMapper))
             .hearingRequester("")
             .privateHearingRequiredFlag(caseFlagsMapper
