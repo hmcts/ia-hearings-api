@@ -3,12 +3,15 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DEPORTATION_ORDER_OPTIONS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType.RP;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -16,10 +19,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -32,7 +39,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -101,9 +111,9 @@ class ServiceHearingValuesProviderTest {
 
     @Mock
     private ResourceLoader resourceLoader;
-    private String baseUrl = "http://localhost:3002";
+    private final String baseUrl = "http://localhost:3002";
     private String caseCategoriesValue = "BFA1-TST";
-    private String serviceId = "BFA1";
+    private final String serviceId = "BFA1";
 
     @BeforeEach
     void setup() {
@@ -129,8 +139,8 @@ class ServiceHearingValuesProviderTest {
         when(caseDataMapper.getHearingWindowModel()).thenReturn(hearingWindowModel);
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase))
             .thenReturn(BaseLocation.BIRMINGHAM.getId());
-        when(caseDataMapper.getCaseSlaStartDate()).thenReturn(dateStr);
         when(caseDataMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);
+        when(caseDataMapper.getCaseSlaStartDate()).thenReturn(dateStr);
         when(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
             .thenReturn(caseReference);
         when(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);
@@ -144,13 +154,16 @@ class ServiceHearingValuesProviderTest {
         when(caseFlagsMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
         when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper)).thenReturn(partyDetails);
 
+        when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(RP));
+
         caseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
-        caseCategoryCaseType.setCategoryValue(caseCategoriesValue);
+        caseCategoryCaseType.setCategoryValue(CaseTypeValue.RPD.getValue());
         caseCategoryCaseType.setCategoryParent("");
 
         caseCategoryCaseSubType.setCategoryType(CategoryType.CASE_SUB_TYPE);
-        caseCategoryCaseSubType.setCategoryValue(caseCategoriesValue);
-        caseCategoryCaseSubType.setCategoryParent(caseCategoriesValue);
+        caseCategoryCaseSubType.setCategoryValue(CaseTypeValue.RPD.getValue());
+        caseCategoryCaseSubType.setCategoryParent(CaseTypeValue.RPD.getValue());
 
         serviceHearingValuesProvider = new ServiceHearingValuesProvider(
             caseDataMapper,
@@ -255,4 +268,83 @@ class ServiceHearingValuesProviderTest {
 
         assertEquals(expectedPartiesInPerson, 2);
     }
+
+    @ParameterizedTest
+    @MethodSource("caseTypeValueTestCases")
+    void testGetCaseTypeValue(YesOrNo hasDeportationOrder, AppealType appealType, CaseTypeValue expectedValue) {
+        when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)).thenReturn(Optional.of(hasDeportationOrder));
+        when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(appealType));
+
+        List<CaseCategoryModel> caseCategoryModelList = serviceHearingValuesProvider
+            .provideServiceHearingValues(asylumCase, caseReference)
+            .getCaseCategories();
+
+        assertEquals(expectedValue.getValue(), caseCategoryModelList.get(0).getCategoryValue());
+    }
+
+    private static Stream<Arguments> caseTypeValueTestCases() {
+        return Stream.of(
+            Arguments.of(
+                YesOrNo.YES,
+                AppealType.HU,
+                CaseTypeValue.HUD
+            ),
+            Arguments.of(
+                YesOrNo.YES,
+                AppealType.EA,
+                CaseTypeValue.EAD
+            ),
+            Arguments.of(
+                YesOrNo.YES,
+                AppealType.EU,
+                CaseTypeValue.EUD
+            ),
+            Arguments.of(
+                YesOrNo.YES,
+                AppealType.DC,
+                CaseTypeValue.DCD
+            ),
+            Arguments.of(
+                YesOrNo.YES,
+                AppealType.PA,
+                CaseTypeValue.PAD
+            ),
+            Arguments.of(
+                YesOrNo.YES,
+                RP,
+                CaseTypeValue.RPD
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                AppealType.HU,
+                CaseTypeValue.HUX
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                AppealType.EA,
+                CaseTypeValue.EAX
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                AppealType.EU,
+                CaseTypeValue.EUX
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                AppealType.DC,
+                CaseTypeValue.DCX
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                AppealType.PA,
+                CaseTypeValue.PAX
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                RP,
+                CaseTypeValue.RPX
+            )
+        );
+    }
+
 }

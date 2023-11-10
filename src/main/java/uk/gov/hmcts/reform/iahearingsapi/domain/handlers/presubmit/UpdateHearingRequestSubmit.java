@@ -9,12 +9,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -33,6 +33,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
 
 @Component
@@ -71,7 +73,7 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
             throw new IllegalStateException("Cannot handle callback");
         }
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
-        Optional<DynamicList> selectedHearing = callback.getCaseDetails().getCaseData().read(CHANGE_HEARINGS);
+        Optional<DynamicList> selectedHearing = asylumCase.read(CHANGE_HEARINGS);
         selectedHearing.ifPresent(hearing -> {
             String hearingId = selectedHearing.get().getValue().getCode();
             boolean firstAvailableDate = false;
@@ -83,21 +85,24 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                 firstAvailableDate = true;
             }
 
-            HearingGetResponse hearingUpdated = hearingService.updateHearing(
-                updateHearingPayloadService.createUpdateHearingPayload(
-                    hearingId,
-                    getHearingChannels(asylumCase),
-                    getLocations(asylumCase),
-                    getDuration(asylumCase),
-                    getReason(asylumCase),
-                    firstAvailableDate,
-                    updateHearingWindow(asylumCase)
-                ),
-                hearingId
-            );
+            try {
+                hearingService.updateHearing(
+                    updateHearingPayloadService.createUpdateHearingPayload(
+                        hearingId,
+                        getHearingChannels(asylumCase),
+                        getLocations(asylumCase),
+                        getDuration(asylumCase),
+                        getReason(asylumCase),
+                        firstAvailableDate,
+                        updateHearingWindow(asylumCase)
+                    ),
+                    hearingId
+                );
 
-            if (hearingUpdated != null) {
                 clearFields(asylumCase);
+
+            } catch (HmcException e) {
+                asylumCase.write(MANUAL_UPDATE_HEARING_REQUIRED, YES);
             }
         });
 

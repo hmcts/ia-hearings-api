@@ -2,8 +2,22 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static java.util.Objects.requireNonNull;
 import static net.minidev.json.parser.JSONParser.DEFAULT_PERMISSIVE_MODE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DEPORTATION_ORDER_OPTIONS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCX;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EAD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EAX;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EUD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EUX;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.HUD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.HUX;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.PAD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.PAX;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPX;
 
 
 import java.io.InputStream;
@@ -24,7 +38,10 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
@@ -80,14 +97,14 @@ public class ServiceHearingValuesProvider {
             .publicCaseName(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
             .caseAdditionalSecurityFlag(caseFlagsMapper
                 .getCaseAdditionalSecurityFlag(asylumCase))
-            .caseCategories(getCaseCategoriesValue())
+            .caseCategories(getCaseCategoriesValue(asylumCase))
             .caseDeepLink(baseUrl.concat(caseDataMapper.getCaseDeepLink(caseReference)))
             .externalCaseReference(caseDataMapper
                 .getExternalCaseReference(asylumCase))
             .caseManagementLocationCode(caseDataMapper
                 .getCaseManagementLocationCode(asylumCase))
-            .caseSlaStartDate(caseDataMapper.getCaseSlaStartDate())
             .autoListFlag(caseFlagsMapper.getAutoListFlag(asylumCase))
+            .caseSlaStartDate(caseDataMapper.getCaseSlaStartDate())
             .duration(Integer.parseInt(listCaseHearingLength))
             .hearingWindow(caseDataMapper
                 .getHearingWindowModel())
@@ -145,18 +162,40 @@ public class ServiceHearingValuesProvider {
         return screenFlowValue;
     }
 
-    private List<CaseCategoryModel> getCaseCategoriesValue() {
+    private List<CaseCategoryModel> getCaseCategoriesValue(AsylumCase asylumCase) {
+        CaseTypeValue caseTypeValue = getCaseTypeValue(asylumCase);
+
         CaseCategoryModel caseCategoryCaseType = new CaseCategoryModel();
         caseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
-        caseCategoryCaseType.setCategoryValue(caseCategoriesValue);
+        caseCategoryCaseType.setCategoryValue(caseTypeValue.getValue());
         caseCategoryCaseType.setCategoryParent("");
 
         CaseCategoryModel caseCategoryCaseSubType = new CaseCategoryModel();
         caseCategoryCaseSubType.setCategoryType(CategoryType.CASE_SUB_TYPE);
-        caseCategoryCaseSubType.setCategoryValue(caseCategoriesValue);
-        caseCategoryCaseSubType.setCategoryParent(caseCategoriesValue);
+        caseCategoryCaseSubType.setCategoryValue(caseTypeValue.getValue());
+        caseCategoryCaseSubType.setCategoryParent(caseTypeValue.getValue());
 
         return List.of(caseCategoryCaseType, caseCategoryCaseSubType);
+    }
+
+    private static CaseTypeValue getCaseTypeValue(AsylumCase asylumCase) {
+        boolean hasDeportationOrder = asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)
+            .map(deportation -> deportation == YesOrNo.YES)
+            .orElse(false);
+
+        AppealType appealType = asylumCase.read(APPEAL_TYPE, AppealType.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("Appeal Type is a required field"));
+
+        CaseTypeValue caseTypeValue = switch (appealType) {
+            case HU -> hasDeportationOrder ? HUD : HUX;
+            case EA -> hasDeportationOrder ? EAD : EAX;
+            case EU -> hasDeportationOrder ? EUD : EUX;
+            case DC -> hasDeportationOrder ? DCD : DCX;
+            case PA -> hasDeportationOrder ? PAD : PAX;
+            case RP -> hasDeportationOrder ? RPD : RPX;
+        };
+
+        return caseTypeValue;
     }
 
     private List<PartyDetailsModel> getPartyDetails(AsylumCase asylumCase) {

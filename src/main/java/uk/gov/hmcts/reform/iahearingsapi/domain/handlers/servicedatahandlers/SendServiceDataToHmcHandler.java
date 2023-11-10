@@ -7,7 +7,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHmcStatus;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
@@ -17,6 +19,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SendServiceDataToHmcHandler implements ServiceDataHandler<ServiceData> {
@@ -42,17 +45,23 @@ public class SendServiceDataToHmcHandler implements ServiceDataHandler<ServiceDa
         String hearingId = serviceData.read(HEARING_ID, String.class)
             .orElseThrow(() -> new IllegalStateException("HearingID can not be missing"));
 
-        PartiesNotified payload = PartiesNotified.builder()
-            .serviceData(serviceData)
-            .build();
+        Optional<Long> versionNumber = serviceData.read(HEARING_REQUEST_VERSION_NUMBER, Long.class);
 
-        long versionNumber = serviceData.read(HEARING_REQUEST_VERSION_NUMBER, Long.class)
-            .orElseThrow(() -> new IllegalStateException("Hearing request version number can not be empty"));
+        Optional<LocalDateTime> receivedDateTime = serviceData.read(HEARING_RESPONSE_RECEIVED_DATE_TIME,
+                                                                    LocalDateTime.class);
 
-        LocalDateTime receivedDateTime = serviceData.read(HEARING_RESPONSE_RECEIVED_DATE_TIME, LocalDateTime.class)
-            .orElseThrow(() -> new IllegalStateException("Received date time can not be empty"));
+        if (versionNumber.isPresent() && receivedDateTime.isPresent()) {
 
-        hearingService.updatePartiesNotified(hearingId, versionNumber, receivedDateTime, payload);
+            PartiesNotified payload = PartiesNotified.builder()
+                .serviceData(serviceData)
+                .build();
+
+            hearingService.updatePartiesNotified(hearingId, versionNumber.get(), receivedDateTime.get(), payload);
+        } else {
+            log.info("Message received for hearing {} will not result in a partiesNotified update because both "
+                     + "versionNumber and hearingResponseReceivedDateTime are necessary for the update.", hearingId);
+            log.info("versionNumber: {} / hearingResponseReceivedDateTime: {}", versionNumber, receivedDateTime);
+        }
 
         return new ServiceDataResponse<>(serviceData);
     }

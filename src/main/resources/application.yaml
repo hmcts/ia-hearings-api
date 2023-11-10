@@ -71,19 +71,32 @@ security:
   authorisedRoles:
     - "caseworker-ia"
   roleEventAccess:
+    citizen:
+      - "startAppeal"
+      - "editAppeal"
+      - "submitAppeal"
     caseworker-ia-legalrep-solicitor:
+      - "startAppeal"
+      - "editAppeal"
+      - "submitAppeal"
     caseworker-ia-admofficer:
       - "listCase"
-      -  "updateHearingRequest"
-    caseworker-ia-caseofficer:
       - "updateHearingRequest"
+      - "recordAdjournmentDetails"
+      - "endAppeal"
     caseworker-ia-caseworker:
       - "listCase"
+    caseworker-ia-caseofficer:
+      - "updateHearingRequest"
+      - "recordAdjournmentDetails"
+      - "endAppeal"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
     caseworker-ia-system:
       - "handleHearingException"
       - "updateHMCResponse"
+      - "recordAdjournmentDetails"
+      - "listCaseForFTOnly"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}

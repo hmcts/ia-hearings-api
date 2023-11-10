@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import java.util.Collections;
 import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import uk.gov.hmcts.reform.ccd.client.model.Classification;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
 
 @Slf4j
@@ -28,13 +30,17 @@ public class CoreCaseDataService {
     private final CoreCaseDataApi coreCaseDataApi;
     private final IaCcdConvertService iaCcdConvertService;
 
-    public AsylumCase getCase(String caseId) {
+    public StartEventResponse startCaseEvent(Event event, String caseId) {
         try {
-            CaseDetails caseDetails = coreCaseDataApi
-                .getCase(idamService.getServiceUserToken(), serviceAuthTokenGenerator.generate(), caseId);
-            if (caseDetails != null) {
-                return iaCcdConvertService.getCaseData(caseDetails.getData());
-            }
+            return coreCaseDataApi.startEventForCaseWorker(
+                getUserToken(event, caseId),
+                getS2sToken(event, caseId),
+                getUid(event, caseId),
+                JURISDICTION_ID,
+                CASE_TYPE,
+                caseId,
+                event.toString()
+            );
         } catch (Exception ex) {
             log.error("Case {} not found due to: {}", caseId, ex.getMessage());
         }
@@ -43,68 +49,58 @@ public class CoreCaseDataService {
         throw new IllegalArgumentException(errorMessage);
     }
 
-    private StartEventResponse getCase(String userToken,
-                                       String s2sToken,
-                                       String uid,
-                                       String jurisdiction,
-                                       String caseType,
-                                       String caseId,
-                                       Event event) {
-
-        return coreCaseDataApi.startEventForCaseWorker(userToken,
-                                                       s2sToken,
-                                                       uid,
-                                                       jurisdiction,
-                                                       caseType,
-                                                       caseId,
-                                                       event.toString());
+    public AsylumCase getCaseFromStartedEvent(StartEventResponse startEventResponse) {
+        CaseDetails caseDetails = startEventResponse.getCaseDetails();
+        if (caseDetails != null) {
+            return iaCcdConvertService.getCaseData(caseDetails.getData());
+        }
+        return null;
     }
 
-    public CaseDetails triggerEvent(Event event, String caseId, AsylumCase asylumCase) {
+    public AsylumCase getCase(String caseId) {
+        return iaCcdConvertService.getCaseData(getCaseDetails(caseId).getData());
+    }
 
-        String userToken;
-        String s2sToken;
-        String uid;
-        try {
-            userToken = idamService.getServiceUserToken();
-            log.info("System user token has been generated for event: {}, caseId: {}.", event, caseId);
+    public State getCaseState(String caseId) {
+        return State.get(getCaseDetails(caseId).getState());
+    }
 
-            s2sToken = serviceAuthTokenGenerator.generate();
-            log.info("S2S token has been generated for event: {}, caseId: {}.", event, caseId);
-
-            uid = idamService.getUserInfo().getUid();
-            log.info("System user id has been fetched for event: {}, caseId: {}.", event, caseId);
-
-        } catch (IdentityManagerResponseException ex) {
-
-            log.error("Unauthorized access to getCaseById: {}", ex.getMessage());
-            throw new IdentityManagerResponseException(ex.getMessage(), ex);
-        }
-
-        // Get case details by id
-        final StartEventResponse startEventResponse = getCase(userToken,
-                                                             s2sToken,
-                                                             uid,
-                                                             JURISDICTION_ID,
-                                                             CASE_TYPE,
-                                                             caseId,
-                                                             event);
-
+    public CaseDetails triggerSubmitEvent(Event event,
+                                          String caseId,
+                                          StartEventResponse startEventResponse,
+                                          AsylumCase asylumCase) {
         log.info("Case details found for the caseId: {}", caseId);
-
-        CaseDetails caseDetails = submitEventForCaseWorker(userToken,
-                                                            s2sToken,
-                                                            uid,
-                                                            caseId,
-                                                            startEventResponse.getCaseDetails().getData(),
-                                                            event,
-                                                            true,
-                                                            startEventResponse.getToken());
+        CaseDetails caseDetails = submitEventForCaseWorker(
+            getUserToken(event, caseId),
+            getS2sToken(event, caseId),
+            getUid(event, caseId),
+            caseId,
+            asylumCase,
+            event,
+            true,
+            startEventResponse.getToken()
+        );
 
         log.info("Event {} triggered for case {}, Status: {}", event, caseId,
-                 caseDetails.getCallbackResponseStatus());
+                 caseDetails.getCallbackResponseStatus()
+        );
 
         return caseDetails;
+    }
+
+    public CaseDetails getCaseDetails(String caseId) {
+        try {
+            CaseDetails caseDetails = coreCaseDataApi
+                .getCase(idamService.getServiceUserToken(), serviceAuthTokenGenerator.generate(), caseId);
+            if (caseDetails != null) {
+                return caseDetails;
+            }
+        } catch (Exception ex) {
+            log.error("Case {} not found due to: {}", caseId, ex.getMessage());
+        }
+        String errorMessage = String.format("Case %s not found", caseId);
+        log.error(errorMessage);
+        throw new IllegalArgumentException(errorMessage);
     }
 
     private uk.gov.hmcts.reform.ccd.client.model.CaseDetails submitEventForCaseWorker(String userToken,
@@ -128,14 +124,54 @@ public class CoreCaseDataService {
             .caseReference(caseId)
             .build();
 
-        return coreCaseDataApi.submitEventForCaseWorker(userToken,
-                                                        s2sToken,
-                                                        userId,
-                                                        JURISDICTION_ID,
-                                                        CASE_TYPE,
-                                                        caseId,
-                                                        ignoreWarning,
-                                                        request);
+        return coreCaseDataApi.submitEventForCaseWorker(
+            userToken,
+            s2sToken,
+            userId,
+            JURISDICTION_ID,
+            CASE_TYPE,
+            caseId,
+            ignoreWarning,
+            request
+        );
+    }
+
+    private String getUserToken(Event event, String caseId) {
+        String userToken;
+        try {
+            userToken = idamService.getServiceUserToken();
+            log.info("System user token has been generated for event: {}, caseId: {}.", event, caseId);
+        } catch (IdentityManagerResponseException ex) {
+            log.error("Unauthorized access to getCaseById: {}", ex.getMessage());
+            throw new IdentityManagerResponseException(ex.getMessage(), ex);
+        }
+        return userToken;
+    }
+
+    private String getS2sToken(Event event, String caseId) {
+        String s2sToken;
+        try {
+            s2sToken = serviceAuthTokenGenerator.generate();
+            log.info("S2S token has been generated for event: {}, caseId: {}.", event, caseId);
+        } catch (IdentityManagerResponseException ex) {
+            log.error("Unauthorized access to getCaseById: {}", ex.getMessage());
+            throw new IdentityManagerResponseException(ex.getMessage(), ex);
+        }
+        return s2sToken;
+    }
+
+    private String getUid(Event event, String caseId) {
+        String uid;
+        try {
+            uid = idamService.getUserInfo().getUid();
+            log.info("System user id has been fetched for event: {}, caseId: {}.", event, caseId);
+
+        } catch (IdentityManagerResponseException ex) {
+
+            log.error("Unauthorized access to getCaseById: {}", ex.getMessage());
+            throw new IdentityManagerResponseException(ex.getMessage(), ex);
+        }
+        return uid;
     }
 
 }

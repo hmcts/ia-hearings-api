@@ -12,7 +12,9 @@ public enum ListAssistCaseStatus {
     LISTED("Listed"),
     PENDING_RELISTING("Pending Relisting"),
     HEARING_COMPLETED("Hearing Completed"),
-    CASE_CLOSED("Case Closed");
+    CASE_CLOSED("Case Closed"),
+    CLOSED("CLOSED"),
+    EXCEPTION("EXCEPTION");
 
     private final String label;
 }

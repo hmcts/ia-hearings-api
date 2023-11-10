@@ -33,11 +33,6 @@ public class LanguageAndAdjustmentsMapper {
         LANGUAGE_INTERPRETER, SIGN_LANGUAGE_INTERPRETER)
         .map(StrategicCaseFlagType::getFlagCode).collect(Collectors.toSet());
     public static final Set<String> REASONABLE_ADJUSTMENT_PREFIXES = Set.of("RA", "SM");
-
-    public static final String INTERPRETER_LANGUAGE = "interpreterLanguage";
-    public static final String OTHER_REASONABLE_ADJUSTMENTS_DETAILS = "otherReasonableAdjustmentsDetails";
-    public static final String REASONABLE_ADJUSTMENTS = "reasonableAdjustments";
-
     public static final String INTERPRETER = "Interpreter: ";
     private static final String ACTIVE = "Active";
     private static final String PARTY_ROLE_APPELLANT = "APEL";
@@ -91,7 +86,9 @@ public class LanguageAndAdjustmentsMapper {
             }
 
             if (!otherReasonableAdjustments.isEmpty()) {
-                individualDetails.setOtherReasonableAdjustmentDetails(otherReasonableAdjustments + ";");
+                individualDetails.setOtherReasonableAdjustmentDetails(
+                    Optional.ofNullable(individualDetails.getOtherReasonableAdjustmentDetails()).orElse("")
+                        + otherReasonableAdjustments + ";");
             }
         }
 
@@ -101,11 +98,13 @@ public class LanguageAndAdjustmentsMapper {
     private void separateLanguageAndReasonableAdjustmentFlags(List<CaseFlagDetail> activeCaseFlagDetails,
                                                               List<CaseFlagDetail> languageFlags,
                                                               List<CaseFlagDetail> reasonableAdjustmentsFlags) {
+
         activeCaseFlagDetails
             .forEach(flagDetail -> {
                 if (isLanguageCaseFlag(flagDetail)) {
                     languageFlags.add(flagDetail);
-                } else if (isReasonableAdjustmentFlag(flagDetail)) {
+                }
+                if (isReasonableAdjustmentFlag(flagDetail)) {
                     reasonableAdjustmentsFlags.add(flagDetail);
                 }
             });
@@ -173,22 +172,6 @@ public class LanguageAndAdjustmentsMapper {
         });
 
         return witnessCaseFlags;
-    }
-
-    private List<StrategicCaseFlag> getAppellantAndWitnessCaseFlags(AsylumCase asylumCase) {
-        List<StrategicCaseFlag> caseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
-            .map(Lists::newArrayList).orElse(new ArrayList<>());
-
-        Optional<List<PartyFlagIdValue>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
-        caseFlagsOptional.ifPresent(witnessFlagIdValues -> {
-            List<StrategicCaseFlag> witnessCaseFlags = witnessFlagIdValues
-                .stream().map(PartyFlagIdValue::getValue).toList();
-            if (!witnessCaseFlags.isEmpty()) {
-                caseFlags.addAll(witnessCaseFlags);
-            }
-        });
-
-        return caseFlags;
     }
 
     private List<CaseFlagDetail> filterForActiveCaseFlagDetails(List<StrategicCaseFlag> strategicCaseFlags) {

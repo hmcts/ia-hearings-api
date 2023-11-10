@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,6 +24,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Classification;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,12 +59,13 @@ public class CoreCaseDataServiceTest {
 
     @BeforeEach
     void setup() {
-        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
-        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
+
     }
 
     @Test
     public void should_fetch_one_case_by_id() {
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
+        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
 
         CaseDetails caseDetails = mock(CaseDetails.class);
         Map<String, Object> data = new HashMap<>();
@@ -76,18 +79,59 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void should_trigger_event() {
+    public void should_get_case_status() {
+        CaseDetails caseDetails = CaseDetails.builder().state("listing").build();
+
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
+        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
+        when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(caseDetails);
+
+        State caseState = coreCaseDataService.getCaseState(CASE_ID);
+
+        assertEquals(caseState, LISTING);
+    }
+
+    @Test
+    public void should_start_an_event_case() {
+
+        CaseDetails caseDetails = mock(CaseDetails.class);
+        Map<String, Object> data = new HashMap<>();
+        when(caseDetails.getData()).thenReturn(data);
+        when(iaCcdConvertService.getCaseData(data)).thenReturn(asylumCase);
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+
+        AsylumCase actualAsylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
+
+        assertEquals(asylumCase, actualAsylumCase);
+    }
+
+    @Test
+    public void should_start_case_event() {
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
+        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
         when(idamService.getUserInfo()).thenReturn(userInfo);
         when(userInfo.getUid()).thenReturn(USER_ID);
+        when(coreCaseDataApi.startEventForCaseWorker(
+            AUTH_TOKEN,
+            SERVICE_TOKEN,
+            USER_ID,
+            JURISDICTION,
+            CASE_TYPE,
+            CASE_ID,
+            LIST_CASE.toString()
+        )).thenReturn(startEventResponse);
 
-        when(coreCaseDataApi.startEventForCaseWorker(AUTH_TOKEN,
-                                                     SERVICE_TOKEN,
-                                                     USER_ID,
-                                                     JURISDICTION,
-                                                     CASE_TYPE,
-                                                     CASE_ID,
-                                                     LIST_CASE.toString())).thenReturn(startEventResponse);
+        StartEventResponse actualstartEventResponse = coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID);
 
+        assertEquals(startEventResponse, actualstartEventResponse);
+    }
+
+    @Test
+    public void should_trigger_event() {
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
+        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
+        when(idamService.getUserInfo()).thenReturn(userInfo);
+        when(userInfo.getUid()).thenReturn(USER_ID);
         when(startEventResponse.getToken()).thenReturn(EVENT_TOKEN);
 
         CaseDataContent caseDataContent = CaseDataContent.builder()
@@ -101,30 +145,28 @@ public class CoreCaseDataServiceTest {
             .ignoreWarning(true)
             .caseReference(CASE_ID)
             .build();
+        when(coreCaseDataApi.submitEventForCaseWorker(
+            eq(AUTH_TOKEN),
+            eq(SERVICE_TOKEN),
+            eq(USER_ID),
+            eq(JURISDICTION),
+            eq(CASE_TYPE),
+            eq(CASE_ID),
+            eq(true),
+            eq(caseDataContent)
+        )).thenReturn(caseDetails);
 
-        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
-        when(startEventResponse.getCaseDetails().getData()).thenReturn(asylumCase);
-
-        when(coreCaseDataApi.submitEventForCaseWorker(eq(AUTH_TOKEN),
-                                                      eq(SERVICE_TOKEN),
-                                                      eq(USER_ID),
-                                                      eq(JURISDICTION),
-                                                      eq(CASE_TYPE),
-                                                      eq(CASE_ID),
-                                                      eq(true),
-                                                      eq(caseDataContent)))
-            .thenReturn(caseDetails);
-
-
-        assertEquals(caseDetails, coreCaseDataService.triggerEvent(LIST_CASE, CASE_ID, asylumCase));
+        assertEquals(caseDetails, coreCaseDataService.triggerSubmitEvent(
+            LIST_CASE,
+            CASE_ID,
+            startEventResponse,
+            asylumCase
+        ));
     }
 
     @Test
     public void should_throw_exception() {
-
-        when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(null);
-
-        assertThatThrownBy(() -> coreCaseDataService.getCase(CASE_ID))
+        assertThatThrownBy(() -> coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID))
             .hasMessage(String.format("Case %s not found", CASE_ID))
             .isExactlyInstanceOf(IllegalArgumentException.class);
     }

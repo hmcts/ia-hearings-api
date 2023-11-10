@@ -3,14 +3,14 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static java.util.Objects.requireNonNull;
 
 import feign.FeignException;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.validation.constraints.NotNull;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
@@ -67,7 +68,7 @@ public class HearingService {
     }
 
     public HearingGetResponse getHearing(String hearingId) throws HmcException {
-        log.debug("Sending Get Hearings with Hearing ID {}", hearingId);
+        log.info("Sending GetHearings request with Hearing ID {}", hearingId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
@@ -163,6 +164,24 @@ public class HearingService {
         } catch (FeignException ex) {
             log.error("Failed to update partiesNotified with Id: {} from HMC", hearingId);
             throw new HmcException(ex);
+        }
+    }
+
+    public ResponseEntity<HmcHearingResponse> deleteHearing(Long hearingId, String cancellationReason) {
+        log.debug("Requesting Get Parties Notified with Hearing ID {}", hearingId);
+        try {
+            String serviceUserToken = idamService.getServiceUserToken();
+            String serviceAuthToken = serviceAuthTokenGenerator.generate();
+
+            return hmcHearingApi.deleteHearing(
+                serviceUserToken,
+                serviceAuthToken,
+                hearingId,
+                new DeleteHearingRequest(Arrays.asList(cancellationReason))
+            );
+        } catch (FeignException e) {
+            log.error("Failed to retrieve parties notified with Id: {} from HMC", hearingId);
+            throw new HmcException(e);
         }
     }
 

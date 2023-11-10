@@ -33,7 +33,7 @@ class WitnessDetailsMapperTest {
 
         final List<IdValue<WitnessDetails>> witnessDetails = List.of(
             new IdValue<>(
-                "id1", new WitnessDetails("partyId", "witnessName", "witnessFamilyName"))
+                "id1", new WitnessDetails("partyId", "witnessName", "witnessFamilyName", null))
         );
         when(asylumCase.read(WITNESS_DETAILS)).thenReturn(Optional.of(witnessDetails));
 

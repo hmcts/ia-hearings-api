@@ -4,6 +4,7 @@ import java.util.List;
 import com.fasterxml.jackson.core.type.TypeReference;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 
 public enum AsylumCaseFieldDefinition {
 
@@ -148,6 +149,28 @@ public enum AsylumCaseFieldDefinition {
         "changeHearingDateRangeEarliest", new TypeReference<String>(){}),
     CHANGE_HEARING_DATE_RANGE_LATEST(
         "changeHearingDateRangeLatest", new TypeReference<String>(){}),
+    ADJOURNMENT_DETAILS_HEARING(
+        "adjournmentDetailsHearing", new TypeReference<DynamicList>(){}),
+    END_APPEAL_OUTCOME(
+        "endAppealOutcome", new TypeReference<String>(){}),
+    IS_INTEGRATED(
+        "isIntegrated", new TypeReference<YesOrNo>(){}),
+    MANUAL_CANCEL_HEARINGS_REQUIRED(
+        "manualCanHearingRequired", new TypeReference<YesOrNo>(){}),
+    MANUAL_UPDATE_HEARING_REQUIRED(
+        "manualUpdHearingRequired", new TypeReference<YesOrNo>(){}),
+    HEARING_ADJOURNMENT_WHEN(
+        "hearingAdjournmentWhen", new TypeReference<HearingAdjournmentDay>(){}),
+    RELIST_CASE_IMMEDIATELY(
+        "relistCaseImmediately", new TypeReference<YesOrNo>(){}),
+    UPDATE_HMC_REQUEST_SUCCESS(
+        "updateHmcRequestSuccess", new TypeReference<YesOrNo>() {}),
+    HEARING_CANCELLATION_REASON(
+        "hearingCancellationReason", new TypeReference<String>(){}),
+    DEPORTATION_ORDER_OPTIONS(
+        "deportationOrderOptions", new TypeReference<YesOrNo>(){}),
+    APPEAL_TYPE(
+        "appealType", new TypeReference<AppealType>(){}),
     ;
 
     private final String value;
