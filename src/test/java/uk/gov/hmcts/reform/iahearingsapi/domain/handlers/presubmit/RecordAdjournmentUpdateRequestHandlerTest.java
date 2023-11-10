@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
@@ -105,8 +107,13 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
     void should_send_update_if_relist_case_immediately(YesOrNo relistCaseImmediately) {
         asylumCase.write(RELIST_CASE_IMMEDIATELY, relistCaseImmediately);
 
-        when(updateHearingPayloadService.createUpdateHearingPayload(asylumCase, null, null, null,
-                                                                    null, null, false, null))
+        when(updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            null,
+            null,
+            false,
+            null
+        ))
             .thenReturn(updateHearingRequest);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(

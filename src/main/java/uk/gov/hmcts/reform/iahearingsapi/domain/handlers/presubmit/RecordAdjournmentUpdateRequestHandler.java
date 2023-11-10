@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
@@ -18,14 +17,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
 import java.util.Objects;
-import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADJOURNMENT_DETAILS_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CANCELLATION_REASON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CANCEL_HEARINGS_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.RELIST_CASE_IMMEDIATELY;
@@ -109,9 +104,6 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
                 updateHearingPayloadService.createUpdateHearingPayload(
                     asylumCase,
                     hearingId,
-                    getHearingChannels(asylumCase),
-                    getLocations(asylumCase),
-                    getDuration(asylumCase),
                     //TODO: this value is to be updated with RIA-7836
                     "update Reason",
                     false,
@@ -126,28 +118,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
         asylumCase.write(UPDATE_HMC_REQUEST_SUCCESS, updateRequestSuccess);
     }
 
-    private Optional<String> getHearingChannels(AsylumCase asylumCase) {
-        Optional<DynamicList> hearingChannels = asylumCase.read(
-            HEARING_CHANNEL,
-            DynamicList.class
-        );
 
-        return hearingChannels.map(hearingChannel -> hearingChannel.getValue().getCode());
-    }
-
-    private Optional<String> getLocations(AsylumCase asylumCase) {
-        return asylumCase.read(
-            LIST_CASE_HEARING_CENTRE,
-            HearingCentre.class
-        ).map(HearingCentre::getEpimsId);
-    }
-
-    private Optional<Integer> getDuration(AsylumCase asylumCase) {
-        return asylumCase.read(
-            LIST_CASE_HEARING_LENGTH,
-            String.class
-        ).map(Integer::parseInt);
-    }
 
     private HearingWindowModel updateHearingWindow(AsylumCase asylumCase) {
         String fixedDate = asylumCase.read(

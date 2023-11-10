@@ -94,9 +94,6 @@ class UpdateHearingsRequestSubmitTest {
             any(),
             any(),
             any(),
-            any(),
-            any(),
-            any(),
             any()
         )).thenReturn(updateHearingRequest);
 
@@ -120,9 +117,6 @@ class UpdateHearingsRequestSubmitTest {
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             asylumCase,
             updateHearingsCode,
-            Optional.of("TEL"),
-            Optional.empty(),
-            Optional.empty(),
             reasonCode.getValue().getCode(),
             false,
             null
@@ -146,9 +140,6 @@ class UpdateHearingsRequestSubmitTest {
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             asylumCase,
             updateHearingsCode,
-            Optional.empty(),
-            Optional.of(HearingCentre.BRADFORD.getEpimsId()),
-            Optional.empty(),
             reasonCode.getValue().getCode(),
             false,
             null
@@ -177,9 +168,6 @@ class UpdateHearingsRequestSubmitTest {
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             asylumCase,
             updateHearingsCode,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
             reasonCode.getValue().getCode(),
             false,
             newHearingWindow
@@ -208,9 +196,6 @@ class UpdateHearingsRequestSubmitTest {
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             asylumCase,
             updateHearingsCode,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
             reasonCode.getValue().getCode(),
             false,
             newHearingWindow
@@ -233,9 +218,6 @@ class UpdateHearingsRequestSubmitTest {
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             asylumCase,
             updateHearingsCode,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
             reasonCode.getValue().getCode(),
             true,
             null
@@ -291,9 +273,6 @@ class UpdateHearingsRequestSubmitTest {
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             asylumCase,
             updateHearingsCode,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.of(240),
             reasonCode.getValue().getCode(),
             false,
             null
