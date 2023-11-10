@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
@@ -88,10 +87,8 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
             try {
                 hearingService.updateHearing(
                     updateHearingPayloadService.createUpdateHearingPayload(
+                        asylumCase,
                         hearingId,
-                        getHearingChannels(asylumCase),
-                        getLocations(asylumCase),
-                        getDuration(asylumCase),
                         getReason(asylumCase),
                         firstAvailableDate,
                         updateHearingWindow(asylumCase)
@@ -108,30 +105,6 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
 
 
         return new PreSubmitCallbackResponse<>(asylumCase);
-    }
-
-
-    private Optional<String> getHearingChannels(AsylumCase asylumCase) {
-        Optional<DynamicList> hearingChannels = asylumCase.read(
-            HEARING_CHANNEL,
-            DynamicList.class
-        );
-
-        return hearingChannels.map(hearingChannel -> hearingChannel.getValue().getCode());
-    }
-
-    private Optional<String> getLocations(AsylumCase asylumCase) {
-        return asylumCase.read(
-            LIST_CASE_HEARING_CENTRE,
-            HearingCentre.class
-        ).map(HearingCentre::getEpimsId);
-    }
-
-    private Optional<Integer> getDuration(AsylumCase asylumCase) {
-        return asylumCase.read(
-            LIST_CASE_HEARING_LENGTH,
-            String.class
-        ).map(Integer::parseInt);
     }
 
     private String getReason(AsylumCase asylumCase) {

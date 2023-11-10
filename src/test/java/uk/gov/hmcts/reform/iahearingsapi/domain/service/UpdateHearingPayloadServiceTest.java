@@ -7,6 +7,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -21,6 +25,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +40,8 @@ class UpdateHearingPayloadServiceTest {
 
     @Mock
     HearingGetResponse hearingGetResponse;
+    @Mock
+    private AsylumCase asylumCase;
     HearingDetails hearingDetails = new HearingDetails();
     private final String updateHearingsCode = "code 1";
     UpdateHearingPayloadService updateHearingPayloadService;
@@ -54,18 +65,21 @@ class UpdateHearingPayloadServiceTest {
         setDefaultHearingDetails();
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(hearingGetResponse);
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
+        when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
         updateHearingPayloadService = new UpdateHearingPayloadService(hearingService);
     }
 
     @Test
     void should_create_an_update_hearing_request_with_new_hearing_channels() {
         String hearingChannel = "TEL";
+        when(asylumCase.read(
+            HEARING_CHANNEL,
+            DynamicList.class
+        )).thenReturn(Optional.of(new DynamicList(hearingChannel)));
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
-            Optional.of(hearingChannel),
-            Optional.empty(),
-            Optional.empty(),
             reasonCode,
             false,
             null
@@ -82,13 +96,15 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_create_an_update_hearing_request_with_new_location_code() {
-        String locationCode = "9876";
+
+        when(asylumCase.read(
+            LIST_CASE_HEARING_CENTRE,
+            HearingCentre.class
+        )).thenReturn(Optional.of(HearingCentre.BRADFORD));
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
-            Optional.empty(),
-            Optional.of(locationCode),
-            Optional.empty(),
             reasonCode,
             false,
             null
@@ -97,7 +113,7 @@ class UpdateHearingPayloadServiceTest {
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
 
         assertEquals(
-            locationCode,
+            HearingCentre.BRADFORD.getEpimsId(),
             updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId()
         );
         assertEqualsHearingDetails(updateHearingRequest);
@@ -106,12 +122,14 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_with_new_duration() {
         Integer duration = 240;
+        when(asylumCase.read(
+            LIST_CASE_HEARING_LENGTH,
+            String.class
+        )).thenReturn(Optional.of(duration.toString()));
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.of(duration),
             reasonCode,
             false,
             null
@@ -129,10 +147,8 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_with_first_available_date() {
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
             reasonCode,
             true,
             null
@@ -150,10 +166,8 @@ class UpdateHearingPayloadServiceTest {
             .dateRangeStart("2023-12-02T00:00")
             .build();
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
             reasonCode,
             false,
             hearingWindow
@@ -172,10 +186,8 @@ class UpdateHearingPayloadServiceTest {
             .dateRangeEnd("2023-03-30")
             .build();
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
             updateHearingsCode,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
             reasonCode,
             false,
             hearingWindow
@@ -183,6 +195,47 @@ class UpdateHearingPayloadServiceTest {
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
         assertEquals(hearingWindow, updateHearingRequest.getHearingDetails().getHearingWindow());
+        assertEqualsHearingDetails(updateHearingRequest);
+    }
+
+    @Test
+    void should_set_iac_type_c_conference_equipment_facility_when_s94b_is_enabled() {
+        when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            false,
+            null
+        );
+
+        verify(hearingService, times(1)).getHearing(updateHearingsCode);
+
+        assertEquals(
+            List.of("1", IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString()),
+            updateHearingRequest.getHearingDetails().getFacilitiesRequired()
+        );
+        assertEqualsHearingDetails(updateHearingRequest);
+    }
+
+    @Test
+    void should_remove_iac_type_c_conference_equipment_facility_when_s94b_is_disabled() {
+        when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
+        hearingDetails.setFacilitiesRequired(List.of("1", IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString()));
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            false,
+            null
+        );
+
+        verify(hearingService, times(1)).getHearing(updateHearingsCode);
+
+        assertEquals(
+            List.of("1"),
+            updateHearingRequest.getHearingDetails().getFacilitiesRequired()
+        );
         assertEqualsHearingDetails(updateHearingRequest);
     }
 
@@ -213,5 +266,6 @@ class UpdateHearingPayloadServiceTest {
         hearingDetails.setHearingLocations(hearingLocations);
         hearingDetails.setDuration(120);
         hearingDetails.setHearingWindow(hearingWindow);
+        hearingDetails.setFacilitiesRequired(List.of("1"));
     }
 }
