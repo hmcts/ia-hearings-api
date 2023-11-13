@@ -10,11 +10,17 @@ import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ReasonCodes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 import java.util.List;
@@ -37,7 +43,12 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_T
 class UpdateHearingPayloadServiceTest {
     @Mock
     private HearingService hearingService;
-
+    @Mock
+    private PartyDetailsMapper partyDetailsMapper;
+    @Mock
+    private CaseDataToServiceHearingValuesMapper caseDataMapper;
+    @Mock
+    private CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
     @Mock
     HearingGetResponse hearingGetResponse;
     @Mock
@@ -48,7 +59,7 @@ class UpdateHearingPayloadServiceTest {
 
     private final String locationId = "1234";
     private final String locationType = "court";
-    private final String reasonCode = "hearing-type-change";
+    private final String reasonCode = ReasonCodes.OTHER.toString();
     private final List<HearingLocationModel> hearingLocations = List.of(HearingLocationModel
                                                                             .builder()
                                                                             .locationId(locationId)
@@ -66,7 +77,14 @@ class UpdateHearingPayloadServiceTest {
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(hearingGetResponse);
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
         when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
-        updateHearingPayloadService = new UpdateHearingPayloadService(hearingService);
+        when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        updateHearingPayloadService = new UpdateHearingPayloadService(
+            hearingService,
+            partyDetailsMapper,
+            caseDataMapper,
+            caseFlagsMapper
+        );
     }
 
     @Test
@@ -236,6 +254,31 @@ class UpdateHearingPayloadServiceTest {
             List.of("1"),
             updateHearingRequest.getHearingDetails().getFacilitiesRequired()
         );
+        assertEqualsHearingDetails(updateHearingRequest);
+    }
+
+    @Test
+    void should_include_party_details_information() {
+        List<PartyDetailsModel> partyDetails = List.of(PartyDetailsModel.builder()
+                                                           .partyName("MyPartyName")
+                                                           .partyID("MyPartyId")
+                                                           .partyType(PartyType.IND.getPartyType())
+                                                           .build());
+        when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+            .thenReturn(partyDetails);
+
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            false,
+            null
+        );
+
+        verify(hearingService, times(1)).getHearing(updateHearingsCode);
+        verify(partyDetailsMapper, times(1)).map(asylumCase, caseFlagsMapper, caseDataMapper);
+
+        assertEquals(partyDetails, updateHearingRequest.getPartyDetails());
         assertEqualsHearingDetails(updateHearingRequest);
     }
 
