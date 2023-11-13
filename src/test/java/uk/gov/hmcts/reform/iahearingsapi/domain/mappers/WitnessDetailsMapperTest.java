@@ -57,7 +57,7 @@ class WitnessDetailsMapperTest {
             .partyRole("WITN")
             .build();
         List<PartyDetailsModel> expected = List.of(expectedParty);
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(expectedParty);
 
         expected.get(0).getIndividualDetails().setOtherReasonableAdjustmentDetails("");
