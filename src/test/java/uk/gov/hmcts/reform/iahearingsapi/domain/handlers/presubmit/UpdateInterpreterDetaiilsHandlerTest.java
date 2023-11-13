@@ -168,8 +168,8 @@ class UpdateInterpreterDetaiilsHandlerTest {
                     callback
                 )
             );
-        assertEquals("Hearing cannot be auto updated for Case 1" +
-                         " due to: hearingService is down", thrown.getMessage());
+        assertEquals("Hearing cannot be auto updated for Case 1"
+                         + " due to: hearingService is down", thrown.getMessage());
 
     }
 }
