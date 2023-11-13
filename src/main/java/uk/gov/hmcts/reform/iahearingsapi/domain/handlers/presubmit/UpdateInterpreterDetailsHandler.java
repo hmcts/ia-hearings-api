@@ -35,7 +35,8 @@ public class UpdateInterpreterDetailsHandler implements PreSubmitCallbackHandler
     }
 
     @Override
-    public PreSubmitCallbackResponse<AsylumCase> handle(PreSubmitCallbackStage callbackStage, Callback<AsylumCase> callback) {
+    public PreSubmitCallbackResponse<AsylumCase> handle(PreSubmitCallbackStage callbackStage,
+                                                        Callback<AsylumCase> callback) {
         if (!canHandle(callbackStage, callback)) {
             throw new IllegalStateException("Cannot handle callback");
         }
