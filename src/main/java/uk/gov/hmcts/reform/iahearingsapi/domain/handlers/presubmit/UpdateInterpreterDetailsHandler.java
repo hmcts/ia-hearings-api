@@ -63,11 +63,8 @@ public class UpdateInterpreterDetailsHandler implements PreSubmitCallbackHandler
                 latestSubstantiveHearing.getHearingRequestId()
             );
         } catch (Exception ex) {
-            String errorMessage = String.format("Hearing cannot be auto updated for Case %s due to: %s",
-                                                callback.getCaseDetails().getId(), ex.getMessage()
-            );
-            log.error(errorMessage);
-            throw new IllegalStateException(errorMessage);
+            log.error(ex.getMessage());
+            throw new IllegalStateException(ex.getMessage());
         }
         return new PreSubmitCallbackResponse<>(asylumCase);
     }

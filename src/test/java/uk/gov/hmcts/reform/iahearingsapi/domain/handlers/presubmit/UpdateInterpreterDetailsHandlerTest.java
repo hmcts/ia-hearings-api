@@ -36,7 +36,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Pre
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class UpdateInterpreterDetaiilsHandlerTest {
+class UpdateInterpreterDetailsHandlerTest {
     @Mock
     private Callback<AsylumCase> callback;
     @Mock
@@ -152,9 +152,8 @@ class UpdateInterpreterDetaiilsHandlerTest {
                 callback
             );
         });
-        assertEquals("Hearing cannot be auto updated for Case 1 due to: No Substantive hearing was found.",
+        assertEquals("No Substantive hearing was found.",
                      thrown.getMessage());
-
     }
 
     @Test
@@ -168,8 +167,6 @@ class UpdateInterpreterDetaiilsHandlerTest {
                     callback
                 )
             );
-        assertEquals("Hearing cannot be auto updated for Case 1"
-                         + " due to: hearingService is down", thrown.getMessage());
-
+        assertEquals("hearingService is down", thrown.getMessage());
     }
 }
