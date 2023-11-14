@@ -1,17 +1,24 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
+import static java.util.Objects.requireNonNullElse;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 
 @Component
 @AllArgsConstructor
 public class PartyDetailsMapper {
+
+    private static final String STATUS = "Status: ";
+    private static final String STATUS_SPOKEN = "Status (Spoken): ";
+    private static final String STATUS_SIGN = "Status (Sign): ";
 
     private AppellantDetailsMapper appellantDetailsMapper;
     private LegalRepDetailsMapper legalRepDetailsMapper;
@@ -41,5 +48,41 @@ public class PartyDetailsMapper {
         partyDetails.addAll(interpreterDetailsMapper.map(asylumCase, caseDataMapper));
 
         return partyDetails;
+    }
+
+    public static PartyDetailsModel appendBookingStatus(Optional<InterpreterBookingStatus> spokenBookingStatus,
+                                                 Optional<InterpreterBookingStatus> signBookingStatus,
+                                                 PartyDetailsModel partyDetailsModel) {
+
+        //String status;
+        StringBuilder status = new StringBuilder();
+
+        if (spokenBookingStatus.isPresent() && signBookingStatus.isPresent()) {
+            status
+                .append(STATUS_SPOKEN)
+                .append(spokenBookingStatus.get().getDesc())
+                .append("; ")
+                .append(STATUS_SIGN)
+                .append(signBookingStatus.get().getDesc())
+                .append(";");
+        } else if (spokenBookingStatus.isPresent()) {
+            status
+                .append(STATUS)
+                .append(spokenBookingStatus.get().getDesc())
+                .append(";");
+        } else {
+            signBookingStatus.ifPresent(interpreterBookingStatus -> status
+                .append(STATUS)
+                .append(interpreterBookingStatus.getDesc())
+                .append(";"));
+        }
+
+        String otherReasonableAdjustments = requireNonNullElse(partyDetailsModel.getIndividualDetails()
+            .getOtherReasonableAdjustmentDetails(), "");
+
+        partyDetailsModel.getIndividualDetails()
+            .setOtherReasonableAdjustmentDetails((otherReasonableAdjustments + " " + status).trim());
+
+        return partyDetailsModel;
     }
 }
