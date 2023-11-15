@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static java.util.Objects.requireNonNullElse;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.*;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.NOT_REQUESTED;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,7 +58,10 @@ public class PartyDetailsMapper {
         //String status;
         StringBuilder status = new StringBuilder();
 
-        if (spokenBookingStatus.isPresent() && signBookingStatus.isPresent()) {
+        if (spokenBookingStatus.isPresent()
+            && signBookingStatus.isPresent()
+            && (!spokenBookingStatus.get().equals(NOT_REQUESTED)
+                || !signBookingStatus.get().equals(NOT_REQUESTED))) {
             status
                 .append(STATUS_SPOKEN)
                 .append(spokenBookingStatus.get().getDesc())

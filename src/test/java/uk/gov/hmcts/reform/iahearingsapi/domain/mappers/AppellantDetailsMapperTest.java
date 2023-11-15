@@ -10,6 +10,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_SINGLE_SEX_COURT_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SINGLE_SEX_COURT_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.NOT_REQUESTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
 
 import java.util.Collections;
@@ -135,7 +136,7 @@ class AppellantDetailsMapperTest {
         when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(appellantPartyDetailsModel);
 
-        String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED
+        String status = bookingStatus != NOT_REQUESTED
             ? " Status: " + bookingStatus.getDesc() + ";"
             : "";
 
@@ -171,7 +172,7 @@ class AppellantDetailsMapperTest {
         when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(appellantPartyDetailsModel);
 
-        String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED
+        String status = bookingStatus != NOT_REQUESTED
             ? " Status: " + bookingStatus.getDesc() + ";"
             : "";
 
@@ -218,8 +219,15 @@ class AppellantDetailsMapperTest {
                                      .getOtherReasonableAdjustmentDetails(),
                                 "") + status).trim()));
 
-        assertEquals(appellantPartyDetailsModel, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
-            .map(asylumCase, caseFlagsMapper, caseDataMapper));
+        if (!bookingStatus.equals(NOT_REQUESTED)) {
+            assertEquals(appellantPartyDetailsModel, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+                .map(asylumCase, caseFlagsMapper, caseDataMapper));
+        } else {
+            appellantPartyDetailsModel.getIndividualDetails()
+                .setOtherReasonableAdjustmentDetails("Single sex court: Male;");
+            assertEquals(appellantPartyDetailsModel, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+                .map(asylumCase, caseFlagsMapper, caseDataMapper));
+        }
     }
 
     private PartyDetailsModel getPartyDetailsModelForAppellant(IndividualDetailsModel individualDetails) {
