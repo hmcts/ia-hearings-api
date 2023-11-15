@@ -8,40 +8,33 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ActiveProfiles("functional")
-@Disabled
 class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
-    void checkCaseExists() {
-        setup();
-
-        log.info("caseId: " + getCaseId());
-        log.info("caseOfficerToken: " + caseOfficerToken);
-        log.info("legalRepToken: " + legalRepToken);
-        log.info("s2sToken: " + s2sToken);
-
+    void getAuthentications() {
+        fetchTokensAndUserIds();
     }
 
-    @Test
     @Order(1)
-    void should_create_hearing_successfully() {
-        HearingRequestPayload payload = HearingRequestPayload.builder()
-            .caseReference(getCaseId())
-            .build();
+    @ParameterizedTest
+    @CsvSource({ "true", "false" })
+    void should_create_hearing_successfully(boolean isAipJourney) {
+        Case result = createAndGetCase(isAipJourney);
 
-        log.info("caseId: " + getCaseId());
-        log.info("caseOfficerToken: " + legalRepToken);
-        log.info("s2sToken: " + s2sToken);
+        HearingRequestPayload payload = HearingRequestPayload.builder()
+            .caseReference(Long.toString(result.getCaseId()))
+            .build();
 
         Response response = given(hearingsSpecification)
             .when()
@@ -78,11 +71,15 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
         assertEquals(400, response.getStatusCode());
     }
 
-    @Test
     @Order(3)
-    void should_get_hearings_values_successfully() {
+    @ParameterizedTest
+    @CsvSource({ "true", "false" })
+    void should_get_hearings_values_successfully(boolean isAipJourney) {
+        Case result = createAndGetCase(isAipJourney);
+        listCaseWithRequiredFields();
+
         HearingRequestPayload payload = HearingRequestPayload.builder()
-            .caseReference(getCaseId())
+            .caseReference(Long.toString(result.getCaseId()))
             .hearingId("hearingId")
             .build();
 
@@ -133,6 +130,6 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .then()
             .log().all(true)
             .statusCode(HttpStatus.SC_BAD_REQUEST);
-
     }
+
 }

@@ -80,6 +80,14 @@ public class IdamAuthProvider {
         );
     }
 
+    public String getCitizenToken() {
+
+        return getUserToken(
+            System.getenv("TEST_CITIZEN_USERNAME"),
+            System.getenv("TEST_CITIZEN_PASSWORD")
+        );
+    }
+
     public String getUserId(String token) {
 
         try {
