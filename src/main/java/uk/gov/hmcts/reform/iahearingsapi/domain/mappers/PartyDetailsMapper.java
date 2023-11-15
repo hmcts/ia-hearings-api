@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static java.util.Objects.requireNonNullElse;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,16 +66,16 @@ public class PartyDetailsMapper {
                 .append(STATUS_SIGN)
                 .append(signBookingStatus.get().getDesc())
                 .append(";");
-        } else if (spokenBookingStatus.isPresent()) {
+        } else if (spokenBookingStatus.isPresent() && !spokenBookingStatus.get().equals(NOT_REQUESTED)) {
             status
                 .append(STATUS)
                 .append(spokenBookingStatus.get().getDesc())
                 .append(";");
-        } else {
-            signBookingStatus.ifPresent(interpreterBookingStatus -> status
+        } else if (signBookingStatus.isPresent() && !signBookingStatus.get().equals(NOT_REQUESTED)) {
+            status
                 .append(STATUS)
-                .append(interpreterBookingStatus.getDesc())
-                .append(";"));
+                .append(signBookingStatus.get().getDesc())
+                .append(";");
         }
 
         String otherReasonableAdjustments = requireNonNullElse(partyDetailsModel.getIndividualDetails()

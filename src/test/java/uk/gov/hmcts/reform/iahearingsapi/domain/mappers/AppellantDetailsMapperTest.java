@@ -207,9 +207,11 @@ class AppellantDetailsMapperTest {
         when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(appellantPartyDetailsModel);
 
-        String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED
-            ? " Status (Spoken): " + bookingStatus.getDesc() + "; Status (Sign): " + bookingStatus.getDesc() + ";"
-            : "";
+        String status = " Status (Spoken): "
+                        + bookingStatus.getDesc()
+                        + "; Status (Sign): "
+                        + bookingStatus.getDesc()
+                        + ";";
 
         appellantPartyDetailsModel.getIndividualDetails().setOtherReasonableAdjustmentDetails(
             ((requireNonNullElse(appellantPartyDetailsModel.getIndividualDetails()
