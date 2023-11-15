@@ -10,6 +10,7 @@ import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ReasonCodes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
@@ -72,8 +73,8 @@ class UpdateHearingsRequestSubmitTest {
     UpdateHearingRequestSubmit updateHearingRequestSubmit;
 
     private final DynamicList reasonCode = new DynamicList(new Value(
-        "hearing-type-change",
-        "Different hearing mode required"
+        ReasonCodes.OTHER.name(),
+        ReasonCodes.OTHER.toString()
     ), null);
 
     private AsylumCase asylumCase;

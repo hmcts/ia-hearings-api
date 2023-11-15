@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ReasonCodes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
@@ -104,8 +105,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
                 updateHearingPayloadService.createUpdateHearingPayload(
                     asylumCase,
                     hearingId,
-                    //TODO: this value is to be updated with RIA-7836
-                    "update Reason",
+                    ReasonCodes.OTHER.toString(),//TODO: this reasonCode value is to be updated with RIA-7836
                     false,
                     updateHearingWindow(asylumCase)
                 ),

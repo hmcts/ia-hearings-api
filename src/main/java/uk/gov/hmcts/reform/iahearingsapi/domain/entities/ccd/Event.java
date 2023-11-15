@@ -16,6 +16,7 @@ public enum Event {
     EDIT_APPEAL("editAppeal"),
     SUBMIT_APPEAL("submitAppeal"),
     LIST_CASE_FOR_FT_ONLY("listCaseForFTOnly"),
+    UPDATE_INTERPRETER_DETAILS("updateInterpreterDetails"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");

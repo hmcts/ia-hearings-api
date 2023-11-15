@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -8,8 +9,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 import java.util.ArrayList;
@@ -25,15 +30,13 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_T
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class UpdateHearingPayloadService {
 
-    HearingService hearingService;
-
-    UpdateHearingPayloadService(
-        HearingService hearingService
-    ) {
-        this.hearingService = hearingService;
-    }
+    private final HearingService hearingService;
+    private final PartyDetailsMapper partyDetailsMapper;
+    private final CaseDataToServiceHearingValuesMapper caseDataMapper;
+    private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
 
     public UpdateHearingRequest createUpdateHearingPayload(
         AsylumCase asylumCase,
@@ -61,7 +64,7 @@ public class UpdateHearingPayloadService {
             .requestDetails(persistedHearing.getRequestDetails())
             .caseDetails(persistedHearing.getCaseDetails())
             .hearingDetails(buildHearingDetails(asylumCase, persistedHearing.getHearingDetails(), hearingDetails))
-            .partyDetails(persistedHearing.getPartyDetails())
+            .partyDetails(getPartyDetails(asylumCase))
             .build();
     }
 
@@ -143,5 +146,9 @@ public class UpdateHearingPayloadService {
                 .collect(Collectors.toList());
         }
         return filteredFacilities;
+    }
+
+    private List<PartyDetailsModel> getPartyDetails(AsylumCase asylumCase) {
+        return partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper);
     }
 }

@@ -84,12 +84,14 @@ security:
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
       - "endAppeal"
+      - "updateInterpreterDetails"
     caseworker-ia-caseworker:
       - "listCase"
     caseworker-ia-caseofficer:
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
       - "endAppeal"
+      - "updateInterpreterDetails"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
     caseworker-ia-system:
