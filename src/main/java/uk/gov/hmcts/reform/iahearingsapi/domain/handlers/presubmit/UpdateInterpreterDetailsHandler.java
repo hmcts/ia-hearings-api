@@ -31,7 +31,8 @@ public class UpdateInterpreterDetailsHandler implements PreSubmitCallbackHandler
         requireNonNull(callback, "callback must not be null");
 
         return callbackStage == PreSubmitCallbackStage.ABOUT_TO_SUBMIT
-            && callback.getEvent() == Event.UPDATE_INTERPRETER_DETAILS;
+            && (callback.getEvent() == Event.UPDATE_INTERPRETER_DETAILS
+            || callback.getEvent() == Event.UPDATE_INTERPRETER_BOOKING_STATUS);
     }
 
     @Override
