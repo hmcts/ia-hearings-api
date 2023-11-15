@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADJOURNMENT_DETAILS_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CANCELLATION_REASON;
@@ -63,7 +64,8 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
             .post("/asylum/ccdAboutToSubmit")
             .then()
             .statusCode(HttpStatus.SC_OK)
-            .log().all(true);
+            .log().all(true)
+            .assertThat().body("data.updateHmcRequestSuccess", notNullValue());
     }
 
     @ParameterizedTest

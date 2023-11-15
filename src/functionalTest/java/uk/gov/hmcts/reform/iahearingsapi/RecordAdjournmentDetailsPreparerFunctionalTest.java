@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ADJOURNMENT_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
@@ -51,7 +52,8 @@ public class RecordAdjournmentDetailsPreparerFunctionalTest extends CcdCaseCreat
             .post("/asylum/ccdAboutToStart")
             .then()
             .statusCode(HttpStatus.SC_OK)
-            .log().all(true);
+            .log().all(true)
+            .assertThat().body("data.adjournmentDetailsHearing", notNullValue());
     }
 
     @ParameterizedTest
