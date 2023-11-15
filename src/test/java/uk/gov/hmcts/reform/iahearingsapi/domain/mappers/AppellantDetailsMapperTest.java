@@ -1,7 +1,12 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
+import static java.util.Objects.requireNonNullElse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_SINGLE_SEX_COURT_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SINGLE_SEX_COURT_TYPE;
@@ -12,10 +17,13 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.SingleSexType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
@@ -55,7 +63,10 @@ class AppellantDetailsMapperTest {
             .preferredHearingChannel("hearingChannel")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+            .thenReturn(expected);
+
+        expected.getIndividualDetails().setOtherReasonableAdjustmentDetails("");
 
         assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
             .map(asylumCase, caseFlagsMapper, caseDataMapper));
@@ -98,6 +109,114 @@ class AppellantDetailsMapperTest {
         when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
 
         assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+            .map(asylumCase, caseFlagsMapper, caseDataMapper));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = InterpreterBookingStatus.class, names = {"BOOKED", "REQUESTED", "CANCELLED", "NOT_REQUESTED"})
+    void should_handle_spoken_interpreter_booking_status(InterpreterBookingStatus bookingStatus) {
+        when(asylumCase.read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class))
+            .thenReturn(Optional.of(bookingStatus));
+        when(asylumCase.read(APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class))
+            .thenReturn(Optional.empty());
+
+        when(asylumCase.read(IS_SINGLE_SEX_COURT_ALLOWED, String.class))
+            .thenReturn(Optional.of(GrantedRefusedType.GRANTED.getValue()));
+        when(asylumCase.read(SINGLE_SEX_COURT_TYPE, String.class))
+            .thenReturn(Optional.of(SingleSexType.MALE.getValue()));
+
+        IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()
+            .hearingChannelEmail(Collections.emptyList())
+            .hearingChannelPhone(Collections.emptyList())
+            .vulnerableFlag(false)
+            .otherReasonableAdjustmentDetails("Single sex court: Male;")
+            .build();
+        PartyDetailsModel appellantPartyDetailsModel = getPartyDetailsModelForAppellant(individualDetails);
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+            .thenReturn(appellantPartyDetailsModel);
+
+        String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED
+            ? " Status: " + bookingStatus.getDesc() + ";"
+            : "";
+
+        appellantPartyDetailsModel.getIndividualDetails().setOtherReasonableAdjustmentDetails(
+            ((requireNonNullElse(appellantPartyDetailsModel.getIndividualDetails()
+                                     .getOtherReasonableAdjustmentDetails(),
+                                 "") + status).trim()));
+
+        assertEquals(appellantPartyDetailsModel, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+            .map(asylumCase, caseFlagsMapper, caseDataMapper));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = InterpreterBookingStatus.class, names = {"BOOKED", "REQUESTED", "CANCELLED", "NOT_REQUESTED"})
+    void should_handle_sign_interpreter_booking_status(InterpreterBookingStatus bookingStatus) {
+        when(asylumCase.read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class))
+            .thenReturn(Optional.empty());
+        when(asylumCase.read(APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class))
+            .thenReturn(Optional.of(bookingStatus));
+
+        when(asylumCase.read(IS_SINGLE_SEX_COURT_ALLOWED, String.class))
+            .thenReturn(Optional.of(GrantedRefusedType.GRANTED.getValue()));
+        when(asylumCase.read(SINGLE_SEX_COURT_TYPE, String.class))
+            .thenReturn(Optional.of(SingleSexType.MALE.getValue()));
+
+        IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()
+            .hearingChannelEmail(Collections.emptyList())
+            .hearingChannelPhone(Collections.emptyList())
+            .vulnerableFlag(false)
+            .otherReasonableAdjustmentDetails("Single sex court: Male;")
+            .build();
+        PartyDetailsModel appellantPartyDetailsModel = getPartyDetailsModelForAppellant(individualDetails);
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+            .thenReturn(appellantPartyDetailsModel);
+
+        String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED
+            ? " Status: " + bookingStatus.getDesc() + ";"
+            : "";
+
+        appellantPartyDetailsModel.getIndividualDetails().setOtherReasonableAdjustmentDetails(
+            ((requireNonNullElse(appellantPartyDetailsModel.getIndividualDetails()
+                                     .getOtherReasonableAdjustmentDetails(),
+                                 "") + status).trim()));
+
+        assertEquals(appellantPartyDetailsModel, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+            .map(asylumCase, caseFlagsMapper, caseDataMapper));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = InterpreterBookingStatus.class, names = {"BOOKED", "REQUESTED", "CANCELLED", "NOT_REQUESTED"})
+    void should_handle_both_spoken_and_sign_interpreter_booking_status(InterpreterBookingStatus bookingStatus) {
+        when(asylumCase.read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class))
+            .thenReturn(Optional.of(bookingStatus));
+        when(asylumCase.read(APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class))
+            .thenReturn(Optional.of(bookingStatus));
+
+        when(asylumCase.read(IS_SINGLE_SEX_COURT_ALLOWED, String.class))
+            .thenReturn(Optional.of(GrantedRefusedType.GRANTED.getValue()));
+        when(asylumCase.read(SINGLE_SEX_COURT_TYPE, String.class))
+            .thenReturn(Optional.of(SingleSexType.MALE.getValue()));
+
+        IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()
+            .hearingChannelEmail(Collections.emptyList())
+            .hearingChannelPhone(Collections.emptyList())
+            .vulnerableFlag(false)
+            .otherReasonableAdjustmentDetails("Single sex court: Male;")
+            .build();
+        PartyDetailsModel appellantPartyDetailsModel = getPartyDetailsModelForAppellant(individualDetails);
+        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+            .thenReturn(appellantPartyDetailsModel);
+
+        String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED
+            ? " Status (Spoken): " + bookingStatus.getDesc() + "; Status (Sign): " + bookingStatus.getDesc() + ";"
+            : "";
+
+        appellantPartyDetailsModel.getIndividualDetails().setOtherReasonableAdjustmentDetails(
+            ((requireNonNullElse(appellantPartyDetailsModel.getIndividualDetails()
+                                     .getOtherReasonableAdjustmentDetails(),
+                                "") + status).trim()));
+
+        assertEquals(appellantPartyDetailsModel, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
             .map(asylumCase, caseFlagsMapper, caseDataMapper));
     }
 

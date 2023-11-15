@@ -3,19 +3,25 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_EMAIL_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_FAMILY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PHONE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.EMAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_SINGLE_SEX_COURT_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MOBILE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SINGLE_SEX_COURT_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.NOT_REQUESTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.SingleSexType.MALE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper.appendBookingStatus;
 
 import java.util.Collections;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
@@ -77,6 +83,24 @@ public class AppellantDetailsMapper {
             .unavailabilityRanges(caseDataMapper.getUnavailabilityRanges(asylumCase))
             .build();
 
-        return languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, appellantPartyDetailsModel);
+        languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, appellantPartyDetailsModel);
+
+        appendAppellantBookingStatus(asylumCase, appellantPartyDetailsModel);
+
+        return appellantPartyDetailsModel;
+    }
+
+    private void appendAppellantBookingStatus(AsylumCase asylumCase,
+                                              PartyDetailsModel appellantPartyDetailsModel) {
+
+        Optional<InterpreterBookingStatus> spokenBookingStatus = asylumCase
+            .read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class)
+            .filter(interpreterBookingStatus -> !interpreterBookingStatus.equals(NOT_REQUESTED));
+
+        Optional<InterpreterBookingStatus> signBookingStatus = asylumCase
+            .read(APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class)
+            .filter(interpreterBookingStatus -> !interpreterBookingStatus.equals(NOT_REQUESTED));
+
+        appendBookingStatus(spokenBookingStatus, signBookingStatus, appellantPartyDetailsModel);
     }
 }
