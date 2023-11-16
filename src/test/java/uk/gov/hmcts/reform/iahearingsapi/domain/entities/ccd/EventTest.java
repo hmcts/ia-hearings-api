@@ -21,10 +21,11 @@ public class EventTest {
         assertEquals("submitAppeal", Event.SUBMIT_APPEAL.toString());
         assertEquals("listCaseForFTOnly", Event.LIST_CASE_FOR_FT_ONLY.toString());
         assertEquals("updateInterpreterDetails", Event.UPDATE_INTERPRETER_DETAILS.toString());
+        assertEquals("updateInterpreterBookingStatus", Event.UPDATE_INTERPRETER_BOOKING_STATUS.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(13, Event.values().length);
+        assertEquals(14, Event.values().length);
     }
 }

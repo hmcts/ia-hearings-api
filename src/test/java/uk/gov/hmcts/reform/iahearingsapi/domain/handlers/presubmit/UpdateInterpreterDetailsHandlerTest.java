@@ -30,6 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_INTERPRETER_BOOKING_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_INTERPRETER_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 
@@ -79,8 +80,15 @@ class UpdateInterpreterDetailsHandlerTest {
     }
 
     @Test
-    void testCanHandle() {
+    void test_can_handle_update_interpreter_detail() {
         when(callback.getEvent()).thenReturn(UPDATE_INTERPRETER_DETAILS);
+        boolean canHandle = updateInterpreterDetailsHandler.canHandle(ABOUT_TO_SUBMIT, callback);
+        assertTrue(canHandle);
+    }
+
+    @Test
+    void test_can_handle_update_interpreter_booking_status() {
+        when(callback.getEvent()).thenReturn(UPDATE_INTERPRETER_BOOKING_STATUS);
         boolean canHandle = updateInterpreterDetailsHandler.canHandle(ABOUT_TO_SUBMIT, callback);
         assertTrue(canHandle);
     }
