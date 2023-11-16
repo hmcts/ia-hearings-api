@@ -11,7 +11,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MOBILE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SINGLE_SEX_COURT_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.NOT_REQUESTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.SingleSexType.MALE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper.appendBookingStatus;
 
@@ -94,12 +93,10 @@ public class AppellantDetailsMapper {
                                               PartyDetailsModel appellantPartyDetailsModel) {
 
         Optional<InterpreterBookingStatus> spokenBookingStatus = asylumCase
-            .read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class)
-            .filter(interpreterBookingStatus -> !interpreterBookingStatus.equals(NOT_REQUESTED));
+            .read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class);
 
         Optional<InterpreterBookingStatus> signBookingStatus = asylumCase
-            .read(APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class)
-            .filter(interpreterBookingStatus -> !interpreterBookingStatus.equals(NOT_REQUESTED));
+            .read(APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class);
 
         appendBookingStatus(spokenBookingStatus, signBookingStatus, appellantPartyDetailsModel);
     }

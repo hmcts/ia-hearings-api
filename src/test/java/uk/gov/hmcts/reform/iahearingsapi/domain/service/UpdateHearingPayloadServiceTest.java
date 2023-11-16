@@ -41,6 +41,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_T
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class UpdateHearingPayloadServiceTest {
+
     @Mock
     private HearingService hearingService;
     @Mock
@@ -53,6 +54,8 @@ class UpdateHearingPayloadServiceTest {
     HearingGetResponse hearingGetResponse;
     @Mock
     private AsylumCase asylumCase;
+    @Mock
+    private PartyDetailsModel partyDetailsModel;
     HearingDetails hearingDetails = new HearingDetails();
     private final String updateHearingsCode = "code 1";
     UpdateHearingPayloadService updateHearingPayloadService;
@@ -280,6 +283,22 @@ class UpdateHearingPayloadServiceTest {
 
         assertEquals(partyDetails, updateHearingRequest.getPartyDetails());
         assertEqualsHearingDetails(updateHearingRequest);
+    }
+
+    @Test
+    void should_create_an_update_hearing_request_with_updated_party_details() {
+        when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+            .thenReturn(List.of(partyDetailsModel));
+
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            true,
+            null
+        );
+
+        assertEquals(List.of(partyDetailsModel), updateHearingRequest.getPartyDetails());
     }
 
     private void assertEqualsHearingDetails(UpdateHearingRequest updateHearingRequestSent) {

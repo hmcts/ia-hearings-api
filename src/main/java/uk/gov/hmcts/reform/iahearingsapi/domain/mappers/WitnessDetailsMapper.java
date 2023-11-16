@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_DETAILS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.NOT_REQUESTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper.appendBookingStatus;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.InterpreterLanguagesUtils.WITNESS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUSES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.InterpreterLanguagesUtils.WITNESS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUSES;
@@ -62,12 +61,10 @@ public class WitnessDetailsMapper {
         int id = Integer.parseInt(witnessDetailsIdValue.getId());
 
         Optional<InterpreterBookingStatus> spokenBookingStatus = asylumCase
-            .read(WITNESS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUSES.get(id - 1), InterpreterBookingStatus.class)
-            .filter(interpreterBookingStatus -> !interpreterBookingStatus.equals(NOT_REQUESTED));
+            .read(WITNESS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUSES.get(id - 1), InterpreterBookingStatus.class);
 
         Optional<InterpreterBookingStatus> signBookingStatus = asylumCase
-            .read(WITNESS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUSES.get(id - 1), InterpreterBookingStatus.class)
-            .filter(interpreterBookingStatus -> !interpreterBookingStatus.equals(NOT_REQUESTED));
+            .read(WITNESS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUSES.get(id - 1), InterpreterBookingStatus.class);
 
         appendBookingStatus(spokenBookingStatus, signBookingStatus, witnessPartyDetailsModel);
     }
