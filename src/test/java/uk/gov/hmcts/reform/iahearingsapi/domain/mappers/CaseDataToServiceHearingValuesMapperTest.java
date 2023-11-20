@@ -155,9 +155,9 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     @Test
     void getHearingWindowModel_should_return_correct_date_range() {
-        ZonedDateTime expectedStartDate = ZonedDateTime.now().plusDays(10L);
+        ZonedDateTime expectedStartDate = ZonedDateTime.now().plusDays(11L);
         when(hearingServiceDateProvider
-                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 10))
+                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 11))
             .thenReturn(expectedStartDate);
         HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel();
 
