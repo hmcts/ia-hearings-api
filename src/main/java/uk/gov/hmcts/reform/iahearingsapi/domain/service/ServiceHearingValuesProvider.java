@@ -134,7 +134,7 @@ public class ServiceHearingValuesProvider {
                .build())
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
-            .caseflags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference))
+            .caseFlags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference)) // caseFlagsAppender
             .screenFlow(getScreenFlowJson())
             .vocabulary(Collections.emptyList())
             .hearingChannels(caseDataMapper
