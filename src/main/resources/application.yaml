@@ -98,7 +98,6 @@ security:
     caseworker-ia-iacjudge:
     caseworker-ia-system:
       - "handleHearingException"
-      - "updateHMCResponse"
       - "recordAdjournmentDetails"
       - "listCaseForFTOnly"
 

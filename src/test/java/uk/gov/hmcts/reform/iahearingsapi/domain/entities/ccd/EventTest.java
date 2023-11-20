@@ -11,7 +11,6 @@ public class EventTest {
         assertEquals("listCase", Event.LIST_CASE.toString());
         assertEquals("updateHearingRequest", Event.UPDATE_HEARING_REQUEST.toString());
         assertEquals("handleHearingException", Event.HANDLE_HEARING_EXCEPTION.toString());
-        assertEquals("updateHMCResponse", Event.UPDATE_HMC_RESPONSE.toString());
         assertEquals("recordAdjournmentDetails", Event.RECORD_ADJOURNMENT_DETAILS.toString());
         assertEquals("unknown", Event.UNKNOWN.toString());
         assertEquals("endAppeal", Event.END_APPEAL.toString());
@@ -26,6 +25,6 @@ public class EventTest {
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(14, Event.values().length);
+        assertEquals(13, Event.values().length);
     }
 }
