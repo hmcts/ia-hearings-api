@@ -26,10 +26,13 @@ import java.util.Optional;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_EARLIEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_LATEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 
 @Component
@@ -96,10 +99,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
                 );
             }
             if (hearingResponse.getHearingDetails().getHearingWindow() != null) {
-                asylumCase.write(
-                    CHANGE_HEARING_DATE,
-                    getHearingDate(hearingResponse.getHearingDetails().getHearingWindow())
-                );
+                initializeHearingDateFields(asylumCase, hearingResponse.getHearingDetails().getHearingWindow());
             }
             if (hearingResponse.getHearingDetails().getDuration() != null) {
                 Optional<HearingLength> duration = HearingLength.from(hearingResponse
@@ -116,21 +116,41 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
 
-    private String getHearingDate(HearingWindowModel hearingWindowModel) {
-        String hearingDate = "";
+    private void initializeHearingDateFields(AsylumCase asylumCase, HearingWindowModel hearingWindowModel) {
         if (hearingWindowModel.getDateRangeStart() != null) {
-            hearingDate = HearingsUtils.convertToLocalStringFormat(HearingsUtils.convertToLocalDateFormat(
+            String hearingDate = HearingsUtils.convertToLocalStringFormat(HearingsUtils.convertToLocalDateFormat(
                 hearingWindowModel.getDateRangeStart()));
+            asylumCase.write(
+                CHANGE_HEARING_DATE_RANGE_EARLIEST,
+                hearingWindowModel.getDateRangeStart()
+            );
             String dateRangeEnd;
             if (hearingWindowModel.getDateRangeEnd() != null) {
                 dateRangeEnd = HearingsUtils.convertToLocalStringFormat(HearingsUtils.convertToLocalDateFormat(
                     hearingWindowModel.getDateRangeEnd()));
                 hearingDate = hearingDate + " - " + dateRangeEnd;
+                asylumCase.write(
+                    CHANGE_HEARING_DATE_RANGE_LATEST,
+                    hearingWindowModel.getDateRangeEnd()
+                );
             }
+            asylumCase.write(
+                CHANGE_HEARING_DATE,
+                hearingDate
+            );
+
         } else if (hearingWindowModel.getFirstDateTimeMustBe() != null) {
-            hearingDate = HearingsUtils.convertToLocalStringFormat(LocalDateTime.parse(
-                hearingWindowModel.getFirstDateTimeMustBe()));
+            LocalDateTime firstDateTime = LocalDateTime.parse(hearingWindowModel.getFirstDateTimeMustBe());
+            asylumCase.write(
+                LIST_CASE_HEARING_DATE,
+                firstDateTime
+            );
+            asylumCase.write(
+                CHANGE_HEARING_DATE,
+                HearingsUtils.convertToLocalStringFormat(firstDateTime)
+            );
+
         }
-        return hearingDate;
+
     }
 }
