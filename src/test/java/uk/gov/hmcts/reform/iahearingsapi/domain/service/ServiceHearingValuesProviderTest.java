@@ -263,7 +263,7 @@ class ServiceHearingValuesProviderTest {
                .build())
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
-            .caseflags(caseflags)
+            .caseFlags(caseflags)
             .screenFlow(serviceHearingValuesProvider.getScreenFlowJson())
             .vocabulary(Collections.emptyList())
             .hearingChannels(hearingChannels)

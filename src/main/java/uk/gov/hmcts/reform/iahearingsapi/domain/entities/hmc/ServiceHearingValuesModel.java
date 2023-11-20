@@ -92,7 +92,7 @@ public class ServiceHearingValuesModel {
     private List<PartyDetailsModel> parties;
 
     @NonNull
-    private Caseflags caseflags;
+    private Caseflags caseFlags;
 
     private JSONArray screenFlow;
 

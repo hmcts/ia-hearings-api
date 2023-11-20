@@ -35,7 +35,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.PartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlag;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
@@ -251,8 +250,9 @@ public class CaseFlagsToServiceHearingValuesMapper {
         List<CaseFlagDetail> caseFlagDetails, String partyId, String partyName) {
 
         return caseFlagDetails.stream()
-            .filter(detail -> Objects.equals(detail.getCaseFlagValue().getStatus(), "Active")
-                && YesOrNo.YES.equals(detail.getCaseFlagValue().getHearingRelevant()))
+            .filter(detail -> Objects.equals(detail.getCaseFlagValue().getStatus(), "Active"))
+                 // && YesOrNo.YES.equals(detail.getCaseFlagValue().getHearingRelevant())) // vulnerable user
+            // Detained individual // Urgent case
             .map(detail -> PartyFlagsModel.builder()
                 .partyId(partyId)
                 .partyName(partyName)
