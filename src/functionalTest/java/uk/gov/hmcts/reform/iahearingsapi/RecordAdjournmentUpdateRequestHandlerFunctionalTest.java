@@ -3,26 +3,33 @@ package uk.gov.hmcts.reform.iahearingsapi;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_APPEAL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADJOURNMENT_DETAILS_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CANCELLATION_REASON;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.RELIST_CASE_IMMEDIATELY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ADJOURNMENT_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 import io.restassured.http.Header;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
-@ActiveProfiles("functional")
 @Slf4j
+@ActiveProfiles("functional")
 @Disabled
-public class EndAppealRequestSubmitHandlerFunctionalTest extends CcdCaseCreationTest {
+public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCaseCreationTest {
 
     @BeforeEach
     void getAuthentications() {
@@ -31,27 +38,26 @@ public class EndAppealRequestSubmitHandlerFunctionalTest extends CcdCaseCreation
 
     @ParameterizedTest
     @CsvSource({ "true", "false" })
-    void should_submit_end_appeal_successfully(boolean isAipJourney) {
+    void should_handle_record_adjournment_details_successfully(boolean isAipJourney) {
         Case result = createAndGetCase(isAipJourney);
 
-        log.info("caseId: " + result.getCaseId());
-        log.info("caseOfficerToken: " + legalRepToken);
-        log.info("s2sToken: " + s2sToken);
+        AsylumCase asylumCase = result.getCaseData();
+        asylumCase.write(RELIST_CASE_IMMEDIATELY, "Yes");
+        asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList("hearingId"));
+        asylumCase.write(HEARING_CANCELLATION_REASON, "reclassified");
+        asylumCase.write(LIST_CASE_HEARING_DATE, "2023-11-28T09:45:00.000");
 
-
-        AsylumCase asylumCase = new AsylumCase();
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
             result.getCaseId(),
             "IA",
             LISTING,
-            asylumCase,
+            result.getCaseData(),
             LocalDateTime.now(),
             "securityClassification"
         );
 
-        Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails), END_APPEAL);
-
-        Response response = given(hearingsSpecification)
+        Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails), RECORD_ADJOURNMENT_DETAILS);
+        given(hearingsSpecification)
             .when()
             .contentType("application/json")
             .header(new Header(AUTHORIZATION, caseOfficerToken))
@@ -59,27 +65,26 @@ public class EndAppealRequestSubmitHandlerFunctionalTest extends CcdCaseCreation
             .body(callback)
             .post("/asylum/ccdAboutToSubmit")
             .then()
+            .statusCode(HttpStatus.SC_OK)
             .log().all(true)
-            .extract().response();
-
-        assertEquals(200, response.getStatusCode());
+            .assertThat().body("data.updateHmcRequestSuccess", notNullValue());
     }
 
     @ParameterizedTest
     @CsvSource({ "true", "false" })
-    void should_fail_to_submit_end_appeal_due_to_invalid_token(boolean isAipJourney) {
+    void should_fail_to_handle_record_adjournment_details_due_to_invalid_authentication(boolean isAipJourney) {
         Case result = createAndGetCase(isAipJourney);
 
-        AsylumCase asylumCase = new AsylumCase();
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
             result.getCaseId(),
             "IA",
             LISTING,
-            asylumCase,
+            result.getCaseData(),
             LocalDateTime.now(),
             "securityClassification"
         );
-        Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails), END_APPEAL);
+
+        Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails), RECORD_ADJOURNMENT_DETAILS);
 
         Response response = given(hearingsSpecification)
             .when()

@@ -7,14 +7,17 @@ import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import static java.lang.Long.parseLong;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,9 +28,11 @@ import org.springframework.util.FileCopyUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
+import uk.gov.hmcts.reform.ccd.client.model.CaseResource;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.util.IdamAuthProvider;
 import uk.gov.hmcts.reform.iahearingsapi.util.MapValueExpander;
 
@@ -37,8 +42,11 @@ import uk.gov.hmcts.reform.iahearingsapi.util.MapValueExpander;
 @Disabled
 public class CcdCaseCreationTest {
 
-    @Value("classpath:templates/start-appeal.json")
-    protected Resource startAppeal;
+    @Value("classpath:templates/start-appeal-aip.json")
+    protected Resource startAipAppeal;
+
+    @Value("classpath:templates/start-appeal-legalrep.json")
+    protected Resource startLegalRepAppeal;
 
     @Autowired
     protected IdamAuthProvider idamAuthProvider;
@@ -46,19 +54,24 @@ public class CcdCaseCreationTest {
     @Autowired
     protected AuthTokenGenerator s2sAuthTokenGenerator;
 
+    @Autowired
+    private MapValueExpander mapValueExpander;
+
+    private static long legalRepCaseId;
+    private static long aipCaseId;
+    private static long caseId;
+    private static Map<String, JsonNode> legalRepAppealCaseData;
+    private static Map<String, JsonNode> aipAppealCaseData;
     protected static RequestSpecification hearingsSpecification;
     protected static RequestSpecification hmcApiSpecification;
-
-    private static long caseId;
     protected Map<String, Object> caseData;
     protected static String s2sToken;
     protected static String legalRepToken;
-    protected String systemUserToken;
-    protected static String caseOfficerToken;
     private String legalRepUserId;
-    private String caseOfficerUserId;
-    private String systemUserId;
-    public String paymentReference;
+    protected String systemUserToken;
+    protected static String citizenToken;
+    protected String citizenUserId;
+    protected static String caseOfficerToken;
 
     private static final String jurisdiction = "IA";
     private static final String caseType = "Asylum";
@@ -76,44 +89,46 @@ public class CcdCaseCreationTest {
     @Autowired
     private CoreCaseDataApi coreCaseDataApi;
 
-    protected void setup() {
+    protected void setupForLegalRep() {
+        startAppealAsLegalRep();
+        submitAppealAsLegalRep();
+    }
+
+    protected void setupForAip() {
+        startAppealAsCitizen();
+        submitAppealAsCitizen();
+    }
+
+    protected void fetchTokensAndUserIds() {
+        s2sToken = s2sAuthTokenGenerator.generate();
+
+        legalRepToken = idamAuthProvider.getLegalRepToken();
+        citizenToken = idamAuthProvider.getCitizenToken();
+        caseOfficerToken = idamAuthProvider.getCaseOfficerToken();
+
+        citizenUserId = idamAuthProvider.getUserId(citizenToken);
+        legalRepUserId = idamAuthProvider.getUserId(legalRepToken);
+
         hearingsSpecification = new RequestSpecBuilder()
             .setBaseUri(targetInstance)
             .setRelaxedHTTPSValidation()
             .build();
 
-        hmcApiSpecification = new RequestSpecBuilder()
-            .setBaseUri(hmcInstance)
-            .setRelaxedHTTPSValidation()
-            .build();
-
-        log.info("hmcInstance: " + hmcInstance);
         log.info("targetInstance: " + targetInstance);
-
-        startAppeal();
-        submitAppeal();
-        listCase();
     }
 
-    private void startAppeal() {
-        s2sToken = s2sAuthTokenGenerator.generate();
-
-        legalRepToken = idamAuthProvider.getLegalRepToken();
-        caseOfficerToken = idamAuthProvider.getCaseOfficerToken();
-        systemUserToken = idamAuthProvider.getSystemUserToken();
-
-        legalRepUserId = idamAuthProvider.getUserId(legalRepToken);
-        caseOfficerUserId = idamAuthProvider.getUserId(caseOfficerToken);
-        systemUserId = idamAuthProvider.getUserId(systemUserToken);
-
-        Map<String, Object> data = getStartAppealData();
+    private void startAppealAsLegalRep() {
+        Map<String, Object> data = getStartAppealData(startLegalRepAppeal);
         data.put("paAppealTypePaymentOption", "payNow");
 
-        MapValueExpander.expandValues(data);
+        mapValueExpander.expandValues(data);
 
         String eventId = "startAppeal";
         StartEventResponse startEventDetails =
-            coreCaseDataApi.startForCaseworker(legalRepToken, s2sToken, legalRepUserId,
+            coreCaseDataApi.startForCaseworker(
+                legalRepToken,
+                s2sToken,
+                legalRepUserId,
                 jurisdiction, caseType, eventId);
 
         Event event = Event.builder().id(eventId).build();
@@ -127,38 +142,128 @@ public class CcdCaseCreationTest {
             .build();
 
         CaseDetails caseDetails =
-            coreCaseDataApi.submitForCaseworker(legalRepToken, s2sToken, legalRepUserId,
+            coreCaseDataApi.submitForCaseworker(
+                legalRepToken,
+                s2sToken,
+                legalRepUserId,
                 jurisdiction, caseType, true, content);
 
-        caseId = caseDetails.getId();
+        legalRepCaseId = caseDetails.getId();
+
     }
 
-    private void submitAppeal() {
+    private void submitAppealAsLegalRep() {
         caseData = new HashMap<>();
         caseData.put("decisionHearingFeeOption", "decisionWithHearing");
         caseData.put("hmctsCaseNameInternal", "testCase");
 
-        MapValueExpander.expandValues(caseData);
+        mapValueExpander.expandValues(caseData);
 
         String eventId = "submitAppeal";
         StartEventResponse startEventDetails =
-            coreCaseDataApi.startEventForCaseWorker(legalRepToken, s2sToken, legalRepUserId, jurisdiction,
-                              caseType, String.valueOf(caseId), eventId);
+            coreCaseDataApi.startEventForCaseWorker(
+                legalRepToken,
+                s2sToken,
+                legalRepUserId,
+                jurisdiction,
+                caseType,
+                String.valueOf(legalRepCaseId),
+                eventId);
 
         Event event = Event.builder().id(eventId).build();
         CaseDataContent content = CaseDataContent.builder()
-            .caseReference(String.valueOf(caseId))
+            .caseReference(String.valueOf(legalRepCaseId))
             .data(caseData)
             .event(event)
             .eventToken(startEventDetails.getToken())
             .ignoreWarning(true)
             .build();
 
-        coreCaseDataApi.createEvent(legalRepToken, s2sToken, String.valueOf(caseId), content);
+        CaseResource caseResource = coreCaseDataApi.createEvent(
+            legalRepToken,
+            s2sToken,
+            String.valueOf(legalRepCaseId),
+            content);
+
+        legalRepAppealCaseData = caseResource.getData();
     }
 
-    private void listCase() {
+    private void startAppealAsCitizen() {
+        Map<String, Object> data = getStartAppealData(startAipAppeal);
+
+        mapValueExpander.expandValues(data);
+
+        String eventId = "startAppeal";
+        StartEventResponse startEventDetails =
+            coreCaseDataApi.startForCitizen(
+                citizenToken,
+                s2sToken,
+                citizenUserId,
+                jurisdiction, caseType, eventId);
+
+        Event event = Event.builder().id(eventId).build();
+
+        CaseDataContent content = CaseDataContent.builder()
+            .caseReference(null)
+            .data(data)
+            .event(event)
+            .eventToken(startEventDetails.getToken())
+            .ignoreWarning(true)
+            .build();
+
+        CaseDetails caseDetails =
+            coreCaseDataApi.submitForCitizen(
+                citizenToken,
+                s2sToken,
+                citizenUserId,
+                jurisdiction, caseType, true, content);
+
+        aipCaseId = caseDetails.getId();
+
+    }
+
+    private void submitAppealAsCitizen() {
+        caseData = new HashMap<>();
+        caseData.put("decisionHearingFeeOption", "decisionWithHearing");
+
+        String eventId = "submitAppeal";
+        StartEventResponse startEventDetails =
+            coreCaseDataApi.startEventForCitizen(
+                citizenToken,
+                s2sToken,
+                citizenUserId,
+                jurisdiction,
+                caseType,
+                String.valueOf(aipCaseId),
+                eventId);
+
+        Event event = Event.builder().id(eventId).build();
+        CaseDataContent content = CaseDataContent.builder()
+            .caseReference(String.valueOf(aipCaseId))
+            .data(caseData)
+            .event(event)
+            .eventToken(startEventDetails.getToken())
+            .ignoreWarning(true)
+            .build();
+
+        CaseResource caseResource = coreCaseDataApi.createEvent(
+            citizenToken,
+            s2sToken,
+            String.valueOf(aipCaseId),
+            content);
+
+        aipAppealCaseData = caseResource.getData();
+    }
+
+
+    /**
+        Submitting event for assigning values to mandatory fields which requires system/officer permission.
+    */
+    protected void listCaseWithRequiredFields() {
+        systemUserToken = idamAuthProvider.getSystemUserToken();
+
         caseData.put("listCaseHearingLength", "120");
+        caseData.put("appealType", "protection");
 
         String eventId = "listCaseForFTOnly";
         StartEventResponse startEventDetails =
@@ -176,13 +281,13 @@ public class CcdCaseCreationTest {
         coreCaseDataApi.createEvent(systemUserToken, s2sToken, String.valueOf(caseId), content);
     }
 
-    private Map<String, Object> getStartAppealData() {
+    private Map<String, Object> getStartAppealData(Resource appealJson) {
 
         Map<String, Object> data = Collections.emptyMap();
 
         try {
             data = new ObjectMapper()
-                .readValue(asString(startAppeal), new TypeReference<Map<String, Object>>(){});
+                .readValue(asString(appealJson), new TypeReference<>(){});
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -198,7 +303,59 @@ public class CcdCaseCreationTest {
         }
     }
 
-    public String getCaseId() {
-        return Long.toString(caseId);
+    protected String getLegalRepCaseId() {
+        return Long.toString(legalRepCaseId);
+    }
+
+    protected String getAipCaseId() {
+        return Long.toString(aipCaseId);
+    }
+
+    private AsylumCase getLegalRepCase() {
+        AsylumCase asylumCase = new AsylumCase();
+
+        for (Map.Entry<String, JsonNode> entry : legalRepAppealCaseData.entrySet()) {
+            asylumCase.put(entry.getKey(), entry.getValue());
+        }
+
+        return asylumCase;
+    }
+
+    private AsylumCase getAipCase() {
+        AsylumCase asylumCase = new AsylumCase();
+
+        for (Map.Entry<String, JsonNode> entry : aipAppealCaseData.entrySet()) {
+            asylumCase.put(entry.getKey(), entry.getValue());
+        }
+
+        return asylumCase;
+    }
+
+    protected record Case(Long caseId, AsylumCase caseData) {
+        protected Long getCaseId() {
+            return caseId;
+        }
+
+        protected AsylumCase getCaseData() {
+            return caseData;
+        }
+    }
+
+    @NotNull
+    protected Case createAndGetCase(boolean isAipJourney) {
+        AsylumCase caseData;
+        if (isAipJourney) {
+            setupForAip();
+            caseData = getAipCase();
+            caseId = parseLong(getAipCaseId());
+        } else {
+            setupForLegalRep();
+            caseData = getLegalRepCase();
+            caseId = parseLong(getLegalRepCaseId());
+        }
+
+        Case result = new Case(caseId, caseData);
+
+        return result;
     }
 }

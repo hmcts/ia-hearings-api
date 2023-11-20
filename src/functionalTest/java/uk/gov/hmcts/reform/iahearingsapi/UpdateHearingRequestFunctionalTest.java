@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.iahearingsapi;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import static io.restassured.RestAssured.given;
-import static java.lang.Long.parseLong;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
@@ -15,30 +14,37 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
+/**
+ * This functional test class covers all callback handlers in relation to Update Hearing including.
+ * {@link uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestHandler}
+ * {@link uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestSubmit}
+ * {@link uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.HearingsDynamicListPreparer}
+ */
 @Slf4j
 @ActiveProfiles("functional")
 @Disabled
 public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
-    void checkCaseExists() {
-        setup();
+    void getAuthentications() {
+        fetchTokensAndUserIds();
     }
 
-    @Test
-    void should_prepare_update_hearing_request_successfully() {
-        log.info("caseId: " + getCaseId());
-        log.info("caseOfficerToken: " + caseOfficerToken);
-        log.info("s2sToken: " + s2sToken);
+    @ParameterizedTest
+    @CsvSource({ "true", "false" })
+    void should_prepare_update_hearing_request_successfully(boolean isAipJourney) {
+        Case result = createAndGetCase(isAipJourney);
 
         AsylumCase asylumCase = new AsylumCase();
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
-            parseLong(getCaseId()),
+            result.getCaseId(),
             "IA",
             LISTING,
             asylumCase,
@@ -60,8 +66,11 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
             .assertThat().body("data.changeHearings", notNullValue());
     }
 
-    @Test
-    void should_fail_to_prepare_update_hearing_request_due_to_invalid_authentication() {
+    @ParameterizedTest
+    @CsvSource({ "true", "false" })
+    void should_fail_to_prepare_update_hearing_request_due_to_invalid_authentication(boolean isAipJourney) {
+        Case result = createAndGetCase(isAipJourney);
+
         AsylumCase asylumCase = new AsylumCase();
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
             00000111,
@@ -88,11 +97,14 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
         assertEquals(401, response.getStatusCode());
     }
 
-    @Test
-    void should_handle_update_hearing_request_successfully() {
+    @ParameterizedTest
+    @CsvSource({ "true", "false" })
+    void should_handle_update_hearing_request_successfully(boolean isAipJourney) {
+        Case result = createAndGetCase(isAipJourney);
+
         AsylumCase asylumCase = new AsylumCase();
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
-            parseLong(getCaseId()),
+            result.getCaseId(),
             "IA",
             LISTING,
             asylumCase,
@@ -144,11 +156,14 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
         assertEquals(401, response.getStatusCode());
     }
 
-    @Test
-    void should_submit_update_hearing_request_successfully() {
+    @ParameterizedTest
+    @CsvSource({ "true", "false" })
+    void should_submit_update_hearing_request_successfully(boolean isAipJourney) {
+        Case result = createAndGetCase(isAipJourney);
+
         AsylumCase asylumCase = new AsylumCase();
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
-            parseLong(getCaseId()),
+            result.getCaseId(),
             "IA",
             LISTING,
             asylumCase,
