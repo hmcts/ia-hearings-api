@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.END_APPEAL_OUTCOME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CANCEL_HEARINGS_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_APPEAL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HMC_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ADJOURNMENT_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.HEARING_REQUESTED;
@@ -70,7 +70,7 @@ class EndAppealRequestSubmitHandlerTest {
 
     @Test
     void should_fail_to_handle_if_invalid_event() {
-        when(callback.getEvent()).thenReturn(UPDATE_HMC_RESPONSE);
+        when(callback.getEvent()).thenReturn(RECORD_ADJOURNMENT_DETAILS);
         assertThatThrownBy(() -> endAppealRequestSubmitHandler.handle(ABOUT_TO_SUBMIT, callback))
             .hasMessage("Cannot handle callback")
             .isExactlyInstanceOf(IllegalStateException.class);
