@@ -85,6 +85,7 @@ security:
       - "recordAdjournmentDetails"
       - "endAppeal"
       - "updateInterpreterDetails"
+      - "updateInterpreterBookingStatus"
     caseworker-ia-caseworker:
       - "listCase"
     caseworker-ia-caseofficer:
@@ -92,6 +93,7 @@ security:
       - "recordAdjournmentDetails"
       - "endAppeal"
       - "updateInterpreterDetails"
+      - "updateInterpreterBookingStatus"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
     caseworker-ia-system:
