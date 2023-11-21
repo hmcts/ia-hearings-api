@@ -41,7 +41,7 @@ class WitnessDetailsMapperTest {
 
         final List<IdValue<WitnessDetails>> witnessDetails = List.of(
             new IdValue<>(
-                "1", new WitnessDetails("partyId", "witnessName", "witnessFamilyName", null))
+                "1a", new WitnessDetails("partyId", "witnessName", "witnessFamilyName", null))
         );
         when(asylumCase.read(WITNESS_DETAILS)).thenReturn(Optional.of(witnessDetails));
 
@@ -77,7 +77,7 @@ class WitnessDetailsMapperTest {
 
         final List<IdValue<WitnessDetails>> witnessDetails = List.of(
             new IdValue<>(
-                "1", new WitnessDetails("partyId", "witnessName", "witnessFamilyName", null))
+                "1b", new WitnessDetails("partyId", "witnessName", "witnessFamilyName", null))
         );
         when(asylumCase.read(WITNESS_DETAILS)).thenReturn(Optional.of(witnessDetails));
 
@@ -119,7 +119,7 @@ class WitnessDetailsMapperTest {
 
         final List<IdValue<WitnessDetails>> witnessDetails = List.of(
             new IdValue<>(
-                "1", new WitnessDetails("partyId", "witnessName", "witnessFamilyName", null))
+                "1c", new WitnessDetails("partyId", "witnessName", "witnessFamilyName", null))
         );
         when(asylumCase.read(WITNESS_DETAILS)).thenReturn(Optional.of(witnessDetails));
 
@@ -161,7 +161,7 @@ class WitnessDetailsMapperTest {
 
         final List<IdValue<WitnessDetails>> witnessDetails = List.of(
             new IdValue<>(
-                "1", new WitnessDetails("partyId", "witnessName", "witnessFamilyName", null))
+                "1d", new WitnessDetails("partyId", "witnessName", "witnessFamilyName", null))
         );
         when(asylumCase.read(WITNESS_DETAILS)).thenReturn(Optional.of(witnessDetails));
 

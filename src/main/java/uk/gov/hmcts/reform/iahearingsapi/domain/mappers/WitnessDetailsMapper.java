@@ -6,7 +6,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.InterpreterLanguage
 import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.InterpreterLanguagesUtils.WITNESS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUSES;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -27,6 +29,8 @@ public class WitnessDetailsMapper {
     public List<PartyDetailsModel> map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
 
         Optional<List<IdValue<WitnessDetails>>> witnessDetailsOptional = asylumCase.read(WITNESS_DETAILS);
+        List<IdValue<WitnessDetails>> witnessDetailsList = witnessDetailsOptional.orElse(Collections.emptyList());
+        Map<IdValue<WitnessDetails>, Integer> witnessDetailsMap = idValuesToIndex(witnessDetailsList);
 
         return witnessDetailsOptional.map(idValues -> idValues.stream()
             .map(witnessDetailsIdValue -> {
@@ -47,7 +51,8 @@ public class WitnessDetailsMapper {
 
                 languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, witnessPartyDetailsModel);
 
-                appendWitnessBookingStatus(asylumCase, witnessDetailsIdValue, witnessPartyDetailsModel);
+                int index = witnessDetailsMap.get(witnessDetailsIdValue);
+                appendWitnessBookingStatus(asylumCase, index, witnessPartyDetailsModel);
 
                 return witnessPartyDetailsModel;
             }).toList())
@@ -55,17 +60,27 @@ public class WitnessDetailsMapper {
     }
 
     private void appendWitnessBookingStatus(AsylumCase asylumCase,
-                                            IdValue<WitnessDetails> witnessDetailsIdValue,
+                                            int index,
                                             PartyDetailsModel witnessPartyDetailsModel) {
 
-        int id = Integer.parseInt(witnessDetailsIdValue.getId());
-
         Optional<InterpreterBookingStatus> spokenBookingStatus = asylumCase
-            .read(WITNESS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUSES.get(id - 1), InterpreterBookingStatus.class);
+            .read(WITNESS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUSES.get(index), InterpreterBookingStatus.class);
 
         Optional<InterpreterBookingStatus> signBookingStatus = asylumCase
-            .read(WITNESS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUSES.get(id - 1), InterpreterBookingStatus.class);
+            .read(WITNESS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUSES.get(index), InterpreterBookingStatus.class);
 
         appendBookingStatus(spokenBookingStatus, signBookingStatus, witnessPartyDetailsModel);
+    }
+
+    private Map<IdValue<WitnessDetails>,Integer> idValuesToIndex(List<IdValue<WitnessDetails>> witnessDetailsIdValues) {
+        Map<IdValue<WitnessDetails>,Integer> idValuesToIndex = new HashMap<>();
+
+        int i = 0;
+        while (i < witnessDetailsIdValues.size()) {
+            idValuesToIndex.put(witnessDetailsIdValues.get(i), i);
+            i++;
+        }
+
+        return idValuesToIndex;
     }
 }
