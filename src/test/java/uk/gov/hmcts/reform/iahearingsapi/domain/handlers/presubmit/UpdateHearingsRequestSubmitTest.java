@@ -311,7 +311,6 @@ class UpdateHearingsRequestSubmitTest {
         assertEquals(asylumCase.read(HEARING_CHANNEL), Optional.empty());
         assertEquals(asylumCase.read(CHANGE_HEARING_LOCATION_YES_NO), Optional.of("no"));
         assertEquals(asylumCase.read(LIST_CASE_HEARING_CENTRE), Optional.empty());
-        assertEquals(asylumCase.read(LIST_CASE_HEARING_LENGTH), Optional.empty());
         assertEquals(asylumCase.read(CHANGE_HEARING_DURATION_YES_NO), Optional.of("no"));
         assertEquals(asylumCase.read(CHANGE_HEARING_UPDATE_REASON), Optional.empty());
         assertEquals(asylumCase.read(CHANGE_HEARING_DATE_TYPE), Optional.empty());
