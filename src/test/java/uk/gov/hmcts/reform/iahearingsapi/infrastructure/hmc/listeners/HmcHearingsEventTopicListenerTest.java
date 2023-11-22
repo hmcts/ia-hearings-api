@@ -51,7 +51,7 @@ class HmcHearingsEventTopicListenerTest {
 
         hmcHearingsEventTopicListener.onMessage(message);
 
-        verify(hmcMessageProcessor).processMessage(any(HmcMessage.class));
+        verify(hmcMessageProcessor).processUpdate(any(HmcMessage.class));
     }
 
     @Test
@@ -63,7 +63,7 @@ class HmcHearingsEventTopicListenerTest {
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
         hmcHearingsEventTopicListener.onMessage(message);
 
-        verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
+        verify(hmcMessageProcessor, never()).processUpdate(any(HmcMessage.class));
     }
 
 }

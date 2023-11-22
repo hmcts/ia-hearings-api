@@ -9,11 +9,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPr
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 
 @Component
-public class HmcMessageDispatcher<T extends ServiceData> {
+public class HmcUpdateDispatcher<T extends ServiceData> {
 
     private final List<ServiceDataHandler<T>> handlers;
 
-    public HmcMessageDispatcher(
+    public HmcUpdateDispatcher(
         List<ServiceDataHandler<T>> handlers
     ) {
         requireNonNull(handlers, "Handlers must not be null");

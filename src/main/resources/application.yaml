@@ -116,6 +116,7 @@ hearingValues:
   screenFlowJsonFilePath: ${SCREEN_FLOW_JSON_FILE_PATH:/screenFlowNoPanelNoLink.json}
   caseCategories: "BFA1-TST"
   hmctsServiceId: "BFA1"
+  batchIntervalSizeInMinutes: 10
 
 rd-commondata:
   api:

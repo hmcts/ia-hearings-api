@@ -48,7 +48,7 @@ class HmcMessageProcessorTest {
     private static final ListAssistCaseStatus LIST_ASSIST_CASE_STATUS = ListAssistCaseStatus.LISTED;
     private static final LocalDateTime HEARING_RESPONSE_RECEIVED_DATE_TIME = LocalDateTime.of(2023, 9, 29, 11, 0);
     @Mock
-    private HmcMessageDispatcher<ServiceData> dispatcher;
+    private HmcUpdateDispatcher<ServiceData> dispatcher;
     @Mock
     private HearingService hearingService;
     @Mock
@@ -86,7 +86,7 @@ class HmcMessageProcessorTest {
         when(hearingDetails.getHearingType()).thenReturn("SUBSTANTIVE");
         when(hearingDetails.getDuration()).thenReturn(150);
 
-        processor.processMessage(hmcMessage);
+        processor.processUpdate(hmcMessage);
 
         ServiceData serviceData = new ServiceData();
         serviceData.write(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE, HMCTS_SERVICE_CODE);
@@ -129,7 +129,7 @@ class HmcMessageProcessorTest {
         when(hmcMessage.getHearingUpdate()).thenReturn(hearingUpdate);
         when(hearingUpdate.getHmcStatus()).thenReturn(HMC_STATUS_EXCEPTION);
 
-        processor.processMessage(hmcMessage);
+        processor.processUpdate(hmcMessage);
 
         ServiceData serviceData = new ServiceData();
         serviceData.write(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE, HMCTS_SERVICE_CODE);
