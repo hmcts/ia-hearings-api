@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_START;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_ACTUALS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLATION_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CLOSED;
@@ -84,7 +85,7 @@ class HearingsDynamicListPreparerTest {
                 .hearingDaySchedule(List.of(HearingDaySchedule.builder()
                                                 .hearingStartDateTime(LocalDateTime.of(2023, 1, 21, 0, 0))
                                                 .build()))
-                .hmcStatus(LISTED)
+                .hmcStatus(AWAITING_ACTUALS)
                 .build(),
             CaseHearing.builder()
                 .hearingRequestId("4")

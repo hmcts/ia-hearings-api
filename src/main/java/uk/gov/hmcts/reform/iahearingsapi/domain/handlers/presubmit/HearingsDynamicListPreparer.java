@@ -2,10 +2,10 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_ACTUALS;
 
 import com.google.common.base.Strings;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -90,7 +90,7 @@ public class HearingsDynamicListPreparer implements PreSubmitCallbackHandler<Asy
             case AWAITING_LISTING -> // WAITING TO BE LISTED
                 caseHearing.getHearingTypeDescription()
                     + " " + WAITING_TO_BE_LISTED;
-            case LISTED -> // LISTED and AWAITING HEARING DETAILS
+            case LISTED, AWAITING_ACTUALS -> // LISTED
                 getListedAndAwaitingHearingDetailsDescription(caseHearing);
             case UPDATE_REQUESTED -> // UPDATE REQUESTED
                 caseHearing.getHearingTypeDescription()
@@ -100,24 +100,16 @@ public class HearingsDynamicListPreparer implements PreSubmitCallbackHandler<Asy
     }
 
     private String getListedAndAwaitingHearingDetailsDescription(CaseHearing caseHearing) {
-        String description;
-        if (caseHearing.getHearingDaySchedule() == null || caseHearing.getHearingDaySchedule().isEmpty()) {
-            description = null;
-        } else if (caseHearing.getHearingDaySchedule().get(0).getHearingStartDateTime().isBefore(LocalDateTime.now())) {
+        String description = null;
+        if (caseHearing.getHearingDaySchedule() != null
+            && !caseHearing.getHearingDaySchedule().isEmpty()) {
             description = caseHearing.getHearingTypeDescription()
-                + " " + AWAITING_HEARING_DETAILS
+                + " " + (caseHearing.getHmcStatus().equals(AWAITING_ACTUALS) ? AWAITING_HEARING_DETAILS : LISTED)
                 + " - " + HearingsUtils.convertToLocalStringFormat(caseHearing
                                                                        .getHearingDaySchedule()
                                                                        .get(0)
                                                                        .getHearingStartDateTime());
 
-        } else {
-            description = caseHearing.getHearingTypeDescription()
-                + " " + LISTED
-                + " - " + HearingsUtils.convertToLocalStringFormat(caseHearing
-                                                                       .getHearingDaySchedule()
-                                                                       .get(0)
-                                                                       .getHearingStartDateTime());
         }
         return description;
     }
