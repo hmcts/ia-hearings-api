@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ReasonCodes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
@@ -22,6 +21,7 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADJOURNMENT_DETAILS_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CANCELLATION_REASON;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_RELISTED_CANCELLATION_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CANCEL_HEARINGS_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.RELIST_CASE_IMMEDIATELY;
@@ -100,12 +100,14 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
 
     private void updateHearing(AsylumCase asylumCase, String hearingId) {
         YesOrNo updateRequestSuccess = YES;
+        String cancellationReason = asylumCase.read(HEARING_RELISTED_CANCELLATION_REASON, String.class)
+            .orElseThrow(() -> new IllegalStateException("Hearing relisted cancellation reason is not present"));
         try {
             hearingService.updateHearing(
                 updateHearingPayloadService.createUpdateHearingPayload(
                     asylumCase,
                     hearingId,
-                    ReasonCodes.OTHER.toString(),//TODO: this reasonCode value is to be updated with RIA-7836
+                    cancellationReason,
                     false,
                     updateHearingWindow(asylumCase)
                 ),
