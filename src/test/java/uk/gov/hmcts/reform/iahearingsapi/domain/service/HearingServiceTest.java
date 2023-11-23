@@ -14,10 +14,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import feign.FeignException;
-
+import feign.Request;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,6 +74,8 @@ class HearingServiceTest {
     private UnNotifiedHearingsResponse unNotifiedHearingsResponse;
     @Mock
     private AsylumCase asylumCase;
+    @Mock
+    private Request request;
     @InjectMocks
     private HearingService hearingService;
 
@@ -298,5 +300,19 @@ class HearingServiceTest {
         UnNotifiedHearingsResponse result = hearingService.getUnNotifiedHearings(now);
 
         assertEquals(unNotifiedHearingsResponse, result);
+    }
+
+    @Test
+    void testGetUnNotifiedHearingsThrowsException() {
+        hearingService.setServiceId(SERVICE_ID);
+        LocalDateTime now = LocalDateTime.now();
+        when(hmcHearingApi.getUnNotifiedHearings(eq(IDAM_OAUTH2_TOKEN), eq(SERVICE_AUTHORIZATION),
+                                                 eq(now), eq(null), anyString()))
+            .thenThrow(new FeignException.BadRequest("Bad request",
+                                                     request,
+                                                     new byte[]{},
+                                                     Collections.emptyMap()));
+
+        assertThrows(HmcException.class, () -> hearingService.getUnNotifiedHearings(now));
     }
 }
