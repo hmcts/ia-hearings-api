@@ -109,8 +109,13 @@ public class CaseDataToServiceHearingValuesMapper {
     }
 
     public String getRespondentPartyId(AsylumCase asylumCase) {
-        return asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)
-            .orElseThrow(() -> new RequiredFieldMissingException("homeOfficeReferenceNumber is a required field"));
+        Optional<String> refNumber = asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class);
+        if (refNumber.isPresent()) {
+            return refNumber.get();
+        } else {
+            return asylumCase.read(GWF_REFERENCE_NUMBER, String.class)
+                .orElseThrow(() -> new RequiredFieldMissingException("gwfReferenceNumber is a required field"));
+        }
     }
 
     public String getLegalRepPartyId(AsylumCase asylumCase) {

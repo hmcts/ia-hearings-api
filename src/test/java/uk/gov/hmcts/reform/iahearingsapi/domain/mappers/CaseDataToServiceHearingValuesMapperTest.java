@@ -64,6 +64,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityType;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CaseDataToServiceHearingValuesMapperTest {
 
+    public static final String GWF_REFERENCE = "gwfReference";
     private final String homeOfficeRef = "homeOfficeRef";
     private final String dateStr = "2023-08-01";
     private CaseDataToServiceHearingValuesMapper mapper;
@@ -136,13 +137,12 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     @Test
     void getExternalCaseReference_should_return_gwf_reference() {
+        assertEquals(mapper.getExternalCaseReference(asylumCase), homeOfficeRef);
 
-        String gwfReference = "gwfReference";
-
-        when(asylumCase.read(GWF_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(gwfReference));
+        when(asylumCase.read(GWF_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(GWF_REFERENCE));
         when(asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.empty());
 
-        assertEquals(mapper.getExternalCaseReference(asylumCase), gwfReference);
+        assertEquals(mapper.getExternalCaseReference(asylumCase), GWF_REFERENCE);
     }
 
     @Test
@@ -215,12 +215,21 @@ class CaseDataToServiceHearingValuesMapperTest {
         assertThatThrownBy(() -> mapper.getSponsorPartyId(asylumCase))
             .isExactlyInstanceOf(RequiredFieldMissingException.class)
             .hasMessage("sponsorPartyId is a required field");
+    }
+
+    @Test
+    void getRespondentPartyId() {
+        when(asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(homeOfficeRef));
+        assertEquals(homeOfficeRef, mapper.getRespondentPartyId(asylumCase));
 
         when(asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(GWF_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(GWF_REFERENCE));
+        assertEquals(GWF_REFERENCE, mapper.getRespondentPartyId(asylumCase));
 
+        when(asylumCase.read(GWF_REFERENCE_NUMBER, String.class)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> mapper.getRespondentPartyId(asylumCase))
             .isExactlyInstanceOf(RequiredFieldMissingException.class)
-            .hasMessage("homeOfficeReferenceNumber is a required field");
+            .hasMessage("gwfReferenceNumber is a required field");
     }
 
     @Test
