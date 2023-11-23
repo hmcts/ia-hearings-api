@@ -34,6 +34,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
@@ -78,6 +79,8 @@ class ListCaseHandlerTest {
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
+        when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.LISTING);
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
     }
 
     @Test

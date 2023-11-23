@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -36,6 +37,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HearingRequestGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
@@ -54,6 +56,7 @@ class HearingServiceTest {
     private static final String CASE_ID = "1625080769409918";
     private static final long HEARING_REQUEST_ID = 12345;
     private static final String HEARING_ID = "12345";
+    private static final String SERVICE_ID = "BFA1";
 
     @Mock
     private IdamService idamService;
@@ -67,6 +70,8 @@ class HearingServiceTest {
     private ServiceHearingValuesProvider serviceHearingValuesProvider;
     @Mock
     private UpdateHearingRequest updateHearingRequest;
+    @Mock
+    private UnNotifiedHearingsResponse unNotifiedHearingsResponse;
     @Mock
     private AsylumCase asylumCase;
     @InjectMocks
@@ -280,5 +285,18 @@ class HearingServiceTest {
         );
 
         assertThat(result).isNotNull();
+    }
+
+    @Test
+    void testGetUnNotifiedHearings() {
+        hearingService.setServiceId(SERVICE_ID);
+        LocalDateTime now = LocalDateTime.now();
+        when(hmcHearingApi.getUnNotifiedHearings(eq(IDAM_OAUTH2_TOKEN), eq(SERVICE_AUTHORIZATION),
+                                         eq(now), eq(null), anyString()))
+            .thenReturn(unNotifiedHearingsResponse);
+
+        UnNotifiedHearingsResponse result = hearingService.getUnNotifiedHearings(now);
+
+        assertEquals(unNotifiedHearingsResponse, result);
     }
 }

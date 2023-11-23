@@ -68,7 +68,7 @@ class HmcMessageProcessorTest {
     }
 
     @Test
-    void should_process_hmc_message_when_hmc_status_not_exception() {
+    void should_not_process_hmc_message_when_hmc_status_not_exception() {
 
         when(hmcMessage.getCaseId()).thenReturn(CASE_ID);
         when(hmcMessage.getHmctsServiceCode()).thenReturn(HMCTS_SERVICE_CODE);
@@ -86,7 +86,7 @@ class HmcMessageProcessorTest {
         when(hearingDetails.getHearingType()).thenReturn("SUBSTANTIVE");
         when(hearingDetails.getDuration()).thenReturn(150);
 
-        processor.processUpdate(hmcMessage);
+        processor.processMessage(hmcMessage);
 
         ServiceData serviceData = new ServiceData();
         serviceData.write(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE, HMCTS_SERVICE_CODE);
@@ -129,13 +129,7 @@ class HmcMessageProcessorTest {
         when(hmcMessage.getHearingUpdate()).thenReturn(hearingUpdate);
         when(hearingUpdate.getHmcStatus()).thenReturn(HMC_STATUS_EXCEPTION);
 
-        processor.processUpdate(hmcMessage);
-
-        ServiceData serviceData = new ServiceData();
-        serviceData.write(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE, HMCTS_SERVICE_CODE);
-        serviceData.write(CASE_REF, CASE_ID);
-        serviceData.write(ServiceDataFieldDefinition.HEARING_ID, HEARING_ID);
-        serviceData.write(ServiceDataFieldDefinition.HMC_STATUS, HMC_STATUS_EXCEPTION);
+        processor.processMessage(hmcMessage);
 
         ArgumentCaptor<ServiceData> serviceDataArgumentCaptor = ArgumentCaptor.forClass(ServiceData.class);
         verify(dispatcher, times(1)).dispatch(serviceDataArgumentCaptor.capture());

@@ -205,4 +205,7 @@ public class HearingService {
         }
     }
 
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
+    }
 }
