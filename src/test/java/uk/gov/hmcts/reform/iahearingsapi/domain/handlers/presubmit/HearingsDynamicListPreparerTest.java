@@ -109,28 +109,38 @@ class HearingsDynamicListPreparerTest {
 
         assertNotNull(callbackResponse);
         verify(hearingService, times(1)).getHearings(caseId);
-        assertEquals(asylumCase
-                         .read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().size(), 4);
-        assertEquals(asylumCase
-                         .read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(0).getCode(), "1");
+        assertEquals(
+            4,
+            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().size()
+        );
+        assertEquals(
+            "1",
+            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(0).getCode()
+        );
         assertEquals(
             "Substantive " + WAITING_TO_BE_LISTED,
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(0).getLabel()
         );
         assertEquals(
-            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(1).getCode(), "2");
+            "2",
+            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(1).getCode()
+        );
         assertEquals(
             "Substantive " + HearingsDynamicListPreparer.UPDATE_REQUESTED,
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(1).getLabel()
         );
         assertEquals(
-            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(2).getCode(), "3");
+            "3",
+            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(2).getCode()
+        );
         assertEquals(
             "Substantive " + AWAITING_HEARING_DETAILS + " - 21 January 2023",
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(2).getLabel()
         );
         assertEquals(
-            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(3).getCode(), "4");
+            "4",
+            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(3).getCode()
+        );
         assertEquals(
             "Substantive " + HearingsDynamicListPreparer.LISTED + " - 21 January 4023",
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(3).getLabel()
