@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseHearing;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
@@ -43,6 +44,7 @@ public class RecordAdjournmentDetailsPreparerTest {
     private static final String HEARING_TYPE_DESCRIPTION_CASE_MANAGEMENT_REVIEW = "Case Management Review";
     private static final String HEARING_TYPE_DESCRIPTION_COSTS = "Costs";
     private static final LocalDateTime HEARING_REQUEST_DATE_TIME = LocalDateTime.of(2023, 10, 19, 12, 0);
+    private static final String HEARING_TYPE = HearingType.SUBSTANTIVE.getKey();
 
     @Mock
     private Callback<AsylumCase> callback;
@@ -85,6 +87,9 @@ public class RecordAdjournmentDetailsPreparerTest {
         when(caseHearing1.getHearingRequestId()).thenReturn(CASE_HEARING_REQUEST_ID_1);
         when(caseHearing2.getHearingRequestId()).thenReturn(CASE_HEARING_REQUEST_ID_2);
         when(caseHearing3.getHearingRequestId()).thenReturn(CASE_HEARING_REQUEST_ID_3);
+        when(caseHearing1.getHearingType()).thenReturn(HEARING_TYPE);
+        when(caseHearing2.getHearingType()).thenReturn(HEARING_TYPE);
+        when(caseHearing3.getHearingType()).thenReturn(HEARING_TYPE);
         when(caseHearing1.getHmcStatus()).thenReturn(HEARING_REQUESTED);
         when(caseHearing2.getHmcStatus()).thenReturn(UPDATE_REQUESTED);
         when(caseHearing3.getHmcStatus()).thenReturn(CANCELLATION_SUBMITTED); // disqualifies hearing for selection
