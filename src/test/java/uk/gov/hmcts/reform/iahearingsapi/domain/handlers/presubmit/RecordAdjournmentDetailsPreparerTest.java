@@ -45,6 +45,7 @@ public class RecordAdjournmentDetailsPreparerTest {
     private static final String HEARING_TYPE_DESCRIPTION_CASE_MANAGEMENT_REVIEW = "Case Management Review";
     private static final String HEARING_TYPE_DESCRIPTION_COSTS = "Costs";
     private static final LocalDateTime HEARING_REQUEST_DATE_TIME = LocalDateTime.of(2023, 10, 19, 12, 0);
+    private static final String HEARING_TYPE = HearingType.SUBSTANTIVE.getKey();
 
     @Mock
     private Callback<AsylumCase> callback;
@@ -90,9 +91,9 @@ public class RecordAdjournmentDetailsPreparerTest {
         when(caseHearing1.getHmcStatus()).thenReturn(AWAITING_LISTING);
         when(caseHearing2.getHmcStatus()).thenReturn(UPDATE_REQUESTED);
         when(caseHearing3.getHmcStatus()).thenReturn(CANCELLATION_SUBMITTED); // disqualifies hearing for selection
-        when(caseHearing1.getHearingType()).thenReturn(HearingType.SUBSTANTIVE.getKey());
-        when(caseHearing2.getHearingType()).thenReturn(HearingType.SUBSTANTIVE.getKey());
-        when(caseHearing3.getHearingType()).thenReturn(HearingType.SUBSTANTIVE.getKey());
+        when(caseHearing1.getHearingType()).thenReturn(HEARING_TYPE);
+        when(caseHearing2.getHearingType()).thenReturn(HEARING_TYPE);
+        when(caseHearing3.getHearingType()).thenReturn(HEARING_TYPE);
         when(caseHearing1.getHearingTypeDescription()).thenReturn(HEARING_TYPE_DESCRIPTION_SUBSTANTIVE);
         when(caseHearing2.getHearingTypeDescription()).thenReturn(HEARING_TYPE_DESCRIPTION_CASE_MANAGEMENT_REVIEW);
         when(caseHearing3.getHearingTypeDescription()).thenReturn(HEARING_TYPE_DESCRIPTION_COSTS);
