@@ -25,9 +25,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
@@ -37,8 +39,12 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADJOURNMENT_DETAILS_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CANCELLATION_REASON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_RELISTED_CANCELLATION_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CANCEL_HEARINGS_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE_FIXED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE_RANGE_EARLIEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE_RANGE_LATEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.RELIST_CASE_IMMEDIATELY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.UPDATE_HMC_REQUEST_SUCCESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_APPEAL;
@@ -46,6 +52,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.RecordAdjournmentUpdateRequestHandler.NEXT_HEARING_DATE_CHOOSE_DATE_RANGE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.RecordAdjournmentUpdateRequestHandler.NEXT_HEARING_DATE_DATE_TO_BE_FIXED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.RecordAdjournmentUpdateRequestHandler.NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -53,6 +62,8 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
 
     public static final String CANCELLATION_REASON = "withdraw";
     public static final String HEARING_ID = "123";
+    public static final String DATE1 = "2023-11-28";
+    public static final String DATE2 = "2023-11-29";
 
     @Mock
     private Callback<AsylumCase> callback;
@@ -78,8 +89,8 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
         DynamicList dynamicListOfHearings = new DynamicList(updateHearingsCode);
         asylumCase.write(CHANGE_HEARINGS, dynamicListOfHearings);
         asylumCase.write(HEARING_CANCELLATION_REASON, CANCELLATION_REASON);
+        asylumCase.write(HEARING_RELISTED_CANCELLATION_REASON, CANCELLATION_REASON);
         asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(HEARING_ID));
-        asylumCase.write(LIST_CASE_HEARING_DATE, "2023-11-28T09:45:00.000");
 
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
@@ -106,13 +117,16 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
     @EnumSource(value = YesOrNo.class, names = {"YES", "NO"})
     void should_send_update_if_relist_case_immediately(YesOrNo relistCaseImmediately) {
         asylumCase.write(RELIST_CASE_IMMEDIATELY, relistCaseImmediately);
+        asylumCase.write(NEXT_HEARING_DATE, NEXT_HEARING_DATE_DATE_TO_BE_FIXED);
+        asylumCase.write(NEXT_HEARING_DATE_FIXED, DATE1);
 
         when(updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
-            null,
-            null,
+            HEARING_ID,
+            CANCELLATION_REASON,
             false,
-            null
+            HearingWindowModel.builder().firstDateTimeMustBe(
+                HearingsUtils.convertToLocalDateFormat(DATE1).toString()).build()
         ))
             .thenReturn(updateHearingRequest);
 
@@ -124,17 +138,71 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
         assertEquals(asylumCase, callbackResponse.getData());
 
         if (relistCaseImmediately == YES) {
-            verify(hearingService, times(1)).updateHearing(any(), any());
+            verify(hearingService, times(1)).updateHearing(updateHearingRequest, HEARING_ID);
             assertEquals(Optional.of(YES), asylumCase.read(UPDATE_HMC_REQUEST_SUCCESS));
+
         } else {
             verify(hearingService, times(0)).updateHearing(any(), any());
         }
+    }
+
+    @Test
+    void should_send_update_if_relist_case_immediately_with_first_available_date() {
+        asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
+        asylumCase.write(NEXT_HEARING_DATE, NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE);
+        when(updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            HEARING_ID,
+            CANCELLATION_REASON,
+            true,
+            null
+        )).thenReturn(updateHearingRequest);
+
+        PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(
+            ABOUT_TO_SUBMIT,
+            callback
+        );
+
+        assertEquals(asylumCase, callbackResponse.getData());
+        verify(hearingService, times(1)).updateHearing(updateHearingRequest, HEARING_ID);
+
+        assertEquals(Optional.of(YES), asylumCase.read(UPDATE_HMC_REQUEST_SUCCESS));
+    }
+
+    @Test
+    void should_send_update_if_relist_case_immediately_with_date_range() {
+        asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
+        asylumCase.write(NEXT_HEARING_DATE, NEXT_HEARING_DATE_CHOOSE_DATE_RANGE);
+        asylumCase.write(NEXT_HEARING_DATE_RANGE_EARLIEST, DATE1);
+        asylumCase.write(NEXT_HEARING_DATE_RANGE_LATEST, DATE2);
+
+        when(updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            HEARING_ID,
+            CANCELLATION_REASON,
+            false,
+            HearingWindowModel.builder()
+                .dateRangeStart(HearingsUtils.convertToLocalDateFormat(DATE1).toString())
+                .dateRangeEnd(HearingsUtils.convertToLocalDateFormat(DATE2).toString())
+                .build()
+        )).thenReturn(updateHearingRequest);
+
+        PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(
+            ABOUT_TO_SUBMIT,
+            callback
+        );
+
+        assertEquals(asylumCase, callbackResponse.getData());
+        verify(hearingService, times(1)).updateHearing(updateHearingRequest, HEARING_ID);
+
+        assertEquals(Optional.of(YES), asylumCase.read(UPDATE_HMC_REQUEST_SUCCESS));
     }
 
     @ParameterizedTest
     @EnumSource(value = YesOrNo.class, names = {"YES", "NO"})
     void should_delete_hearing_if_not_relist_case_immediately(YesOrNo relistCaseImmediately) {
         asylumCase.write(RELIST_CASE_IMMEDIATELY, relistCaseImmediately);
+        asylumCase.write(NEXT_HEARING_DATE, NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE);
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
@@ -143,6 +211,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
             assertEquals(Optional.of(NO), asylumCase.read(MANUAL_CANCEL_HEARINGS_REQUIRED));
         } else {
             verify(hearingService, times(0)).deleteHearing(eq(Long.valueOf(HEARING_ID)), eq(CANCELLATION_REASON));
+            assertEquals(Optional.of(NO), asylumCase.read(MANUAL_CANCEL_HEARINGS_REQUIRED));
         }
 
     }
