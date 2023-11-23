@@ -31,7 +31,7 @@ public class HmcUpdateDispatcher<T extends ServiceData> {
 
 
     private void dispatchToHandlers(
-        T message,
+        T update,
         List<ServiceDataHandler<T>> handlers,
         DispatchPriority dispatchPriority
     ) {
@@ -39,9 +39,9 @@ public class HmcUpdateDispatcher<T extends ServiceData> {
 
             if (handler.getDispatchPriority() == dispatchPriority) {
 
-                if (handler.canHandle(message)) {
+                if (handler.canHandle(update)) {
 
-                    handler.handle(message);
+                    handler.handle(update);
                 }
             }
         }
