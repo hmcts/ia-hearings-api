@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseHearing;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
@@ -80,6 +81,7 @@ public class HearingsDynamicListPreparer implements PreSubmitCallbackHandler<Asy
     protected List<Value> mapCaseHearingsValuesToDynamicListValues(List<CaseHearing> caseHearings) {
         return caseHearings
             .stream()
+            .filter(hearing -> hearing.getHearingType().equals(HearingType.SUBSTANTIVE.getKey()))
             .map(hearing -> new Value(hearing.getHearingRequestId(), mapHearingLabel(hearing)))
             .filter(value -> !Strings.isNullOrEmpty(value.getLabel()))
             .collect(Collectors.toList());

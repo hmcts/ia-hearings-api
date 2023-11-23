@@ -1,19 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADJOURNMENT_DETAILS_HEARING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ADJOURNMENT_DETAILS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_START;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_LISTING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLATION_SUBMITTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_REQUESTED;
-
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,8 +14,25 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseHearing;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADJOURNMENT_DETAILS_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ADJOURNMENT_DETAILS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_START;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLATION_SUBMITTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_REQUESTED;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -41,6 +44,7 @@ public class RecordAdjournmentDetailsPreparerTest {
     private static final String HEARING_TYPE_DESCRIPTION_SUBSTANTIVE = "Substantive";
     private static final String HEARING_TYPE_DESCRIPTION_CASE_MANAGEMENT_REVIEW = "Case Management Review";
     private static final String HEARING_TYPE_DESCRIPTION_COSTS = "Costs";
+    private static final LocalDateTime HEARING_REQUEST_DATE_TIME = LocalDateTime.of(2023, 10, 19, 12, 0);
 
     @Mock
     private Callback<AsylumCase> callback;
@@ -86,9 +90,15 @@ public class RecordAdjournmentDetailsPreparerTest {
         when(caseHearing1.getHmcStatus()).thenReturn(AWAITING_LISTING);
         when(caseHearing2.getHmcStatus()).thenReturn(UPDATE_REQUESTED);
         when(caseHearing3.getHmcStatus()).thenReturn(CANCELLATION_SUBMITTED); // disqualifies hearing for selection
+        when(caseHearing1.getHearingType()).thenReturn(HearingType.SUBSTANTIVE.getKey());
+        when(caseHearing2.getHearingType()).thenReturn(HearingType.SUBSTANTIVE.getKey());
+        when(caseHearing3.getHearingType()).thenReturn(HearingType.SUBSTANTIVE.getKey());
         when(caseHearing1.getHearingTypeDescription()).thenReturn(HEARING_TYPE_DESCRIPTION_SUBSTANTIVE);
         when(caseHearing2.getHearingTypeDescription()).thenReturn(HEARING_TYPE_DESCRIPTION_CASE_MANAGEMENT_REVIEW);
         when(caseHearing3.getHearingTypeDescription()).thenReturn(HEARING_TYPE_DESCRIPTION_COSTS);
+        when(caseHearing1.getHearingRequestDateTime()).thenReturn(HEARING_REQUEST_DATE_TIME);
+        when(caseHearing2.getHearingRequestDateTime()).thenReturn(HEARING_REQUEST_DATE_TIME);
+        when(caseHearing3.getHearingRequestDateTime()).thenReturn(HEARING_REQUEST_DATE_TIME);
         when(hearingsGetResponse.getCaseHearings()).thenReturn(List.of(caseHearing1, caseHearing2, caseHearing3));
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = recordAdjournmentDetailsPreparer.handle(
