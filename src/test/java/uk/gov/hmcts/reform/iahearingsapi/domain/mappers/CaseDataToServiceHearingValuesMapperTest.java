@@ -229,7 +229,7 @@ class CaseDataToServiceHearingValuesMapperTest {
         when(asylumCase.read(GWF_REFERENCE_NUMBER, String.class)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> mapper.getRespondentPartyId(asylumCase))
             .isExactlyInstanceOf(RequiredFieldMissingException.class)
-            .hasMessage("gwfReferenceNumber is a required field");
+            .hasMessage("Require either homeOfficeReferenceNumber or gwfReferenceNumber field to be present.");
     }
 
     @Test

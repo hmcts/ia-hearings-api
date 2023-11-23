@@ -45,6 +45,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityType;
 public class CaseDataToServiceHearingValuesMapper {
 
     static final int HEARING_WINDOW_INTERVAL_DEFAULT = 11;
+    public static final String REQUIRED_FIELD_FOR_RES_ID_NOT_PRESENT_ERROR =
+        "Require either homeOfficeReferenceNumber or gwfReferenceNumber field to be present.";
 
     private final DateProvider hearingServiceDateProvider;
 
@@ -114,7 +116,7 @@ public class CaseDataToServiceHearingValuesMapper {
             return refNumber.get();
         } else {
             return asylumCase.read(GWF_REFERENCE_NUMBER, String.class)
-                .orElseThrow(() -> new RequiredFieldMissingException("gwfReferenceNumber is a required field"));
+                .orElseThrow(() -> new RequiredFieldMissingException(REQUIRED_FIELD_FOR_RES_ID_NOT_PRESENT_ERROR));
         }
     }
 
