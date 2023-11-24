@@ -88,16 +88,13 @@ public class HearingsDynamicListPreparer implements PreSubmitCallbackHandler<Asy
     }
 
     private String mapHearingLabel(CaseHearing caseHearing) {
-        log.info("Hearing id : " + caseHearing.getHearingRequestId() + " has HMC status : "
-            + caseHearing.getHmcStatus().toString());
-
         return switch (caseHearing.getHmcStatus()) {
             case AWAITING_LISTING -> // WAITING TO BE LISTED
                 caseHearing.getHearingTypeDescription()
                     + " " + WAITING_TO_BE_LISTED;
             case LISTED, AWAITING_ACTUALS -> // LISTED
                 getListedAndAwaitingHearingDetailsDescription(caseHearing);
-            case UPDATE_REQUESTED -> // UPDATE REQUESTED
+            case UPDATE_SUBMITTED -> // UPDATE REQUESTED
                 caseHearing.getHearingTypeDescription()
                     + " " + UPDATE_REQUESTED;
             default -> null;

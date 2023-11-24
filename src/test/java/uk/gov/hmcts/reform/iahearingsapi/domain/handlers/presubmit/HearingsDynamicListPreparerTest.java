@@ -34,7 +34,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AW
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLATION_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CLOSED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_REQUESTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.HearingsDynamicListPreparer.AWAITING_HEARING_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.HearingsDynamicListPreparer.WAITING_TO_BE_LISTED;
 
@@ -77,7 +77,7 @@ class HearingsDynamicListPreparerTest {
             CaseHearing.builder()
                 .hearingRequestId("2")
                 .hearingType("BFA1-SUB")
-                .hmcStatus(UPDATE_REQUESTED)
+                .hmcStatus(UPDATE_SUBMITTED)
                 .build(),
             CaseHearing.builder()
                 .hearingRequestId("3")
@@ -167,7 +167,7 @@ class HearingsDynamicListPreparerTest {
                 .hearingRequestId("3")
                 .hearingType("BFA1-SUB")
                 .hearingRequestDateTime(LocalDateTime.of(2023, 1, 20, 0, 0))
-                .hmcStatus(UPDATE_REQUESTED)
+                .hmcStatus(UPDATE_SUBMITTED)
                 .build()
         );
         HearingsGetResponse hearingsGetResponseMock = mock(HearingsGetResponse.class);
