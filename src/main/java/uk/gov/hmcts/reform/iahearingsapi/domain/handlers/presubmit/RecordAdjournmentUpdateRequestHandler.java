@@ -137,7 +137,8 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
             .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE + "  is not present"));
         return switch (nextHearingDate) {
             case NEXT_HEARING_DATE_DATE_TO_BE_FIXED -> {
-                String dateFixed = asylumCase.read(NEXT_HEARING_DATE_FIXED, String.class).get();
+                String dateFixed = asylumCase.read(NEXT_HEARING_DATE_FIXED, String.class)
+                    .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE_FIXED + "  is not present"));
                 yield HearingWindowModel.builder()
                     .firstDateTimeMustBe(HearingsUtils.convertToLocalDateFormat(dateFixed).toString())
                     .build();
