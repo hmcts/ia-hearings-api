@@ -94,7 +94,7 @@ public class HearingsDynamicListPreparer implements PreSubmitCallbackHandler<Asy
                     + " " + WAITING_TO_BE_LISTED;
             case LISTED, AWAITING_ACTUALS -> // LISTED
                 getListedAndAwaitingHearingDetailsDescription(caseHearing);
-            case UPDATE_SUBMITTED -> // UPDATE REQUESTED
+            case UPDATE_SUBMITTED -> // UPDATE SUBMITTED
                 caseHearing.getHearingTypeDescription()
                     + " " + UPDATE_REQUESTED;
             default -> null;
