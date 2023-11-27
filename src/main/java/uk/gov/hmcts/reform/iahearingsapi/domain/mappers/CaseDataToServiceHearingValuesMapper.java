@@ -44,7 +44,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityType;
 @RequiredArgsConstructor
 public class CaseDataToServiceHearingValuesMapper {
 
-    static final int HEARING_WINDOW_INTERVAL_DEFAULT = 10;
+    static final int HEARING_WINDOW_INTERVAL_DEFAULT = 11;
 
     private final DateProvider hearingServiceDateProvider;
 

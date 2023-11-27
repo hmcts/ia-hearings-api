@@ -24,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_EARLIEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_LATEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE;
@@ -140,7 +142,9 @@ class UpdateHearingsRequestHandlerTest {
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
         assertEquals(callbackResponse.getData()
-                         .read(CHANGE_HEARING_DATE, String.class).get(), "15 January 2023 - 26 January 2023");
+                         .read(CHANGE_HEARING_DATE_RANGE_EARLIEST, String.class).get(), "2023-01-15");
+        assertEquals(callbackResponse.getData()
+                         .read(CHANGE_HEARING_DATE_RANGE_LATEST, String.class).get(), "2023-01-26");
 
     }
 
