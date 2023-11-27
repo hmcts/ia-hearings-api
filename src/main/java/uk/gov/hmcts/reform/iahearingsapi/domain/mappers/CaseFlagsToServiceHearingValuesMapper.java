@@ -251,8 +251,6 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
         return caseFlagDetails.stream()
             .filter(detail -> Objects.equals(detail.getCaseFlagValue().getStatus(), "Active"))
-                 // && YesOrNo.YES.equals(detail.getCaseFlagValue().getHearingRelevant())) // vulnerable user
-            // Detained individual // Urgent case
             .map(detail -> PartyFlagsModel.builder()
                 .partyId(partyId)
                 .partyName(partyName)
