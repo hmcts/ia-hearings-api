@@ -25,7 +25,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
-class HmcMessageDispatcherTest {
+class HmcUpdateDispatcherTest {
 
     @Mock
     private ServiceDataHandler<ServiceData> handler1;
@@ -36,11 +36,11 @@ class HmcMessageDispatcherTest {
     @Mock
     private ServiceData serviceData;
 
-    private HmcMessageDispatcher<ServiceData> dispatcher;
+    private HmcUpdateDispatcher<ServiceData> dispatcher;
 
     @BeforeEach
     public void setUp() {
-        dispatcher = new HmcMessageDispatcher<>(
+        dispatcher = new HmcUpdateDispatcher<>(
             Arrays.asList(
                 handler1,
                 handler2,
@@ -104,12 +104,12 @@ class HmcMessageDispatcherTest {
     @Test
     void should_not_error_if_no_handlers_are_provided() {
 
-        HmcMessageDispatcher<ServiceData> hmcMessageDispatcher =
-            new HmcMessageDispatcher<>(Collections.emptyList());
+        HmcUpdateDispatcher<ServiceData> hmcUpdateDispatcher =
+            new HmcUpdateDispatcher<>(Collections.emptyList());
 
         try {
 
-            hmcMessageDispatcher.dispatch(serviceData);
+            hmcUpdateDispatcher.dispatch(serviceData);
 
         } catch (Exception e) {
             fail("Should not have thrown any exception");
@@ -119,7 +119,7 @@ class HmcMessageDispatcherTest {
     @Test
     void should_not_allow_null_handlers() {
 
-        assertThatThrownBy(() -> new HmcMessageDispatcher<>(null))
+        assertThatThrownBy(() -> new HmcUpdateDispatcher<>(null))
             .hasMessage("Handlers must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
     }

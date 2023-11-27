@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients;
 
-import javax.validation.Valid;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import java.time.LocalDateTime;
+import javax.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
@@ -39,6 +40,7 @@ public interface HmcHearingApi {
     String HEARING_ENDPOINT = "/hearing";
     String HEARINGS_ENDPOINT = "/hearings";
     String PARTIES_NOTIFIED_ENDPOINT = "/partiesNotified";
+    String UN_NOTIFIED_HEARINGS_ENDPOINT = "/unNotifiedHearings";
 
     @PostMapping(value = HEARING_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE)
     HmcHearingResponse createHearingRequest(
@@ -95,5 +97,16 @@ public interface HmcHearingApi {
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @PathVariable("id") Long hearingId,
         @RequestBody @Valid DeleteHearingRequest deleteRequest
+    );
+
+    @GetMapping(value = UN_NOTIFIED_HEARINGS_ENDPOINT + "/{serviceId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    UnNotifiedHearingsResponse getUnNotifiedHearings(
+        @RequestHeader(AUTHORIZATION) String authorisation,
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestParam(name = "hearing_start_date_from")
+        @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime hearingStartDateFrom,
+        @RequestParam(name = "hearing_start_date_to", required = false)
+        @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime hearingStartDateTo,
+        @PathVariable String serviceId
     );
 }

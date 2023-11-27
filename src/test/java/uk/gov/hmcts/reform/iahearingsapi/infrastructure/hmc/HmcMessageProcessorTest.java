@@ -48,7 +48,7 @@ class HmcMessageProcessorTest {
     private static final ListAssistCaseStatus LIST_ASSIST_CASE_STATUS = ListAssistCaseStatus.LISTED;
     private static final LocalDateTime HEARING_RESPONSE_RECEIVED_DATE_TIME = LocalDateTime.of(2023, 9, 29, 11, 0);
     @Mock
-    private HmcMessageDispatcher<ServiceData> dispatcher;
+    private HmcUpdateDispatcher<ServiceData> dispatcher;
     @Mock
     private HearingService hearingService;
     @Mock
@@ -68,7 +68,7 @@ class HmcMessageProcessorTest {
     }
 
     @Test
-    void should_process_hmc_message_when_hmc_status_not_exception() {
+    void should_not_process_hmc_message_when_hmc_status_not_exception() {
 
         when(hmcMessage.getCaseId()).thenReturn(CASE_ID);
         when(hmcMessage.getHmctsServiceCode()).thenReturn(HMCTS_SERVICE_CODE);
@@ -130,12 +130,6 @@ class HmcMessageProcessorTest {
         when(hearingUpdate.getHmcStatus()).thenReturn(HMC_STATUS_EXCEPTION);
 
         processor.processMessage(hmcMessage);
-
-        ServiceData serviceData = new ServiceData();
-        serviceData.write(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE, HMCTS_SERVICE_CODE);
-        serviceData.write(CASE_REF, CASE_ID);
-        serviceData.write(ServiceDataFieldDefinition.HEARING_ID, HEARING_ID);
-        serviceData.write(ServiceDataFieldDefinition.HMC_STATUS, HMC_STATUS_EXCEPTION);
 
         ArgumentCaptor<ServiceData> serviceDataArgumentCaptor = ArgumentCaptor.forClass(ServiceData.class);
         verify(dispatcher, times(1)).dispatch(serviceDataArgumentCaptor.capture());
