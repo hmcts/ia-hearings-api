@@ -9,11 +9,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPr
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 
 @Component
-public class HmcMessageDispatcher<T extends ServiceData> {
+public class HmcUpdateDispatcher<T extends ServiceData> {
 
     private final List<ServiceDataHandler<T>> handlers;
 
-    public HmcMessageDispatcher(
+    public HmcUpdateDispatcher(
         List<ServiceDataHandler<T>> handlers
     ) {
         requireNonNull(handlers, "Handlers must not be null");
@@ -31,7 +31,7 @@ public class HmcMessageDispatcher<T extends ServiceData> {
 
 
     private void dispatchToHandlers(
-        T message,
+        T update,
         List<ServiceDataHandler<T>> handlers,
         DispatchPriority dispatchPriority
     ) {
@@ -39,9 +39,9 @@ public class HmcMessageDispatcher<T extends ServiceData> {
 
             if (handler.getDispatchPriority() == dispatchPriority) {
 
-                if (handler.canHandle(message)) {
+                if (handler.canHandle(update)) {
 
-                    handler.handle(message);
+                    handler.handle(update);
                 }
             }
         }

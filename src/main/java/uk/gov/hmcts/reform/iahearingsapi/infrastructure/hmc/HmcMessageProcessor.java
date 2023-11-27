@@ -31,14 +31,14 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 @RequiredArgsConstructor
 public class HmcMessageProcessor {
 
-    private final HmcMessageDispatcher<ServiceData> dispatcher;
+    private final HmcUpdateDispatcher<ServiceData> dispatcher;
     private final HearingService hearingService;
 
     public void processMessage(HmcMessage hmcMessage) {
 
         log.info(
-            "Processing HMC hearing update message for Hearing ID `{}` and Case ID `{}`",
-            hmcMessage.getHearingId(), hmcMessage.getCaseId());
+            "Processing HMC hearing update message for Hearing ID `{}` and Case ID `{}` and HmcStatus `{}`",
+            hmcMessage.getHearingId(), hmcMessage.getCaseId(), hmcMessage.getHearingUpdate().getHmcStatus());
 
         ServiceData serviceData = new ServiceData();
 
@@ -50,6 +50,11 @@ public class HmcMessageProcessor {
         serviceData.write(HMCTS_SERVICE_CODE, hmcMessage.getHmctsServiceCode());
         serviceData.write(HEARING_ID, hmcMessage.getHearingId());
 
+        /*
+        This is only true if the strategy chosen to consume updates is real-time processing
+        for messages with any HmcStatus from HmcHearingsEventTopicListener instead of batch-processing
+        through UnNotifiedHearingsProcessor
+         */
         if (!hmcStatus.equals(HmcStatus.EXCEPTION)) {
             serviceData.write(NEXT_HEARING_DATE, hearingUpdate.getNextHearingDate());
             serviceData.write(HEARING_VENUE_ID, hearingUpdate.getHearingVenueId());
