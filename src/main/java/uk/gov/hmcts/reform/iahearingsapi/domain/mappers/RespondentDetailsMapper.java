@@ -19,7 +19,6 @@ public class RespondentDetailsMapper {
                 OrganisationDetailsModel.builder()
                     .organisationType(PartyType.ORG.getPartyType())
                     .name(caseDataMapper.getRespondentName(asylumCase))
-                    .cftOrganisationID(null)
                     .build())
             .build();
     }
