@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
 
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
@@ -32,8 +34,13 @@ public class ListCaseHandler extends SubstantiveListedHearingService implements 
     ) {
         requireNonNull(serviceData, "serviceData must not be null");
 
+        String caseId = getCaseReference(serviceData);
+        State caseState = coreCaseDataService
+            .getCaseState(caseId);
+
         return isSubstantiveListedHearing(serviceData)
-            && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED);
+            && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED)
+            && caseState.equals(LISTING);
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
