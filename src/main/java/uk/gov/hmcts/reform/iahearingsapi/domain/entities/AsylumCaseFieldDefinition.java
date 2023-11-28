@@ -167,6 +167,8 @@ public enum AsylumCaseFieldDefinition {
         "updateHmcRequestSuccess", new TypeReference<YesOrNo>() {}),
     HEARING_CANCELLATION_REASON(
         "hearingCancellationReason", new TypeReference<String>(){}),
+    HEARING_RELISTED_CANCELLATION_REASON(
+        "hearingRelistedCancellationReason", new TypeReference<String>(){}),
     DEPORTATION_ORDER_OPTIONS(
         "deportationOrderOptions", new TypeReference<YesOrNo>(){}),
     APPEAL_TYPE(
@@ -236,6 +238,18 @@ public enum AsylumCaseFieldDefinition {
 
     WITNESS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS_10(
         "witnessInterpreterSignLanguageBookingStatus10", new TypeReference<InterpreterBookingStatus>() {}),
+
+    NEXT_HEARING_DATE(
+        "nextHearingDate", new TypeReference<String>(){}),
+
+    NEXT_HEARING_DATE_FIXED(
+        "nextHearingDateFixed", new TypeReference<String>(){}),
+
+    NEXT_HEARING_DATE_RANGE_EARLIEST(
+        "nextHearingDateRangeEarliest", new TypeReference<String>(){}),
+
+    NEXT_HEARING_DATE_RANGE_LATEST(
+        "nextHearingDateRangeLatest", new TypeReference<String>(){}),
     ;
 
     private final String value;
