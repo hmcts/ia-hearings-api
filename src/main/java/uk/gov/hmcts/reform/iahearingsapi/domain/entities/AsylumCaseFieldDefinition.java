@@ -236,6 +236,9 @@ public enum AsylumCaseFieldDefinition {
 
     WITNESS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS_10(
         "witnessInterpreterSignLanguageBookingStatus10", new TypeReference<InterpreterBookingStatus>() {}),
+
+    IS_APPEAL_SUITABLE_TO_FLOAT(
+        "isAppealSuitableToFloat", new TypeReference<YesOrNo>() {}),
     ;
 
     private final String value;
