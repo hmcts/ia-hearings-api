@@ -190,6 +190,7 @@ public class ServiceHearingValuesProvider {
         return List.of(caseCategoryCaseType, caseCategoryCaseSubType);
     }
 
+    @SuppressWarnings("java:S3776")
     private static CaseTypeValue getCaseTypeValue(AsylumCase asylumCase) {
         boolean hasDeportationOrder = asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)
             .map(deportation -> deportation == YesOrNo.YES)
