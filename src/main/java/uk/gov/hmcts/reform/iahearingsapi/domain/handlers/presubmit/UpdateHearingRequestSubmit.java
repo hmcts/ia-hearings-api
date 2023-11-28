@@ -28,8 +28,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_UPDATE_REASON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
@@ -161,14 +159,11 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
     private void clearFields(AsylumCase asylumCase) {
         asylumCase.clear(CHANGE_HEARINGS);
         asylumCase.write(CHANGE_HEARING_TYPE_YES_NO, "no");
-        asylumCase.clear(HEARING_CHANNEL);
         asylumCase.write(CHANGE_HEARING_LOCATION_YES_NO, "no");
-        asylumCase.clear(LIST_CASE_HEARING_CENTRE);
         asylumCase.write(CHANGE_HEARING_DURATION_YES_NO, "no");
         asylumCase.write(CHANGE_HEARING_DATE_YES_NO, "no");
         asylumCase.clear(CHANGE_HEARING_UPDATE_REASON);
         asylumCase.clear(CHANGE_HEARING_DATE_TYPE);
-        asylumCase.clear(LIST_CASE_HEARING_DATE);
         asylumCase.clear(CHANGE_HEARING_DATE_RANGE_EARLIEST);
         asylumCase.clear(CHANGE_HEARING_DATE_RANGE_LATEST);
     }
