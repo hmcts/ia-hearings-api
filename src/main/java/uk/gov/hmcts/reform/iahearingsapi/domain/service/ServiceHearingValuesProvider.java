@@ -148,7 +148,7 @@ public class ServiceHearingValuesProvider {
         JSONObject screenFlowJson = null;
         JSONArray screenFlowValue = null;
         JSONParser parser = new JSONParser(DEFAULT_PERMISSIVE_MODE);
-        Resource resource = resourceLoader.getResource("classpath:screenFlowNoPanelNoLink.json");
+        Resource resource = resourceLoader.getResource("classpath:screenFlowNoPanel.json");
 
         try (InputStream inputStream = resource.getInputStream()) {
             screenFlowJson =
