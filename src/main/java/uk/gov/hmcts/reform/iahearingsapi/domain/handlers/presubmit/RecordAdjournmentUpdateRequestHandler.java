@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ReasonCodes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
@@ -22,8 +21,12 @@ import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADJOURNMENT_DETAILS_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CANCELLATION_REASON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_RELISTED_CANCELLATION_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CANCEL_HEARINGS_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE_FIXED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE_RANGE_EARLIEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE_RANGE_LATEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.RELIST_CASE_IMMEDIATELY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.UPDATE_HMC_REQUEST_SUCCESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
@@ -32,6 +35,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrN
 @Component
 @Slf4j
 public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackHandler<AsylumCase> {
+    public static final String NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE = "FirstAvailableDate";
+    public static final String NEXT_HEARING_DATE_DATE_TO_BE_FIXED = "DateToBeFixed";
+    public static final String NEXT_HEARING_DATE_CHOOSE_DATE_RANGE = "ChooseADateRange";
 
     HearingService hearingService;
     UpdateHearingPayloadService updateHearingPayloadService;
@@ -100,13 +106,19 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
 
     private void updateHearing(AsylumCase asylumCase, String hearingId) {
         YesOrNo updateRequestSuccess = YES;
+        String cancellationReason = asylumCase.read(HEARING_RELISTED_CANCELLATION_REASON, String.class)
+            .orElseThrow(() -> new IllegalStateException("Hearing relisted cancellation reason is not present"));
+        String nextHearingDate = asylumCase.read(NEXT_HEARING_DATE, String.class)
+            .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE + "  is not present"));
+
         try {
+
             hearingService.updateHearing(
                 updateHearingPayloadService.createUpdateHearingPayload(
                     asylumCase,
                     hearingId,
-                    ReasonCodes.OTHER.toString(),//TODO: this reasonCode value is to be updated with RIA-7836
-                    false,
+                    cancellationReason,
+                    nextHearingDate.equals(NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE),
                     updateHearingWindow(asylumCase)
                 ),
                 hearingId
@@ -116,19 +128,36 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
             updateRequestSuccess = NO;
         }
         asylumCase.write(UPDATE_HMC_REQUEST_SUCCESS, updateRequestSuccess);
+        asylumCase.write(MANUAL_CANCEL_HEARINGS_REQUIRED, NO);
     }
-
 
 
     private HearingWindowModel updateHearingWindow(AsylumCase asylumCase) {
-        String fixedDate = asylumCase.read(
-                    LIST_CASE_HEARING_DATE,
-                    String.class
-                ).orElseThrow(() -> new IllegalStateException(LIST_CASE_HEARING_DATE + " type is not present"));
+        String nextHearingDate = asylumCase.read(NEXT_HEARING_DATE, String.class)
+            .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE + "  is not present"));
+        return switch (nextHearingDate) {
+            case NEXT_HEARING_DATE_DATE_TO_BE_FIXED -> {
+                String dateFixed = asylumCase.read(NEXT_HEARING_DATE_FIXED, String.class)
+                    .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE_FIXED + "  is not present"));
+                yield HearingWindowModel.builder()
+                    .firstDateTimeMustBe(HearingsUtils.convertToLocalDateFormat(dateFixed).toString())
+                    .build();
+            }
+            case NEXT_HEARING_DATE_CHOOSE_DATE_RANGE -> {
+                HearingWindowModel hearingWindowModel = HearingWindowModel.builder().build();
+                asylumCase.read(NEXT_HEARING_DATE_RANGE_EARLIEST, String.class)
+                    .ifPresent(date ->
+                                   hearingWindowModel.setDateRangeStart(
+                                       HearingsUtils.convertToLocalDateFormat(date).toString()));
 
-        return HearingWindowModel.builder()
-                    .firstDateTimeMustBe(HearingsUtils.convertToLocalDateTimeFormat(fixedDate).toString()).build();
+                asylumCase.read(NEXT_HEARING_DATE_RANGE_LATEST, String.class)
+                    .ifPresent(date ->
+                                   hearingWindowModel.setDateRangeEnd(
+                                       HearingsUtils.convertToLocalDateFormat(date).toString()));
+                yield  hearingWindowModel;
+            }
+            default -> null;
+        };
     }
-
 
 }
