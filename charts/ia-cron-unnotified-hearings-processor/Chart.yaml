@@ -8,6 +8,6 @@ maintainers:
   - name: HMCTS ia team
     email: ImmigrationandAsylum@HMCTS.NET
 dependencies:
-  - name: java
+  - name: job
     version: 5.0.0
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
