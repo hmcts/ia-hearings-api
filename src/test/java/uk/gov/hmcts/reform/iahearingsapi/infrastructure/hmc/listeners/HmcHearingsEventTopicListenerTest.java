@@ -70,18 +70,20 @@ class HmcHearingsEventTopicListenerTest {
         verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
     }
 
-    // TODO: enable this test when batch processing is activated (and only EXCEPTION messages will be processed)
-    //@Test
-    //public void should_not_process_messages_with_hmc_status_different_than_exception() throws Exception {
-    //    HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE);
-    //    hmcMessage.setHearingUpdate(HearingUpdate.builder().hmcStatus(LISTED).build());
-    //    String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
-    //    byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
-    //
-    //    given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-    //    hmcHearingsEventTopicListener.onMessage(message);
-    //
-    //    verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
-    //}
+    // Enable this test when batch processing is activated (and only EXCEPTION messages will be processed)
+    /*
+        @Test
+    public void should_not_process_messages_with_hmc_status_different_than_exception() throws Exception {
+        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE);
+        hmcMessage.setHearingUpdate(HearingUpdate.builder().hmcStatus(LISTED).build());
+        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
+
+        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
+        hmcHearingsEventTopicListener.onMessage(message);
+
+        verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
+    }
+     */
 
 }
