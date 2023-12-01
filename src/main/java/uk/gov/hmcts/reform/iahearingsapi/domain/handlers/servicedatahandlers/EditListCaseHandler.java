@@ -99,9 +99,6 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
 
         String nextHearingVenueId = getHearingVenueId(serviceData);
 
-        int nextDuration = getHearingDuration(serviceData);
-
-
         LocalDateTime currentHearingDate = LocalDateTime.parse(asylumCase.read(
             LIST_CASE_HEARING_DATE,
             String.class
@@ -147,6 +144,7 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
             );
             sendUpdate = true;
         }
+        int nextDuration = getHearingDuration(serviceData);
         if ((nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name()))
             && !currentDuration.equals(String.valueOf(nextDuration))) {
             asylumCase.write(LIST_CASE_HEARING_LENGTH, String.valueOf(nextDuration));

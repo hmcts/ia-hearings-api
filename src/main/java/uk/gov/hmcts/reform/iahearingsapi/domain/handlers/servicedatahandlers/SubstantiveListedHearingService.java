@@ -42,6 +42,7 @@ public class SubstantiveListedHearingService {
             && !isHearingChannel(serviceData, ONPPRS)
             && isHearingType(serviceData, SUBSTANTIVE);
     }
+
     public boolean isCaseManagementReviewListedHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)
             && isHearingListingStatus(serviceData, ListingStatus.FIXED)
