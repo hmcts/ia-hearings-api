@@ -1,5 +1,15 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,17 +26,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearin
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 
 @Component
 @Slf4j
@@ -60,12 +59,15 @@ public class UpdateHearingPayloadService {
             .build();
 
 
-        return UpdateHearingRequest.builder()
+        UpdateHearingRequest updatedHearingRequest = UpdateHearingRequest.builder()
             .requestDetails(persistedHearing.getRequestDetails())
             .caseDetails(persistedHearing.getCaseDetails())
             .hearingDetails(buildHearingDetails(asylumCase, persistedHearing.getHearingDetails(), hearingDetails))
             .partyDetails(getPartyDetails(asylumCase))
             .build();
+
+        log.info("Updated hearing request to be persisted: {}", updatedHearingRequest.toString());
+        return updatedHearingRequest;
     }
 
     private List<String> getHearingChannels(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
