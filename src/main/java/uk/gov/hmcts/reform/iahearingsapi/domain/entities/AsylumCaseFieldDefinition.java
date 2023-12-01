@@ -250,6 +250,9 @@ public enum AsylumCaseFieldDefinition {
 
     NEXT_HEARING_DATE_RANGE_LATEST(
         "nextHearingDateRangeLatest", new TypeReference<String>(){}),
+
+    IS_APPEAL_SUITABLE_TO_FLOAT(
+        "isAppealSuitableToFloat", new TypeReference<YesOrNo>() {}),
     ;
 
     private final String value;
