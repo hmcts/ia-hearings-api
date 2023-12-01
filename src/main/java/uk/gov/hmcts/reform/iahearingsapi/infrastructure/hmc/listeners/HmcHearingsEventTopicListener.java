@@ -51,10 +51,14 @@ public class HmcHearingsEventTopicListener {
             log.info("Received message from HMC hearings topic for Case ID {}, and Hearing ID {}.",
                      caseId, hearingId);
 
+            /*
+            Disallow messages other than EXCEPTION after batch processing gets enabled
+            Objects.equals(hmcMessage.getHearingUpdate().getHmcStatus(), EXCEPTION)
+             */
             if (isMessageRelevantForService(hmcMessage)) {
 
                 log.info("Attempting to process message from HMC hearings topic for"
-                             + " Case ID {}, and Hearing ID {}.", caseId, hearingId);
+                             + " Case ID {}, and Hearing ID {} with status EXCEPTION", caseId, hearingId);
 
                 hmcMessageProcessor.processMessage(hmcMessage);
             }

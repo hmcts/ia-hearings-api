@@ -10,6 +10,7 @@ import java.util.List;
 import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
@@ -37,6 +39,7 @@ public class HearingService {
     private final IdamService idamService;
     private final ServiceHearingValuesProvider serviceHearingValuesProvider;
     private final CoreCaseDataService coreCaseDataService;
+    @Value("${hearingValues.hmctsServiceId}") String serviceId;
 
     public HmcHearingResponse createHearing(HmcHearingRequestPayload hearingPayload) {
         try {
@@ -185,4 +188,24 @@ public class HearingService {
         }
     }
 
+    public UnNotifiedHearingsResponse getUnNotifiedHearings(LocalDateTime hearingStartDateFrom) {
+        log.debug("Retrieving UnNotified hearings");
+        try {
+            String serviceUserToken = idamService.getServiceUserToken();
+            String serviceAuthToken = serviceAuthTokenGenerator.generate();
+
+            return hmcHearingApi.getUnNotifiedHearings(serviceUserToken,
+                                                       serviceAuthToken,
+                                                       hearingStartDateFrom,
+                                                       null,
+                                                       serviceId);
+        } catch (FeignException e) {
+            log.error("Failed to retrieve unNotified hearings");
+            throw new HmcException(e);
+        }
+    }
+
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
+    }
 }

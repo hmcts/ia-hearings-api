@@ -1,0 +1,13 @@
+apiVersion: v2
+appVersion: "1.0"
+description: A Helm chart for ia-cron-unnotified-hearings-processor job
+name: ia-cron-unnotified-hearings-processor
+home: https://github.com/hmcts/ia-hearings-api
+version: 0.0.12
+maintainers:
+  - name: HMCTS ia team
+    email: ImmigrationandAsylum@HMCTS.NET
+dependencies:
+  - name: job
+    version: ~1.1.5
+    repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'
