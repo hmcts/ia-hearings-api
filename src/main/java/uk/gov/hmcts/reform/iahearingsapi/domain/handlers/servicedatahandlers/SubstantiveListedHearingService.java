@@ -11,6 +11,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingChannel;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingListingStatus;
@@ -40,6 +41,12 @@ public class SubstantiveListedHearingService {
             && isHearingListingStatus(serviceData, ListingStatus.FIXED)
             && !isHearingChannel(serviceData, ONPPRS)
             && isHearingType(serviceData, SUBSTANTIVE);
+    }
+    public boolean isCaseManagementReviewListedHearing(ServiceData serviceData) {
+        return isHmcStatus(serviceData, HmcStatus.LISTED)
+            && isHearingListingStatus(serviceData, ListingStatus.FIXED)
+            && !isHearingChannel(serviceData, ONPPRS)
+            && isHearingType(serviceData, CASE_MANAGEMENT_REVIEW);
     }
 
     public String getCaseReference(ServiceData serviceData) {
