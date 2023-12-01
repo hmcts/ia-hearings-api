@@ -149,8 +149,11 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
                 CHANGE_HEARING_DATE,
                 HearingsUtils.convertToLocalStringFormat(firstDateTime)
             );
-
+        } else if(asylumCase.read(CHANGE_HEARING_DATE, String.class).isEmpty()) {
+            asylumCase.write(
+                CHANGE_HEARING_DATE,
+                "No hearing date"
+            );
         }
-
     }
 }
