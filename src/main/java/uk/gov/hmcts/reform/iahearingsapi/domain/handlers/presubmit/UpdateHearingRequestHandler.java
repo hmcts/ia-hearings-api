@@ -75,7 +75,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
             if (hearingResponse.getHearingDetails().getHearingChannels() != null
                 && !hearingResponse.getHearingDetails().getHearingChannels().isEmpty()) {
                 asylumCase.write(
-                        CHANGE_HEARING_TYPE,
+                    CHANGE_HEARING_TYPE,
                     hearingResponse.getHearingDetails().getHearingChannelDescription()
                 );
                 List<Value> hearingChannels = Arrays.stream(HearingChannel
@@ -149,7 +149,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
                 CHANGE_HEARING_DATE,
                 HearingsUtils.convertToLocalStringFormat(firstDateTime)
             );
-        } else if(asylumCase.read(CHANGE_HEARING_DATE, String.class).isEmpty()) {
+        } else if (asylumCase.read(CHANGE_HEARING_DATE, String.class).isEmpty()) {
             asylumCase.write(
                 CHANGE_HEARING_DATE,
                 "No hearing date"
