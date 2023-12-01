@@ -475,6 +475,13 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .flagDescription(LITIGATION_FRIEND.getName())
                     .build(),
                 PartyFlagsModel.builder()
+                    .partyId("appellantPartyId")
+                    .partyName("appellant1")
+                    .flagId(LACKING_CAPACITY.getFlagCode())
+                    .flagStatus("Active")
+                    .flagDescription(LACKING_CAPACITY.getName())
+                    .build(),
+                PartyFlagsModel.builder()
                     .partyId("witnessPartyId")
                     .partyName("witness3")
                     .flagId(HEARING_LOOP.getFlagCode())
@@ -494,12 +501,6 @@ class CaseFlagsToServiceHearingValuesMapperTest {
         when(asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(new StrategicCaseFlag(
                 Arrays.asList(
-                    new CaseFlagDetail("id2", CaseFlagValue.builder()
-                        .flagCode(URGENT_CASE.getFlagCode())
-                        .name(URGENT_CASE.getName())
-                        .status("Active")
-                        .hearingRelevant(YesOrNo.NO)
-                        .build()),
                     new CaseFlagDetail("id3", CaseFlagValue.builder()
                         .flagCode(PRESIDENTIAL_PANEL.getFlagCode())
                         .status("Inactive")

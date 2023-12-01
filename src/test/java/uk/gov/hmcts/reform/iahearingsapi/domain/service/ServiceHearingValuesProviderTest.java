@@ -9,6 +9,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_APPEAL_SUITABLE_TO_FLOAT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
@@ -263,7 +264,7 @@ class ServiceHearingValuesProviderTest {
                .build())
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
-            .caseflags(caseflags)
+            .caseFlags(caseflags)
             .screenFlow(serviceHearingValuesProvider.getScreenFlowJson())
             .vocabulary(Collections.emptyList())
             .hearingChannels(hearingChannels)
@@ -285,8 +286,10 @@ class ServiceHearingValuesProviderTest {
 
     @ParameterizedTest
     @MethodSource("caseTypeValueTestCases")
-    void testGetCaseTypeValue(YesOrNo hasDeportationOrder, AppealType appealType, CaseTypeValue expectedValue) {
+    void testGetCaseTypeValue(YesOrNo hasDeportationOrder, YesOrNo isSuitableToFloat,
+                              AppealType appealType, CaseTypeValue expectedValue) {
         when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)).thenReturn(Optional.of(hasDeportationOrder));
+        when(asylumCase.read(IS_APPEAL_SUITABLE_TO_FLOAT, YesOrNo.class)).thenReturn(Optional.of(isSuitableToFloat));
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(appealType));
 
         List<CaseCategoryModel> caseCategoryModelList = serviceHearingValuesProvider
@@ -300,63 +303,147 @@ class ServiceHearingValuesProviderTest {
         return Stream.of(
             Arguments.of(
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.HU,
                 CaseTypeValue.HUD
             ),
             Arguments.of(
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.EA,
                 CaseTypeValue.EAD
             ),
             Arguments.of(
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.EU,
                 CaseTypeValue.EUD
             ),
             Arguments.of(
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.DC,
                 CaseTypeValue.DCD
             ),
             Arguments.of(
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.PA,
                 CaseTypeValue.PAD
             ),
             Arguments.of(
                 YesOrNo.YES,
+                YesOrNo.NO,
                 RP,
                 CaseTypeValue.RPD
             ),
             Arguments.of(
+                YesOrNo.NO,
                 YesOrNo.NO,
                 AppealType.HU,
                 CaseTypeValue.HUX
             ),
             Arguments.of(
                 YesOrNo.NO,
+                YesOrNo.NO,
                 AppealType.EA,
                 CaseTypeValue.EAX
             ),
             Arguments.of(
+                YesOrNo.NO,
                 YesOrNo.NO,
                 AppealType.EU,
                 CaseTypeValue.EUX
             ),
             Arguments.of(
                 YesOrNo.NO,
+                YesOrNo.NO,
                 AppealType.DC,
                 CaseTypeValue.DCX
             ),
             Arguments.of(
+                YesOrNo.NO,
                 YesOrNo.NO,
                 AppealType.PA,
                 CaseTypeValue.PAX
             ),
             Arguments.of(
                 YesOrNo.NO,
+                YesOrNo.NO,
                 RP,
                 CaseTypeValue.RPX
+            ),
+            Arguments.of(
+                YesOrNo.YES,
+                YesOrNo.YES,
+                AppealType.HU,
+                CaseTypeValue.HUD
+            ),
+            Arguments.of(
+                YesOrNo.YES,
+                YesOrNo.YES,
+                AppealType.EA,
+                CaseTypeValue.EAD
+            ),
+            Arguments.of(
+                YesOrNo.YES,
+                YesOrNo.YES,
+                AppealType.EU,
+                CaseTypeValue.EUD
+            ),
+            Arguments.of(
+                YesOrNo.YES,
+                YesOrNo.YES,
+                AppealType.DC,
+                CaseTypeValue.DCD
+            ),
+            Arguments.of(
+                YesOrNo.YES,
+                YesOrNo.YES,
+                AppealType.PA,
+                CaseTypeValue.PAD
+            ),
+            Arguments.of(
+                YesOrNo.YES,
+                YesOrNo.YES,
+                RP,
+                CaseTypeValue.RPD
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                YesOrNo.YES,
+                AppealType.HU,
+                CaseTypeValue.HUF
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                YesOrNo.YES,
+                AppealType.EA,
+                CaseTypeValue.EAF
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                YesOrNo.YES,
+                AppealType.EU,
+                CaseTypeValue.EUF
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                YesOrNo.YES,
+                AppealType.DC,
+                CaseTypeValue.DCF
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                YesOrNo.YES,
+                AppealType.PA,
+                CaseTypeValue.PAF
+            ),
+            Arguments.of(
+                YesOrNo.NO,
+                YesOrNo.YES,
+                RP,
+                CaseTypeValue.RPF
             )
         );
     }
