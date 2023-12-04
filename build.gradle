@@ -368,7 +368,7 @@ dependencies {
   implementation group: 'com.fasterxml.jackson', name: 'jackson-bom', version: '2.15.2', ext: 'pom'
   implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
 
-  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.8.0'
+  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.14.6'
   implementation group: 'com.azure', name: 'azure-core', version: '1.28.0'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.81'
