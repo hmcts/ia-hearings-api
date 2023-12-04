@@ -42,7 +42,7 @@ def versions = [
   springDoc             : '1.6.9',
   springHystrix         : '2.2.10.RELEASE',
   pact_version          : '4.1.7',
-  restAssured           : '5.3.1',
+  restAssured           : '5.3.2',
   serviceTokenGenerator : '4.0.2',
   qpidJmsClient         : '1.8.0'
 ]
