@@ -1,10 +1,11 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
-import java.util.List;
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.List;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
 
 public enum AsylumCaseFieldDefinition {
 
@@ -253,7 +254,9 @@ public enum AsylumCaseFieldDefinition {
 
     IS_APPEAL_SUITABLE_TO_FLOAT(
         "isAppealSuitableToFloat", new TypeReference<YesOrNo>() {}),
-    ;
+
+    CASE_LINKS(
+        "caseLinks", new TypeReference<List<IdValue<CaseLink>>>(){});
 
     private final String value;
     private final TypeReference typeReference;
