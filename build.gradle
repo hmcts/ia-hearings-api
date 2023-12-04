@@ -363,7 +363,7 @@ dependencies {
 
   implementation group: 'com.sun.xml.bind', name: 'jaxb-osgi', version: '2.3.8'
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.15.2'
-  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.15.2'
+  implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.16.0'
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.15.2'
   implementation group: 'com.fasterxml.jackson', name: 'jackson-bom', version: '2.15.2', ext: 'pom'
   implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310'
