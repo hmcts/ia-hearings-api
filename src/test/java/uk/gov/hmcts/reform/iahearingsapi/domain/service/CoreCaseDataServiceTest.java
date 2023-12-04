@@ -70,7 +70,7 @@ public class CoreCaseDataServiceTest {
         CaseDetails caseDetails = mock(CaseDetails.class);
         Map<String, Object> data = new HashMap<>();
         when(caseDetails.getData()).thenReturn(data);
-        when(iaCcdConvertService.getCaseData(data)).thenReturn(asylumCase);
+        when(iaCcdConvertService.convertToAsylumCaseData(data)).thenReturn(asylumCase);
         when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(caseDetails);
 
         AsylumCase actualAsylumCase = coreCaseDataService.getCase(CASE_ID);
@@ -97,7 +97,7 @@ public class CoreCaseDataServiceTest {
         CaseDetails caseDetails = mock(CaseDetails.class);
         Map<String, Object> data = new HashMap<>();
         when(caseDetails.getData()).thenReturn(data);
-        when(iaCcdConvertService.getCaseData(data)).thenReturn(asylumCase);
+        when(iaCcdConvertService.convertToAsylumCaseData(data)).thenReturn(asylumCase);
         when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
 
         AsylumCase actualAsylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);

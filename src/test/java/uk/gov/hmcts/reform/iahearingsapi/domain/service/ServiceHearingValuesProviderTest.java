@@ -187,7 +187,7 @@ class ServiceHearingValuesProviderTest {
 
         ServiceHearingValuesModel expected = buildTestValues();
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
-            .provideServiceHearingValues(asylumCase, caseReference);
+            .provideAsylumServiceHearingValues(asylumCase, caseReference);
 
         assertEquals(expected, actual);
     }
@@ -199,7 +199,7 @@ class ServiceHearingValuesProviderTest {
         ServiceHearingValuesModel expected = buildTestValues();
         expected.setFacilitiesRequired(List.of(IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString()));
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
-            .provideServiceHearingValues(asylumCase, caseReference);
+            .provideAsylumServiceHearingValues(asylumCase, caseReference);
 
         assertEquals(expected, actual);
     }
@@ -210,7 +210,7 @@ class ServiceHearingValuesProviderTest {
         when(asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> serviceHearingValuesProvider
-            .provideServiceHearingValues(asylumCase, caseReference))
+            .provideAsylumServiceHearingValues(asylumCase, caseReference))
             .hasMessage("HMCTS internal case name is a required field")
             .isExactlyInstanceOf(RequiredFieldMissingException.class);
     }
@@ -221,7 +221,7 @@ class ServiceHearingValuesProviderTest {
         when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> serviceHearingValuesProvider
-            .provideServiceHearingValues(asylumCase, caseReference))
+            .provideAsylumServiceHearingValues(asylumCase, caseReference))
             .hasMessage("List case hearing length is a required field")
             .isExactlyInstanceOf(RequiredFieldMissingException.class);
     }
@@ -293,7 +293,7 @@ class ServiceHearingValuesProviderTest {
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(appealType));
 
         List<CaseCategoryModel> caseCategoryModelList = serviceHearingValuesProvider
-            .provideServiceHearingValues(asylumCase, caseReference)
+            .provideAsylumServiceHearingValues(asylumCase, caseReference)
             .getCaseCategories();
 
         assertEquals(expectedValue.getValue(), caseCategoryModelList.get(0).getCategoryValue());

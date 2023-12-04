@@ -139,7 +139,7 @@ class HearingServiceTest {
 
     @Test
     void testGetServiceHearingValues() {
-        when(serviceHearingValuesProvider.provideServiceHearingValues(asylumCase, CASE_ID))
+        when(serviceHearingValuesProvider.provideAsylumServiceHearingValues(asylumCase, CASE_ID))
             .thenReturn(new ServiceHearingValuesModel());
 
         ServiceHearingValuesModel result = hearingService.getServiceHearingValues(
@@ -147,7 +147,7 @@ class HearingServiceTest {
 
         assertThat(result).isNotNull();
         verify(serviceHearingValuesProvider, times(1))
-            .provideServiceHearingValues(asylumCase, CASE_ID);
+            .provideAsylumServiceHearingValues(asylumCase, CASE_ID);
     }
 
     @Test

@@ -204,3 +204,7 @@ iaCaseApi:
   aboutToSubmitPath: "/asylum/ccdAboutToSubmit"
   midEventPath: "/asylum/ccdMidEvent"
   ccdSubmittedPath: "/asylum/ccdSubmitted"
+
+bail:
+  hearingValues:
+    caseCategories: "BFA1-BLS"
