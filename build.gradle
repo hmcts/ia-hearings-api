@@ -354,7 +354,7 @@ dependencies {
   implementation group: 'org.apache.qpid', name: 'qpid-jms-client', version: versions.qpidJmsClient
 
   implementation group: 'com.google.guava', name: 'guava', version: '32.1.2-jre'
-  implementation group: 'commons-io', name: 'commons-io', version: '2.10.0'
+  implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.2.1'
 
   implementation group: 'com.github.hmcts', name:'service-auth-provider-java-client', version: versions.serviceTokenGenerator
