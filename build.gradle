@@ -381,7 +381,7 @@ dependencies {
   implementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
 
   implementation group: 'org.webjars', name: 'webjars-locator-core', version: '0.45'
-  implementation group: 'org.webjars', name: 'webjars-locator-jboss-vfs', version: '0.1'
+  implementation group: 'org.webjars', name: 'webjars-locator-jboss-vfs', version: '0.1.0'
 
   testImplementation group: 'io.rest-assured', name: 'rest-assured-all', version: versions.restAssured
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: versions.restAssured
