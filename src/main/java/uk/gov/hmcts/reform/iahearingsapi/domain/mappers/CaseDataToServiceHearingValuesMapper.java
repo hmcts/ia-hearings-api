@@ -108,8 +108,7 @@ public class CaseDataToServiceHearingValuesMapper {
     }
 
     public String getHearingChannel(AsylumCase asylumCase) {
-        return asylumCase.read(HEARING_CHANNEL, DynamicList.class)
-            .map(dynamicList -> dynamicList.getValue().getCode()).orElse(null);
+        return getHearingChannels(asylumCase).stream().findFirst().orElse(null);
     }
 
     public String getAppellantPartyId(AsylumCase asylumCase) {
