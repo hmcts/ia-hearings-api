@@ -349,7 +349,7 @@ dependencies {
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
 
-  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.14.0'
+  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
 
   implementation group: 'org.apache.qpid', name: 'qpid-jms-client', version: versions.qpidJmsClient
 
