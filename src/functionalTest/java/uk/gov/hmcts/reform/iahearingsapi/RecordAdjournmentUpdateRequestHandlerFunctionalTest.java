@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.iahearingsapi;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Random;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.notNullValue;
@@ -15,13 +14,11 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ADJOURNMENT_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 
-import io.cucumber.cienvironment.internal.com.eclipsesource.json.Json;
 import io.restassured.http.Header;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.context.ActiveProfiles;
@@ -34,27 +31,24 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
 @Slf4j
 @ActiveProfiles("functional")
-@Disabled
 public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCaseCreationTest {
 
-    private static final int BOUND = 99999999;
-    Random rand;
+    private static final String HEARING_ID = "12345";
 
     @BeforeEach
     void getAuthentications() {
         fetchTokensAndUserIds();
-        rand = new Random();
     }
 
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void should_handle_record_adjournment_details_cancellation_successfully(boolean isAipJourney) {
         Case result = createAndGetCase(isAipJourney);
-        String hearingId = createHearingAndGetHearing(result);
+        createHearing(result);
 
         AsylumCase asylumCase = result.getCaseData();
         asylumCase.write(RELIST_CASE_IMMEDIATELY, "No");
-        asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(hearingId));
+        asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(HEARING_ID));
         asylumCase.write(HEARING_CANCELLATION_REASON, "reclassified");
         asylumCase.write(NEXT_HEARING_DATE, "2023-11-28T09:45:00.000");
 
@@ -67,7 +61,7 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
             "securityClassification"
         );
 
-        Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails), RECORD_ADJOURNMENT_DETAILS);
+        Callback<CaseData> callback = new Callback<>(caseDetails, Optional.of(caseDetails), RECORD_ADJOURNMENT_DETAILS);
         given(hearingsSpecification)
             .when()
             .contentType("application/json")
@@ -86,11 +80,11 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
     @CsvSource({"true", "false"})
     void should_handle_record_adjournment_details_update_successfully(boolean isAipJourney) {
         Case result = createAndGetCase(isAipJourney);
-        String hearingId = createHearingAndGetHearing(result);
+        createHearing(result);
 
         AsylumCase asylumCase = result.getCaseData();
         asylumCase.write(RELIST_CASE_IMMEDIATELY, "Yes");
-        asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(hearingId));
+        asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(HEARING_ID));
         asylumCase.write(HEARING_RELISTED_UPDATE_REASON, "reclassified");
         asylumCase.write(NEXT_HEARING_DATE, "2023-11-28T09:45:00.000");
 
@@ -103,7 +97,8 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
             "securityClassification"
         );
 
-        Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails), RECORD_ADJOURNMENT_DETAILS);
+        Callback<CaseData> callback = new Callback<>(caseDetails, Optional.of(caseDetails),
+                                                                RECORD_ADJOURNMENT_DETAILS);
         given(hearingsSpecification)
             .when()
             .contentType("application/json")
@@ -131,7 +126,7 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
             "securityClassification"
         );
 
-        Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails), RECORD_ADJOURNMENT_DETAILS);
+        Callback<CaseData> callback = new Callback<>(caseDetails, Optional.of(caseDetails), RECORD_ADJOURNMENT_DETAILS);
 
         Response response = given(hearingsSpecification)
             .when()
@@ -147,14 +142,13 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
         assertEquals(401, response.getStatusCode());
     }
 
-    private String createHearingAndGetHearing(Case result) {
+    private void createHearing(Case result) {
         listCaseWithRequiredFields();
-        String hearingId = rand.nextInt(BOUND) + "";
         HearingRequestPayload payload = HearingRequestPayload.builder()
             .caseReference(Long.toString(result.getCaseId()))
-            .hearingId(hearingId)
+            .hearingId(HEARING_ID)
             .build();
-        Response hearingCreationResponse = given(hearingsSpecification)
+        given(hearingsSpecification)
             .when()
             .contentType("application/json")
             .header(new Header(AUTHORIZATION, legalRepToken))
@@ -164,8 +158,5 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
             .then()
             .log().all(true)
             .extract().response();
-        Json.parse(hearingCreationResponse.getBody().asString());
-
-        return hearingId;
     }
 }
