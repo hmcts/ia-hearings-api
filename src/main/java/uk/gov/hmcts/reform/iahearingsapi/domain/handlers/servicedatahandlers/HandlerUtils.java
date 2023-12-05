@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
-
+import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
@@ -63,7 +63,7 @@ public class HandlerUtils {
                                                       List<HearingChannel> hearingChannels,
                                                       String venueId) {
         if (hearingChannels.contains(INTER)) {
-            return GLASGOW_EPIMMS_ID.equals(venueId)
+            return StringUtils.equals(venueId, GLASGOW_EPIMMS_ID)
                 ? hearingDateTime.with(LocalTime.of(9, 45))
                 : hearingDateTime.with(LocalTime.of(10, 0));
         } else {

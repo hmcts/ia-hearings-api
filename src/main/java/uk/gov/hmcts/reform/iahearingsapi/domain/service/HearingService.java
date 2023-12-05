@@ -162,6 +162,11 @@ public class HearingService {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
+            log.info("PUT updateHearingRequest by user with name: {}, uuid: {}, userRoles: {}",
+                     idamService.getUserInfo().getName(),
+                     idamService.getUserInfo().getUid(),
+                     idamService.getUserInfo().getRoles());
+
             return hmcHearingApi.updateHearingRequest(
                 serviceUserToken,
                 serviceAuthToken,
@@ -169,7 +174,7 @@ public class HearingService {
                 hearingId
             );
         } catch (FeignException ex) {
-            log.error("Failed to update hearing with Id: {} from HMC", hearingId);
+            log.error("Failed to update hearing with Id: {} from HMC. Error: {}", hearingId, ex.getMessage());
             throw new HmcException(ex);
         }
     }

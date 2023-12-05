@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
+import static java.util.Objects.requireNonNull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,8 +17,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
-
-import static java.util.Objects.requireNonNull;
 
 @Component
 @Slf4j

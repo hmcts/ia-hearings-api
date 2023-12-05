@@ -51,6 +51,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
 @ExtendWith(MockitoExtension.class)
@@ -92,6 +93,8 @@ class HearingServiceTest {
     private ReasonForLink reasonForLink;
     @Mock
     private Request request;
+    @Mock
+    private UserInfo userInfo;
     @InjectMocks
     private HearingService hearingService;
 
@@ -196,6 +199,10 @@ class HearingServiceTest {
 
     @Test
     void testUpdateHearing() {
+        when(idamService.getUserInfo()).thenReturn(userInfo);
+        when(userInfo.getName()).thenReturn("Name");
+        when(userInfo.getUid()).thenReturn("uuid");
+        when(userInfo.getRoles()).thenReturn(List.of("role1"));
         when(hmcHearingApi.updateHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, updateHearingRequest,
                                                 HEARING_ID
         )).thenReturn(new HearingGetResponse());
@@ -213,6 +220,10 @@ class HearingServiceTest {
 
     @Test
     void testUpdateHearingException() {
+        when(idamService.getUserInfo()).thenReturn(userInfo);
+        when(userInfo.getName()).thenReturn("Name");
+        when(userInfo.getUid()).thenReturn("uuid");
+        when(userInfo.getRoles()).thenReturn(List.of("role1"));
         when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
         when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
         when(hmcHearingApi.updateHearingRequest(anyString(), anyString(), any(UpdateHearingRequest.class), anyString()))
