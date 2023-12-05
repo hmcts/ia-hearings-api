@@ -12,12 +12,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_LINKS;
 
 import feign.FeignException;
 import feign.Request;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,9 +34,13 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLinkData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ReasonForLink;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
@@ -54,9 +61,12 @@ class HearingServiceTest {
     private static final String SERVICE_AUTHORIZATION = "TestServiceAuthorization";
     private static final long VERSION = 1;
     private static final String CASE_ID = "1625080769409918";
+    private static final String CASE_ID_2 = "1625080769409919";
     private static final long HEARING_REQUEST_ID = 12345;
     private static final String HEARING_ID = "12345";
     private static final String SERVICE_ID = "BFA1";
+    private static final String REASON_FOR_LINK = "Reason for case to be linked";
+    private static final String APPELLANT_2 = "Name LastName";
 
     @Mock
     private IdamService idamService;
@@ -74,6 +84,12 @@ class HearingServiceTest {
     private UnNotifiedHearingsResponse unNotifiedHearingsResponse;
     @Mock
     private AsylumCase asylumCase;
+    @Mock
+    private AsylumCase asylumCase2;
+    @Mock
+    private CaseLink caseLink;
+    @Mock
+    private ReasonForLink reasonForLink;
     @Mock
     private Request request;
     @InjectMocks
@@ -212,9 +228,27 @@ class HearingServiceTest {
 
     @Test
     void testGetHearingLinkValues() {
-        List<Object> result = hearingService.getHearingLinkData(new HearingRequestPayload(CASE_ID, null));
+        when(asylumCase.read(CASE_LINKS)).thenReturn(Optional.of(List.of(new IdValue<>("1", caseLink))));
+        when(caseLink.getReasonsForLink()).thenReturn(List.of(new IdValue<>("1", reasonForLink)));
+        when(reasonForLink.getReason()).thenReturn(REASON_FOR_LINK);
+        when(caseLink.getCaseReference()).thenReturn(CASE_ID_2);
+        when(coreCaseDataService.getCase(CASE_ID_2)).thenReturn(asylumCase2);
+        when(asylumCase2.read(APPELLANT_NAME_FOR_DISPLAY, String.class)).thenReturn(Optional.of(APPELLANT_2));
+
+        List<HearingLinkData> result = hearingService
+            .getHearingLinkData(new HearingRequestPayload(CASE_ID, null));
+
+        List<HearingLinkData> expected = List.of(
+            HearingLinkData.hearingLinkDataWith()
+            .caseReference(CASE_ID_2)
+            .reasonsForLink(List.of(REASON_FOR_LINK))
+            .caseName(APPELLANT_2)
+            .build()
+        );
 
         assertThat(result).isNotNull();
+        assertEquals(expected.size(), expected.size());
+        assertThat(expected.get(0)).usingRecursiveComparison().isEqualTo(result.get(0));
     }
 
     @Test

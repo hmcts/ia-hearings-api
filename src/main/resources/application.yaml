@@ -113,7 +113,7 @@ xui:
     baseUrl: ${XUI_URL:http://localhost:3002}
 
 hearingValues:
-  screenFlowJsonFilePath: ${SCREEN_FLOW_JSON_FILE_PATH:/screenFlowNoPanelNoLink.json}
+  screenFlowJsonFilePath: ${SCREEN_FLOW_JSON_FILE_PATH:/screenFlowNoPanel.json}
   caseCategories: "BFA1-TST"
   hmctsServiceId: "BFA1"
 
