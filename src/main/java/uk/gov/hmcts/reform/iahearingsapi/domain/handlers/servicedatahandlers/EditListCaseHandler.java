@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -127,7 +126,7 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
         }
 
         if (nextHearingChannel.equals(INTER.name())) {
-            nextHearingDate = StringUtils.equals(nextHearingVenueId, GLASGOW_EPIMMS_ID)
+            nextHearingDate = GLASGOW_EPIMMS_ID.equals(nextHearingVenueId)
                 ? nextHearingDate.with(LocalTime.of(9, 45))
                 : nextHearingDate.with(LocalTime.of(10, 0));
         }
