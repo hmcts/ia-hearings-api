@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADJOURNMENT_DETAILS_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CANCELLATION_REASON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_RELISTED_CANCELLATION_REASON;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_RELISTED_UPDATE_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CANCEL_HEARINGS_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE_FIXED;
@@ -89,7 +89,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
         DynamicList dynamicListOfHearings = new DynamicList(updateHearingsCode);
         asylumCase.write(CHANGE_HEARINGS, dynamicListOfHearings);
         asylumCase.write(HEARING_CANCELLATION_REASON, CANCELLATION_REASON);
-        asylumCase.write(HEARING_RELISTED_CANCELLATION_REASON, CANCELLATION_REASON);
+        asylumCase.write(HEARING_RELISTED_UPDATE_REASON, CANCELLATION_REASON);
         asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(HEARING_ID));
 
         when(callback.getCaseDetails()).thenReturn(caseDetails);
