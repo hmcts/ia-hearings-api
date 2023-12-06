@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel.defaultIfNull;
 
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -17,7 +18,7 @@ public class HearingWindowModelTest {
             .dateRangeStart(DATE_START)
             .build();
 
-        assertNotNull(hearingWindowModel.defaultIfNull());
+        assertNotNull(defaultIfNull(hearingWindowModel));
     }
 
     @Test
@@ -26,6 +27,6 @@ public class HearingWindowModelTest {
             .builder()
             .build();
 
-        assertNull(hearingWindowModel.defaultIfNull());
+        assertNull(defaultIfNull(hearingWindowModel));
     }
 }

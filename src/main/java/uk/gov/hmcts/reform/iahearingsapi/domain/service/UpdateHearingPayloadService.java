@@ -4,6 +4,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel.defaultIfNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,11 +52,9 @@ public class UpdateHearingPayloadService {
             .hearingLocations(getLocations(asylumCase, persistedHearing))
             .duration(getDuration(asylumCase, persistedHearing))
             .amendReasonCodes(List.of(reasonCode))
-            .hearingWindow(updateHearingWindow(
-                firstAvailableDate,
-                hearingWindowModel,
-                persistedHearing
-            ))
+            .hearingWindow(defaultIfNull(
+                updateHearingWindow(firstAvailableDate, hearingWindowModel, persistedHearing))
+            )
             .build();
 
 
@@ -111,9 +110,9 @@ public class UpdateHearingPayloadService {
                                                    HearingGetResponse persistedHearing) {
         if (!firstAvailable) {
             if (hearingWindowModel == null) {
-                return persistedHearing.getHearingDetails().getHearingWindow().defaultIfNull();
+                return persistedHearing.getHearingDetails().getHearingWindow();
             } else {
-                return hearingWindowModel.defaultIfNull();
+                return hearingWindowModel;
             }
         }
         return null;

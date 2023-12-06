@@ -15,9 +15,19 @@ public class HearingWindowModel {
     private String dateRangeEnd;
     private String firstDateTimeMustBe;
 
-    public HearingWindowModel defaultIfNull() {
+    private HearingWindowModel defaultIfFieldsNull() {
         if (Stream.of(dateRangeStart, dateRangeEnd, firstDateTimeMustBe).anyMatch(Objects::nonNull)) {
             return this;
+        }
+        return null;
+    }
+
+    /*
+    Using defaultIfFieldsNull() directly could lead to NullPointerExceptions
+     */
+    public static HearingWindowModel defaultIfNull(HearingWindowModel hearingWindowModel) {
+        if (hearingWindowModel != null) {
+            return hearingWindowModel.defaultIfFieldsNull();
         }
         return null;
     }
