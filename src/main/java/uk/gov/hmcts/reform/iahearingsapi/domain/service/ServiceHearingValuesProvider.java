@@ -40,7 +40,6 @@ import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -50,13 +49,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.*;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper;
@@ -64,7 +57,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
-import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
 
 @Slf4j
 @Setter
@@ -79,7 +71,6 @@ public class ServiceHearingValuesProvider {
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
     private final BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper;
     private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
-//    private final BailCaseFlagsToServiceHearingValuesMapper bailCaseFlagsMapper;
     private final LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
     private final PartyDetailsMapper partyDetailsMapper;
     private final ListingCommentsMapper listingCommentsMapper;
@@ -166,8 +157,7 @@ public class ServiceHearingValuesProvider {
         log.info("Building hearing values for case with id {}", caseReference);
 
         String hmctsInternalCaseName = bailCase.read(BailCaseFieldDefinition.CASE_NAME_HMCTS_INTERNAL, String.class)
-            .orElseThrow(() ->
-                             new RequiredFieldMissingException("HMCTS internal case name is a required field"));
+            .orElseThrow(() -> new RequiredFieldMissingException("case name HMCTS internal case name is a required field"));
 
         String listCaseHearingLength = "60";
         String hearingType = "Bail";
@@ -175,26 +165,24 @@ public class ServiceHearingValuesProvider {
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
             .hmctsInternalCaseName(hmctsInternalCaseName)
-//            .publicCaseName(bailCaseFlagsMapper.getPublicCaseName(bailCase, caseReference))
+            .publicCaseName("")
             .caseAdditionalSecurityFlag(false)
             .caseCategories(getBailCaseCategoriesValue())
             .caseDeepLink(baseUrl.concat(caseDataMapper.getCaseDeepLink(caseReference)))
-//            .externalCaseReference(bailCaseFlagsMapper.getExternalCaseReference(bailCase))
+            .externalCaseReference(bailCaseDataMapper.getExternalCaseReference(bailCase))
             .autoListFlag(false)
-//            .caseSlaStartDate(bailCaseDataMapper.getCaseSlaStartDate(bailCase))
+            .caseSlaStartDate(bailCaseDataMapper.getCaseSlaStartDate(bailCase))
             .duration(Integer.parseInt(listCaseHearingLength))
             .hearingType(hearingType)
             .hearingWindow(bailCaseDataMapper
                                .getHearingWindowModel())
-//            .hearingPriorityType(bailCaseFlagsMapper.getHearingPriorityType(bailCase))
-//            .numberOfPhysicalAttendees(getNumberOfPhysicalAttendees(partyDetails))
+            .hearingPriorityType(PriorityType.STANDARD)
+            .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
             .hearingLocations(Collections.emptyList())
             .facilitiesRequired(Collections.emptyList())
             .listingComments(bailCaseDataMapper.getListingComments(bailCase))
             .hearingRequester("")
-//            .privateHearingRequiredFlag(bailCaseFlagsMapper.getPrivateHearingRequiredFlag(bailCase))
-//            .caseInterpreterRequiredFlag(bailCaseFlagsMapper.getCaseInterpreterRequiredFlag(bailCase))
             .panelRequirements(null)
             .leadJudgeContractType("")
             .judiciary(JudiciaryModel.builder()
@@ -206,11 +194,11 @@ public class ServiceHearingValuesProvider {
                            .panelComposition(Collections.emptyList())
                            .build())
             .hearingIsLinkedFlag(false)
-//            .parties(partyDetails)
-//            .caseFlags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference))
+            .parties(Collections.emptyList())
+            .caseFlags(Caseflags.builder().build())
             .screenFlow(getScreenFlowJson())
             .vocabulary(Collections.emptyList())
-//            .hearingChannels(caseDataMapper.getHearingChannels(asylumCase))
+            .hearingChannels(bailCaseDataMapper.getHearingChannels(bailCase))
             .hearingLevelParticipantAttendance(Collections.emptyList())
             .build();
     }

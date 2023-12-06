@@ -5,7 +5,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.BailStrategicCaseF
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 
-import java.util.Arrays;
 import java.util.List;
 
 public enum BailCaseFieldDefinition {
@@ -25,11 +24,14 @@ public enum BailCaseFieldDefinition {
         "homeOfficeReferenceNumber", new TypeReference<String>(){}),
     FCS_LEVEL_FLAGS(
         "fcsLevelFlags", new TypeReference<List<IdValue<BailStrategicCaseFlag>>>() {}),
-    DISABILITY_YESNO(
+    APPLICANT_DISABILITY1(
         "applicantDisability1", new TypeReference<YesOrNo>(){}),
     APPLICANT_DISABILITY_DETAILS(
-        "applicantDisabilityDetails", new TypeReference<String>(){}),;
-
+        "applicantDisabilityDetails", new TypeReference<String>(){}),
+    APPLICANT_DOCUMENTS_WITH_METADATA(
+        "applicantDocumentsWithMetadata", new TypeReference<List<IdValue<DocumentWithMetadata>>>(){}),
+    VIDEO_HEARING1(
+        "videoHearing1", new TypeReference<YesOrNo>(){}),;
 
     private final String value;
     private final TypeReference typeReference;
