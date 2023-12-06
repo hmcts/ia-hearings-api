@@ -168,8 +168,8 @@ public enum AsylumCaseFieldDefinition {
         "updateHmcRequestSuccess", new TypeReference<YesOrNo>() {}),
     HEARING_CANCELLATION_REASON(
         "hearingCancellationReason", new TypeReference<String>(){}),
-    HEARING_RELISTED_CANCELLATION_REASON(
-        "hearingRelistedCancellationReason", new TypeReference<String>(){}),
+    HEARING_RELISTED_UPDATE_REASON(
+        "hearingRelistedUpdateReason", new TypeReference<String>(){}),
     DEPORTATION_ORDER_OPTIONS(
         "deportationOrderOptions", new TypeReference<YesOrNo>(){}),
     APPEAL_TYPE(
@@ -256,7 +256,10 @@ public enum AsylumCaseFieldDefinition {
         "isAppealSuitableToFloat", new TypeReference<YesOrNo>() {}),
 
     CASE_LINKS(
-        "caseLinks", new TypeReference<List<IdValue<CaseLink>>>(){});
+        "caseLinks", new TypeReference<List<IdValue<CaseLink>>>(){}),
+
+    DECISION_HEARING_FEE_OPTION(
+        "decisionHearingFeeOption", new TypeReference<String>(){});
 
     private final String value;
     private final TypeReference typeReference;

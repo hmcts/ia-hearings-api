@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -48,6 +49,7 @@ public class UpdateHearingPayloadService {
         HearingGetResponse persistedHearing = hearingService.getHearing(hearingId);
 
         HearingDetails hearingDetails = HearingDetails.builder()
+            .autolistFlag(getAutoListFlag(asylumCase, persistedHearing.getHearingDetails()))
             .hearingChannels(getHearingChannels(asylumCase, persistedHearing))
             .hearingLocations(getLocations(asylumCase, persistedHearing))
             .duration(getDuration(asylumCase, persistedHearing))
@@ -69,7 +71,18 @@ public class UpdateHearingPayloadService {
         return updatedHearingRequest;
     }
 
+    private boolean getAutoListFlag(AsylumCase asylumCase, HearingDetails persistedHearingDetails) {
+        return caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase)
+            ? false
+            : persistedHearingDetails.isAutolistFlag();
+    }
+
     private List<String> getHearingChannels(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
+
+        if (caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase)) {
+            return List.of(HearingChannel.ONPPRS.name());
+        }
+
         Optional<String> hearingChannels = asylumCase.read(
             HEARING_CHANNEL,
             DynamicList.class
