@@ -305,10 +305,10 @@ ext {
       }
 
       //CVE-2021-42550
-      dependencySet(group: 'ch.qos.logback', version: '1.4.14') {
+    /*  dependencySet(group: 'ch.qos.logback', version: '1.4.14') {
         entry 'logback-classic'
         entry 'logback-core'
-      }
+      }*/
 
     }
   }}
@@ -368,7 +368,6 @@ dependencies {
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.0.1'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
-  implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.36'
 
   implementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
 
