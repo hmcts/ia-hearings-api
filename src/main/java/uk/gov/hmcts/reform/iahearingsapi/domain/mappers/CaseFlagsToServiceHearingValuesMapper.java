@@ -70,6 +70,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
     public boolean getAutoListFlag(AsylumCase asylumCase) {
         List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
+        boolean isDecisionWithoutHearingAppeal = caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase);
         List<StrategicCaseFlagType> appellantCaseFlagTypes = List.of(
             SIGN_LANGUAGE_INTERPRETER,
             FOREIGN_NATIONAL_OFFENDER,
@@ -82,7 +83,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
             .map(List::of).orElse(Collections.emptyList());
         boolean hasActiveCaseFlag = hasOneOrMoreActiveFlagsOfType(caseFlags, List.of(PRESIDENTIAL_PANEL));
 
-        return !(hasOneOrMoreActiveAppellantCaseFlags || hasActiveCaseFlag);
+        return !(hasOneOrMoreActiveAppellantCaseFlags || hasActiveCaseFlag || isDecisionWithoutHearingAppeal);
     }
 
     public PriorityType getHearingPriorityType(AsylumCase asylumCase) {
