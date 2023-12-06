@@ -10,6 +10,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DECISION_HEARING_FEE_OPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.AUDIO_VIDEO_EVIDENCE;
@@ -185,6 +186,22 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
+
+        assertTrue(mapper.getAutoListFlag(asylumCase));
+    }
+
+    @Test
+    void getAutoListFlag_should_return_false_for_decision_without_hearing_appeal() {
+
+        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
+            .status("Inactive")
+            .build()));
+        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
+        when(asylumCase.read(DECISION_HEARING_FEE_OPTION, String.class))
+            .thenReturn(Optional.of("decisionWithoutHearing"));
 
         assertTrue(mapper.getAutoListFlag(asylumCase));
     }
