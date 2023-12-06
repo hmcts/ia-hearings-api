@@ -49,7 +49,15 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.*;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper;
@@ -157,7 +165,8 @@ public class ServiceHearingValuesProvider {
         log.info("Building hearing values for case with id {}", caseReference);
 
         String hmctsInternalCaseName = bailCase.read(BailCaseFieldDefinition.CASE_NAME_HMCTS_INTERNAL, String.class)
-            .orElseThrow(() -> new RequiredFieldMissingException("case name HMCTS internal case name is a required field"));
+            .orElseThrow(() -> new RequiredFieldMissingException(
+                "case name HMCTS internal case name is a required field"));
 
         String listCaseHearingLength = "60";
         String hearingType = "Bail";

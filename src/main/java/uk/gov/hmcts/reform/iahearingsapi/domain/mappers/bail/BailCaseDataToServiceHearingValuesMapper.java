@@ -1,20 +1,25 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.*;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
-
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentWithMetadata;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.*;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY1;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DOCUMENTS_WITH_METADATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.VIDEO_HEARING1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentTag.BAIL_SUBMISSION;
 
 @Service
@@ -58,13 +63,15 @@ public class BailCaseDataToServiceHearingValuesMapper {
     }
 
     public String getCaseSlaStartDate(BailCase bailCase) {
-        Optional<List<IdValue<DocumentWithMetadata>>> optionalNotificationLetters = bailCase.read(APPLICANT_DOCUMENTS_WITH_METADATA);
+        Optional<List<IdValue<DocumentWithMetadata>>> optionalNotificationLetters =
+            bailCase.read(APPLICANT_DOCUMENTS_WITH_METADATA);
         return optionalNotificationLetters
             .orElse(Collections.emptyList())
             .stream()
             .map(IdValue::getValue)
             .filter(d -> d.getTag() == BAIL_SUBMISSION)
-            .findFirst().orElseThrow(() -> new RequiredFieldMissingException(BAIL_SUBMISSION + " document not available"))
+            .findFirst().orElseThrow(() -> new RequiredFieldMissingException(
+                BAIL_SUBMISSION + " document not available"))
             .getDateUploaded();
     }
 }
