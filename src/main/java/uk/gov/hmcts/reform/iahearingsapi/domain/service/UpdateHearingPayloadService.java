@@ -111,9 +111,9 @@ public class UpdateHearingPayloadService {
                                                    HearingGetResponse persistedHearing) {
         if (!firstAvailable) {
             if (hearingWindowModel == null) {
-                return persistedHearing.getHearingDetails().getHearingWindow();
+                return persistedHearing.getHearingDetails().getHearingWindow().defaultIfNull();
             } else {
-                return hearingWindowModel;
+                return hearingWindowModel.defaultIfNull();
             }
         }
         return null;
