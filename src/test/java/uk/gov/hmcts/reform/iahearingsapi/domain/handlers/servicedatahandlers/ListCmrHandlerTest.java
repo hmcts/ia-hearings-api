@@ -121,7 +121,8 @@ class ListCmrHandlerTest {
 
         listCmrHandler.handle(serviceData);
 
-        verify(coreCaseDataService).triggerSubmitEvent(UPDATE_CMR_NOTIFICATION, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            UPDATE_CMR_NOTIFICATION, CASE_REF, startEventResponse, asylumCase);
     }
 
 }
