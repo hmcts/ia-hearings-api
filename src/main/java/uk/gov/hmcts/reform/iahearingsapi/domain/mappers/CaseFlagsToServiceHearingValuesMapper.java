@@ -35,7 +35,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.PartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlag;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
@@ -71,6 +70,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
     public boolean getAutoListFlag(AsylumCase asylumCase) {
         List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
+        boolean isDecisionWithoutHearingAppeal = caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase);
         List<StrategicCaseFlagType> appellantCaseFlagTypes = List.of(
             SIGN_LANGUAGE_INTERPRETER,
             FOREIGN_NATIONAL_OFFENDER,
@@ -83,7 +83,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
             .map(List::of).orElse(Collections.emptyList());
         boolean hasActiveCaseFlag = hasOneOrMoreActiveFlagsOfType(caseFlags, List.of(PRESIDENTIAL_PANEL));
 
-        return !(hasOneOrMoreActiveAppellantCaseFlags || hasActiveCaseFlag);
+        return !(hasOneOrMoreActiveAppellantCaseFlags || hasActiveCaseFlag || isDecisionWithoutHearingAppeal);
     }
 
     public PriorityType getHearingPriorityType(AsylumCase asylumCase) {
@@ -251,8 +251,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
         List<CaseFlagDetail> caseFlagDetails, String partyId, String partyName) {
 
         return caseFlagDetails.stream()
-            .filter(detail -> Objects.equals(detail.getCaseFlagValue().getStatus(), "Active")
-                && YesOrNo.YES.equals(detail.getCaseFlagValue().getHearingRelevant()))
+            .filter(detail -> Objects.equals(detail.getCaseFlagValue().getStatus(), "Active"))
             .map(detail -> PartyFlagsModel.builder()
                 .partyId(partyId)
                 .partyName(partyName)

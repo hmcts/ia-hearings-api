@@ -1,10 +1,11 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
-import java.util.List;
 import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.List;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
 
 public enum AsylumCaseFieldDefinition {
 
@@ -167,8 +168,8 @@ public enum AsylumCaseFieldDefinition {
         "updateHmcRequestSuccess", new TypeReference<YesOrNo>() {}),
     HEARING_CANCELLATION_REASON(
         "hearingCancellationReason", new TypeReference<String>(){}),
-    HEARING_RELISTED_CANCELLATION_REASON(
-        "hearingRelistedCancellationReason", new TypeReference<String>(){}),
+    HEARING_RELISTED_UPDATE_REASON(
+        "hearingRelistedUpdateReason", new TypeReference<String>(){}),
     DEPORTATION_ORDER_OPTIONS(
         "deportationOrderOptions", new TypeReference<YesOrNo>(){}),
     APPEAL_TYPE(
@@ -250,7 +251,15 @@ public enum AsylumCaseFieldDefinition {
 
     NEXT_HEARING_DATE_RANGE_LATEST(
         "nextHearingDateRangeLatest", new TypeReference<String>(){}),
-    ;
+
+    IS_APPEAL_SUITABLE_TO_FLOAT(
+        "isAppealSuitableToFloat", new TypeReference<YesOrNo>() {}),
+
+    CASE_LINKS(
+        "caseLinks", new TypeReference<List<IdValue<CaseLink>>>(){}),
+
+    DECISION_HEARING_FEE_OPTION(
+        "decisionHearingFeeOption", new TypeReference<String>(){});
 
     private final String value;
     private final TypeReference typeReference;
