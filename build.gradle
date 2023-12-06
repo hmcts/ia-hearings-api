@@ -70,14 +70,6 @@ compileTestJava {
   options.compilerArgs << '-Xlint:deprecation' << "-Xlint:unchecked" << "-Werror"
 }
 
-tasks.withType(Test) {
-  useJUnitPlatform()
-  jvmArgs = ["-Xms1724m", "-Xmx5048m"]
-  testLogging {
-    exceptionFormat = 'full'
-  }
-}
-
 java {
   toolchain {
     languageVersion = JavaLanguageVersion.of(17)
@@ -163,7 +155,6 @@ tasks.withType(Test) {
 
 test {
   failFast = true
-  forkEvery = 1
 }
 
 task functional(type: Test, description: 'Runs the functional tests.', group: 'Verification') {
@@ -298,7 +289,7 @@ repositories {
 }
 
 ext {
-  log4JVersion = "2.17.0"
+  log4JVersion = "2.22.0"
 
 
   dependencyManagement {
@@ -314,7 +305,7 @@ ext {
       }
 
       //CVE-2021-42550
-      dependencySet(group: 'ch.qos.logback', version: '1.2.10') {
+      dependencySet(group: 'ch.qos.logback', version: '1.2.13') {
         entry 'logback-classic'
         entry 'logback-core'
       }
