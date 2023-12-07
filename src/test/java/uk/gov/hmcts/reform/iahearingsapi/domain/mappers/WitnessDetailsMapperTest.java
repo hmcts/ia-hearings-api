@@ -57,7 +57,7 @@ class WitnessDetailsMapperTest {
             .partyRole("WITN")
             .build();
         List<PartyDetailsModel> expected = List.of(expectedParty);
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(expectedParty);
 
         expected.get(0).getIndividualDetails().setOtherReasonableAdjustmentDetails("");
@@ -92,7 +92,7 @@ class WitnessDetailsMapperTest {
             .partyType("IND")
             .partyRole("WITN")
             .build();
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(witnessPartyDetailsModel);
 
         String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED
@@ -134,7 +134,7 @@ class WitnessDetailsMapperTest {
             .partyType("IND")
             .partyRole("WITN")
             .build();
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(witnessPartyDetailsModel);
 
         String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED
@@ -176,7 +176,7 @@ class WitnessDetailsMapperTest {
             .partyType("IND")
             .partyRole("WITN")
             .build();
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(witnessPartyDetailsModel);
 
         String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED

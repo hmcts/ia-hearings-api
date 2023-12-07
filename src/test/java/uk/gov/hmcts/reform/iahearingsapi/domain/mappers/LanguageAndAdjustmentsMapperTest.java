@@ -90,7 +90,7 @@ public class LanguageAndAdjustmentsMapperTest {
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
         when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
 
-        mapper.processPartyCaseFlags(asylumCase, partyDetailsModel);
+        mapper.processAsylumPartyCaseFlags(asylumCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("bfi");
         verify(reasonableAdjustments, times(1)).addAll(List.of("RA0042", "RA0018"));
@@ -154,7 +154,7 @@ public class LanguageAndAdjustmentsMapperTest {
         when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
         when(partyDetailsModel.getPartyID()).thenReturn(PARTY_ID);
 
-        mapper.processPartyCaseFlags(asylumCase, partyDetailsModel);
+        mapper.processAsylumPartyCaseFlags(asylumCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("ita");
         verify(reasonableAdjustments, times(1)).addAll(List.of("SM0004", "RA0018"));
@@ -184,7 +184,7 @@ public class LanguageAndAdjustmentsMapperTest {
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
         when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
 
-        mapper.processPartyCaseFlags(asylumCase, partyDetailsModel);
+        mapper.processAsylumPartyCaseFlags(asylumCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage(null);
         verify(reasonableAdjustments, times(1)).addAll(Collections.emptyList());

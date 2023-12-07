@@ -88,7 +88,7 @@ class PartyDetailsMapperTest {
             interpreterDetailsMapper
         );
 
-        assertEquals(expected, mapper.map(asylumCase, caseFlagsMapper, caseDataMapper));
+        assertEquals(expected, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper));
     }
 
     static Stream<Arguments> bothSpokenAndSignStatuses() {

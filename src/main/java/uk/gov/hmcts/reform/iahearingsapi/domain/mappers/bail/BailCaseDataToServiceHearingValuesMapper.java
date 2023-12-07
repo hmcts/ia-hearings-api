@@ -8,18 +8,12 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentWithMetadata;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.*;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY1;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DOCUMENTS_WITH_METADATA;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.VIDEO_HEARING1;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.*;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentTag.BAIL_SUBMISSION;
 
 @Service
@@ -73,5 +67,45 @@ public class BailCaseDataToServiceHearingValuesMapper {
             .findFirst().orElseThrow(() -> new RequiredFieldMissingException(
                 BAIL_SUBMISSION + " document not available"))
             .getDateUploaded();
+    }
+
+    public String getApplicantPartyId(BailCase bailCase) {
+        return bailCase.read(APPLICANT_PARTY_ID, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("applicantPartyId is a required field"));
+    }
+
+    public String getValueByDefinition(BailCase bailCase, BailCaseFieldDefinition nameFieldDefinition) {
+        return bailCase.read(nameFieldDefinition, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException(nameFieldDefinition + " is a required field"));
+    }
+
+    public String getHearingChannel(BailCase bailCase) {
+        return getHearingChannels(bailCase).stream().findFirst().orElse(null);
+    }
+
+    public String getLegalRepPartyId(BailCase bailCase) {
+        return bailCase.read(LEGAL_REP_INDIVIDUAL_PARTY_ID, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("legalRepIndividualPartyId is a required field"));
+    }
+
+    public String getLegalRepOrgPartyId(BailCase bailCase) {
+        return bailCase.read(LEGAL_REP_ORGANISATION_PARTY_ID, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("legalRepOrganisationPartyId is a required field"));
+    }
+
+    public String getLegalRepCompanyName(BailCase bailCase) {
+        return bailCase.read(LEGAL_REP_COMPANY, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("legalRepCompany is a required field"));
+    }
+
+    public String getRespondentPartyId(BailCase bailCase) {
+        return bailCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("homeOfficeReferenceNumber is a required field"));
+    }
+
+    public List<String> getHearingChannelEmailPhone(
+        BailCase bailCase,
+        BailCaseFieldDefinition emailFieldDefinition) {
+        return bailCase.read(emailFieldDefinition, String.class).map(List::of).orElse(Collections.emptyList());
     }
 }
