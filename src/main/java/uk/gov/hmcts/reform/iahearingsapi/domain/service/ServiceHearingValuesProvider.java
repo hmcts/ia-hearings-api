@@ -64,6 +64,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
 
 @Slf4j
 @Setter
@@ -78,6 +79,7 @@ public class ServiceHearingValuesProvider {
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
     private final BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper;
     private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
+    private final BailCaseFlagsToServiceHearingValuesMapper bailCaseFlagsMapper;
     private final PartyDetailsMapper partyDetailsMapper;
     private final ListingCommentsMapper listingCommentsMapper;
     private final ResourceLoader resourceLoader;
@@ -207,7 +209,7 @@ public class ServiceHearingValuesProvider {
                            .panelComposition(Collections.emptyList())
                            .build())
             .hearingIsLinkedFlag(false)
-            .parties(Collections.emptyList())
+            .parties(getPartyDetails(bailCase))
             .caseFlags(Caseflags.builder().build())
             .screenFlow(getScreenFlowJson())
             .vocabulary(Collections.emptyList())
@@ -295,7 +297,11 @@ public class ServiceHearingValuesProvider {
     }
 
     private List<PartyDetailsModel> getPartyDetails(AsylumCase asylumCase) {
-        return partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper);
+        return partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper);
+    }
+
+    private List<PartyDetailsModel> getPartyDetails(BailCase bailCase) {
+        return partyDetailsMapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper);
     }
 
     public int getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {

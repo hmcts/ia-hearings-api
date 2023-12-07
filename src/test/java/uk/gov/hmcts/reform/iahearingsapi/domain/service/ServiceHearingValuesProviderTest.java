@@ -170,7 +170,7 @@ class ServiceHearingValuesProviderTest {
         when(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
-        when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper)).thenReturn(partyDetails);
+        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper)).thenReturn(partyDetails);
 
         when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(RP));
