@@ -27,6 +27,6 @@ public class EventTest {
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(14, Event.values().length);
+        assertEquals(15, Event.values().length);
     }
 }
