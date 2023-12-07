@@ -149,6 +149,18 @@ class UpdateHearingsRequestHandlerTest {
     }
 
     @Test
+    void should_initialize_hearing_date_to_no_date() {
+        hearingDetails.setHearingWindow(HearingWindowModel.builder().build());
+        PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingsRequestHandler.handle(
+            MID_EVENT,
+            callback
+        );
+
+        verify(hearingService, times(1)).getHearing(updateHearingsCode);
+        assertEquals(callbackResponse.getData().read(CHANGE_HEARING_DATE, String.class).get(), "No hearing date");
+    }
+
+    @Test
     void should_initialize_hearing_duration() {
         hearingDetails.setDuration(120);
 

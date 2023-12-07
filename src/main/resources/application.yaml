@@ -101,6 +101,7 @@ security:
       - "triggerCmrUpdated"
       - "recordAdjournmentDetails"
       - "listCaseForFTOnly"
+      - "updateCmrNotification"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}

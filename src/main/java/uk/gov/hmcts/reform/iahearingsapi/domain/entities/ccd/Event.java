@@ -18,6 +18,7 @@ public enum Event {
     LIST_CASE_FOR_FT_ONLY("listCaseForFTOnly"),
     UPDATE_INTERPRETER_DETAILS("updateInterpreterDetails"),
     UPDATE_INTERPRETER_BOOKING_STATUS("updateInterpreterBookingStatus"),
+    TRIGGER_CMR_LISTED("triggerCmrListed"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");

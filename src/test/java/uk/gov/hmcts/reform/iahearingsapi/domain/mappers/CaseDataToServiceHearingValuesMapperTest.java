@@ -2,8 +2,10 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_EMAIL_ADDRESS;
@@ -13,6 +15,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PHONE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATES_TO_AVOID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DECISION_HEARING_FEE_OPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
@@ -127,6 +130,15 @@ class CaseDataToServiceHearingValuesMapperTest {
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.empty());
 
         assertEquals(mapper.getHearingChannels(asylumCase), Collections.emptyList());
+    }
+
+    @Test
+    void getHearingChannels_should_return_on_the_papers() {
+
+        when(asylumCase.read(DECISION_HEARING_FEE_OPTION, String.class))
+            .thenReturn(Optional.of("decisionWithoutHearing"));
+
+        assertEquals(mapper.getHearingChannels(asylumCase), List.of("ONPPRS"));
     }
 
     @Test
@@ -394,6 +406,20 @@ class CaseDataToServiceHearingValuesMapperTest {
         String listingComments = mapper.getListingCommentsFromHearingRequest(asylumCase);
 
         assertEquals(listingComments, "");
+    }
+
+    @Test
+    void isDecisionWithoutHearingAppeal_should_return_true() {
+        when(asylumCase.read(DECISION_HEARING_FEE_OPTION, String.class))
+            .thenReturn(Optional.of("decisionWithoutHearing"));
+
+        assertTrue(mapper.isDecisionWithoutHearingAppeal(asylumCase));
+    }
+
+    @Test
+    void isDecisionWithoutHearingAppeal_should_return_false() {
+
+        assertFalse(mapper.isDecisionWithoutHearingAppeal(asylumCase));
     }
 
 }

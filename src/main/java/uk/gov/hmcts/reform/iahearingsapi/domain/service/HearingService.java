@@ -169,7 +169,7 @@ public class HearingService {
                 hearingId
             );
         } catch (FeignException ex) {
-            log.error("Failed to update hearing with Id: {} from HMC", hearingId);
+            log.error("Failed to update hearing with Id: {} from HMC. Error: {}", hearingId, ex.getMessage());
             throw new HmcException(ex);
         }
     }
@@ -212,7 +212,7 @@ public class HearingService {
     }
 
     public ResponseEntity<HmcHearingResponse> deleteHearing(Long hearingId, String cancellationReason) {
-        log.debug("Requesting Get Parties Notified with Hearing ID {}", hearingId);
+        log.debug("Requesting Get delete hearing with Hearing ID {}", hearingId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
@@ -224,7 +224,7 @@ public class HearingService {
                 new DeleteHearingRequest(Arrays.asList(cancellationReason))
             );
         } catch (FeignException e) {
-            log.error("Failed to retrieve parties notified with Id: {} from HMC", hearingId);
+            log.error("Failed to delete hearing with Id: {} from HMC", hearingId);
             throw new HmcException(e);
         }
     }
