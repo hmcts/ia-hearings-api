@@ -27,7 +27,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValu
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPX;
 
-
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -55,12 +54,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
-import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
@@ -72,14 +71,13 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServi
 @RequiredArgsConstructor
 public class ServiceHearingValuesProvider {
 
-    private static final JSONParser PARSER = new JSONParser(DEFAULT_PERMISSIVE_MODE);
     private static final String SCREEN_FLOW = "screenFlow";
     private static final String IN_PERSON = "INTER";
+    private static final String TRIBUNAL_JUDGE = "84";
 
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
     private final BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper;
     private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
-    private final LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
     private final PartyDetailsMapper partyDetailsMapper;
     private final ListingCommentsMapper listingCommentsMapper;
     private final ResourceLoader resourceLoader;
@@ -138,7 +136,13 @@ public class ServiceHearingValuesProvider {
                 .getPrivateHearingRequiredFlag(asylumCase))
             .caseInterpreterRequiredFlag(caseFlagsMapper
                 .getCaseInterpreterRequiredFlag(asylumCase))
-            .panelRequirements(null)
+            .panelRequirements(PanelRequirementsModel.builder()
+                                   .authorisationSubType(Collections.emptyList())
+                                   .authorisationTypes(Collections.emptyList())
+                                   .panelPreferences(Collections.emptyList())
+                                   .panelSpecialisms(Collections.emptyList())
+                                   .roleType(List.of(TRIBUNAL_JUDGE))
+                                   .build())
             .leadJudgeContractType("")
             .judiciary(JudiciaryModel.builder()
                .roleType(Collections.emptyList())
