@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_LINKS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 import feign.FeignException;
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
@@ -47,6 +50,7 @@ public class HearingService {
     private final IdamService idamService;
     private final ServiceHearingValuesProvider serviceHearingValuesProvider;
     private final CoreCaseDataService coreCaseDataService;
+    private final IaCcdConvertService iaCcdConvertService;
     @Value("${hearingValues.hmctsServiceId}") String serviceId;
 
     public HmcHearingResponse createHearing(HmcHearingRequestPayload hearingPayload) {
@@ -69,9 +73,19 @@ public class HearingService {
         String caseReference = payload.getCaseReference();
         requireNonNull(caseReference, "Case Reference must not be null");
 
-        AsylumCase asylumCase = coreCaseDataService.getCase(payload.getCaseReference());
+        CaseDetails caseDetails = coreCaseDataService.getCaseDetails(payload.getCaseReference());
 
-        return serviceHearingValuesProvider.provideServiceHearingValues(asylumCase, caseReference);
+        if (caseDetails.getCaseTypeId().equals(CASE_TYPE_ASYLUM)) {
+            return serviceHearingValuesProvider
+                .provideAsylumServiceHearingValues(iaCcdConvertService.convertToAsylumCaseData(caseDetails.getData()),
+                                                   caseReference);
+        } else if (caseDetails.getCaseTypeId().equals(CASE_TYPE_BAIL)) {
+            return serviceHearingValuesProvider
+                .provideBailServiceHearingValues(iaCcdConvertService.convertToBailCaseData(caseDetails.getData()),
+                                                 caseReference);
+        } else {
+            throw new IllegalStateException("Service could not handle case type: " + caseDetails.getCaseTypeId());
+        }
     }
 
     public List<HearingLinkData> getHearingLinkData(@NotNull HearingRequestPayload payload) {

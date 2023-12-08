@@ -23,7 +23,8 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityMa
 public class CoreCaseDataService {
 
     private static final String JURISDICTION_ID = "IA";
-    private static final String CASE_TYPE = "Asylum";
+    public static final String CASE_TYPE_ASYLUM = "Asylum";
+    public static final String CASE_TYPE_BAIL = "Bail";
 
     private final AuthTokenGenerator serviceAuthTokenGenerator;
     private final IdamService idamService;
@@ -37,7 +38,7 @@ public class CoreCaseDataService {
                 getS2sToken(event, caseId),
                 getUid(event, caseId),
                 JURISDICTION_ID,
-                CASE_TYPE,
+                CASE_TYPE_ASYLUM,
                 caseId,
                 event.toString()
             );
@@ -52,13 +53,13 @@ public class CoreCaseDataService {
     public AsylumCase getCaseFromStartedEvent(StartEventResponse startEventResponse) {
         CaseDetails caseDetails = startEventResponse.getCaseDetails();
         if (caseDetails != null) {
-            return iaCcdConvertService.getCaseData(caseDetails.getData());
+            return iaCcdConvertService.convertToAsylumCaseData(caseDetails.getData());
         }
         return null;
     }
 
     public AsylumCase getCase(String caseId) {
-        return iaCcdConvertService.getCaseData(getCaseDetails(caseId).getData());
+        return iaCcdConvertService.convertToAsylumCaseData(getCaseDetails(caseId).getData());
     }
 
     public State getCaseState(String caseId) {
@@ -129,7 +130,7 @@ public class CoreCaseDataService {
             s2sToken,
             userId,
             JURISDICTION_ID,
-            CASE_TYPE,
+            CASE_TYPE_ASYLUM,
             caseId,
             ignoreWarning,
             request

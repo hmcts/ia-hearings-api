@@ -34,7 +34,7 @@ public class CoreCaseDataServiceTest {
     private static final String AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJubGJoN";
     private static final String SERVICE_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.serviceToken";
     private static final String JURISDICTION = "IA";
-    private static final String CASE_TYPE = "Asylum";
+    private static final String CASE_TYPE_ASYLUM = "Asylum";
     private static final String USER_ID = "userId";
     private static final String EVENT_TOKEN = "eventToken";
 
@@ -70,7 +70,7 @@ public class CoreCaseDataServiceTest {
         CaseDetails caseDetails = mock(CaseDetails.class);
         Map<String, Object> data = new HashMap<>();
         when(caseDetails.getData()).thenReturn(data);
-        when(iaCcdConvertService.getCaseData(data)).thenReturn(asylumCase);
+        when(iaCcdConvertService.convertToAsylumCaseData(data)).thenReturn(asylumCase);
         when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(caseDetails);
 
         AsylumCase actualAsylumCase = coreCaseDataService.getCase(CASE_ID);
@@ -97,7 +97,7 @@ public class CoreCaseDataServiceTest {
         CaseDetails caseDetails = mock(CaseDetails.class);
         Map<String, Object> data = new HashMap<>();
         when(caseDetails.getData()).thenReturn(data);
-        when(iaCcdConvertService.getCaseData(data)).thenReturn(asylumCase);
+        when(iaCcdConvertService.convertToAsylumCaseData(data)).thenReturn(asylumCase);
         when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
 
         AsylumCase actualAsylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
@@ -116,7 +116,7 @@ public class CoreCaseDataServiceTest {
             SERVICE_TOKEN,
             USER_ID,
             JURISDICTION,
-            CASE_TYPE,
+            CASE_TYPE_ASYLUM,
             CASE_ID,
             LIST_CASE.toString()
         )).thenReturn(startEventResponse);
@@ -150,7 +150,7 @@ public class CoreCaseDataServiceTest {
             eq(SERVICE_TOKEN),
             eq(USER_ID),
             eq(JURISDICTION),
-            eq(CASE_TYPE),
+            eq(CASE_TYPE_ASYLUM),
             eq(CASE_ID),
             eq(true),
             eq(caseDataContent)

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,6 +15,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_LINKS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 import feign.FeignException;
 import feign.Request;
@@ -32,7 +35,9 @@ import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
@@ -77,6 +82,8 @@ class HearingServiceTest {
     @Mock
     private CoreCaseDataService coreCaseDataService;
     @Mock
+    private IaCcdConvertService iaCcdConvertService;
+    @Mock
     private ServiceHearingValuesProvider serviceHearingValuesProvider;
     @Mock
     private UpdateHearingRequest updateHearingRequest;
@@ -84,6 +91,8 @@ class HearingServiceTest {
     private UnNotifiedHearingsResponse unNotifiedHearingsResponse;
     @Mock
     private AsylumCase asylumCase;
+    @Mock
+    private BailCase bailCase;
     @Mock
     private AsylumCase asylumCase2;
     @Mock
@@ -138,16 +147,51 @@ class HearingServiceTest {
     }
 
     @Test
-    void testGetServiceHearingValues() {
-        when(serviceHearingValuesProvider.provideServiceHearingValues(asylumCase, CASE_ID))
+    void testGetServiceHearingValuesException() {
+        CaseDetails caseDetails = mock(CaseDetails.class);
+        when(coreCaseDataService.getCaseDetails(CASE_ID)).thenReturn(caseDetails);
+        when(caseDetails.getCaseTypeId()).thenReturn("Test");
+
+        assertThatThrownBy(() -> hearingService.getServiceHearingValues(
+            new HearingRequestPayload(CASE_ID, null)))
+            .hasMessage("Service could not handle case type: Test")
+            .isExactlyInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void testGetAsylumServiceHearingValues() {
+        when(serviceHearingValuesProvider.provideAsylumServiceHearingValues(asylumCase, CASE_ID))
             .thenReturn(new ServiceHearingValuesModel());
+
+        CaseDetails caseDetails = mock(CaseDetails.class);
+        when(coreCaseDataService.getCaseDetails(CASE_ID)).thenReturn(caseDetails);
+        when(caseDetails.getCaseTypeId()).thenReturn(CASE_TYPE_ASYLUM);
+        when(iaCcdConvertService.convertToAsylumCaseData(caseDetails.getData())).thenReturn(asylumCase);
 
         ServiceHearingValuesModel result = hearingService.getServiceHearingValues(
             new HearingRequestPayload(CASE_ID, null));
 
         assertThat(result).isNotNull();
         verify(serviceHearingValuesProvider, times(1))
-            .provideServiceHearingValues(asylumCase, CASE_ID);
+            .provideAsylumServiceHearingValues(asylumCase, CASE_ID);
+    }
+
+    @Test
+    void testGetBailServiceHearingValues() {
+        when(serviceHearingValuesProvider.provideBailServiceHearingValues(bailCase, CASE_ID))
+            .thenReturn(new ServiceHearingValuesModel());
+
+        CaseDetails caseDetails = mock(CaseDetails.class);
+        when(coreCaseDataService.getCaseDetails(CASE_ID)).thenReturn(caseDetails);
+        when(caseDetails.getCaseTypeId()).thenReturn(CASE_TYPE_BAIL);
+        when(iaCcdConvertService.convertToBailCaseData(caseDetails.getData())).thenReturn(bailCase);
+
+        ServiceHearingValuesModel result = hearingService.getServiceHearingValues(
+            new HearingRequestPayload(CASE_ID, null));
+
+        assertThat(result).isNotNull();
+        verify(serviceHearingValuesProvider, times(1))
+            .provideBailServiceHearingValues(bailCase, CASE_ID);
     }
 
     @Test
