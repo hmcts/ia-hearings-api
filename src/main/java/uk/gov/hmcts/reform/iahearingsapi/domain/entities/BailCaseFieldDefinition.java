@@ -106,7 +106,17 @@ public enum BailCaseFieldDefinition {
     SUPPORTER_4_MOBILE_NUMBER_1(
         "supporter4MobileNumber1", new TypeReference<String>(){}),
     SUPPORTER_4_EMAIL_ADDRESS_1(
-        "supporter4EmailAddress1", new TypeReference<String>(){}),;
+        "supporter4EmailAddress1", new TypeReference<String>(){}),
+    ARIA_LISTING_REFERENCE(
+        "ariaListingReference",  new TypeReference<String>(){}),
+    LIST_CASE_HEARING_DATE(
+        "listCaseHearingDate", new TypeReference<String>(){}),
+    LIST_CASE_HEARING_LENGTH(
+        "listCaseHearingLength", new TypeReference<String>() {}),
+    LIST_CASE_HEARING_CENTRE(
+        "listCaseHearingCentre", new TypeReference<HearingCentre>(){}),
+    HEARING_CHANNEL(
+        "hearingChannel", new TypeReference<DynamicList>(){}),;
 
     private final String value;
     private final TypeReference typeReference;

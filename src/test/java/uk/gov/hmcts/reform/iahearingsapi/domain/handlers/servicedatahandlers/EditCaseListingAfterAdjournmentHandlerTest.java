@@ -141,7 +141,7 @@ class EditCaseListingAfterAdjournmentHandlerTest {
     @Test
     void should_trigger_case_listing() {
         when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERENCE));
-        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REFERENCE)).thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REFERENCE, CoreCaseDataService.CASE_TYPE_ASYLUM)).thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));

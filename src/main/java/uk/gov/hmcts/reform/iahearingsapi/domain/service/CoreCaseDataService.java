@@ -13,6 +13,8 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Classification;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
@@ -31,14 +33,14 @@ public class CoreCaseDataService {
     private final CoreCaseDataApi coreCaseDataApi;
     private final IaCcdConvertService iaCcdConvertService;
 
-    public StartEventResponse startCaseEvent(Event event, String caseId) {
+    public StartEventResponse startCaseEvent(Event event, String caseId, String caseType) {
         try {
             return coreCaseDataApi.startEventForCaseWorker(
                 getUserToken(event, caseId),
                 getS2sToken(event, caseId),
                 getUid(event, caseId),
                 JURISDICTION_ID,
-                CASE_TYPE_ASYLUM,
+                caseType,
                 caseId,
                 event.toString()
             );
@@ -79,7 +81,32 @@ public class CoreCaseDataService {
             asylumCase,
             event,
             true,
-            startEventResponse.getToken()
+            startEventResponse.getToken(),
+            CASE_TYPE_ASYLUM
+        );
+
+        log.info("Event {} triggered for case {}, Status: {}", event, caseId,
+                 caseDetails.getCallbackResponseStatus()
+        );
+
+        return caseDetails;
+    }
+
+    public CaseDetails triggerBailSubmitEvent(Event event,
+                                          String caseId,
+                                          StartEventResponse startEventResponse,
+                                          BailCase bailCase) {
+        log.info("Case details found for the caseId: {}", caseId);
+        CaseDetails caseDetails = submitEventForCaseWorker(
+            getUserToken(event, caseId),
+            getS2sToken(event, caseId),
+            getUid(event, caseId),
+            caseId,
+            bailCase,
+            event,
+            true,
+            startEventResponse.getToken(),
+            CASE_TYPE_BAIL
         );
 
         log.info("Event {} triggered for case {}, Status: {}", event, caseId,
@@ -104,6 +131,10 @@ public class CoreCaseDataService {
         throw new IllegalArgumentException(errorMessage);
     }
 
+    public String getCaseType(String caseId) {
+        return getCaseDetails(caseId).getCaseTypeId();
+    }
+
     private uk.gov.hmcts.reform.ccd.client.model.CaseDetails submitEventForCaseWorker(String userToken,
                                                                                       String s2sToken,
                                                                                       String userId,
@@ -111,7 +142,8 @@ public class CoreCaseDataService {
                                                                                       Map<String, Object> data,
                                                                                       Event event,
                                                                                       boolean ignoreWarning,
-                                                                                      String eventToken) {
+                                                                                      String eventToken,
+                                                                                      String caseType) {
 
         CaseDataContent request = CaseDataContent.builder()
             .event(uk.gov.hmcts.reform.ccd.client.model.Event.builder()
@@ -130,7 +162,7 @@ public class CoreCaseDataService {
             s2sToken,
             userId,
             JURISDICTION_ID,
-            CASE_TYPE_ASYLUM,
+            caseType,
             caseId,
             ignoreWarning,
             request
@@ -175,4 +207,11 @@ public class CoreCaseDataService {
         return uid;
     }
 
+    public BailCase getBailCaseFromStartedEvent(StartEventResponse startEventResponse) {
+        CaseDetails caseDetails = startEventResponse.getCaseDetails();
+        if (caseDetails != null) {
+            return iaCcdConvertService.convertToBailCaseData(caseDetails.getData());
+        }
+        return null;
+    }
 }

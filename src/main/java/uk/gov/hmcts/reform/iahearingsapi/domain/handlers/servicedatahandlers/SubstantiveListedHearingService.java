@@ -26,11 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.*;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
@@ -127,6 +123,21 @@ public class SubstantiveListedHearingService {
             && serviceData.read(HEARING_TYPE, String.class)
             .map(hearingType -> Objects.equals(hearingType, CASE_MANAGEMENT_REVIEW.getKey()))
             .orElse(false);
+    }
+
+    public void updateListCaseHearingDetailsBail(ServiceData serviceData, BailCase bailCase) {
+
+        List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
+        String hearingVenueId = getHearingVenueId(serviceData);
+
+        bailCase.write(BailCaseFieldDefinition.ARIA_LISTING_REFERENCE, getListingReference());
+        bailCase.write(BailCaseFieldDefinition.LIST_CASE_HEARING_DATE, formatHearingDateTime(
+            getHearingDatetime(serviceData, hearingChannels, hearingVenueId)));
+        bailCase.write(BailCaseFieldDefinition.LIST_CASE_HEARING_LENGTH,
+                         String.valueOf(getHearingDuration(serviceData)));
+        bailCase.write(BailCaseFieldDefinition.LIST_CASE_HEARING_CENTRE,
+                         getHearingCenter(hearingChannels, hearingVenueId));
+        bailCase.write(BailCaseFieldDefinition.HEARING_CHANNEL, buildHearingChannelDynmicList(hearingChannels));
     }
 }
 
