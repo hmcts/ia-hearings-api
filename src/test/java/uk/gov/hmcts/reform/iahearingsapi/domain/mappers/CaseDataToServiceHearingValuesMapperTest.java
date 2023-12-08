@@ -28,6 +28,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_MOBILE_PHONE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
@@ -45,6 +46,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -139,6 +142,29 @@ class CaseDataToServiceHearingValuesMapperTest {
             .thenReturn(Optional.of("decisionWithoutHearing"));
 
         assertEquals(mapper.getHearingChannels(asylumCase), List.of("ONPPRS"));
+    }
+
+    @Test
+    void getHearingDuration_should_return_value_greater_than_zero() {
+
+        when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of("120"));
+
+        assertEquals(120, mapper.getHearingDuration(asylumCase));
+    }
+
+    @Test
+    void getHearingDuration_should_return_null_when_listCaseHearingLength_is_not_set() {
+
+        assertNull(mapper.getHearingDuration(asylumCase));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"0", "-20"})
+    void getHearingDuration_should_return_null(String duration) {
+
+        when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of(duration));
+
+        assertNull(mapper.getHearingDuration(asylumCase));
     }
 
     @Test

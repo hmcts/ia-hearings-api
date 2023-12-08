@@ -14,6 +14,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_COMPANY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
@@ -109,6 +110,17 @@ public class CaseDataToServiceHearingValuesMapper {
 
     public String getHearingChannel(AsylumCase asylumCase) {
         return getHearingChannels(asylumCase).stream().findFirst().orElse(null);
+    }
+
+    public Integer getHearingDuration(AsylumCase asylumCase) {
+        if (isDecisionWithoutHearingAppeal(asylumCase)) {
+            return null;
+        }
+
+        int hearingDuration = asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)
+            .map(duration -> duration.isBlank() ? 0 : Integer.parseInt(duration))
+            .orElse(0);
+        return hearingDuration <= 0 ? null : hearingDuration;
     }
 
     public String getAppellantPartyId(AsylumCase asylumCase) {
