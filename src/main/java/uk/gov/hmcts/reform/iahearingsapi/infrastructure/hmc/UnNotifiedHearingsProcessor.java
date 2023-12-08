@@ -49,11 +49,14 @@ public class UnNotifiedHearingsProcessor implements Runnable {
         UnNotifiedHearingsResponse unNotifiedHearings = hearingService.getUnNotifiedHearings(LocalDateTime.now());
 
         unNotifiedHearings.getHearingIds().forEach(unNotifiedHearingId -> {
+            try {
+                HearingGetResponse hearing = hearingService.getHearing(unNotifiedHearingId);
+                ServiceData serviceData = mapHearingFieldsToServiceDataFields(hearing, unNotifiedHearingId);
 
-            HearingGetResponse hearing = hearingService.getHearing(unNotifiedHearingId);
-            ServiceData serviceData = mapHearingFieldsToServiceDataFields(hearing, unNotifiedHearingId);
-
-            dispatcher.dispatch(serviceData);
+                dispatcher.dispatch(serviceData);
+            } catch(Exception ex) {
+                log.info(ex.getMessage());
+            }  
         });
     }
 
