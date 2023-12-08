@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_CMR_NOTIFICATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_CMR_LISTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,7 +114,7 @@ class ListCmrHandlerTest {
     @Test
     void should_trigger_update_cmr_notification() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(UPDATE_CMR_NOTIFICATION, CASE_REF)).thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(TRIGGER_CMR_LISTED, CASE_REF)).thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
@@ -122,7 +122,7 @@ class ListCmrHandlerTest {
         listCmrHandler.handle(serviceData);
 
         verify(coreCaseDataService).triggerSubmitEvent(
-            UPDATE_CMR_NOTIFICATION, CASE_REF, startEventResponse, asylumCase);
+            TRIGGER_CMR_LISTED, CASE_REF, startEventResponse, asylumCase);
     }
 
 }

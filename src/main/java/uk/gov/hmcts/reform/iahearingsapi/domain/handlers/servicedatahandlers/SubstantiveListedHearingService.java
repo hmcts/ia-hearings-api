@@ -45,6 +45,13 @@ public class SubstantiveListedHearingService {
             && isHearingType(serviceData, SUBSTANTIVE);
     }
 
+    public boolean isCaseManagementReviewListedHearing(ServiceData serviceData) {
+        return isHmcStatus(serviceData, HmcStatus.LISTED)
+            && isHearingListingStatus(serviceData, ListingStatus.FIXED)
+            && !isHearingChannel(serviceData, ONPPRS)
+            && isHearingType(serviceData, CASE_MANAGEMENT_REVIEW);
+    }
+
     public String getCaseReference(ServiceData serviceData) {
         return serviceData.read(CASE_REF, String.class)
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));

@@ -8,6 +8,7 @@ public enum Event {
     LIST_CASE("listCase"),
     UPDATE_HEARING_REQUEST("updateHearingRequest"),
     HANDLE_HEARING_EXCEPTION("handleHearingException"),
+    TRIGGER_CMR_UPDATED("triggerCmrUpdated"),
     RECORD_ADJOURNMENT_DETAILS("recordAdjournmentDetails"),
     END_APPEAL("endAppeal"),
     EDIT_CASE_LISTING("editCaseListing"),
@@ -17,7 +18,7 @@ public enum Event {
     LIST_CASE_FOR_FT_ONLY("listCaseForFTOnly"),
     UPDATE_INTERPRETER_DETAILS("updateInterpreterDetails"),
     UPDATE_INTERPRETER_BOOKING_STATUS("updateInterpreterBookingStatus"),
-    UPDATE_CMR_NOTIFICATION("updateCmrNotification"),
+    TRIGGER_CMR_LISTED("triggerCmrListed"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");

@@ -10,6 +10,7 @@ public class EventTest {
     void has_correct_values() {
         assertEquals("listCase", Event.LIST_CASE.toString());
         assertEquals("updateHearingRequest", Event.UPDATE_HEARING_REQUEST.toString());
+        assertEquals("triggerCmrUpdated", Event.TRIGGER_CMR_UPDATED.toString());
         assertEquals("handleHearingException", Event.HANDLE_HEARING_EXCEPTION.toString());
         assertEquals("recordAdjournmentDetails", Event.RECORD_ADJOURNMENT_DETAILS.toString());
         assertEquals("unknown", Event.UNKNOWN.toString());
@@ -21,11 +22,11 @@ public class EventTest {
         assertEquals("listCaseForFTOnly", Event.LIST_CASE_FOR_FT_ONLY.toString());
         assertEquals("updateInterpreterDetails", Event.UPDATE_INTERPRETER_DETAILS.toString());
         assertEquals("updateInterpreterBookingStatus", Event.UPDATE_INTERPRETER_BOOKING_STATUS.toString());
-        assertEquals("updateCmrNotification", Event.UPDATE_CMR_NOTIFICATION.toString());
+        assertEquals("triggerCmrListed", Event.TRIGGER_CMR_LISTED.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(14, Event.values().length);
+        assertEquals(15, Event.values().length);
     }
 }

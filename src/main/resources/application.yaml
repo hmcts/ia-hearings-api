@@ -98,9 +98,10 @@ security:
     caseworker-ia-iacjudge:
     caseworker-ia-system:
       - "handleHearingException"
+      - "triggerCmrUpdated"
       - "recordAdjournmentDetails"
       - "listCaseForFTOnly"
-      - "updateCmrNotification"
+      - "triggerCmrListed"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
