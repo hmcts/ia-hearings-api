@@ -54,7 +54,7 @@ public class UnNotifiedHearingsProcessor implements Runnable {
                 ServiceData serviceData = mapHearingFieldsToServiceDataFields(hearing, unNotifiedHearingId);
 
                 dispatcher.dispatch(serviceData);
-            } catch(Exception ex) {
+            } catch (Exception ex) {
                 log.info(ex.getMessage());
             }  
         });
