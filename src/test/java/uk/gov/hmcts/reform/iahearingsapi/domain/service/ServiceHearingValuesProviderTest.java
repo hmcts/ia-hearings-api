@@ -54,13 +54,13 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
-import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.LanguageAndAdjustmentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
@@ -69,6 +69,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServi
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ServiceHearingValuesProviderTest {
 
+    private static final String TRIBUNAL_JUDGE = "84";
     private final String hmctsCaseNameInternal = "Eke Uke";
     private final String caseNameHmctsInternal = "John Doe";
     private final String listCaseHearingLength = "120";
@@ -118,8 +119,6 @@ class ServiceHearingValuesProviderTest {
     private CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
     @Mock
     private BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper;
-    @Mock
-    private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
     @Mock
     private PartyDetailsMapper partyDetailsMapper;
     @Mock
@@ -204,7 +203,6 @@ class ServiceHearingValuesProviderTest {
             caseDataMapper,
             bailCaseDataMapper,
             caseFlagsMapper,
-            languageAndAdjustmentsMapper,
             partyDetailsMapper,
             listingCommentsMapper,
             resourceLoader
@@ -296,7 +294,13 @@ class ServiceHearingValuesProviderTest {
             .hearingRequester("")
             .privateHearingRequiredFlag(true)
             .caseInterpreterRequiredFlag(true)
-            .panelRequirements(null)
+            .panelRequirements(PanelRequirementsModel.builder()
+                                   .authorisationSubType(Collections.emptyList())
+                                   .authorisationTypes(Collections.emptyList())
+                                   .panelPreferences(Collections.emptyList())
+                                   .panelSpecialisms(Collections.emptyList())
+                                   .roleType(List.of(TRIBUNAL_JUDGE))
+                                   .build())
             .leadJudgeContractType("")
             .judiciary(JudiciaryModel.builder().roleType(Collections.emptyList())
                .authorisationTypes(Collections.emptyList())
