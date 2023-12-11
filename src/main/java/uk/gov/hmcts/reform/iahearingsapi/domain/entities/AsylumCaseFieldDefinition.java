@@ -256,10 +256,7 @@ public enum AsylumCaseFieldDefinition {
         "isAppealSuitableToFloat", new TypeReference<YesOrNo>() {}),
 
     CASE_LINKS(
-        "caseLinks", new TypeReference<List<IdValue<CaseLink>>>(){}),
-
-    DECISION_HEARING_FEE_OPTION(
-        "decisionHearingFeeOption", new TypeReference<String>(){});
+        "caseLinks", new TypeReference<List<IdValue<CaseLink>>>(){});
 
     private final String value;
     private final TypeReference typeReference;
