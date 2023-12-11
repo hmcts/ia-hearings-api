@@ -286,7 +286,7 @@ class ServiceHearingValuesProviderTest {
             .hearingWindow(hearingWindowModel)
             .duration(Integer.parseInt(listCaseHearingLength))
             .hearingPriorityType(PriorityType.STANDARD)
-            .numberOfPhysicalAttendees(0)
+            .numberOfPhysicalAttendees(1)
             .hearingInWelshFlag(false)
             .hearingLocations(Collections.emptyList())
             .facilitiesRequired(Collections.emptyList())
@@ -370,7 +370,7 @@ class ServiceHearingValuesProviderTest {
 
         int expectedPartiesInPerson = serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetails);
 
-        assertEquals(expectedPartiesInPerson, 2);
+        assertEquals(expectedPartiesInPerson, 3);
     }
 
     @ParameterizedTest

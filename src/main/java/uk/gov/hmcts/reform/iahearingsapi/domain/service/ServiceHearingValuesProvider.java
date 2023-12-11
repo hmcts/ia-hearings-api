@@ -299,12 +299,12 @@ public class ServiceHearingValuesProvider {
     }
 
     public int getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {
-
+        // Plus one to include respondent (Home Office) which is an ORG type party
         return (int) partyDetails.stream()
             .filter(party -> party.getIndividualDetails() != null
                              && StringUtils.equals(
                                  party.getIndividualDetails().getPreferredHearingChannel(),
                                  IN_PERSON))
-            .count();
+            .count() + 1;
     }
 }
