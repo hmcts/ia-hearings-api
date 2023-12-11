@@ -47,6 +47,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
@@ -94,9 +95,13 @@ public class ServiceHearingValuesProvider {
     @Value("${hearingValues.hmctsServiceId}")
     private String serviceId;
 
-    public ServiceHearingValuesModel provideAsylumServiceHearingValues(AsylumCase asylumCase, String caseReference) {
+    public ServiceHearingValuesModel provideAsylumServiceHearingValues(CaseDetails<AsylumCase> caseDetails) {
+        AsylumCase asylumCase = caseDetails.getCaseData();
+        Long caseReference = caseDetails.getId();
+
         requireNonNull(caseReference, "Case Reference must not be null");
         requireNonNull(asylumCase, "AsylumCase must not be null");
+
         log.info("Building hearing values for case with id {}", caseReference);
 
         String hmctsInternalCaseName = asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)
@@ -108,11 +113,11 @@ public class ServiceHearingValuesProvider {
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
             .hmctsInternalCaseName(hmctsInternalCaseName)
-            .publicCaseName(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
+            .publicCaseName(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference.toString()))
             .caseAdditionalSecurityFlag(caseFlagsMapper
                 .getCaseAdditionalSecurityFlag(asylumCase))
             .caseCategories(getCaseCategoriesValue(asylumCase))
-            .caseDeepLink(baseUrl.concat(caseDataMapper.getCaseDeepLink(caseReference)))
+            .caseDeepLink(baseUrl.concat(caseDataMapper.getCaseDeepLink(caseReference.toString())))
             .externalCaseReference(caseDataMapper
                 .getExternalCaseReference(asylumCase))
             .caseManagementLocationCode(caseDataMapper
@@ -152,7 +157,7 @@ public class ServiceHearingValuesProvider {
                .build())
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
-            .caseFlags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference))
+            .caseFlags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference.toString()))
             .screenFlow(getScreenFlowJson())
             .vocabulary(Collections.emptyList())
             .hearingChannels(caseDataMapper

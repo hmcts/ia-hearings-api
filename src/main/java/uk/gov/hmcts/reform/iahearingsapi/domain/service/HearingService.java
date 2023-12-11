@@ -77,8 +77,7 @@ public class HearingService {
 
         if (caseDetails.getCaseTypeId().equals(CASE_TYPE_ASYLUM)) {
             return serviceHearingValuesProvider
-                .provideAsylumServiceHearingValues(iaCcdConvertService.convertToAsylumCaseData(caseDetails.getData()),
-                                                   caseReference);
+                .provideAsylumServiceHearingValues(iaCcdConvertService.convertToAsylumCaseDetails(caseDetails));
         } else if (caseDetails.getCaseTypeId().equals(CASE_TYPE_BAIL)) {
             return serviceHearingValuesProvider
                 .provideBailServiceHearingValues(iaCcdConvertService.convertToBailCaseData(caseDetails.getData()),

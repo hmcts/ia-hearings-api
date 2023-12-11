@@ -42,6 +42,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
@@ -107,6 +109,8 @@ class ServiceHearingValuesProviderTest {
     @Mock
     private DateProvider hearingServiceDateProvider;
     @Mock
+    private CaseDetails<AsylumCase> caseDetails;
+    @Mock
     private AsylumCase asylumCase;
     @Mock
     private BailCase bailCase;
@@ -133,6 +137,7 @@ class ServiceHearingValuesProviderTest {
     @BeforeEach
     void setup() {
 
+        when(caseDetails.getCaseData()).thenReturn(asylumCase);
         when(asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)).thenReturn(Optional.of(hmctsCaseNameInternal));
         when(hearingServiceDateProvider.now()).thenReturn(LocalDate.parse(dateStr));
         String startDate = "2023-08-01T10:46:48.962301+01:00[Europe/London]";
@@ -224,9 +229,12 @@ class ServiceHearingValuesProviderTest {
     @Test
     void should_get_service_hearing_values() {
 
+        when(caseDetails.getCaseData()).thenReturn(asylumCase);
+        when(caseDetails.getId()).thenReturn(Long.parseLong(caseReference));
+        when(caseDetails.getState()).thenReturn(State.LISTING);
         ServiceHearingValuesModel expected = buildTestValues();
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
-            .provideAsylumServiceHearingValues(asylumCase, caseReference);
+            .provideAsylumServiceHearingValues(caseDetails);
 
         assertEquals(expected, actual);
     }
@@ -243,12 +251,15 @@ class ServiceHearingValuesProviderTest {
 
     @Test
     void should_get_service_hearing_values_with_facilities_when_s94B_is_enabled() {
+        when(caseDetails.getCaseData()).thenReturn(asylumCase);
+        when(caseDetails.getId()).thenReturn(Long.parseLong(caseReference));
+        when(caseDetails.getState()).thenReturn(State.LISTING);
         when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
 
         ServiceHearingValuesModel expected = buildTestValues();
         expected.setFacilitiesRequired(List.of(IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString()));
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
-            .provideAsylumServiceHearingValues(asylumCase, caseReference);
+            .provideAsylumServiceHearingValues(caseDetails);
 
         assertEquals(expected, actual);
     }
@@ -259,7 +270,7 @@ class ServiceHearingValuesProviderTest {
         when(asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> serviceHearingValuesProvider
-            .provideAsylumServiceHearingValues(asylumCase, caseReference))
+            .provideAsylumServiceHearingValues(caseDetails))
             .hasMessage("HMCTS internal case name is a required field")
             .isExactlyInstanceOf(RequiredFieldMissingException.class);
     }
@@ -365,7 +376,7 @@ class ServiceHearingValuesProviderTest {
     }
 
     @Test
-    void number_of_physical_attendees_should_be_0_when_hearing_channel_is_ONPPRS() {
+    void number_of_physical_attendees_should_be_0_when_hearing_channel_is_on_the_papers() {
 
         partyDetails.get(0).setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("ONPPRS").build());
@@ -389,12 +400,15 @@ class ServiceHearingValuesProviderTest {
     @MethodSource("caseTypeValueTestCases")
     void testGetCaseTypeValue(YesOrNo hasDeportationOrder, YesOrNo isSuitableToFloat,
                               AppealType appealType, CaseTypeValue expectedValue) {
+        when(caseDetails.getCaseData()).thenReturn(asylumCase);
+        when(caseDetails.getId()).thenReturn(Long.parseLong(caseReference));
+        when(caseDetails.getState()).thenReturn(State.LISTING);
         when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)).thenReturn(Optional.of(hasDeportationOrder));
         when(asylumCase.read(IS_APPEAL_SUITABLE_TO_FLOAT, YesOrNo.class)).thenReturn(Optional.of(isSuitableToFloat));
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(appealType));
 
         List<CaseCategoryModel> caseCategoryModelList = serviceHearingValuesProvider
-            .provideAsylumServiceHearingValues(asylumCase, caseReference)
+            .provideAsylumServiceHearingValues(caseDetails)
             .getCaseCategories();
 
         assertEquals(expectedValue.getValue(), caseCategoryModelList.get(0).getCategoryValue());
