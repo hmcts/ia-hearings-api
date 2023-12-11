@@ -25,12 +25,20 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DOCUMENTS_WITH_METADATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_COMPANY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_EMAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_NAME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_PHONE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.VIDEO_HEARING1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentTag.BAIL_SUBMISSION;
 
@@ -59,7 +67,7 @@ class BailCaseDataToServiceHearingValuesMapperTest {
         )
     );
 
-    private static final List<String> hearingChannels = List.of("Video");
+    private static final List<String> hearingChannels = List.of("VID");
 
     @BeforeEach
     void setup() {
@@ -169,5 +177,110 @@ class BailCaseDataToServiceHearingValuesMapperTest {
         assertThatThrownBy(() -> mapper.getCaseSlaStartDate(bailCase))
             .hasMessage(BAIL_SUBMISSION + " document not available")
             .isExactlyInstanceOf(RequiredFieldMissingException.class);
+    }
+
+    @Test
+    void getPartyId_methods_should_return_valid_value() {
+
+        when(bailCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class))
+            .thenReturn(Optional.of("homeOfficeRef"));
+        when(bailCase.read(APPLICANT_PARTY_ID, String.class))
+            .thenReturn(Optional.of("applicantPartyId"));
+        when(bailCase.read(LEGAL_REP_INDIVIDUAL_PARTY_ID, String.class))
+            .thenReturn(Optional.of("legalRepPartyId"));
+        when(bailCase.read(LEGAL_REP_ORGANISATION_PARTY_ID, String.class))
+            .thenReturn(Optional.of("legalRepOrgPartyId"));
+
+        assertNotNull(mapper.getApplicantPartyId(bailCase));
+        assertNotNull(mapper.getLegalRepPartyId(bailCase));
+        assertNotNull(mapper.getLegalRepOrgPartyId(bailCase));
+        assertNotNull(mapper.getRespondentPartyId(bailCase));
+    }
+
+    @Test
+    void getPartyId_methods_should_throw_exception() {
+
+        assertThatThrownBy(() -> mapper.getApplicantPartyId(bailCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("applicantPartyId is a required field");
+        assertThatThrownBy(() -> mapper.getLegalRepPartyId(bailCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("legalRepIndividualPartyId is a required field");
+        assertThatThrownBy(() -> mapper.getLegalRepOrgPartyId(bailCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("legalRepOrganisationPartyId is a required field");
+    }
+
+    @Test
+    void getStringValueByDefinition_methods_should_return_valid_value() {
+
+        when(bailCase.read(LEGAL_REP_NAME, String.class))
+            .thenReturn(Optional.of("legal-rep-name"));
+
+        assertNotNull(mapper.getStringValueByDefinition(bailCase, LEGAL_REP_NAME));
+    }
+
+    @Test
+    void getStringValueByDefinition_methods_should_throw_exception() {
+
+        assertThatThrownBy(() -> mapper.getStringValueByDefinition(bailCase, LEGAL_REP_NAME))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("legalRepName is a required field");
+    }
+
+    @Test
+    void getHearingChannel_should_return_a_hearing_channel() {
+        when(bailCase.read(VIDEO_HEARING1, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
+
+        assertEquals("VID", mapper.getHearingChannel(bailCase));
+    }
+
+    @Test
+    void getLegalRepCompanyName_methods_should_return_valid_value() {
+
+        when(bailCase.read(LEGAL_REP_COMPANY, String.class))
+            .thenReturn(Optional.of("legal-rep-company-name"));
+
+        assertNotNull(mapper.getLegalRepCompanyName(bailCase));
+    }
+
+    @Test
+    void getLegalRepCompanyName_methods_should_throw_exception() {
+
+        assertThatThrownBy(() -> mapper.getLegalRepCompanyName(bailCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("legalRepCompany is a required field");
+    }
+
+    @Test
+    void getHearingChannelEmailPhone_should_return_email() {
+        final String legalRepEmail = "legalRepEmail";
+        when(bailCase.read(LEGAL_REP_EMAIL, String.class))
+            .thenReturn(Optional.of(legalRepEmail));
+
+        assertEquals(
+            List.of(legalRepEmail),
+            mapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_EMAIL));
+    }
+
+    @Test
+    void getHearingChannelEmailPhone_should_return_phone() {
+        final String legalRepPhone = "legalRepPhone";
+        when(bailCase.read(LEGAL_REP_PHONE, String.class))
+            .thenReturn(Optional.of(legalRepPhone));
+
+        assertEquals(
+            List.of(legalRepPhone),
+            mapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_PHONE));
+    }
+
+    @Test
+    void getHearingChannelEmailPhone_should_return_empty_list_if_value_not_found() {
+        when(bailCase.read(LEGAL_REP_PHONE, String.class))
+            .thenReturn(Optional.empty());
+
+        assertEquals(
+            Collections.emptyList(),
+            mapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_PHONE));
     }
 }

@@ -8,13 +8,25 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.*;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentWithMetadata;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.*;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY1;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DOCUMENTS_WITH_METADATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_COMPANY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.VIDEO_HEARING1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentTag.BAIL_SUBMISSION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +42,7 @@ public class BailCaseDataToServiceHearingValuesMapper {
 
     public List<String> getHearingChannels(BailCase bailCase) {
         if (bailCase.read(VIDEO_HEARING1, YesOrNo.class).orElse(YesOrNo.NO) == YesOrNo.YES) {
-            return List.of("Video");
+            return List.of(VID.name());
         }
         return Collections.emptyList();
     }
@@ -74,9 +86,9 @@ public class BailCaseDataToServiceHearingValuesMapper {
             .orElseThrow(() -> new RequiredFieldMissingException("applicantPartyId is a required field"));
     }
 
-    public String getValueByDefinition(BailCase bailCase, BailCaseFieldDefinition nameFieldDefinition) {
+    public String getStringValueByDefinition(BailCase bailCase, BailCaseFieldDefinition nameFieldDefinition) {
         return bailCase.read(nameFieldDefinition, String.class)
-            .orElseThrow(() -> new RequiredFieldMissingException(nameFieldDefinition + " is a required field"));
+            .orElseThrow(() -> new RequiredFieldMissingException(nameFieldDefinition.value() + " is a required field"));
     }
 
     public String getHearingChannel(BailCase bailCase) {

@@ -23,8 +23,8 @@ public class ApplicantDetailsMapper {
 
         IndividualDetailsModel individualDetails =
             IndividualDetailsModel.builder()
-                .firstName(bailCaseDataMapper.getValueByDefinition(bailCase, APPLICANT_GIVEN_NAMES))
-                .lastName(bailCaseDataMapper.getValueByDefinition(bailCase, APPLICANT_FAMILY_NAME))
+                .firstName(bailCaseDataMapper.getStringValueByDefinition(bailCase, APPLICANT_GIVEN_NAMES))
+                .lastName(bailCaseDataMapper.getStringValueByDefinition(bailCase, APPLICANT_FAMILY_NAME))
                 .preferredHearingChannel(bailCaseDataMapper.getHearingChannel(bailCase))
                 .custodyStatus("D")
                 .vulnerableFlag(flagsToServiceHearingValuesMapper.getVulnerableFlag(bailCase))

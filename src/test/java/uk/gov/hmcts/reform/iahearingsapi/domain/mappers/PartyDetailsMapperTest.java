@@ -21,10 +21,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.ApplicantDetailsMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.FinancialConditionSupporterDetailsMapper;
 
 @ExtendWith(MockitoExtension.class)
 class PartyDetailsMapperTest {
@@ -32,9 +38,15 @@ class PartyDetailsMapperTest {
     @Mock
     private AsylumCase asylumCase;
     @Mock
+    private BailCase bailCase;
+    @Mock
     private CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
     @Mock
+    private BailCaseFlagsToServiceHearingValuesMapper bailCaseFlagsMapper;
+    @Mock
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
+    @Mock
+    private BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper;
     @Mock
     private LegalRepDetailsMapper legalRepDetailsMapper;
     @Mock
@@ -42,18 +54,22 @@ class PartyDetailsMapperTest {
     @Mock
     private AppellantDetailsMapper appellantDetailsMapper;
     @Mock
+    private ApplicantDetailsMapper applicantDetailsMapper;
+    @Mock
     private RespondentDetailsMapper respondentDetailsMapper;
     @Mock
     private SponsorDetailsMapper sponsorDetailsMapper;
     @Mock
     private WitnessDetailsMapper witnessDetailsMapper;
     @Mock
+    private FinancialConditionSupporterDetailsMapper financialConditionSupporterDetailsMapper;
+    @Mock
     private InterpreterDetailsMapper interpreterDetailsMapper;
     @Mock
     private PartyDetailsModel partyDetailsModel;
 
     @Test
-    void should_map_correctly() {
+    void should_map_asylum_correctly() {
 
         when(appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
             .thenReturn(PartyDetailsModel.builder().build());
@@ -80,15 +96,54 @@ class PartyDetailsMapperTest {
         );
         PartyDetailsMapper mapper = new PartyDetailsMapper(
             appellantDetailsMapper,
+            applicantDetailsMapper,
             legalRepDetailsMapper,
             legalRepOrgDetailsMapper,
             respondentDetailsMapper,
             sponsorDetailsMapper,
             witnessDetailsMapper,
+            financialConditionSupporterDetailsMapper,
             interpreterDetailsMapper
         );
 
         assertEquals(expected, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper));
+    }
+
+    @Test
+    void should_map_bail_details_correctly() {
+        when(applicantDetailsMapper.map(bailCase, bailCaseFlagsMapper, bailCaseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(legalRepDetailsMapper.map(bailCase, bailCaseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(legalRepOrgDetailsMapper.map(bailCase, bailCaseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(respondentDetailsMapper.map(bailCase, bailCaseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(financialConditionSupporterDetailsMapper.map(bailCase, bailCaseDataMapper))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        when(bailCase.read(BailCaseFieldDefinition.IS_LEGALLY_REPRESENTED_FOR_FLAG, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+
+        List<PartyDetailsModel> expected = Arrays.asList(
+            PartyDetailsModel.builder().build(),
+            PartyDetailsModel.builder().build(),
+            PartyDetailsModel.builder().build(),
+            PartyDetailsModel.builder().build(),
+            PartyDetailsModel.builder().build()
+        );
+        PartyDetailsMapper mapper = new PartyDetailsMapper(
+            appellantDetailsMapper,
+            applicantDetailsMapper,
+            legalRepDetailsMapper,
+            legalRepOrgDetailsMapper,
+            respondentDetailsMapper,
+            sponsorDetailsMapper,
+            witnessDetailsMapper,
+            financialConditionSupporterDetailsMapper,
+            interpreterDetailsMapper
+        );
+
+        assertEquals(expected, mapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper));
     }
 
     static Stream<Arguments> bothSpokenAndSignStatuses() {

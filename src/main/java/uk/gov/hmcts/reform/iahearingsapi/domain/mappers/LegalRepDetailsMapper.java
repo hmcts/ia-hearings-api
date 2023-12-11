@@ -4,7 +4,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_FAMILY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_MOBILE_PHONE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_NAME;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_EMAIL_ADDRESS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_EMAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_PHONE;
 
 import org.springframework.stereotype.Component;
@@ -46,11 +46,13 @@ public class LegalRepDetailsMapper {
             .partyRole("LGRP")
             .individualDetails(
                 IndividualDetailsModel.builder()
-                    .firstName(caseDataMapper.getValueByDefinition(bailCase, BailCaseFieldDefinition.LEGAL_REP_NAME))
-                    .lastName(caseDataMapper.getValueByDefinition(bailCase, BailCaseFieldDefinition.LEGAL_REP_FAMILY_NAME))
+                    .firstName(caseDataMapper.getStringValueByDefinition(bailCase,
+                                                                         BailCaseFieldDefinition.LEGAL_REP_NAME))
+                    .lastName(caseDataMapper.getStringValueByDefinition(bailCase,
+                                                                        BailCaseFieldDefinition.LEGAL_REP_FAMILY_NAME))
                     .preferredHearingChannel(caseDataMapper.getHearingChannel(bailCase))
                     .hearingChannelEmail(
-                        caseDataMapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_EMAIL_ADDRESS))
+                        caseDataMapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_EMAIL))
                     .hearingChannelPhone(
                         caseDataMapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_PHONE))
                     .build())

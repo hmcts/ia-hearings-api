@@ -51,7 +51,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
@@ -180,7 +179,7 @@ public class ServiceHearingValuesProvider {
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
             .hmctsInternalCaseName(hmctsInternalCaseName)
-            .publicCaseName("")
+            .publicCaseName(bailCaseFlagsMapper.getPublicCaseName(bailCase, caseReference))
             .caseAdditionalSecurityFlag(false)
             .caseCategories(getBailCaseCategoriesValue())
             .caseDeepLink(baseUrl.concat(caseDataMapper.getCaseDeepLink(caseReference)))
@@ -210,7 +209,7 @@ public class ServiceHearingValuesProvider {
                            .build())
             .hearingIsLinkedFlag(false)
             .parties(getPartyDetails(bailCase))
-            .caseFlags(Caseflags.builder().build())
+            .caseFlags(bailCaseFlagsMapper.getCaseFlags(bailCase, caseReference))
             .screenFlow(getScreenFlowJson())
             .vocabulary(Collections.emptyList())
             .hearingChannels(bailCaseDataMapper.getHearingChannels(bailCase))

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.BailPartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.BailStrategicCaseFlag;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -23,7 +24,7 @@ public enum BailCaseFieldDefinition {
     HOME_OFFICE_REFERENCE_NUMBER(
         "homeOfficeReferenceNumber", new TypeReference<String>(){}),
     FCS_LEVEL_FLAGS(
-        "fcsLevelFlags", new TypeReference<List<IdValue<BailStrategicCaseFlag>>>() {}),
+        "fcsLevelFlags", new TypeReference<List<BailPartyFlagIdValue>>() {}),
     APPLICANT_DISABILITY1(
         "applicantDisability1", new TypeReference<YesOrNo>(){}),
     APPLICANT_DISABILITY_DETAILS(
@@ -48,7 +49,7 @@ public enum BailCaseFieldDefinition {
         "supporter4PartyId", new TypeReference<String>(){}),
     IS_LEGALLY_REPRESENTED_FOR_FLAG(
         "isLegallyRepresentedForFlag", new TypeReference<YesOrNo>() {}),
-    LEGAL_REP_EMAIL_ADDRESS(
+    LEGAL_REP_EMAIL(
         "legalRepEmail", new TypeReference<String>(){}),
     LEGAL_REP_NAME(
         "legalRepName", new TypeReference<String>(){}),
@@ -82,29 +83,29 @@ public enum BailCaseFieldDefinition {
         "hasFinancialCondSupporter3", new TypeReference<YesOrNo>(){}),
     HAS_FINANCIAL_COND_SUPPORTER_4(
         "hasFinancialCondSupporter4", new TypeReference<YesOrNo>(){}),
-    SUPPORTER_TELEPHONE_NUMBER(
+    SUPPORTER_TELEPHONE_NUMBER_1(
         "supporterTelephoneNumber1", new TypeReference<String>(){}),
-    SUPPORTER_MOBILE_NUMBER(
+    SUPPORTER_MOBILE_NUMBER_1(
         "supporterMobileNumber1", new TypeReference<String>(){}),
-    SUPPORTER_EMAIL_ADDRESS(
+    SUPPORTER_EMAIL_ADDRESS_1(
         "supporterEmailAddress1", new TypeReference<String>(){}),
-    SUPPORTER_2_TELEPHONE_NUMBER(
+    SUPPORTER_2_TELEPHONE_NUMBER_1(
         "supporter2TelephoneNumber1", new TypeReference<String>(){}),
-    SUPPORTER_2_MOBILE_NUMBER(
+    SUPPORTER_2_MOBILE_NUMBER_1(
         "supporter2MobileNumber1", new TypeReference<String>(){}),
-    SUPPORTER_2_EMAIL_ADDRESS(
+    SUPPORTER_2_EMAIL_ADDRESS_1(
         "supporter2EmailAddress1", new TypeReference<String>(){}),
-    SUPPORTER_3_TELEPHONE_NUMBER(
+    SUPPORTER_3_TELEPHONE_NUMBER_1(
         "supporter3TelephoneNumber1", new TypeReference<String>(){}),
-    SUPPORTER_3_MOBILE_NUMBER(
+    SUPPORTER_3_MOBILE_NUMBER_1(
         "supporter3MobileNumber1", new TypeReference<String>(){}),
-    SUPPORTER_3_EMAIL_ADDRESS(
+    SUPPORTER_3_EMAIL_ADDRESS_1(
         "supporter3EmailAddress1", new TypeReference<String>(){}),
-    SUPPORTER_4_TELEPHONE_NUMBER(
+    SUPPORTER_4_TELEPHONE_NUMBER_1(
         "supporter4TelephoneNumber1", new TypeReference<String>(){}),
-    SUPPORTER_4_MOBILE_NUMBER(
+    SUPPORTER_4_MOBILE_NUMBER_1(
         "supporter4MobileNumber1", new TypeReference<String>(){}),
-    SUPPORTER_4_EMAIL_ADDRESS(
+    SUPPORTER_4_EMAIL_ADDRESS_1(
         "supporter4EmailAddress1", new TypeReference<String>(){}),;
 
     private final String value;
