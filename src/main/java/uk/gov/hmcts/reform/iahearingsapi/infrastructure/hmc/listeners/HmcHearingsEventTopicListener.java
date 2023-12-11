@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
@@ -17,6 +18,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
 
 @Slf4j
 @Component
+@ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
 public class HmcHearingsEventTopicListener {
     private final ObjectMapper objectMapper;
 

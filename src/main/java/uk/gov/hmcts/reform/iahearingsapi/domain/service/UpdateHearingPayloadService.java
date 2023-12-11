@@ -4,7 +4,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel.defaultIfNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,6 +45,24 @@ public class UpdateHearingPayloadService {
         Boolean firstAvailableDate,
         HearingWindowModel hearingWindowModel
     ) {
+        return generateHearingPayload(asylumCase, hearingId, reasonCode, firstAvailableDate, hearingWindowModel);
+    }
+
+    public UpdateHearingRequest createUpdateHearingPayload(
+        AsylumCase asylumCase,
+        String hearingId,
+        String reasonCode
+    ) {
+        return generateHearingPayload(asylumCase, hearingId, reasonCode, false, null);
+    }
+
+    private UpdateHearingRequest generateHearingPayload(
+        AsylumCase asylumCase,
+        String hearingId,
+        String reasonCode,
+        Boolean firstAvailableDate,
+        HearingWindowModel hearingWindowModel
+    ) {
         HearingGetResponse persistedHearing = hearingService.getHearing(hearingId);
 
         HearingDetails hearingDetails = HearingDetails.builder()
@@ -54,9 +71,7 @@ public class UpdateHearingPayloadService {
             .hearingLocations(getLocations(asylumCase, persistedHearing))
             .duration(getDuration(asylumCase, persistedHearing))
             .amendReasonCodes(List.of(reasonCode))
-            .hearingWindow(defaultIfNull(
-                updateHearingWindow(firstAvailableDate, hearingWindowModel, persistedHearing))
-            )
+            .hearingWindow(updateHearingWindow(firstAvailableDate, hearingWindowModel, persistedHearing))
             .build();
 
 
@@ -123,7 +138,7 @@ public class UpdateHearingPayloadService {
                                                    HearingGetResponse persistedHearing) {
         if (!firstAvailable) {
             if (hearingWindowModel == null) {
-                return persistedHearing.getHearingDetails().getHearingWindow();
+                return persistedHearing.getHearingDetails().getHearingWindow().getHearingWindowModel();
             } else {
                 return hearingWindowModel;
             }

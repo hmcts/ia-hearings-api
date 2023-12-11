@@ -209,3 +209,7 @@ iaCaseApi:
 bail:
   hearingValues:
     caseCategories: "BFA1-BLS"
+
+flags:
+  hmc-to-hearings-api:
+    enabled: ${HMC_HEARINGS_LISTENING_ENABLED:true}
