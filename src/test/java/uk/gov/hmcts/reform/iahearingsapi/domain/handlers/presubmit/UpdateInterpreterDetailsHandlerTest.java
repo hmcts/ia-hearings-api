@@ -128,9 +128,7 @@ class UpdateInterpreterDetailsHandlerTest {
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             asylumCase,
             updateHearingRequestIdCode,
-            ReasonCodes.OTHER.toString(),
-            false,
-            null
+            ReasonCodes.OTHER.toString()
         );
         verify(hearingService, times(1)).updateHearing(any(), any());
     }
