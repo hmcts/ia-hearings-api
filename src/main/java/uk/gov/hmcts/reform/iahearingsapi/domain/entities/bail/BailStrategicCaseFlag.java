@@ -22,15 +22,23 @@ public class BailStrategicCaseFlag {
     @JsonProperty("details")
     List<CaseFlagDetail> details;
 
+    public BailStrategicCaseFlag(String partyName, String roleOnCase, List<CaseFlagDetail> details) {
+        this.partyName = partyName;
+        this.roleOnCase = roleOnCase;
+        this.details = details != null ? details : Collections.emptyList();
+    }
+
     public BailStrategicCaseFlag(String partyFullName, String roleOnCase) {
         this.partyName = partyFullName;
         this.roleOnCase = roleOnCase;
         this.details = Collections.emptyList();
     }
 
+    public BailStrategicCaseFlag(List<CaseFlagDetail> details) {
+        this(null, null, details);
+    }
+
     public BailStrategicCaseFlag() {
-        this.details = Collections.emptyList();
-        this.partyName = null;
-        this.roleOnCase = null;
+        this(null, null, Collections.emptyList());
     }
 }

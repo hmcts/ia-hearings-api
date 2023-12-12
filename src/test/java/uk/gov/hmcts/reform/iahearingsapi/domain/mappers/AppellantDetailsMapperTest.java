@@ -64,7 +64,7 @@ class AppellantDetailsMapperTest {
             .preferredHearingChannel("hearingChannel")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(expected);
 
         expected.getIndividualDetails().setOtherReasonableAdjustmentDetails("");
@@ -87,7 +87,7 @@ class AppellantDetailsMapperTest {
             .otherReasonableAdjustmentDetails("Single sex court: Female;")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
 
         assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
             .map(asylumCase, caseFlagsMapper, caseDataMapper));
@@ -107,7 +107,7 @@ class AppellantDetailsMapperTest {
             .otherReasonableAdjustmentDetails("Single sex court: Male;")
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForAppellant(individualDetails);
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
 
         assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
             .map(asylumCase, caseFlagsMapper, caseDataMapper));
@@ -133,7 +133,7 @@ class AppellantDetailsMapperTest {
             .otherReasonableAdjustmentDetails("Single sex court: Male;")
             .build();
         PartyDetailsModel appellantPartyDetailsModel = getPartyDetailsModelForAppellant(individualDetails);
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(appellantPartyDetailsModel);
 
         String status = bookingStatus != NOT_REQUESTED
@@ -169,7 +169,7 @@ class AppellantDetailsMapperTest {
             .otherReasonableAdjustmentDetails("Single sex court: Male;")
             .build();
         PartyDetailsModel appellantPartyDetailsModel = getPartyDetailsModelForAppellant(individualDetails);
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(appellantPartyDetailsModel);
 
         String status = bookingStatus != NOT_REQUESTED
@@ -205,7 +205,7 @@ class AppellantDetailsMapperTest {
             .otherReasonableAdjustmentDetails("Single sex court: Male;")
             .build();
         PartyDetailsModel appellantPartyDetailsModel = getPartyDetailsModelForAppellant(individualDetails);
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(appellantPartyDetailsModel);
 
         String status = " Status (Spoken): "

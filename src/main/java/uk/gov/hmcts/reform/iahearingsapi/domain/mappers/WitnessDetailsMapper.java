@@ -49,7 +49,7 @@ public class WitnessDetailsMapper {
                             .build())
                     .build();
 
-                languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, witnessPartyDetailsModel);
+                languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(asylumCase, witnessPartyDetailsModel);
 
                 int index = witnessDetailsMap.get(witnessDetailsIdValue);
                 appendWitnessBookingStatus(asylumCase, index, witnessPartyDetailsModel);

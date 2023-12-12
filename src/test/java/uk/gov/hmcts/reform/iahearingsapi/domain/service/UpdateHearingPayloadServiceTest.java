@@ -83,7 +83,7 @@ class UpdateHearingPayloadServiceTest {
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(hearingGetResponse);
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
         when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
-        when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
         updateHearingPayloadService = new UpdateHearingPayloadService(
             hearingService,
@@ -307,7 +307,7 @@ class UpdateHearingPayloadServiceTest {
                                                            .partyID("MyPartyId")
                                                            .partyType(PartyType.IND.getPartyType())
                                                            .build());
-        when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
             .thenReturn(partyDetails);
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
@@ -319,7 +319,7 @@ class UpdateHearingPayloadServiceTest {
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
-        verify(partyDetailsMapper, times(1)).map(asylumCase, caseFlagsMapper, caseDataMapper);
+        verify(partyDetailsMapper, times(1)).mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper);
 
         assertEquals(partyDetails, updateHearingRequest.getPartyDetails());
         assertEqualsHearingDetails(updateHearingRequest);
@@ -327,7 +327,7 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_create_an_update_hearing_request_with_updated_party_details() {
-        when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
             .thenReturn(List.of(partyDetailsModel));
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(

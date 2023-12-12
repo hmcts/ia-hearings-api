@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.FCS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
 
@@ -19,10 +20,14 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.PartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlag;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.BailPartyFlagIdValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.BailStrategicCaseFlag;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 
@@ -36,9 +41,11 @@ public class LanguageAndAdjustmentsMapper {
     public static final String INTERPRETER = "Interpreter: ";
     private static final String ACTIVE = "Active";
     private static final String PARTY_ROLE_APPELLANT = "APEL";
+    private static final String PARTY_ROLE_APPLICANT = "APPL";
     private static final String PARTY_ROLE_WITNESS = "WITN";
+    private static final String PARTY_ROLE_FCS = "FINS";
 
-    public PartyDetailsModel processPartyCaseFlags(AsylumCase asylumCase, PartyDetailsModel partyDetails) {
+    public PartyDetailsModel processAsylumPartyCaseFlags(AsylumCase asylumCase, PartyDetailsModel partyDetails) {
 
         IndividualDetailsModel individualDetails = partyDetails.getIndividualDetails();
 
@@ -51,48 +58,74 @@ public class LanguageAndAdjustmentsMapper {
                 ? getWitnessCaseFlags(asylumCase, partyDetails.getPartyID())
                 : Collections.emptyList();
 
-            List<CaseFlagDetail> activeCaseFlagDetails = filterForActiveCaseFlagDetails(caseFlags);
+            List<CaseFlagDetail> activeCaseFlagDetails = filterForAsylumActiveCaseFlagDetails(caseFlags);
+            processPartyDetailsFlags(activeCaseFlagDetails, individualDetails);
 
-            List<CaseFlagDetail> languageFlags = new ArrayList<>();
-            List<CaseFlagDetail> reasonableAdjustmentsFlags = new ArrayList<>();
-
-            separateLanguageAndReasonableAdjustmentFlags(activeCaseFlagDetails,
-                                                         languageFlags,
-                                                         reasonableAdjustmentsFlags);
-
-            List<CaseFlagDetail> sortedLanguageFlags = sortLanguageFlagsByCode(languageFlags);
-
-            List<CaseFlagDetail> secondLanguageFlags = new ArrayList<>(Collections.emptyList());
-            String interpreterLanguage = extractInterpreterLanguageField(sortedLanguageFlags, secondLanguageFlags);
-
-            individualDetails.setInterpreterLanguage(interpreterLanguage);
-
-            List<String> otherLanguages = buildOtherLanguagesField(secondLanguageFlags);
-            List<String> reasonableAdjustmentsComments = buildReasonableAdjustmentsFlagComments(
-                reasonableAdjustmentsFlags);
-
-            String otherReasonableAdjustments = Stream.concat(otherLanguages.stream(), reasonableAdjustmentsComments
-                .stream())
-                .collect(Collectors.joining("; "))
-                .trim();
-
-            List<String> reasonableAdjustments = reasonableAdjustmentsFlags.stream()
-                .map(flag -> flag.getCaseFlagValue().getFlagCode()).toList();
-
-            if (individualDetails.getReasonableAdjustments() != null) {
-                individualDetails.getReasonableAdjustments().addAll(reasonableAdjustments);
-            } else {
-                individualDetails.setReasonableAdjustments(reasonableAdjustments);
-            }
-
-            if (!otherReasonableAdjustments.isEmpty()) {
-                individualDetails.setOtherReasonableAdjustmentDetails(
-                    Optional.ofNullable(individualDetails.getOtherReasonableAdjustmentDetails()).orElse("")
-                        + otherReasonableAdjustments + ";");
-            }
         }
 
         return partyDetails;
+    }
+
+    public PartyDetailsModel processBailPartyCaseFlags(BailCase bailCase, PartyDetailsModel partyDetails) {
+
+        IndividualDetailsModel individualDetails = partyDetails.getIndividualDetails();
+
+        if (individualDetails != null) {
+            String partyRole = partyDetails.getPartyRole();
+
+            List<BailStrategicCaseFlag> caseFlags = StringUtils.equals(partyRole, PARTY_ROLE_APPLICANT)
+                ? getApplicantCaseFlags(bailCase)
+                : StringUtils.equals(partyRole, PARTY_ROLE_FCS)
+                ? getFcsCaseFlags(bailCase, partyDetails.getPartyID())
+                : Collections.emptyList();
+
+            List<CaseFlagDetail> activeCaseFlagDetails = filterForBailActiveCaseFlagDetails(caseFlags);
+            processPartyDetailsFlags(activeCaseFlagDetails, individualDetails);
+        }
+
+        return partyDetails;
+    }
+
+    private void processPartyDetailsFlags(List<CaseFlagDetail> activeCaseFlagDetails,
+                                          IndividualDetailsModel individualDetails) {
+
+        List<CaseFlagDetail> languageFlags = new ArrayList<>();
+        List<CaseFlagDetail> reasonableAdjustmentsFlags = new ArrayList<>();
+
+        separateLanguageAndReasonableAdjustmentFlags(activeCaseFlagDetails,
+                                                     languageFlags,
+                                                     reasonableAdjustmentsFlags);
+
+        List<CaseFlagDetail> sortedLanguageFlags = sortLanguageFlagsByCode(languageFlags);
+
+        List<CaseFlagDetail> secondLanguageFlags = new ArrayList<>(Collections.emptyList());
+        String interpreterLanguage = extractInterpreterLanguageField(sortedLanguageFlags, secondLanguageFlags);
+
+        individualDetails.setInterpreterLanguage(interpreterLanguage);
+
+        List<String> otherLanguages = buildOtherLanguagesField(secondLanguageFlags);
+        List<String> reasonableAdjustmentsComments = buildReasonableAdjustmentsFlagComments(
+            reasonableAdjustmentsFlags);
+
+        String otherReasonableAdjustments = Stream.concat(otherLanguages.stream(), reasonableAdjustmentsComments
+                .stream())
+            .collect(Collectors.joining("; "))
+            .trim();
+
+        List<String> reasonableAdjustments = reasonableAdjustmentsFlags.stream()
+            .map(flag -> flag.getCaseFlagValue().getFlagCode()).toList();
+
+        if (individualDetails.getReasonableAdjustments() != null) {
+            individualDetails.getReasonableAdjustments().addAll(reasonableAdjustments);
+        } else {
+            individualDetails.setReasonableAdjustments(reasonableAdjustments);
+        }
+
+        if (!otherReasonableAdjustments.isEmpty()) {
+            individualDetails.setOtherReasonableAdjustmentDetails(
+                Optional.ofNullable(individualDetails.getOtherReasonableAdjustmentDetails()).orElse("")
+                    + otherReasonableAdjustments + ";");
+        }
     }
 
     private void separateLanguageAndReasonableAdjustmentFlags(List<CaseFlagDetail> activeCaseFlagDetails,
@@ -155,6 +188,11 @@ public class LanguageAndAdjustmentsMapper {
             .map(Lists::newArrayList).orElse(new ArrayList<>());
     }
 
+    private List<BailStrategicCaseFlag> getApplicantCaseFlags(BailCase bailCase) {
+        return bailCase.read(BailCaseFieldDefinition.APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class)
+            .map(Lists::newArrayList).orElse(new ArrayList<>());
+    }
+
     private List<StrategicCaseFlag> getWitnessCaseFlags(AsylumCase asylumCase, String partyId) {
         List<StrategicCaseFlag> witnessCaseFlags = new ArrayList<>();
 
@@ -174,10 +212,38 @@ public class LanguageAndAdjustmentsMapper {
         return witnessCaseFlags;
     }
 
-    private List<CaseFlagDetail> filterForActiveCaseFlagDetails(List<StrategicCaseFlag> strategicCaseFlags) {
+    private List<BailStrategicCaseFlag> getFcsCaseFlags(BailCase bailCase, String partyId) {
+        List<BailStrategicCaseFlag> fcsCaseFlags = new ArrayList<>();
+
+        Optional<List<BailPartyFlagIdValue>> caseFlagsOptional = bailCase.read(FCS_LEVEL_FLAGS);
+
+        caseFlagsOptional.ifPresent(fcsFlagIdValues -> {
+            List<BailStrategicCaseFlag> caseFlags = fcsFlagIdValues
+                .stream()
+                .filter(partyFlagIdValue -> partyFlagIdValue.getPartyId().equals(partyId))
+                .map(BailPartyFlagIdValue::getValue)
+                .toList();
+            if (!caseFlags.isEmpty()) {
+                fcsCaseFlags.addAll(caseFlags);
+            }
+        });
+
+        return fcsCaseFlags;
+    }
+
+    private List<CaseFlagDetail> filterForAsylumActiveCaseFlagDetails(List<StrategicCaseFlag> strategicCaseFlags) {
         return strategicCaseFlags
             .stream()
             .map(StrategicCaseFlag::getDetails)
+            .flatMap(Collection::stream)
+            .filter(detail -> Objects.equals(ACTIVE, detail.getCaseFlagValue().getStatus()))
+            .toList();
+    }
+
+    private List<CaseFlagDetail> filterForBailActiveCaseFlagDetails(List<BailStrategicCaseFlag> strategicCaseFlags) {
+        return strategicCaseFlags
+            .stream()
+            .map(BailStrategicCaseFlag::getDetails)
             .flatMap(Collection::stream)
             .filter(detail -> Objects.equals(ACTIVE, detail.getCaseFlagValue().getStatus()))
             .toList();

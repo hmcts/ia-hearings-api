@@ -10,8 +10,14 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.ApplicantDetailsMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailMapperUtils;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.FinancialConditionSupporterDetailsMapper;
 
 @Component
 @AllArgsConstructor
@@ -22,14 +28,16 @@ public class PartyDetailsMapper {
     private static final String STATUS_SIGN = "Status (Sign): ";
 
     private AppellantDetailsMapper appellantDetailsMapper;
+    private ApplicantDetailsMapper applicantDetailsMapper;
     private LegalRepDetailsMapper legalRepDetailsMapper;
     private LegalRepOrgDetailsMapper legalRepOrgDetailsMapper;
     private RespondentDetailsMapper respondentDetailsMapper;
     private SponsorDetailsMapper sponsorDetailsMapper;
     private WitnessDetailsMapper witnessDetailsMapper;
+    private FinancialConditionSupporterDetailsMapper financialConditionSupporterDetailsMapper;
     private InterpreterDetailsMapper interpreterDetailsMapper;
 
-    public List<PartyDetailsModel> map(
+    public List<PartyDetailsModel> mapAsylumPartyDetails(
         AsylumCase asylumCase,
         CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
         CaseDataToServiceHearingValuesMapper caseDataMapper) {
@@ -47,6 +55,25 @@ public class PartyDetailsMapper {
         }
         partyDetails.addAll(witnessDetailsMapper.map(asylumCase, caseDataMapper));
         partyDetails.addAll(interpreterDetailsMapper.map(asylumCase, caseDataMapper));
+
+        return partyDetails;
+    }
+
+    public List<PartyDetailsModel> mapBailPartyDetails(
+        BailCase bailCase,
+        BailCaseFlagsToServiceHearingValuesMapper bailCaseFlagsMapper,
+        BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper) {
+
+        List<PartyDetailsModel> partyDetails = new ArrayList<>(Arrays.asList(
+            applicantDetailsMapper.map(bailCase, bailCaseFlagsMapper, bailCaseDataMapper),
+            respondentDetailsMapper.map(bailCase, bailCaseDataMapper)
+        ));
+        if (BailMapperUtils.isLegallyRepresented(bailCase)) {
+            partyDetails.add(legalRepDetailsMapper.map(bailCase, bailCaseDataMapper));
+            partyDetails.add(legalRepOrgDetailsMapper.map(bailCase, bailCaseDataMapper));
+        }
+
+        partyDetails.addAll(financialConditionSupporterDetailsMapper.map(bailCase, bailCaseDataMapper));
 
         return partyDetails;
     }
