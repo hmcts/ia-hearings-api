@@ -60,7 +60,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.Record
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class RecordAdjournmentUpdateRequestHandlerTest {
 
-    public static final String CANCELLATION_REASON = "withdraw";
+    public static final DynamicList CANCELLATION_REASON = new DynamicList("withdraw");
     public static final String HEARING_ID = "123";
     public static final String DATE1 = "2023-11-28";
     public static final String DATE2 = "2023-11-29";
@@ -123,7 +123,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
         when(updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
             HEARING_ID,
-            CANCELLATION_REASON,
+            CANCELLATION_REASON.getValue().getCode(),
             false,
             HearingWindowModel.builder().firstDateTimeMustBe(
                 HearingsUtils.convertToLocalDateFormat(DATE1).toString()).build()
@@ -153,7 +153,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
         when(updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
             HEARING_ID,
-            CANCELLATION_REASON,
+            CANCELLATION_REASON.getValue().getCode(),
             true,
             null
         )).thenReturn(updateHearingRequest);
@@ -179,7 +179,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
         when(updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
             HEARING_ID,
-            CANCELLATION_REASON,
+            CANCELLATION_REASON.getValue().getCode(),
             false,
             HearingWindowModel.builder()
                 .dateRangeStart(HearingsUtils.convertToLocalDateFormat(DATE1).toString())
@@ -207,10 +207,12 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
         if (relistCaseImmediately == NO) {
-            verify(hearingService, times(1)).deleteHearing(eq(Long.valueOf(HEARING_ID)), eq(CANCELLATION_REASON));
+            verify(hearingService, times(1))
+                .deleteHearing(eq(Long.valueOf(HEARING_ID)), eq(CANCELLATION_REASON.getValue().getCode()));
             assertEquals(Optional.of(NO), asylumCase.read(MANUAL_CANCEL_HEARINGS_REQUIRED));
         } else {
-            verify(hearingService, times(0)).deleteHearing(eq(Long.valueOf(HEARING_ID)), eq(CANCELLATION_REASON));
+            verify(hearingService, times(0))
+                .deleteHearing(eq(Long.valueOf(HEARING_ID)), eq(CANCELLATION_REASON.getValue().getCode()));
             assertEquals(Optional.of(NO), asylumCase.read(MANUAL_CANCEL_HEARINGS_REQUIRED));
         }
 

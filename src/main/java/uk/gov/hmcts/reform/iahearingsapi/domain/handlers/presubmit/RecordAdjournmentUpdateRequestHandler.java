@@ -90,13 +90,13 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
     }
 
     private void deleteHearing(AsylumCase asylumCase, String hearingId) {
-        String cancellationReason = asylumCase.read(HEARING_CANCELLATION_REASON, String.class)
+        DynamicList cancellationReason = asylumCase.read(HEARING_CANCELLATION_REASON, DynamicList.class)
             .orElseThrow(() -> new IllegalStateException("Hearing cancellation reason is not present"));
 
         YesOrNo manualCancelHearingRequired = NO;
 
         try {
-            hearingService.deleteHearing(Long.valueOf(hearingId), cancellationReason);
+            hearingService.deleteHearing(Long.valueOf(hearingId), cancellationReason.getValue().getCode());
         } catch (HmcException e) {
             manualCancelHearingRequired = YES;
         }
@@ -106,7 +106,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
 
     private void updateHearing(AsylumCase asylumCase, String hearingId) {
         YesOrNo updateRequestSuccess = YES;
-        String cancellationReason = asylumCase.read(HEARING_RELISTED_UPDATE_REASON, String.class)
+        DynamicList cancellationReason = asylumCase.read(HEARING_RELISTED_UPDATE_REASON, DynamicList.class)
             .orElseThrow(() -> new IllegalStateException("Hearing relisted cancellation reason is not present"));
         String nextHearingDate = asylumCase.read(NEXT_HEARING_DATE, String.class)
             .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE + "  is not present"));
@@ -117,7 +117,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
                 updateHearingPayloadService.createUpdateHearingPayload(
                     asylumCase,
                     hearingId,
-                    cancellationReason,
+                    cancellationReason.getValue().getCode(),
                     nextHearingDate.equals(NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE),
                     updateHearingWindow(asylumCase)
                 ),
