@@ -23,11 +23,12 @@ public class EventTest {
         assertEquals("updateInterpreterDetails", Event.UPDATE_INTERPRETER_DETAILS.toString());
         assertEquals("updateInterpreterBookingStatus", Event.UPDATE_INTERPRETER_BOOKING_STATUS.toString());
         assertEquals("triggerCmrListed", Event.TRIGGER_CMR_LISTED.toString());
+        assertEquals("decideAnApplication", Event.DECIDE_AN_APPLICATION.toString());
         assertEquals("sendUploadBailSummaryDirection", Event.SEND_UPLOAD_BAIL_SUMMARY_DIRECTION.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(16, Event.values().length);
+        assertEquals(17, Event.values().length);
     }
 }
