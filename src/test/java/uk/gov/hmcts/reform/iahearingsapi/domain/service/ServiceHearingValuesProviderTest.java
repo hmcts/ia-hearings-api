@@ -44,7 +44,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.Document;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
@@ -64,6 +63,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearin
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -120,13 +120,13 @@ class ServiceHearingValuesProviderTest {
     @Mock
     private BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper;
     @Mock
+    private BailCaseFlagsToServiceHearingValuesMapper bailCaseFlagsMapper;
+    @Mock
     private PartyDetailsMapper partyDetailsMapper;
     @Mock
     private ListingCommentsMapper listingCommentsMapper;
     @Mock
     private ResourceLoader resourceLoader;
-    @Mock
-    private Document document;
     private final String baseUrl = "http://localhost:3002";
     private String caseCategoriesValue = "BFA1-TST";
     private final String serviceId = "BFA1";
@@ -170,7 +170,8 @@ class ServiceHearingValuesProviderTest {
         when(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
-        when(partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper)).thenReturn(partyDetails);
+        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
+            .thenReturn(partyDetails);
 
         when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(RP));
@@ -188,6 +189,8 @@ class ServiceHearingValuesProviderTest {
         when(bailCaseDataMapper.getCaseSlaStartDate(bailCase)).thenReturn(dateStr);
         when(bailCaseDataMapper.getHearingWindowModel()).thenReturn(hearingWindowModel);
         when(bailCaseDataMapper.getListingComments(bailCase)).thenReturn(listingComments);
+        when(bailCaseFlagsMapper.getPublicCaseName(bailCase, caseReference)).thenReturn(caseReference);
+        when(bailCaseFlagsMapper.getCaseFlags(bailCase, caseReference)).thenReturn(caseflags);
 
         bailCaseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
         bailCaseCategoryCaseType.setCategoryValue(bailServiceId);
@@ -197,12 +200,19 @@ class ServiceHearingValuesProviderTest {
         bailCaseCategoryCaseSubType.setCategoryValue(bailServiceId);
         bailCaseCategoryCaseSubType.setCategoryParent(bailServiceId);
 
+        when(partyDetailsMapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper))
+            .thenReturn(partyDetails);
+
         when(bailCase.read(CASE_NAME_HMCTS_INTERNAL, String.class)).thenReturn(Optional.of(caseNameHmctsInternal));
+
+        when(partyDetailsMapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper))
+            .thenReturn(partyDetails);
 
         serviceHearingValuesProvider = new ServiceHearingValuesProvider(
             caseDataMapper,
             bailCaseDataMapper,
             caseFlagsMapper,
+            bailCaseFlagsMapper,
             partyDetailsMapper,
             listingCommentsMapper,
             resourceLoader
@@ -324,7 +334,7 @@ class ServiceHearingValuesProviderTest {
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
             .hmctsInternalCaseName(caseNameHmctsInternal)
-            .publicCaseName("")
+            .publicCaseName(caseReference)
             .caseCategories(List.of(bailCaseCategoryCaseType, bailCaseCategoryCaseSubType))
             .caseAdditionalSecurityFlag(false)
             .caseDeepLink(baseUrl + caseDeepLink)
@@ -352,8 +362,8 @@ class ServiceHearingValuesProviderTest {
                            .panelComposition(Collections.emptyList())
                            .build())
             .hearingIsLinkedFlag(false)
-            .parties(Collections.emptyList())
-            .caseFlags(Caseflags.builder().build())
+            .parties(partyDetails)
+            .caseFlags(caseflags)
             .screenFlow(serviceHearingValuesProvider.getScreenFlowJson())
             .vocabulary(Collections.emptyList())
             .hearingChannels(bailHearingChannels)

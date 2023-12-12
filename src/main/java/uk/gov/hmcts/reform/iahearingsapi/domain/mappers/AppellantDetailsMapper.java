@@ -82,7 +82,7 @@ public class AppellantDetailsMapper {
             .unavailabilityRanges(caseDataMapper.getUnavailabilityRanges(asylumCase))
             .build();
 
-        languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, appellantPartyDetailsModel);
+        languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(asylumCase, appellantPartyDetailsModel);
 
         appendAppellantBookingStatus(asylumCase, appellantPartyDetailsModel);
 

@@ -182,6 +182,6 @@ public class UpdateHearingPayloadService {
     }
 
     private List<PartyDetailsModel> getPartyDetails(AsylumCase asylumCase) {
-        return partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper);
+        return partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper);
     }
 }

@@ -51,7 +51,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
@@ -64,6 +63,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
 
 @Slf4j
 @Setter
@@ -78,6 +78,7 @@ public class ServiceHearingValuesProvider {
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
     private final BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper;
     private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
+    private final BailCaseFlagsToServiceHearingValuesMapper bailCaseFlagsMapper;
     private final PartyDetailsMapper partyDetailsMapper;
     private final ListingCommentsMapper listingCommentsMapper;
     private final ResourceLoader resourceLoader;
@@ -178,7 +179,7 @@ public class ServiceHearingValuesProvider {
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
             .hmctsInternalCaseName(hmctsInternalCaseName)
-            .publicCaseName("")
+            .publicCaseName(bailCaseFlagsMapper.getPublicCaseName(bailCase, caseReference))
             .caseAdditionalSecurityFlag(false)
             .caseCategories(getBailCaseCategoriesValue())
             .caseDeepLink(baseUrl.concat(caseDataMapper.getCaseDeepLink(caseReference)))
@@ -207,8 +208,8 @@ public class ServiceHearingValuesProvider {
                            .panelComposition(Collections.emptyList())
                            .build())
             .hearingIsLinkedFlag(false)
-            .parties(Collections.emptyList())
-            .caseFlags(Caseflags.builder().build())
+            .parties(getPartyDetails(bailCase))
+            .caseFlags(bailCaseFlagsMapper.getCaseFlags(bailCase, caseReference))
             .screenFlow(getScreenFlowJson())
             .vocabulary(Collections.emptyList())
             .hearingChannels(bailCaseDataMapper.getHearingChannels(bailCase))
@@ -295,7 +296,11 @@ public class ServiceHearingValuesProvider {
     }
 
     private List<PartyDetailsModel> getPartyDetails(AsylumCase asylumCase) {
-        return partyDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper);
+        return partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper);
+    }
+
+    private List<PartyDetailsModel> getPartyDetails(BailCase bailCase) {
+        return partyDetailsMapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper);
     }
 
     public int getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {
