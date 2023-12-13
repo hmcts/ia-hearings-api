@@ -166,10 +166,10 @@ public enum AsylumCaseFieldDefinition {
         "relistCaseImmediately", new TypeReference<YesOrNo>(){}),
     UPDATE_HMC_REQUEST_SUCCESS(
         "updateHmcRequestSuccess", new TypeReference<YesOrNo>() {}),
-    HEARING_CANCELLATION_REASON(
-        "hearingCancellationReason", new TypeReference<String>(){}),
-    HEARING_RELISTED_UPDATE_REASON(
-        "hearingRelistedUpdateReason", new TypeReference<String>(){}),
+    HEARING_REASON_TO_CANCEL(
+        "hearingReasonToCancel", new TypeReference<String>(){}),
+    HEARING_REASON_TO_UPDATE(
+        "hearingReasonToUpdate", new TypeReference<String>(){}),
     DEPORTATION_ORDER_OPTIONS(
         "deportationOrderOptions", new TypeReference<YesOrNo>(){}),
     APPEAL_TYPE(

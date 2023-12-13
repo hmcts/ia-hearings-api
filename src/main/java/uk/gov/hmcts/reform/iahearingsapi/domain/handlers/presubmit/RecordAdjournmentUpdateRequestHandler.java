@@ -20,8 +20,8 @@ import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADJOURNMENT_DETAILS_HEARING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CANCELLATION_REASON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_RELISTED_UPDATE_REASON;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_REASON_TO_CANCEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_REASON_TO_UPDATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CANCEL_HEARINGS_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE_FIXED;
@@ -90,7 +90,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
     }
 
     private void deleteHearing(AsylumCase asylumCase, String hearingId) {
-        String cancellationReason = asylumCase.read(HEARING_CANCELLATION_REASON, String.class)
+        String cancellationReason = asylumCase.read(HEARING_REASON_TO_CANCEL, String.class)
             .orElseThrow(() -> new IllegalStateException("Hearing cancellation reason is not present"));
 
         YesOrNo manualCancelHearingRequired = NO;
@@ -106,7 +106,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
 
     private void updateHearing(AsylumCase asylumCase, String hearingId) {
         YesOrNo updateRequestSuccess = YES;
-        String cancellationReason = asylumCase.read(HEARING_RELISTED_UPDATE_REASON, String.class)
+        String cancellationReason = asylumCase.read(HEARING_REASON_TO_UPDATE, String.class)
             .orElseThrow(() -> new IllegalStateException("Hearing relisted cancellation reason is not present"));
         String nextHearingDate = asylumCase.read(NEXT_HEARING_DATE, String.class)
             .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE + "  is not present"));
