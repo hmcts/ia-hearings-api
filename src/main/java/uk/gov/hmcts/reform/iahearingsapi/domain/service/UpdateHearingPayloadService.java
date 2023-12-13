@@ -5,11 +5,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -138,11 +136,7 @@ public class UpdateHearingPayloadService {
                                                    HearingGetResponse persistedHearing) {
         if (!firstAvailable) {
             if (hearingWindowModel == null) {
-                HearingWindowModel persistedHearingWindowModel = persistedHearing
-                    .getHearingDetails().getHearingWindow();
-                if (persistedHearingWindowModel != null) {
-                    return persistedHearingWindowModel.getHearingWindowModel();
-                }
+                returnValidHearingWindow(persistedHearing.getHearingDetails().getHearingWindow());
             } else {
                 return hearingWindowModel;
             }
@@ -150,6 +144,14 @@ public class UpdateHearingPayloadService {
         return null;
     }
 
+    private HearingWindowModel returnValidHearingWindow(HearingWindowModel hearingWindowModel) {
+        if (hearingWindowModel != null) {
+            if (!hearingWindowModel.allNull()) {
+                return hearingWindowModel;
+            }
+        }
+        return null;
+    }
 
     private HearingDetails buildHearingDetails(AsylumCase asylumCase, HearingDetails hearingDetails,
                                                HearingDetails updatedHearingsDetails) {
