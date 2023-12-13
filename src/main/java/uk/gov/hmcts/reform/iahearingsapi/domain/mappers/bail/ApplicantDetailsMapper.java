@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
@@ -26,7 +27,7 @@ public class ApplicantDetailsMapper {
                 .firstName(bailCaseDataMapper.getStringValueByDefinition(bailCase, APPLICANT_GIVEN_NAMES))
                 .lastName(bailCaseDataMapper.getStringValueByDefinition(bailCase, APPLICANT_FAMILY_NAME))
                 .preferredHearingChannel(bailCaseDataMapper.getHearingChannel(bailCase))
-                .custodyStatus("D")
+                .custodyStatus(CustodyStatus.IN_DETENTION.getValue())
                 .vulnerableFlag(flagsToServiceHearingValuesMapper.getVulnerableFlag(bailCase))
                 .vulnerabilityDetails(flagsToServiceHearingValuesMapper.getVulnerableDetails(bailCase))
                 .build();
