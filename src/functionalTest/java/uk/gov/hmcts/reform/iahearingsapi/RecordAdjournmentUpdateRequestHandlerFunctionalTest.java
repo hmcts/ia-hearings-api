@@ -51,7 +51,7 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
         AsylumCase asylumCase = result.getCaseData();
         asylumCase.write(RELIST_CASE_IMMEDIATELY, "No");
         asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(HEARING_ID));
-        asylumCase.write(HEARING_CANCELLATION_REASON, "reclassified");
+        asylumCase.write(HEARING_CANCELLATION_REASON, new DynamicList("reclassified"));
         asylumCase.write(NEXT_HEARING_DATE, "2023-11-28T09:45:00.000");
 
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
@@ -87,7 +87,7 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
         AsylumCase asylumCase = result.getCaseData();
         asylumCase.write(RELIST_CASE_IMMEDIATELY, "Yes");
         asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(HEARING_ID));
-        asylumCase.write(HEARING_RELISTED_UPDATE_REASON, "reclassified");
+        asylumCase.write(HEARING_RELISTED_UPDATE_REASON, new DynamicList("reclassified"));
         asylumCase.write(NEXT_HEARING_DATE, "2023-11-28T09:45:00.000");
 
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
