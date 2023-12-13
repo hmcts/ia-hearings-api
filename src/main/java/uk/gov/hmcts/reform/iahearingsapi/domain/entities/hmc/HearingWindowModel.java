@@ -15,11 +15,11 @@ public class HearingWindowModel {
     private String dateRangeEnd;
     private String firstDateTimeMustBe;
 
-    public HearingWindowModel getHearingWindowModel() {
+    public boolean allNull() {
         if (Stream.of(dateRangeStart, dateRangeEnd, firstDateTimeMustBe).anyMatch(Objects::nonNull)) {
-            return this;
+            return false;
         }
-        return null;
+        return true;
     }
 
 }

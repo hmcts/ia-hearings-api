@@ -138,11 +138,7 @@ public class UpdateHearingPayloadService {
                                                    HearingGetResponse persistedHearing) {
         if (!firstAvailable) {
             if (hearingWindowModel == null) {
-                HearingWindowModel persistedHearingWindowModel = persistedHearing
-                    .getHearingDetails().getHearingWindow();
-                if (persistedHearingWindowModel != null) {
-                    return persistedHearingWindowModel.getHearingWindowModel();
-                }
+                returnValidHearingWindow(persistedHearing.getHearingDetails().getHearingWindow());
             } else {
                 return hearingWindowModel;
             }
@@ -150,6 +146,14 @@ public class UpdateHearingPayloadService {
         return null;
     }
 
+    private HearingWindowModel returnValidHearingWindow(HearingWindowModel hearingWindowModel) {
+        if (hearingWindowModel != null) {
+            if (!hearingWindowModel.allNull()) {
+                return hearingWindowModel;
+            }
+        }
+        return null;
+    }
 
     private HearingDetails buildHearingDetails(AsylumCase asylumCase, HearingDetails hearingDetails,
                                                HearingDetails updatedHearingsDetails) {
