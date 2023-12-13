@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum CustodyStatus {
 
-    IN_CUSTODY("In custody"),
-    IN_DETENTION("In detention");
+    IN_CUSTODY("C"),
+    IN_DETENTION("D");
 
     @JsonValue
     private final String value;

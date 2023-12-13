@@ -131,7 +131,7 @@ class ServiceHearingValuesProviderTest {
     private String caseCategoriesValue = "BFA1-TST";
     private final String serviceId = "BFA1";
     private final String bailServiceId = "BFA1-BLS";
-    private final String hearingType = "Bail";
+    private final String hearingType = "BFA1-BAI";
 
     @BeforeEach
     void setup() {

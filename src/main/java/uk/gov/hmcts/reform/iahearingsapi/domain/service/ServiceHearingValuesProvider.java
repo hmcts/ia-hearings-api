@@ -52,6 +52,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
@@ -174,7 +175,6 @@ public class ServiceHearingValuesProvider {
                 "case name HMCTS internal case name is a required field"));
 
         String listCaseHearingLength = "60";
-        String hearingType = "Bail";
 
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
@@ -187,7 +187,7 @@ public class ServiceHearingValuesProvider {
             .autoListFlag(false)
             .caseSlaStartDate(bailCaseDataMapper.getCaseSlaStartDate(bailCase))
             .duration(Integer.parseInt(listCaseHearingLength))
-            .hearingType(hearingType)
+            .hearingType(HearingType.BAIL.getKey())
             .hearingWindow(bailCaseDataMapper
                                .getHearingWindowModel())
             .hearingPriorityType(PriorityType.STANDARD)

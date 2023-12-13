@@ -52,11 +52,11 @@ class AppellantDetailsMapperTest {
 
         when(caseFlagsMapper.getVulnerableDetails(asylumCase)).thenReturn("vulnerability details");
         when(caseFlagsMapper.getVulnerableFlag(asylumCase)).thenReturn(true);
-        when(caseFlagsMapper.getCustodyStatus(asylumCase)).thenReturn("In detention");
+        when(caseFlagsMapper.getCustodyStatus(asylumCase)).thenReturn("D");
         when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn("hearingChannel");
 
         IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()
-            .custodyStatus("In detention")
+            .custodyStatus("D")
             .vulnerabilityDetails("vulnerability details")
             .vulnerableFlag(true)
             .hearingChannelEmail(Collections.emptyList())
