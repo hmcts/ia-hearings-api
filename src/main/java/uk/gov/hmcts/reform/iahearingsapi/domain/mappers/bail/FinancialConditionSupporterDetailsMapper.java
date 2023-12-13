@@ -2,10 +2,12 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
@@ -39,7 +41,10 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.SUPPORTER_GIVEN_NAMES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.SUPPORTER_MOBILE_NUMBER_1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.SUPPORTER_TELEPHONE_NUMBER_1;
-
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.NOT_REQUESTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper.appendBookingStatus;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.InterpreterLanguagesUtils.FCS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUSES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.InterpreterLanguagesUtils.FCS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUSES;
 
 @Component
 @AllArgsConstructor
@@ -123,6 +128,8 @@ public class FinancialConditionSupporterDetailsMapper {
                 languageAndAdjustmentsMapper.processBailPartyCaseFlags(bailCase, fcsPartyDetailsModel);
 
                 fcsDetailsList.add(fcsPartyDetailsModel);
+
+                appendFcsBookingStatus(bailCase, fcsPartyDetailsModel, i);
             }
             i++;
         }
@@ -141,4 +148,22 @@ public class FinancialConditionSupporterDetailsMapper {
         }
         return phoneNumber;
     }
+
+    private void appendFcsBookingStatus(BailCase bailCase,
+                                        PartyDetailsModel fcsPartyDetailsModel,
+                                        int index) {
+
+        Optional<InterpreterBookingStatus> spokenBookingStatus = bailCase
+            .read(FCS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUSES.get(index), InterpreterBookingStatus.class)
+            .filter(interpreterBookingStatus -> !interpreterBookingStatus.equals(NOT_REQUESTED));
+
+        Optional<InterpreterBookingStatus> signBookingStatus = bailCase
+            .read(FCS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUSES.get(index), InterpreterBookingStatus.class)
+            .filter(interpreterBookingStatus -> !interpreterBookingStatus.equals(NOT_REQUESTED));
+
+        appendBookingStatus(spokenBookingStatus, signBookingStatus, fcsPartyDetailsModel);
+    }
+
+
+
 }

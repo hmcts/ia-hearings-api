@@ -106,7 +106,27 @@ public enum BailCaseFieldDefinition {
     SUPPORTER_4_MOBILE_NUMBER_1(
         "supporter4MobileNumber1", new TypeReference<String>(){}),
     SUPPORTER_4_EMAIL_ADDRESS_1(
-        "supporter4EmailAddress1", new TypeReference<String>(){}),;
+        "supporter4EmailAddress1", new TypeReference<String>(){}),
+    APPLICANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS(
+        "applicantInterpreterSpokenLanguageBookingStatus", new TypeReference<InterpreterBookingStatus>(){}),
+    APPLICANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS(
+        "applicantInterpreterSignLanguageBookingStatus", new TypeReference<InterpreterBookingStatus>(){}),
+    FCS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS_1(
+        "fcsInterpreterSpokenLanguageBookingStatus1", new TypeReference<InterpreterBookingStatus>(){}),
+    FCS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS_2(
+        "fcsInterpreterSpokenLanguageBookingStatus2", new TypeReference<InterpreterBookingStatus>(){}),
+    FCS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS_3(
+        "fcsInterpreterSpokenLanguageBookingStatus3", new TypeReference<InterpreterBookingStatus>(){}),
+    FCS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS_4(
+        "fcsInterpreterSpokenLanguageBookingStatus4", new TypeReference<InterpreterBookingStatus>(){}),
+    FCS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS_1(
+        "fcsInterpreterSignLanguageBookingStatus1", new TypeReference<InterpreterBookingStatus>(){}),
+    FCS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS_2(
+        "fcsInterpreterSignLanguageBookingStatus2", new TypeReference<InterpreterBookingStatus>(){}),
+    FCS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS_3(
+        "fcsInterpreterSignLanguageBookingStatus3", new TypeReference<InterpreterBookingStatus>(){}),
+    FCS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS_4(
+        "fcsInterpreterSignLanguageBookingStatus4", new TypeReference<InterpreterBookingStatus>(){}),;
 
     private final String value;
     private final TypeReference typeReference;
