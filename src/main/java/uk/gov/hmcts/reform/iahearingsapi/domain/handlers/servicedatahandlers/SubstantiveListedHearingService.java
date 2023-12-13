@@ -64,7 +64,7 @@ public class SubstantiveListedHearingService {
 
         asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
         asylumCase.write(LIST_CASE_HEARING_DATE, formatHearingDateTime(
-            getHearingDatetime(serviceData, hearingChannels, hearingVenueId)));
+            getHearingDatetime(serviceData, hearingVenueId)));
         asylumCase.write(LIST_CASE_HEARING_LENGTH,
                          String.valueOf(getHearingDuration(serviceData)));
         asylumCase.write(LIST_CASE_HEARING_CENTRE,
@@ -89,12 +89,12 @@ public class SubstantiveListedHearingService {
     }
 
     public LocalDateTime getHearingDatetime(
-        ServiceData serviceData, List<HearingChannel> hearingChannels, String hearingVenueId) {
+        ServiceData serviceData, String hearingVenueId) {
         LocalDateTime hearingDateTime = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
             .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
 
         return HandlerUtils.getHearingDateAndTime(
-            hearingDateTime.truncatedTo(ChronoUnit.MINUTES), hearingChannels, hearingVenueId);
+            hearingDateTime.truncatedTo(ChronoUnit.MINUTES), hearingVenueId);
     }
 
     public int getHearingDuration(ServiceData serviceData) {
