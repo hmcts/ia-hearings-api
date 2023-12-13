@@ -36,6 +36,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.REFUSED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.DECISION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -199,11 +201,17 @@ class CaseDataToServiceHearingValuesMapperTest {
         when(hearingServiceDateProvider
                  .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 11))
             .thenReturn(expectedStartDate);
-        HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel();
+        HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel(LISTING);
 
         assertEquals(hearingWindowModel.getDateRangeStart(), expectedStartDate
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         assertNull(hearingWindowModel.getDateRangeEnd());
+    }
+
+    @Test
+    void getHearingWindowModel_should_return_null() {
+
+        assertNull(mapper.getHearingWindowModel(DECISION));
     }
 
     @Test

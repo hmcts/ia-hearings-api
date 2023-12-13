@@ -126,7 +126,7 @@ public class ServiceHearingValuesProvider {
             .caseSlaStartDate(caseDataMapper.getCaseSlaStartDate())
             .duration(caseDataMapper.getHearingDuration(asylumCase))
             .hearingWindow(caseDataMapper
-                .getHearingWindowModel())
+                .getHearingWindowModel(caseDetails.getState()))
             .hearingPriorityType(caseFlagsMapper.getHearingPriorityType(asylumCase))
             .numberOfPhysicalAttendees(getNumberOfPhysicalAttendees(partyDetails))
             .hearingLocations(Collections.emptyList())

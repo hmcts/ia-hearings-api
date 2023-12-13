@@ -155,7 +155,7 @@ class ServiceHearingValuesProviderTest {
 
         when(caseDataMapper.getHearingChannels(asylumCase)).thenReturn(hearingChannels);
         when(caseDataMapper.getExternalCaseReference(asylumCase)).thenReturn(homeOfficeRef);
-        when(caseDataMapper.getHearingWindowModel()).thenReturn(hearingWindowModel);
+        when(caseDataMapper.getHearingWindowModel(State.LISTING)).thenReturn(hearingWindowModel);
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase))
             .thenReturn(BaseLocation.BIRMINGHAM.getId());
         when(caseDataMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);

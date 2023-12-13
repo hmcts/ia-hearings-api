@@ -39,6 +39,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -92,14 +93,19 @@ public class CaseDataToServiceHearingValuesMapper {
             .orElseGet(() -> asylumCase.read(GWF_REFERENCE_NUMBER, String.class).orElse(null));
     }
 
-    public HearingWindowModel getHearingWindowModel() {
-        ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
-        String dateRangeStart = hearingServiceDateProvider
-            .calculateDueDate(now, HEARING_WINDOW_INTERVAL_DEFAULT)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        return HearingWindowModel.builder()
-            .dateRangeStart(dateRangeStart)
-            .build();
+    public HearingWindowModel getHearingWindowModel(State appealStatus) {
+
+        if (appealStatus == State.LISTING) {
+            ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
+            String dateRangeStart = hearingServiceDateProvider
+                .calculateDueDate(now, HEARING_WINDOW_INTERVAL_DEFAULT)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            return HearingWindowModel.builder()
+                .dateRangeStart(dateRangeStart)
+                .build();
+        } else {
+            return null;
+        }
     }
 
     public String getCaseSlaStartDate() {
