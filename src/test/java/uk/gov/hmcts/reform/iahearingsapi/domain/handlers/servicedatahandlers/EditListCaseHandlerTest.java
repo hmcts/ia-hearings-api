@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -167,6 +168,26 @@ class EditListCaseHandlerTest {
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
         verifyCmrIsTriggered(hearingType);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = HearingType.class, names = {"SUBSTANTIVE", "CASE_MANAGEMENT_REVIEW"})
+    void should_not_trigger_events_when_hearing_time_changes(HearingType hearingType) {
+        if (hearingType.equals(CASE_MANAGEMENT_REVIEW)) {
+            when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
+                .thenReturn(Optional.of(CASE_MANAGEMENT_REVIEW.getKey()));
+        }
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HearingCentre.GLASGOW.getEpimsId()));
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(NEXT_HEARING_DATE.plusHours(1)));
+
+        editListCaseHandler.handle(serviceData);
+
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
 
