@@ -162,7 +162,7 @@ public class SubstantiveListedHearingService {
                          + "- whether removal directions are in place\n"
                          + "- whether the applicant’s release is subject to licence, and if so the relevant details\n"
                          + "- any other relevant information\n\n"
-                         + "# Next steps\n"
+                         + "Next steps\n"
                          + "Sign in to your account to upload the Bail Summary.\n"
                          + "You must complete this direction by: " + dueDate
         );

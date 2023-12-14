@@ -46,7 +46,7 @@ public class BailListCaseHandler extends SubstantiveListedHearingService impleme
             coreCaseDataService.startCaseEvent(SEND_BAIL_DIRECTION, caseId, CASE_TYPE_BAIL);
         BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
         updateListCaseSendHomeOfficeDirection(serviceData, bailCase);
-        log.info("Sending `{}` event for  Case ID `{}`", LIST_CASE, caseId);
+        log.info("Sending `{}` event for  Case ID `{}`", SEND_BAIL_DIRECTION, caseId);
         coreCaseDataService.triggerBailSubmitEvent(SEND_BAIL_DIRECTION, caseId, startEventResponse, bailCase);
 
         return new ServiceDataResponse<>(serviceData);
