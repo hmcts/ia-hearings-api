@@ -13,7 +13,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SEND_BAIL_DIRECTION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SEND_UPLOAD_BAIL_SUMMARY_DIRECTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 @Slf4j
@@ -43,11 +43,11 @@ public class BailListCaseHandler extends SubstantiveListedHearingService impleme
         String caseId = getCaseReference(serviceData);
 
         StartEventResponse startEventResponse =
-            coreCaseDataService.startCaseEvent(SEND_BAIL_DIRECTION, caseId, CASE_TYPE_BAIL);
+            coreCaseDataService.startCaseEvent(SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, caseId, CASE_TYPE_BAIL);
         BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
         updateListCaseSendHomeOfficeDirection(serviceData, bailCase);
-        log.info("Sending `{}` event for  Case ID `{}`", SEND_BAIL_DIRECTION, caseId);
-        coreCaseDataService.triggerBailSubmitEvent(SEND_BAIL_DIRECTION, caseId, startEventResponse, bailCase);
+        log.info("Sending `{}` event for  Case ID `{}`", SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, caseId);
+        coreCaseDataService.triggerBailSubmitEvent(SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, caseId, startEventResponse, bailCase);
 
         return new ServiceDataResponse<>(serviceData);
     }

@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.DATE_OF_COMPLIANCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.SEND_DIRECTION_DESCRIPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.SEND_DIRECTION_LIST;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SEND_BAIL_DIRECTION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SEND_UPLOAD_BAIL_SUMMARY_DIRECTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 
@@ -120,7 +120,7 @@ class BailListCaseHandlerTest {
     @Test
     void should_trigger_case_listing() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(SEND_BAIL_DIRECTION, CASE_REF, "Bail")).thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, CASE_REF, "Bail")).thenReturn(startEventResponse);
         when(coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse)).thenReturn(bailCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.VID)));
@@ -144,6 +144,6 @@ class BailListCaseHandlerTest {
                                  LocalDateTime.of(2023, 9, 28, 9, 45)
                                      .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
-        verify(coreCaseDataService).triggerBailSubmitEvent(SEND_BAIL_DIRECTION, CASE_REF, startEventResponse, bailCase);
+        verify(coreCaseDataService).triggerBailSubmitEvent(SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, CASE_REF, startEventResponse, bailCase);
     }
 }
