@@ -338,6 +338,7 @@ class ServiceHearingValuesProviderTest {
             .caseDeepLink(baseUrl + caseDeepLink)
             .caserestrictedFlag(false)
             .externalCaseReference(homeOfficeRef)
+            .caseManagementLocationCode(BaseLocation.MANCHESTER.getId())
             .caseSlaStartDate(dateStr)
             .autoListFlag(false)
             .hearingType(hearingType)
