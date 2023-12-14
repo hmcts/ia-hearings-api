@@ -47,6 +47,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
@@ -184,6 +185,7 @@ public class ServiceHearingValuesProvider {
             .caseCategories(getBailCaseCategoriesValue())
             .caseDeepLink(baseUrl.concat(caseDataMapper.getCaseDeepLink(caseReference)))
             .externalCaseReference(bailCaseDataMapper.getExternalCaseReference(bailCase))
+            .caseManagementLocationCode(BaseLocation.MANCHESTER.getId())
             .autoListFlag(false)
             .caseSlaStartDate(bailCaseDataMapper.getCaseSlaStartDate(bailCase))
             .duration(Integer.parseInt(listCaseHearingLength))
