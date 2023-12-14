@@ -5,14 +5,12 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_C
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
@@ -52,26 +50,14 @@ public class ListCaseHandler extends SubstantiveListedHearingService implements 
         }
 
         String caseId = getCaseReference(serviceData);
-        String caseType = coreCaseDataService.getCaseType(caseId);
 
-        StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(LIST_CASE, caseId, caseType);
+        StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(LIST_CASE, caseId, CASE_TYPE_ASYLUM);
+        AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
-        switch (caseType) {
-            case CASE_TYPE_ASYLUM:
-                AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
-                updateListCaseHearingDetails(serviceData, asylumCase);
-                log.info("Sending `{}` event for  Case ID `{}`", LIST_CASE, caseId);
-                coreCaseDataService.triggerSubmitEvent(LIST_CASE, caseId, startEventResponse, asylumCase);
-                break;
-            case CASE_TYPE_BAIL:
-                BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
-                updateListCaseHearingDetailsBail(serviceData, bailCase);
-                log.info("Sending `{}` event for  Case ID `{}`", LIST_CASE, caseId);
-                coreCaseDataService.triggerBailSubmitEvent(LIST_CASE, caseId, startEventResponse, bailCase);
-                break;
-            default:
-                throw new IllegalStateException("Unknown case type");
-        }
+        updateListCaseHearingDetails(serviceData, asylumCase);
+
+        log.info("Sending `{}` event for  Case ID `{}`", LIST_CASE, caseId);
+        coreCaseDataService.triggerSubmitEvent(LIST_CASE, caseId, startEventResponse, asylumCase);
 
         return new ServiceDataResponse<>(serviceData);
     }

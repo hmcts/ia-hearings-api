@@ -84,7 +84,8 @@ class HearingExceptionHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class))
             .thenReturn(Optional.of(CASE_REF));
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
-        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, CASE_TYPE_ASYLUM)).thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
 
         hearingExceptionHandler.handle(serviceData);
 

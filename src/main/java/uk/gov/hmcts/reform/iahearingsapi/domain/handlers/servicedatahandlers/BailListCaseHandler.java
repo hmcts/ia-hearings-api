@@ -1,26 +1,25 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
-import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_CMR_LISTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+
+import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SEND_BAIL_DIRECTION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ListCmrHandler extends SubstantiveListedHearingService implements ServiceDataHandler<ServiceData> {
+public class BailListCaseHandler extends SubstantiveListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
 
@@ -29,11 +28,11 @@ public class ListCmrHandler extends SubstantiveListedHearingService implements S
         return DispatchPriority.EARLY;
     }
 
-    public boolean canHandle(ServiceData serviceData) {
+    public boolean canHandle(ServiceData serviceData
+    ) {
         requireNonNull(serviceData, "serviceData must not be null");
 
-        return isCaseManagementReview(serviceData)
-            && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED);
+        return isBailListedHearing(serviceData);
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
@@ -42,14 +41,15 @@ public class ListCmrHandler extends SubstantiveListedHearingService implements S
         }
 
         String caseId = getCaseReference(serviceData);
+
         StartEventResponse startEventResponse =
-            coreCaseDataService.startCaseEvent(TRIGGER_CMR_LISTED, caseId, CASE_TYPE_ASYLUM);
-        AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
-
-
-        log.info("Sending `{}` event for  Case ID `{}`", TRIGGER_CMR_LISTED, caseId);
-        coreCaseDataService.triggerSubmitEvent(TRIGGER_CMR_LISTED, caseId, startEventResponse, asylumCase);
+            coreCaseDataService.startCaseEvent(SEND_BAIL_DIRECTION, caseId, CASE_TYPE_BAIL);
+        BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
+        updateListCaseSendHomeOfficeDirection(serviceData, bailCase);
+        log.info("Sending `{}` event for  Case ID `{}`", LIST_CASE, caseId);
+        coreCaseDataService.triggerBailSubmitEvent(SEND_BAIL_DIRECTION, caseId, startEventResponse, bailCase);
 
         return new ServiceDataResponse<>(serviceData);
     }
 }
+

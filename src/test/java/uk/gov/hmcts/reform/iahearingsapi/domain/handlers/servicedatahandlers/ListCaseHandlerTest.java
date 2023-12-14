@@ -15,7 +15,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,8 +23,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -139,11 +136,10 @@ class ListCaseHandlerTest {
         assertThrows(IllegalStateException.class, () -> listCaseHandler.handle(serviceData));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"Asylum", "Bail"})
-    void should_trigger_case_listing(String caseType) {
+    @Test
+    void should_trigger_case_listing() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REF, CASE_TYPE_ASYLUM)).thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REF, "Asylum")).thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
@@ -165,9 +161,10 @@ class ListCaseHandlerTest {
         verify(asylumCase).write(HEARING_CHANNEL, new DynamicList(new Value(HearingChannel.INTER.name(),
                                                                             HearingChannel.INTER.getLabel()),
                                                                   List.of(new Value(HearingChannel.INTER.name(),
-                                                                            HearingChannel.INTER.getLabel()))));
+                                                                                    HearingChannel.INTER.getLabel()))));
 
         verify(coreCaseDataService).triggerSubmitEvent(LIST_CASE, CASE_REF,startEventResponse, asylumCase);
     }
 }
+
 

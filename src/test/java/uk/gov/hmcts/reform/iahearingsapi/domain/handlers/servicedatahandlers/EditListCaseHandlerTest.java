@@ -324,7 +324,7 @@ class EditListCaseHandlerTest {
     private void verifyCmrIsTriggered(HearingType hearingType) {
         if (hearingType.equals(CASE_MANAGEMENT_REVIEW)) {
             verify(coreCaseDataService, times(2)).startCaseEvent(
-                EDIT_CASE_LISTING, CASE_REFERENCE);
+                EDIT_CASE_LISTING, CASE_REFERENCE, "Asylum");
             verify(coreCaseDataService).triggerSubmitEvent(
                 TRIGGER_CMR_UPDATED, CASE_REFERENCE, startEventResponse, asylumCase);
         }
