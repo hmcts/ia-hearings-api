@@ -74,6 +74,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServ
 public class ServiceHearingValuesProvider {
 
     private static final String SCREEN_FLOW = "screenFlow";
+    private static final String LOCATION_OF_SCREEN_FLOW_FILE_APPEALS = "classpath:appealsScreenFlow.json";
+    private static final String LOCATION_OF_SCREEN_FLOW_FILE_BAILS = "classpath:bailsScreenFlow.json";
+
     private static final String IN_PERSON = "INTER";
     private static final String TRIBUNAL_JUDGE = "84";
 
@@ -158,7 +161,7 @@ public class ServiceHearingValuesProvider {
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
             .caseFlags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference))
-            .screenFlow(getScreenFlowJson())
+            .screenFlow(getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_APPEALS))
             .vocabulary(Collections.emptyList())
             .hearingChannels(caseDataMapper
                 .getHearingChannels(asylumCase))
@@ -212,19 +215,19 @@ public class ServiceHearingValuesProvider {
             .hearingIsLinkedFlag(false)
             .parties(getPartyDetails(bailCase))
             .caseFlags(bailCaseFlagsMapper.getCaseFlags(bailCase, caseReference))
-            .screenFlow(getScreenFlowJson())
+            .screenFlow(getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_BAILS))
             .vocabulary(Collections.emptyList())
             .hearingChannels(bailCaseDataMapper.getHearingChannels(bailCase))
             .hearingLevelParticipantAttendance(Collections.emptyList())
             .build();
     }
 
-    public JSONArray getScreenFlowJson() {
+    public JSONArray getScreenFlowJson(String locationOfScreenFlowJsonFile) {
 
         JSONObject screenFlowJson = null;
         JSONArray screenFlowValue = null;
         JSONParser parser = new JSONParser(DEFAULT_PERMISSIVE_MODE);
-        Resource resource = resourceLoader.getResource("classpath:screenFlowNoPanel.json");
+        Resource resource = resourceLoader.getResource(locationOfScreenFlowJsonFile);
 
         try (InputStream inputStream = resource.getInputStream()) {
             screenFlowJson =

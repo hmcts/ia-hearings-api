@@ -69,6 +69,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServ
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ServiceHearingValuesProviderTest {
 
+    private static final String LOCATION_OF_SCREEN_FLOW_FILE_TEST = "classpath:screenFlowTest.json";
     private static final String TRIBUNAL_JUDGE = "84";
     private final String hmctsCaseNameInternal = "Eke Uke";
     private final String caseNameHmctsInternal = "John Doe";
@@ -322,7 +323,7 @@ class ServiceHearingValuesProviderTest {
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
             .caseFlags(caseflags)
-            .screenFlow(serviceHearingValuesProvider.getScreenFlowJson())
+            .screenFlow(serviceHearingValuesProvider.getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_TEST))
             .vocabulary(Collections.emptyList())
             .hearingChannels(hearingChannels)
             .hearingLevelParticipantAttendance(Collections.emptyList())
@@ -365,7 +366,7 @@ class ServiceHearingValuesProviderTest {
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
             .caseFlags(caseflags)
-            .screenFlow(serviceHearingValuesProvider.getScreenFlowJson())
+            .screenFlow(serviceHearingValuesProvider.getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_TEST))
             .vocabulary(Collections.emptyList())
             .hearingChannels(bailHearingChannels)
             .hearingLevelParticipantAttendance(Collections.emptyList())
