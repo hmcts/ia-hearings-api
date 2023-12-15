@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_APPEAL_SUITABLE_TO_FLOAT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_NAME_HMCTS_INTERNAL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CURRENT_CASE_STATE_VISIBLE_TO_ADMIN_OFFICER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType.RP;
@@ -82,6 +83,7 @@ class ServiceHearingValuesProviderTest {
     private final String dateRangeEnd = "2023-08-15";
     private final String caseDeepLink = "/cases/case-details/1234567891234567#Overview";
     private final String listingComments = "Customer behaviour: unfriendly";
+    private final String bailState = "applicationSubmitted";
     private final HearingWindowModel hearingWindowModel = HearingWindowModel.builder()
         .dateRangeStart(dateStr)
         .dateRangeEnd(dateRangeEnd)
@@ -190,7 +192,7 @@ class ServiceHearingValuesProviderTest {
         when(bailCaseDataMapper.getHearingChannels(bailCase)).thenReturn(bailHearingChannels);
         when(bailCaseDataMapper.getExternalCaseReference(bailCase)).thenReturn(homeOfficeRef);
         when(bailCaseDataMapper.getCaseSlaStartDate(bailCase)).thenReturn(dateStr);
-        when(bailCaseDataMapper.getHearingWindowModel()).thenReturn(hearingWindowModel);
+        when(bailCaseDataMapper.getHearingWindowModel(bailState)).thenReturn(hearingWindowModel);
         when(bailCaseDataMapper.getListingComments(bailCase)).thenReturn(listingComments);
         when(bailCaseFlagsMapper.getPublicCaseName(bailCase, caseReference)).thenReturn(caseReference);
         when(bailCaseFlagsMapper.getHearingPriorityType(bailCase)).thenReturn(PriorityType.STANDARD);
@@ -208,6 +210,8 @@ class ServiceHearingValuesProviderTest {
             .thenReturn(partyDetails);
 
         when(bailCase.read(CASE_NAME_HMCTS_INTERNAL, String.class)).thenReturn(Optional.of(caseNameHmctsInternal));
+        when(bailCase.read(CURRENT_CASE_STATE_VISIBLE_TO_ADMIN_OFFICER, String.class))
+            .thenReturn(Optional.of(bailState));
 
         when(partyDetailsMapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper))
             .thenReturn(partyDetails);

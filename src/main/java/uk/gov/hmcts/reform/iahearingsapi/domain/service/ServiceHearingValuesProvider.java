@@ -6,6 +6,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DEPORTATION_ORDER_OPTIONS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_APPEAL_SUITABLE_TO_FLOAT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_NAME_HMCTS_INTERNAL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CURRENT_CASE_STATE_VISIBLE_TO_ADMIN_OFFICER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCD;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCF;
@@ -46,7 +48,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -162,7 +163,7 @@ public class ServiceHearingValuesProvider {
                .build())
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
-            .caseFlags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference.toString()))            
+            .caseFlags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference.toString()))
             .screenFlow(getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_APPEALS))
             .vocabulary(Collections.emptyList())
             .hearingChannels(caseDataMapper
@@ -176,11 +177,13 @@ public class ServiceHearingValuesProvider {
         requireNonNull(bailCase, "BailCase must not be null");
         log.info("Building hearing values for case with id {}", caseReference);
 
-        String hmctsInternalCaseName = bailCase.read(BailCaseFieldDefinition.CASE_NAME_HMCTS_INTERNAL, String.class)
+        String hmctsInternalCaseName = bailCase.read(CASE_NAME_HMCTS_INTERNAL, String.class)
             .orElseThrow(() -> new RequiredFieldMissingException(
                 "case name HMCTS internal case name is a required field"));
 
         String listCaseHearingLength = "60";
+        String bailState = bailCase.read(CURRENT_CASE_STATE_VISIBLE_TO_ADMIN_OFFICER, String.class)
+            .orElse("");
 
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
@@ -196,7 +199,7 @@ public class ServiceHearingValuesProvider {
             .duration(Integer.parseInt(listCaseHearingLength))
             .hearingType(HearingType.BAIL.getKey())
             .hearingWindow(bailCaseDataMapper
-                               .getHearingWindowModel())
+                               .getHearingWindowModel(bailState))
             .hearingPriorityType(bailCaseFlagsMapper.getHearingPriorityType(bailCase))
             .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
