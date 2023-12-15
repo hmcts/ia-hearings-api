@@ -257,8 +257,18 @@ public class CaseFlagsToServiceHearingValuesMapper {
                 .partyName(partyName)
                 .flagId(detail.getCaseFlagValue().getFlagCode())
                 .flagStatus(detail.getCaseFlagValue().getStatus())
-                .flagDescription(detail.getCaseFlagValue().getName())
+                .flagDescription(getFlagDescription(detail))
                 .build()).collect(Collectors.toList());
+    }
+
+    private static String getFlagDescription(CaseFlagDetail detail) {
+        String flagCode = detail.getCaseFlagValue().getFlagCode();
+        if (LANGUAGE_INTERPRETER.getFlagCode().equals(flagCode)
+            || SIGN_LANGUAGE_INTERPRETER.getFlagCode().equals(flagCode)) {
+            return detail.getCaseFlagValue().getSubTypeValue();
+        }
+
+        return detail.getCaseFlagValue().getFlagComment();
     }
 
     private boolean hasOneOrMoreActiveFlagsOfType(

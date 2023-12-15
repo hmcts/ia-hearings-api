@@ -12,19 +12,17 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.FINAL_BUNDLING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PRE_HEARING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.INTER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -73,7 +71,8 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
 
         String caseId = getCaseReference(serviceData);
 
-        StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, caseId);
+        StartEventResponse startEventResponse =
+            coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, caseId, CASE_TYPE_ASYLUM);
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
         sendEditListingEventIfHearingIsUpdated(
@@ -102,7 +101,7 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
             LIST_CASE_HEARING_DATE,
             String.class
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingDate can not be null")));
-        currentHearingDate = currentHearingDate.truncatedTo(ChronoUnit.SECONDS);
+
         final String currentVenueId = asylumCase.read(
             LIST_CASE_HEARING_CENTRE,
             HearingCentre.class
@@ -116,22 +115,15 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingLength can not be null"));
         boolean sendUpdate = false;
         final String nextHearingChannel = nextHearingChannelList.get(0).name();
-        nextHearingDate = nextHearingDate.truncatedTo(ChronoUnit.SECONDS);
 
         if (nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name())) {
             nextHearingVenueId = REMOTE_HEARING.getEpimsId();
         }
 
-        if (nextHearingChannel.equals(INTER.name())) {
-            nextHearingDate = StringUtils.equals(nextHearingVenueId, GLASGOW_EPIMMS_ID)
-                ? nextHearingDate.with(LocalTime.of(9, 45))
-                : nextHearingDate.with(LocalTime.of(10, 0));
-        }
-
-        if (!currentHearingDate.equals(nextHearingDate)) {
+        if (!(currentHearingDate.truncatedTo(ChronoUnit.DAYS)).equals(nextHearingDate.truncatedTo(ChronoUnit.DAYS))) {
             asylumCase.write(
                 LIST_CASE_HEARING_DATE,
-                HandlerUtils.getHearingDateAndTime(nextHearingDate, nextHearingChannelList, nextHearingVenueId)
+                HandlerUtils.getHearingDateAndTime(nextHearingDate, nextHearingVenueId)
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
             );
             sendUpdate = true;
@@ -162,7 +154,8 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
     private void triggerCmrUpdatedNotification(StartEventResponse startEventResponse, String caseId) {
         StartEventResponse startCmrEventResponse = coreCaseDataService.startCaseEvent(
             EDIT_CASE_LISTING,
-            caseId
+            caseId,
+            CASE_TYPE_ASYLUM
         );
         AsylumCase asylumCaseCmr = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
         log.info("Sending `{}` event for case ID `{}`", TRIGGER_CMR_UPDATED, caseId);

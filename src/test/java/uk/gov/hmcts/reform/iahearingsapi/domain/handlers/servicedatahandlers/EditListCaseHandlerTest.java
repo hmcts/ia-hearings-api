@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,6 +52,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPAR
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -169,6 +171,26 @@ class EditListCaseHandlerTest {
         verifyCmrIsTriggered(hearingType);
     }
 
+    @ParameterizedTest
+    @EnumSource(value = HearingType.class, names = {"SUBSTANTIVE", "CASE_MANAGEMENT_REVIEW"})
+    void should_not_trigger_events_when_hearing_time_changes(HearingType hearingType) {
+        if (hearingType.equals(CASE_MANAGEMENT_REVIEW)) {
+            when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
+                .thenReturn(Optional.of(CASE_MANAGEMENT_REVIEW.getKey()));
+        }
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HearingCentre.GLASGOW.getEpimsId()));
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(NEXT_HEARING_DATE.plusHours(1)));
+
+        editListCaseHandler.handle(serviceData);
+
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+    }
+
 
     @ParameterizedTest
     @EnumSource(value = HearingType.class, names = {"SUBSTANTIVE", "CASE_MANAGEMENT_REVIEW"})
@@ -250,7 +272,7 @@ class EditListCaseHandlerTest {
     }
 
     private void initializeServiceData() {
-        when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REFERENCE))
+        when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REFERENCE, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
         when(serviceData.read(CASE_REF, String.class))
             .thenReturn(Optional.of(CASE_REFERENCE));
@@ -302,7 +324,7 @@ class EditListCaseHandlerTest {
     private void verifyCmrIsTriggered(HearingType hearingType) {
         if (hearingType.equals(CASE_MANAGEMENT_REVIEW)) {
             verify(coreCaseDataService, times(2)).startCaseEvent(
-                EDIT_CASE_LISTING, CASE_REFERENCE);
+                EDIT_CASE_LISTING, CASE_REFERENCE, "Asylum");
             verify(coreCaseDataService).triggerSubmitEvent(
                 TRIGGER_CMR_UPDATED, CASE_REFERENCE, startEventResponse, asylumCase);
         }

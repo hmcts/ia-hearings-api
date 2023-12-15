@@ -126,7 +126,13 @@ public enum BailCaseFieldDefinition {
     FCS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS_3(
         "fcsInterpreterSignLanguageBookingStatus3", new TypeReference<InterpreterBookingStatus>(){}),
     FCS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS_4(
-        "fcsInterpreterSignLanguageBookingStatus4", new TypeReference<InterpreterBookingStatus>(){}),;
+        "fcsInterpreterSignLanguageBookingStatus4", new TypeReference<InterpreterBookingStatus>(){}),
+    SEND_DIRECTION_DESCRIPTION(
+        "sendDirectionDescription", new TypeReference<String>(){}),
+    SEND_DIRECTION_LIST(
+        "sendDirectionList", new TypeReference<String>(){}),
+    DATE_OF_COMPLIANCE(
+        "dateOfCompliance", new TypeReference<String>(){});
 
     private final String value;
     private final TypeReference typeReference;
