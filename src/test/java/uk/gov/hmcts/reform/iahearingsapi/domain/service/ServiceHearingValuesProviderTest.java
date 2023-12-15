@@ -10,7 +10,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_APPEAL_SUITABLE_TO_FLOAT;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_NAME_HMCTS_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
@@ -24,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
-import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +42,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
@@ -74,7 +74,6 @@ class ServiceHearingValuesProviderTest {
     private final String hmctsCaseNameInternal = "Eke Uke";
     private final String caseNameHmctsInternal = "John Doe";
     private final String listCaseHearingLength = "120";
-    private final String bailListCaseHearingLength = "60";
     private final String caseReference = "1234567891234567";
     private final String homeOfficeRef = "homeOfficeRef";
     private final String dateStr = "2023-08-01";
@@ -111,6 +110,8 @@ class ServiceHearingValuesProviderTest {
     @Mock
     private DateProvider hearingServiceDateProvider;
     @Mock
+    private CaseDetails<AsylumCase> caseDetails;
+    @Mock
     private AsylumCase asylumCase;
     @Mock
     private BailCase bailCase;
@@ -137,8 +138,8 @@ class ServiceHearingValuesProviderTest {
     @BeforeEach
     void setup() {
 
+        when(caseDetails.getCaseData()).thenReturn(asylumCase);
         when(asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)).thenReturn(Optional.of(hmctsCaseNameInternal));
-        when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of(listCaseHearingLength));
         when(hearingServiceDateProvider.now()).thenReturn(LocalDate.parse(dateStr));
         String startDate = "2023-08-01T10:46:48.962301+01:00[Europe/London]";
         ZonedDateTime zonedDateTimeFrom = ZonedDateTime.parse(startDate);
@@ -155,11 +156,12 @@ class ServiceHearingValuesProviderTest {
 
         when(caseDataMapper.getHearingChannels(asylumCase)).thenReturn(hearingChannels);
         when(caseDataMapper.getExternalCaseReference(asylumCase)).thenReturn(homeOfficeRef);
-        when(caseDataMapper.getHearingWindowModel()).thenReturn(hearingWindowModel);
+        when(caseDataMapper.getHearingWindowModel(State.LISTING)).thenReturn(hearingWindowModel);
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase))
             .thenReturn(BaseLocation.BIRMINGHAM.getId());
         when(caseDataMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);
         when(caseDataMapper.getCaseSlaStartDate()).thenReturn(dateStr);
+        when(caseDataMapper.getHearingDuration(asylumCase)).thenReturn(Integer.parseInt(listCaseHearingLength));
         when(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
             .thenReturn(caseReference);
         when(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);
@@ -227,17 +229,20 @@ class ServiceHearingValuesProviderTest {
     }
 
     @Test
-    void should_get_service_hearing_values() throws JSONException {
+    void should_get_service_hearing_values() {
 
+        when(caseDetails.getCaseData()).thenReturn(asylumCase);
+        when(caseDetails.getId()).thenReturn(Long.parseLong(caseReference));
+        when(caseDetails.getState()).thenReturn(State.LISTING);
         ServiceHearingValuesModel expected = buildTestValues();
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
-            .provideAsylumServiceHearingValues(asylumCase, caseReference);
+            .provideAsylumServiceHearingValues(caseDetails);
 
         assertEquals(expected, actual);
     }
 
     @Test
-    void should_get_bail_service_hearing_values() throws JSONException {
+    void should_get_bail_service_hearing_values() {
 
         ServiceHearingValuesModel expected = buildBailTestValues();
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
@@ -247,13 +252,16 @@ class ServiceHearingValuesProviderTest {
     }
 
     @Test
-    void should_get_service_hearing_values_with_facilities_when_s94B_is_enabled() throws JSONException {
+    void should_get_service_hearing_values_with_facilities_when_s94B_is_enabled() {
+        when(caseDetails.getCaseData()).thenReturn(asylumCase);
+        when(caseDetails.getId()).thenReturn(Long.parseLong(caseReference));
+        when(caseDetails.getState()).thenReturn(State.LISTING);
         when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
 
         ServiceHearingValuesModel expected = buildTestValues();
         expected.setFacilitiesRequired(List.of(IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString()));
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
-            .provideAsylumServiceHearingValues(asylumCase, caseReference);
+            .provideAsylumServiceHearingValues(caseDetails);
 
         assertEquals(expected, actual);
     }
@@ -264,23 +272,12 @@ class ServiceHearingValuesProviderTest {
         when(asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> serviceHearingValuesProvider
-            .provideAsylumServiceHearingValues(asylumCase, caseReference))
+            .provideAsylumServiceHearingValues(caseDetails))
             .hasMessage("HMCTS internal case name is a required field")
             .isExactlyInstanceOf(RequiredFieldMissingException.class);
     }
 
-    @Test
-    public void should_throw_exception_when_list_case_hearing_length_is_missing() {
-
-        when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> serviceHearingValuesProvider
-            .provideAsylumServiceHearingValues(asylumCase, caseReference))
-            .hasMessage("List case hearing length is a required field")
-            .isExactlyInstanceOf(RequiredFieldMissingException.class);
-    }
-
-    private ServiceHearingValuesModel buildTestValues() throws JSONException {
+    private ServiceHearingValuesModel buildTestValues() {
 
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
@@ -298,7 +295,7 @@ class ServiceHearingValuesProviderTest {
             .hearingWindow(hearingWindowModel)
             .duration(Integer.parseInt(listCaseHearingLength))
             .hearingPriorityType(PriorityType.STANDARD)
-            .numberOfPhysicalAttendees(1)
+            .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
             .hearingLocations(Collections.emptyList())
             .facilitiesRequired(Collections.emptyList())
@@ -331,8 +328,9 @@ class ServiceHearingValuesProviderTest {
             .build();
     }
 
-    private ServiceHearingValuesModel buildBailTestValues() throws JSONException {
+    private ServiceHearingValuesModel buildBailTestValues() {
 
+        String bailListCaseHearingLength = "60";
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
             .hmctsInternalCaseName(caseNameHmctsInternal)
@@ -377,27 +375,45 @@ class ServiceHearingValuesProviderTest {
     }
 
     @Test
-    void should_find_number_of_physical_attendees() {
+    void number_of_physical_attendees_should_be_0() {
+
+        assertEquals(0, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetails));
+    }
+
+    @Test
+    void number_of_physical_attendees_should_be_0_when_hearing_channel_is_on_the_papers() {
+
+        partyDetails.get(0).setIndividualDetails(IndividualDetailsModel.builder()
+                                                     .preferredHearingChannel("ONPPRS").build());
+        partyDetails.get(1).setIndividualDetails(IndividualDetailsModel.builder()
+                                                     .preferredHearingChannel("ONPPRS").build());
+
+        assertEquals(0, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetails));
+    }
+
+    @Test
+    void number_of_physical_attendees_should_be_3() {
         partyDetails.get(0).setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("INTER").build());
         partyDetails.get(1).setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("INTER").build());
 
-        int expectedPartiesInPerson = serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetails);
-
-        assertEquals(expectedPartiesInPerson, 3);
+        assertEquals(3, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetails));
     }
 
     @ParameterizedTest
     @MethodSource("caseTypeValueTestCases")
     void testGetCaseTypeValue(YesOrNo hasDeportationOrder, YesOrNo isSuitableToFloat,
                               AppealType appealType, CaseTypeValue expectedValue) {
+        when(caseDetails.getCaseData()).thenReturn(asylumCase);
+        when(caseDetails.getId()).thenReturn(Long.parseLong(caseReference));
+        when(caseDetails.getState()).thenReturn(State.LISTING);
         when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)).thenReturn(Optional.of(hasDeportationOrder));
         when(asylumCase.read(IS_APPEAL_SUITABLE_TO_FLOAT, YesOrNo.class)).thenReturn(Optional.of(isSuitableToFloat));
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(appealType));
 
         List<CaseCategoryModel> caseCategoryModelList = serviceHearingValuesProvider
-            .provideAsylumServiceHearingValues(asylumCase, caseReference)
+            .provideAsylumServiceHearingValues(caseDetails)
             .getCaseCategories();
 
         assertEquals(expectedValue.getValue(), caseCategoryModelList.get(0).getCategoryValue());

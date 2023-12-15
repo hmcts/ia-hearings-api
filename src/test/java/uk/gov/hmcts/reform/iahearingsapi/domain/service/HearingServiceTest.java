@@ -39,6 +39,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
@@ -89,6 +90,8 @@ class HearingServiceTest {
     private UpdateHearingRequest updateHearingRequest;
     @Mock
     private UnNotifiedHearingsResponse unNotifiedHearingsResponse;
+    @Mock
+    uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails<AsylumCase> domainCaseDetails;
     @Mock
     private AsylumCase asylumCase;
     @Mock
@@ -160,20 +163,23 @@ class HearingServiceTest {
 
     @Test
     void testGetAsylumServiceHearingValues() {
-        when(serviceHearingValuesProvider.provideAsylumServiceHearingValues(asylumCase, CASE_ID))
-            .thenReturn(new ServiceHearingValuesModel());
 
         CaseDetails caseDetails = mock(CaseDetails.class);
         when(coreCaseDataService.getCaseDetails(CASE_ID)).thenReturn(caseDetails);
         when(caseDetails.getCaseTypeId()).thenReturn(CASE_TYPE_ASYLUM);
-        when(iaCcdConvertService.convertToAsylumCaseData(caseDetails.getData())).thenReturn(asylumCase);
+        when(domainCaseDetails.getState()).thenReturn(State.LISTING);
+        when(domainCaseDetails.getId()).thenReturn(Long.parseLong(CASE_ID));
+        when(domainCaseDetails.getCaseData()).thenReturn(asylumCase);
+        when(iaCcdConvertService.convertToAsylumCaseDetails(caseDetails)).thenReturn(domainCaseDetails);
+        when(serviceHearingValuesProvider.provideAsylumServiceHearingValues(domainCaseDetails))
+            .thenReturn(new ServiceHearingValuesModel());
 
         ServiceHearingValuesModel result = hearingService.getServiceHearingValues(
             new HearingRequestPayload(CASE_ID, null));
 
         assertThat(result).isNotNull();
         verify(serviceHearingValuesProvider, times(1))
-            .provideAsylumServiceHearingValues(asylumCase, CASE_ID);
+            .provideAsylumServiceHearingValues(domainCaseDetails);
     }
 
     @Test
