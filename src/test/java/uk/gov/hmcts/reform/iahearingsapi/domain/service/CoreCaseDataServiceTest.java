@@ -14,6 +14,8 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,6 +26,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Classification;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 
@@ -35,6 +38,7 @@ public class CoreCaseDataServiceTest {
     private static final String SERVICE_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.serviceToken";
     private static final String JURISDICTION = "IA";
     private static final String CASE_TYPE_ASYLUM = "Asylum";
+    public static final String CASE_TYPE_BAIL = "Bail";
     private static final String USER_ID = "userId";
     private static final String EVENT_TOKEN = "eventToken";
 
@@ -52,6 +56,8 @@ public class CoreCaseDataServiceTest {
     StartEventResponse startEventResponse;
     @Mock
     AsylumCase asylumCase;
+    @Mock
+    BailCase bailCase;
     @Mock
     CaseDetails caseDetails;
     @Mock
@@ -91,6 +97,20 @@ public class CoreCaseDataServiceTest {
         assertEquals(caseState, LISTING);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"Asylum", "Bail"})
+    public void should_get_case_type(String caseType) {
+        CaseDetails caseDetails = CaseDetails.builder().caseTypeId(caseType).build();
+
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
+        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
+        when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(caseDetails);
+
+        String expectedCaseType = coreCaseDataService.getCaseType(CASE_ID);
+
+        assertEquals(expectedCaseType, caseType);
+    }
+
     @Test
     public void should_start_an_event_case() {
 
@@ -106,7 +126,22 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void should_start_case_event() {
+    public void should_start_an_event_bail_case() {
+
+        CaseDetails caseDetails = mock(CaseDetails.class);
+        Map<String, Object> data = new HashMap<>();
+        when(caseDetails.getData()).thenReturn(data);
+        when(iaCcdConvertService.convertToBailCaseData(data)).thenReturn(bailCase);
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+
+        BailCase actualBailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
+
+        assertEquals(bailCase, actualBailCase);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Asylum", "Bail"})
+    public void should_start_case_event(String caseType) {
         when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
         when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
         when(idamService.getUserInfo()).thenReturn(userInfo);
@@ -116,12 +151,12 @@ public class CoreCaseDataServiceTest {
             SERVICE_TOKEN,
             USER_ID,
             JURISDICTION,
-            CASE_TYPE_ASYLUM,
+            caseType,
             CASE_ID,
             LIST_CASE.toString()
         )).thenReturn(startEventResponse);
 
-        StartEventResponse actualstartEventResponse = coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID);
+        StartEventResponse actualstartEventResponse = coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, caseType);
 
         assertEquals(startEventResponse, actualstartEventResponse);
     }
@@ -165,8 +200,46 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
+    public void should_trigger_event_bailCase() {
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
+        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
+        when(idamService.getUserInfo()).thenReturn(userInfo);
+        when(userInfo.getUid()).thenReturn(USER_ID);
+        when(startEventResponse.getToken()).thenReturn(EVENT_TOKEN);
+
+        CaseDataContent caseDataContent = CaseDataContent.builder()
+            .event(uk.gov.hmcts.reform.ccd.client.model.Event.builder()
+                       .id(LIST_CASE.toString())
+                       .build())
+            .data(bailCase)
+            .supplementaryDataRequest(Collections.emptyMap())
+            .securityClassification(Classification.PUBLIC)
+            .eventToken(EVENT_TOKEN)
+            .ignoreWarning(true)
+            .caseReference(CASE_ID)
+            .build();
+        when(coreCaseDataApi.submitEventForCaseWorker(
+            eq(AUTH_TOKEN),
+            eq(SERVICE_TOKEN),
+            eq(USER_ID),
+            eq(JURISDICTION),
+            eq(CASE_TYPE_BAIL),
+            eq(CASE_ID),
+            eq(true),
+            eq(caseDataContent)
+        )).thenReturn(caseDetails);
+
+        assertEquals(caseDetails, coreCaseDataService.triggerBailSubmitEvent(
+            LIST_CASE,
+            CASE_ID,
+            startEventResponse,
+            bailCase
+        ));
+    }
+
+    @Test
     public void should_throw_exception() {
-        assertThatThrownBy(() -> coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID))
+        assertThatThrownBy(() -> coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_ASYLUM))
             .hasMessage(String.format("Case %s not found", CASE_ID))
             .isExactlyInstanceOf(IllegalArgumentException.class);
     }

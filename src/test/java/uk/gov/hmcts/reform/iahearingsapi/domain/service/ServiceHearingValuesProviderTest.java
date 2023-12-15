@@ -69,6 +69,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServ
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ServiceHearingValuesProviderTest {
 
+    private static final String LOCATION_OF_SCREEN_FLOW_FILE_TEST = "classpath:screenFlowTest.json";
     private static final String TRIBUNAL_JUDGE = "84";
     private final String hmctsCaseNameInternal = "Eke Uke";
     private final String caseNameHmctsInternal = "John Doe";
@@ -192,6 +193,7 @@ class ServiceHearingValuesProviderTest {
         when(bailCaseDataMapper.getHearingWindowModel()).thenReturn(hearingWindowModel);
         when(bailCaseDataMapper.getListingComments(bailCase)).thenReturn(listingComments);
         when(bailCaseFlagsMapper.getPublicCaseName(bailCase, caseReference)).thenReturn(caseReference);
+        when(bailCaseFlagsMapper.getHearingPriorityType(bailCase)).thenReturn(PriorityType.STANDARD);
         when(bailCaseFlagsMapper.getCaseFlags(bailCase, caseReference)).thenReturn(caseflags);
 
         bailCaseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
@@ -319,7 +321,7 @@ class ServiceHearingValuesProviderTest {
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
             .caseFlags(caseflags)
-            .screenFlow(serviceHearingValuesProvider.getScreenFlowJson())
+            .screenFlow(serviceHearingValuesProvider.getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_TEST))
             .vocabulary(Collections.emptyList())
             .hearingChannels(hearingChannels)
             .hearingLevelParticipantAttendance(Collections.emptyList())
@@ -350,6 +352,8 @@ class ServiceHearingValuesProviderTest {
             .hearingLocations(Collections.emptyList())
             .facilitiesRequired(Collections.emptyList())
             .listingComments(listingComments)
+            .privateHearingRequiredFlag(false)
+            .caseInterpreterRequiredFlag(false)
             .hearingRequester("")
             .panelRequirements(null)
             .leadJudgeContractType("")
@@ -363,7 +367,7 @@ class ServiceHearingValuesProviderTest {
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
             .caseFlags(caseflags)
-            .screenFlow(serviceHearingValuesProvider.getScreenFlowJson())
+            .screenFlow(serviceHearingValuesProvider.getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_TEST))
             .vocabulary(Collections.emptyList())
             .hearingChannels(bailHearingChannels)
             .hearingLevelParticipantAttendance(Collections.emptyList())

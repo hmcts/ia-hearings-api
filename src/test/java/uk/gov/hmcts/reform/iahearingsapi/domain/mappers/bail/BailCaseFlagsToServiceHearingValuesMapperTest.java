@@ -1,5 +1,27 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_FULL_NAME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.FCS_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.HEARING_LOOP;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LACKING_CAPACITY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LITIGATION_FRIEND;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.PRESIDENTIAL_PANEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCOMPANIED_MINOR;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.URGENT_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.VULNERABLE_USER;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,24 +41,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.BailStrategicCaseF
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_FULL_NAME;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_FLAGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.FCS_LEVEL_FLAGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.HEARING_LOOP;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LACKING_CAPACITY;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LITIGATION_FRIEND;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.PRESIDENTIAL_PANEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCOMPANIED_MINOR;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.VULNERABLE_USER;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -77,6 +82,122 @@ class BailCaseFlagsToServiceHearingValuesMapperTest {
         when(bailCase.read(APPLICANT_FULL_NAME, String.class)).thenReturn(Optional.of(applicantFullName));
 
         assertEquals(mapper.getPublicCaseName(bailCase, caseReference), applicantFullName);
+    }
+
+    @Test
+    void getHearingPriorityType_should_return_standard() {
+
+        assertEquals(PriorityType.STANDARD, mapper.getHearingPriorityType(bailCase));
+    }
+
+    @Test
+    void getHearingPriorityType_should_return_urgent() {
+
+        BailStrategicCaseFlag caseLevelFlag = new BailStrategicCaseFlag(
+            List.of(new CaseFlagDetail("id1", CaseFlagValue.builder()
+                .flagCode(URGENT_CASE.getFlagCode())
+                .status("Active")
+                .build())));
+        when(bailCase.read(CASE_FLAGS, BailStrategicCaseFlag.class)).thenReturn(Optional.of(caseLevelFlag));
+
+        assertEquals(PriorityType.URGENT, mapper.getHearingPriorityType(bailCase));
+    }
+
+    @Test
+    void getPrivateHearingRequiredFlag_should_return_true() {
+
+        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(EVIDENCE_GIVEN_IN_PRIVATE.getFlagCode())
+            .status("Active")
+            .build()));
+        when(bailCase.read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class))
+            .thenReturn(Optional.of(new BailStrategicCaseFlag(caseFlagDetails)));
+
+        assertTrue(mapper.getPrivateHearingRequiredFlag(bailCase));
+    }
+
+    @Test
+    void getPrivateHearingRequiredFlag_should_return_false() {
+
+        assertFalse(mapper.getPrivateHearingRequiredFlag(bailCase));
+
+        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(EVIDENCE_GIVEN_IN_PRIVATE.getFlagCode())
+            .status("Inactive")
+            .build()));
+        when(bailCase.read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class))
+            .thenReturn(Optional.of(new BailStrategicCaseFlag(caseFlagDetails)));
+
+        assertFalse(mapper.getPrivateHearingRequiredFlag(bailCase));
+    }
+
+    @Test
+    void getCaseInterpreterRequiredFlag_should_return_true() {
+
+        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
+            .status("Active")
+            .build()));
+        when(bailCase.read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class))
+            .thenReturn(Optional.of(new BailStrategicCaseFlag(caseFlagDetails)));
+
+        assertTrue(mapper.getCaseInterpreterRequiredFlag(bailCase));
+
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+            .status("Active")
+            .build()));
+        when(bailCase.read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class))
+            .thenReturn(Optional.of(new BailStrategicCaseFlag(caseFlagDetails)));
+
+        assertTrue(mapper.getCaseInterpreterRequiredFlag(bailCase));
+
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
+            .status("Active")
+            .build()));
+        List<BailPartyFlagIdValue> fcsCaseFlag = List.of(
+            new BailPartyFlagIdValue("partyId1",
+                                 new BailStrategicCaseFlag(
+                                     "witness1",
+                                     "",
+                                     caseFlagDetails)));
+        when(bailCase.read(FCS_LEVEL_FLAGS)).thenReturn(Optional.of(fcsCaseFlag));
+
+        assertTrue(mapper.getCaseInterpreterRequiredFlag(bailCase));
+
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+            .status("Active")
+            .build()));
+        fcsCaseFlag = List.of(
+            new BailPartyFlagIdValue("partyId2",
+                                 new BailStrategicCaseFlag(
+                                     "witness2",
+                                     "",
+                                     caseFlagDetails)));
+        when(bailCase.read(FCS_LEVEL_FLAGS)).thenReturn(Optional.of(fcsCaseFlag));
+
+        assertTrue(mapper.getCaseInterpreterRequiredFlag(bailCase));
+    }
+
+    @Test
+    void getCaseInterpreterRequiredFlag_should_return_false() {
+
+        assertFalse(mapper.getCaseInterpreterRequiredFlag(bailCase));
+
+        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
+        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
+            .status("Inactive")
+            .build()));
+        when(bailCase.read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class))
+            .thenReturn(Optional.of(new BailStrategicCaseFlag(caseFlagDetails)));
+
+        assertFalse(mapper.getCaseInterpreterRequiredFlag(bailCase));
     }
 
     @Test

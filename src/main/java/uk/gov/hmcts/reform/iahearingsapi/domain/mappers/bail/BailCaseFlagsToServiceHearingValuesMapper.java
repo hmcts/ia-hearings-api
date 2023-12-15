@@ -1,5 +1,15 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.FCS_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.URGENT_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.VULNERABLE_USER;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,12 +28,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.BailPartyFlagIdVal
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.BailStrategicCaseFlag;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
-
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_FLAGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.FCS_LEVEL_FLAGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.VULNERABLE_USER;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +47,45 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
         }
 
         return BailMapperUtils.getApplicantFullName(bailCase);
+    }
+
+    public PriorityType getHearingPriorityType(BailCase bailCase) {
+
+        List<BailStrategicCaseFlag> caseFlags = bailCase.read(CASE_FLAGS, BailStrategicCaseFlag.class)
+            .map(List::of).orElse(Collections.emptyList());
+
+        return hasOneOrMoreActiveFlagsOfType(caseFlags, List.of(URGENT_CASE))
+            ? PriorityType.URGENT
+            : PriorityType.STANDARD;
+    }
+
+    public boolean getPrivateHearingRequiredFlag(BailCase bailCase) {
+        List<BailStrategicCaseFlag> appellantCaseFlags = bailCase
+            .read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class)
+            .map(List::of).orElse(Collections.emptyList());
+        return hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(EVIDENCE_GIVEN_IN_PRIVATE));
+    }
+
+    public boolean getCaseInterpreterRequiredFlag(BailCase bailCase) {
+        List<BailStrategicCaseFlag> caseFlags = new ArrayList<>();
+        List<BailStrategicCaseFlag> appellantFlags = bailCase
+            .read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class)
+            .map(List::of).orElse(Collections.emptyList());
+        if (!appellantFlags.isEmpty()) {
+            caseFlags.addAll(appellantFlags);
+        }
+        Optional<List<BailPartyFlagIdValue>> flagsOptional = bailCase.read(FCS_LEVEL_FLAGS);
+        flagsOptional.ifPresent(fcsFlagIdValues -> {
+            List<BailStrategicCaseFlag> fcsFlags = fcsFlagIdValues
+                .stream().map(BailPartyFlagIdValue::getValue).toList();
+            if (!fcsFlags.isEmpty()) {
+                caseFlags.addAll(fcsFlags);
+            }
+        });
+
+        return !caseFlags.isEmpty() && hasOneOrMoreActiveFlagsOfType(
+            caseFlags, List.of(SIGN_LANGUAGE_INTERPRETER, LANGUAGE_INTERPRETER)
+        );
     }
 
     public Caseflags getCaseFlags(BailCase bailCase, String caseReference) {

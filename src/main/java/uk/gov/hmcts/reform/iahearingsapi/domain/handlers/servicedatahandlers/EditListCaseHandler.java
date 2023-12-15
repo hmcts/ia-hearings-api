@@ -14,6 +14,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPAR
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PRE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -70,7 +71,8 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
 
         String caseId = getCaseReference(serviceData);
 
-        StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, caseId);
+        StartEventResponse startEventResponse =
+            coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, caseId, CASE_TYPE_ASYLUM);
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
         sendEditListingEventIfHearingIsUpdated(
@@ -152,7 +154,8 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
     private void triggerCmrUpdatedNotification(StartEventResponse startEventResponse, String caseId) {
         StartEventResponse startCmrEventResponse = coreCaseDataService.startCaseEvent(
             EDIT_CASE_LISTING,
-            caseId
+            caseId,
+            CASE_TYPE_ASYLUM
         );
         AsylumCase asylumCaseCmr = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
         log.info("Sending `{}` event for case ID `{}`", TRIGGER_CMR_UPDATED, caseId);

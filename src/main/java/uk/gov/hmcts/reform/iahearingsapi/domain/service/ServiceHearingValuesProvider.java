@@ -58,7 +58,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
@@ -75,6 +74,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServ
 public class ServiceHearingValuesProvider {
 
     private static final String SCREEN_FLOW = "screenFlow";
+
+    private static final String LOCATION_OF_SCREEN_FLOW_FILE_APPEALS = "classpath:appealsScreenFlow.json";
+    private static final String LOCATION_OF_SCREEN_FLOW_FILE_BAILS = "classpath:bailsScreenFlow.json";
+
+    private static final String IN_PERSON = "INTER";
     private static final String TRIBUNAL_JUDGE = "84";
 
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
@@ -158,8 +162,8 @@ public class ServiceHearingValuesProvider {
                .build())
             .hearingIsLinkedFlag(false)
             .parties(partyDetails)
-            .caseFlags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference.toString()))
-            .screenFlow(getScreenFlowJson())
+            .caseFlags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference.toString()))            
+            .screenFlow(getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_APPEALS))
             .vocabulary(Collections.emptyList())
             .hearingChannels(caseDataMapper
                 .getHearingChannels(asylumCase))
@@ -193,12 +197,14 @@ public class ServiceHearingValuesProvider {
             .hearingType(HearingType.BAIL.getKey())
             .hearingWindow(bailCaseDataMapper
                                .getHearingWindowModel())
-            .hearingPriorityType(PriorityType.STANDARD)
+            .hearingPriorityType(bailCaseFlagsMapper.getHearingPriorityType(bailCase))
             .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
             .hearingLocations(Collections.emptyList())
             .facilitiesRequired(Collections.emptyList())
             .listingComments(bailCaseDataMapper.getListingComments(bailCase))
+            .privateHearingRequiredFlag(bailCaseFlagsMapper.getPrivateHearingRequiredFlag(bailCase))
+            .caseInterpreterRequiredFlag(bailCaseFlagsMapper.getCaseInterpreterRequiredFlag(bailCase))
             .hearingRequester("")
             .panelRequirements(null)
             .leadJudgeContractType("")
@@ -213,19 +219,19 @@ public class ServiceHearingValuesProvider {
             .hearingIsLinkedFlag(false)
             .parties(getPartyDetails(bailCase))
             .caseFlags(bailCaseFlagsMapper.getCaseFlags(bailCase, caseReference))
-            .screenFlow(getScreenFlowJson())
+            .screenFlow(getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_BAILS))
             .vocabulary(Collections.emptyList())
             .hearingChannels(bailCaseDataMapper.getHearingChannels(bailCase))
             .hearingLevelParticipantAttendance(Collections.emptyList())
             .build();
     }
 
-    public JSONArray getScreenFlowJson() {
+    public JSONArray getScreenFlowJson(String locationOfScreenFlowJsonFile) {
 
         JSONObject screenFlowJson = null;
         JSONArray screenFlowValue = null;
         JSONParser parser = new JSONParser(DEFAULT_PERMISSIVE_MODE);
-        Resource resource = resourceLoader.getResource("classpath:screenFlowNoPanel.json");
+        Resource resource = resourceLoader.getResource(locationOfScreenFlowJsonFile);
 
         try (InputStream inputStream = resource.getInputStream()) {
             screenFlowJson =
