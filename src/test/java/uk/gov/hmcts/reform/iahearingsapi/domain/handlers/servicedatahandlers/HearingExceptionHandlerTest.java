@@ -8,6 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HANDLE_HEARING_EXCEPTION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 import com.github.dockerjava.api.exception.NotFoundException;
 import java.util.Optional;
@@ -82,7 +84,8 @@ class HearingExceptionHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class))
             .thenReturn(Optional.of(CASE_REF));
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
-        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF)).thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
 
         hearingExceptionHandler.handle(serviceData);
 
@@ -97,7 +100,7 @@ class HearingExceptionHandlerTest {
             .thenReturn(Optional.of(HmcStatus.EXCEPTION));
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class))
             .thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF))
+        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, CASE_TYPE_BAIL))
             .thenThrow(new NotFoundException("Case not found"));
 
         hearingExceptionHandler.handle(serviceData);

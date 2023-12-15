@@ -106,7 +106,13 @@ public enum BailCaseFieldDefinition {
     SUPPORTER_4_MOBILE_NUMBER_1(
         "supporter4MobileNumber1", new TypeReference<String>(){}),
     SUPPORTER_4_EMAIL_ADDRESS_1(
-        "supporter4EmailAddress1", new TypeReference<String>(){}),;
+        "supporter4EmailAddress1", new TypeReference<String>(){}),
+    SEND_DIRECTION_DESCRIPTION(
+        "sendDirectionDescription", new TypeReference<String>(){}),
+    SEND_DIRECTION_LIST(
+        "sendDirectionList", new TypeReference<String>(){}),
+    DATE_OF_COMPLIANCE(
+        "dateOfCompliance", new TypeReference<String>(){}),;
 
     private final String value;
     private final TypeReference typeReference;

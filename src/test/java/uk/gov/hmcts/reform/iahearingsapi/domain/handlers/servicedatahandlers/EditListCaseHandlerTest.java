@@ -52,6 +52,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPAR
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -271,7 +272,7 @@ class EditListCaseHandlerTest {
     }
 
     private void initializeServiceData() {
-        when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REFERENCE))
+        when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REFERENCE, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
         when(serviceData.read(CASE_REF, String.class))
             .thenReturn(Optional.of(CASE_REFERENCE));
@@ -323,7 +324,7 @@ class EditListCaseHandlerTest {
     private void verifyCmrIsTriggered(HearingType hearingType) {
         if (hearingType.equals(CASE_MANAGEMENT_REVIEW)) {
             verify(coreCaseDataService, times(2)).startCaseEvent(
-                EDIT_CASE_LISTING, CASE_REFERENCE);
+                EDIT_CASE_LISTING, CASE_REFERENCE, "Asylum");
             verify(coreCaseDataService).triggerSubmitEvent(
                 TRIGGER_CMR_UPDATED, CASE_REFERENCE, startEventResponse, asylumCase);
         }

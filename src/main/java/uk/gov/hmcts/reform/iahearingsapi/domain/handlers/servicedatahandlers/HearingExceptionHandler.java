@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HANDLE_HEARING_EXCEPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHmcStatus;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +48,7 @@ public class HearingExceptionHandler implements ServiceDataHandler<ServiceData> 
         AsylumCase asylumCase = null;
         StartEventResponse startEventResponse = null;
         try {
-            startEventResponse = coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, caseId);
+            startEventResponse = coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, caseId, CASE_TYPE_ASYLUM);
             asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
         } catch (Exception e) {
             log.error("Cannot get case {} when trying to retrieve it to trigger handleHearingException."
