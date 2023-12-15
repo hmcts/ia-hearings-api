@@ -43,7 +43,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.
 @SuppressWarnings("unchecked")
 class BailUploadSummaryDirectionHandlerTest {
 
-    private static final String GLASGOW_EPIMMS_ID = "366559";
     private static final String CASE_REF = "1111";
     private static final LocalDateTime NEXT_HEARING_DATE = LocalDateTime.of(2023, 9, 29, 12, 0);
     @Mock
@@ -120,7 +119,8 @@ class BailUploadSummaryDirectionHandlerTest {
     @Test
     void should_trigger_case_listing() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, CASE_REF, "Bail")).thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, CASE_REF, "Bail"))
+            .thenReturn(startEventResponse);
         when(coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse)).thenReturn(bailCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.VID)));
@@ -144,6 +144,7 @@ class BailUploadSummaryDirectionHandlerTest {
                                  LocalDateTime.of(2023, 9, 28, 9, 45)
                                      .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
-        verify(coreCaseDataService).triggerBailSubmitEvent(SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, CASE_REF, startEventResponse, bailCase);
+        verify(coreCaseDataService).triggerBailSubmitEvent(SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, CASE_REF,
+                                                           startEventResponse, bailCase);
     }
 }

@@ -18,7 +18,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataServi
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class BailUploadSummaryDirectionHandler extends SubstantiveListedHearingService implements ServiceDataHandler<ServiceData> {
+public class BailUploadSummaryDirectionHandler
+    extends SubstantiveListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
 
@@ -46,7 +47,8 @@ public class BailUploadSummaryDirectionHandler extends SubstantiveListedHearingS
         BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
         updateListCaseSendHomeOfficeDirection(serviceData, bailCase);
         log.info("Sending `{}` event for  Case ID `{}`", SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, caseId);
-        coreCaseDataService.triggerBailSubmitEvent(SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, caseId, startEventResponse, bailCase);
+        coreCaseDataService.triggerBailSubmitEvent(SEND_UPLOAD_BAIL_SUMMARY_DIRECTION, caseId,
+                                                   startEventResponse, bailCase);
 
         return new ServiceDataResponse<>(serviceData);
     }
