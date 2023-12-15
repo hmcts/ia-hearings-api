@@ -57,7 +57,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
@@ -195,12 +194,14 @@ public class ServiceHearingValuesProvider {
             .hearingType(HearingType.BAIL.getKey())
             .hearingWindow(bailCaseDataMapper
                                .getHearingWindowModel())
-            .hearingPriorityType(PriorityType.STANDARD)
+            .hearingPriorityType(bailCaseFlagsMapper.getHearingPriorityType(bailCase))
             .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
             .hearingLocations(Collections.emptyList())
             .facilitiesRequired(Collections.emptyList())
             .listingComments(bailCaseDataMapper.getListingComments(bailCase))
+            .privateHearingRequiredFlag(bailCaseFlagsMapper.getPrivateHearingRequiredFlag(bailCase))
+            .caseInterpreterRequiredFlag(bailCaseFlagsMapper.getCaseInterpreterRequiredFlag(bailCase))
             .hearingRequester("")
             .panelRequirements(null)
             .leadJudgeContractType("")

@@ -191,6 +191,7 @@ class ServiceHearingValuesProviderTest {
         when(bailCaseDataMapper.getHearingWindowModel()).thenReturn(hearingWindowModel);
         when(bailCaseDataMapper.getListingComments(bailCase)).thenReturn(listingComments);
         when(bailCaseFlagsMapper.getPublicCaseName(bailCase, caseReference)).thenReturn(caseReference);
+        when(bailCaseFlagsMapper.getHearingPriorityType(bailCase)).thenReturn(PriorityType.STANDARD);
         when(bailCaseFlagsMapper.getCaseFlags(bailCase, caseReference)).thenReturn(caseflags);
 
         bailCaseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
@@ -353,6 +354,8 @@ class ServiceHearingValuesProviderTest {
             .hearingLocations(Collections.emptyList())
             .facilitiesRequired(Collections.emptyList())
             .listingComments(listingComments)
+            .privateHearingRequiredFlag(false)
+            .caseInterpreterRequiredFlag(false)
             .hearingRequester("")
             .panelRequirements(null)
             .leadJudgeContractType("")
