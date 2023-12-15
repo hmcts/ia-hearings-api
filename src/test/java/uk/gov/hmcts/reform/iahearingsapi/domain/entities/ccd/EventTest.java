@@ -23,7 +23,7 @@ public class EventTest {
         assertEquals("updateInterpreterDetails", Event.UPDATE_INTERPRETER_DETAILS.toString());
         assertEquals("updateInterpreterBookingStatus", Event.UPDATE_INTERPRETER_BOOKING_STATUS.toString());
         assertEquals("triggerCmrListed", Event.TRIGGER_CMR_LISTED.toString());
-        assertEquals("sendBailDirection", Event.SEND_BAIL_DIRECTION.toString());
+        assertEquals("sendUploadBailSummaryDirection", Event.SEND_UPLOAD_BAIL_SUMMARY_DIRECTION.toString());
     }
 
     @Test
