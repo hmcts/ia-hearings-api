@@ -419,6 +419,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .name(ANONYMITY.getName())
                     .status("Active")
                     .hearingRelevant(YesOrNo.YES)
+                    .flagComment("test comment")
                     .build())))));
 
 
@@ -430,7 +431,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .partyName(null)
                     .flagId(ANONYMITY.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(ANONYMITY.getName())
+                    .flagDescription("test comment")
                     .build()
             )).build();
 
@@ -450,6 +451,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                 .name(LITIGATION_FRIEND.getName())
                 .status("Active")
                 .hearingRelevant(YesOrNo.YES)
+                .flagComment("test comment")
                 .build()),
             new CaseFlagDetail("id5", CaseFlagValue.builder()
                 .flagCode(HEARING_LOOP.getFlagCode())
@@ -462,6 +464,20 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                 .name(LACKING_CAPACITY.getName())
                 .status("Active")
                 .hearingRelevant(YesOrNo.NO)
+                .build()),
+            new CaseFlagDetail("id7", CaseFlagValue.builder()
+                .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+                .name(LANGUAGE_INTERPRETER.getName())
+                .status("Active")
+                .hearingRelevant(YesOrNo.YES)
+                .subTypeValue("French")
+                .build()),
+            new CaseFlagDetail("id8", CaseFlagValue.builder()
+                .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
+                .name(SIGN_LANGUAGE_INTERPRETER.getName())
+                .status("Active")
+                .hearingRelevant(YesOrNo.YES)
+                .subTypeValue("International Sign (IS)")
                 .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(
@@ -489,21 +505,33 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .partyName("appellant1")
                     .flagId(LITIGATION_FRIEND.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(LITIGATION_FRIEND.getName())
+                    .flagDescription("test comment")
                     .build(),
                 PartyFlagsModel.builder()
                     .partyId("appellantPartyId")
                     .partyName("appellant1")
                     .flagId(LACKING_CAPACITY.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(LACKING_CAPACITY.getName())
+                    .build(),
+                PartyFlagsModel.builder()
+                    .partyId("appellantPartyId")
+                    .partyName("appellant1")
+                    .flagId(LANGUAGE_INTERPRETER.getFlagCode())
+                    .flagStatus("Active")
+                    .flagDescription("French")
+                    .build(),
+                PartyFlagsModel.builder()
+                    .partyId("appellantPartyId")
+                    .partyName("appellant1")
+                    .flagId(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
+                    .flagStatus("Active")
+                    .flagDescription("International Sign (IS)")
                     .build(),
                 PartyFlagsModel.builder()
                     .partyId("witnessPartyId")
                     .partyName("witness3")
                     .flagId(HEARING_LOOP.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(HEARING_LOOP.getName())
                     .build()
             )).build();
 
