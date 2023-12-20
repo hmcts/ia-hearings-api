@@ -3,7 +3,9 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -75,6 +77,8 @@ class HearingServiceTest {
     private static final String APPELLANT_2 = "Name LastName";
 
     @Mock
+    private FeatureToggler featureToggler;
+    @Mock
     private IdamService idamService;
     @Mock
     private AuthTokenGenerator serviceAuthTokenGenerator;
@@ -118,6 +122,20 @@ class HearingServiceTest {
 
         receivedDateTime = LocalDateTime.now();
         payload = PartiesNotified.builder().build();
+    }
+
+    @Test
+    void autoHearingEnabled_should_return_true() {
+        when(featureToggler.getValue("auto-hearing-request-feature", false)).thenReturn(true);
+
+        assertTrue(hearingService.autoHearingRequestEnabled());
+    }
+
+    @Test
+    void autoHearingEnabled_should_return_false() {
+        when(featureToggler.getValue("auto-hearing-request-feature", false)).thenReturn(false);
+
+        assertFalse(hearingService.autoHearingRequestEnabled());
     }
 
     @Test

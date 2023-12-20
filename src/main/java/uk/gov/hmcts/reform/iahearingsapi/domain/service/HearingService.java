@@ -51,7 +51,12 @@ public class HearingService {
     private final ServiceHearingValuesProvider serviceHearingValuesProvider;
     private final CoreCaseDataService coreCaseDataService;
     private final IaCcdConvertService iaCcdConvertService;
+    private final FeatureToggler featureToggler;
     @Value("${hearingValues.hmctsServiceId}") String serviceId;
+
+    public boolean autoHearingRequestEnabled() {
+        return featureToggler.getValue("auto-hearing-request-feature", false);
+    }
 
     public HmcHearingResponse createHearing(HmcHearingRequestPayload hearingPayload) {
         try {
