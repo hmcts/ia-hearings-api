@@ -16,6 +16,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType.RP;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType.STANDARD;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -51,13 +52,13 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
@@ -65,6 +66,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -72,6 +76,8 @@ class ServiceHearingValuesProviderTest {
 
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_TEST = "classpath:screenFlowTest.json";
     private static final String TRIBUNAL_JUDGE = "84";
+    private static final String LOCATION_TYPE_COURT = "court";
+    private static final String BIRMINGHAM_ID = "231596";
     private final String hmctsCaseNameInternal = "Eke Uke";
     private final String caseNameHmctsInternal = "John Doe";
     private final String listCaseHearingLength = "120";
@@ -97,12 +103,19 @@ class ServiceHearingValuesProviderTest {
                 .partyName("")
                 .flagStatus("Active")
                 .build())).build();
-    private final List<PartyDetailsModel> partyDetails = Arrays.asList(
+    private final List<PartyDetailsModel> partyDetailsModels = Arrays.asList(
         PartyDetailsModel.builder().build(),
         PartyDetailsModel.builder().build(),
         PartyDetailsModel.builder().build(),
         PartyDetailsModel.builder().build(),
         PartyDetailsModel.builder().build()
+    );
+    private final List<PartyDetails> partyDetails = Arrays.asList(
+        PartyDetails.builder().build(),
+        PartyDetails.builder().build(),
+        PartyDetails.builder().build(),
+        PartyDetails.builder().build(),
+        PartyDetails.builder().build()
     );
     private final CaseCategoryModel caseCategoryCaseType = new CaseCategoryModel();
     private final CaseCategoryModel caseCategoryCaseSubType = new CaseCategoryModel();
@@ -135,7 +148,8 @@ class ServiceHearingValuesProviderTest {
     private String caseCategoriesValue = "BFA1-TST";
     private final String serviceId = "BFA1";
     private final String bailServiceId = "BFA1-BLS";
-    private final String hearingType = "BFA1-BAI";
+    private final String substantiveHearingType = "BFA1-SUB";
+    private final String bailHearingType = "BFA1-BAI";
 
     @BeforeEach
     void setup() {
@@ -159,6 +173,7 @@ class ServiceHearingValuesProviderTest {
         when(caseDataMapper.getHearingChannels(asylumCase)).thenReturn(hearingChannels);
         when(caseDataMapper.getExternalCaseReference(asylumCase)).thenReturn(homeOfficeRef);
         when(caseDataMapper.getHearingWindowModel(State.LISTING)).thenReturn(hearingWindowModel);
+        when(caseDataMapper.getHearingWindowModel(true)).thenReturn(hearingWindowModel);
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase))
             .thenReturn(BaseLocation.BIRMINGHAM.getId());
         when(caseDataMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);
@@ -169,14 +184,14 @@ class ServiceHearingValuesProviderTest {
         when(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getAutoListFlag(asylumCase)).thenReturn(false);
         when(caseFlagsMapper.getHearingPriorityType(asylumCase))
-            .thenReturn(PriorityType.STANDARD);
+            .thenReturn(STANDARD);
         when(listingCommentsMapper.getListingComments(asylumCase, caseFlagsMapper, caseDataMapper))
             .thenReturn(listingComments);
         when(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCaseFlags(asylumCase, caseReference)).thenReturn(caseflags);
         when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
-            .thenReturn(partyDetails);
+            .thenReturn(partyDetailsModels);
 
         when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(RP));
@@ -195,7 +210,7 @@ class ServiceHearingValuesProviderTest {
         when(bailCaseDataMapper.getHearingWindowModel(bailState)).thenReturn(hearingWindowModel);
         when(bailCaseDataMapper.getListingComments(bailCase)).thenReturn(listingComments);
         when(bailCaseFlagsMapper.getPublicCaseName(bailCase, caseReference)).thenReturn(caseReference);
-        when(bailCaseFlagsMapper.getHearingPriorityType(bailCase)).thenReturn(PriorityType.STANDARD);
+        when(bailCaseFlagsMapper.getHearingPriorityType(bailCase)).thenReturn(STANDARD);
         when(bailCaseFlagsMapper.getCaseFlags(bailCase, caseReference)).thenReturn(caseflags);
 
         bailCaseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
@@ -207,14 +222,14 @@ class ServiceHearingValuesProviderTest {
         bailCaseCategoryCaseSubType.setCategoryParent(bailServiceId);
 
         when(partyDetailsMapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper))
-            .thenReturn(partyDetails);
+            .thenReturn(partyDetailsModels);
 
         when(bailCase.read(CASE_NAME_HMCTS_INTERNAL, String.class)).thenReturn(Optional.of(caseNameHmctsInternal));
         when(bailCase.read(CURRENT_CASE_STATE_VISIBLE_TO_ADMIN_OFFICER, String.class))
             .thenReturn(Optional.of(bailState));
 
         when(partyDetailsMapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper))
-            .thenReturn(partyDetails);
+            .thenReturn(partyDetailsModels);
 
         serviceHearingValuesProvider = new ServiceHearingValuesProvider(
             caseDataMapper,
@@ -238,7 +253,7 @@ class ServiceHearingValuesProviderTest {
         when(caseDetails.getCaseData()).thenReturn(asylumCase);
         when(caseDetails.getId()).thenReturn(Long.parseLong(caseReference));
         when(caseDetails.getState()).thenReturn(State.LISTING);
-        ServiceHearingValuesModel expected = buildTestValues();
+        ServiceHearingValuesModel expected = buildTestAsylumServiceHearingValuesModel();
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
             .provideAsylumServiceHearingValues(caseDetails);
 
@@ -246,9 +261,21 @@ class ServiceHearingValuesProviderTest {
     }
 
     @Test
+    void should_get_hmc_hearing_request_payload() {
+
+        when(caseDetails.getCaseData()).thenReturn(asylumCase);
+        when(caseDetails.getId()).thenReturn(Long.parseLong(caseReference));
+        when(caseDetails.getState()).thenReturn(State.SUBMIT_HEARING_REQUIREMENTS);
+        HmcHearingRequestPayload expected = buildTestAsylumHmcHearingRequestPayload();
+        HmcHearingRequestPayload actual = serviceHearingValuesProvider.buildAsylumAutoHearingPayload(caseDetails);
+
+        assertEquals(expected, actual);
+    }
+
+    @Test
     void should_get_bail_service_hearing_values() {
 
-        ServiceHearingValuesModel expected = buildBailTestValues();
+        ServiceHearingValuesModel expected = buildTestBailServiceHearingValuesModel();
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
             .provideBailServiceHearingValues(bailCase, caseReference);
 
@@ -262,7 +289,7 @@ class ServiceHearingValuesProviderTest {
         when(caseDetails.getState()).thenReturn(State.LISTING);
         when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
 
-        ServiceHearingValuesModel expected = buildTestValues();
+        ServiceHearingValuesModel expected = buildTestAsylumServiceHearingValuesModel();
         expected.setFacilitiesRequired(List.of(IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString()));
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
             .provideAsylumServiceHearingValues(caseDetails);
@@ -281,7 +308,7 @@ class ServiceHearingValuesProviderTest {
             .isExactlyInstanceOf(RequiredFieldMissingException.class);
     }
 
-    private ServiceHearingValuesModel buildTestValues() {
+    private ServiceHearingValuesModel buildTestAsylumServiceHearingValuesModel() {
 
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
@@ -298,7 +325,7 @@ class ServiceHearingValuesProviderTest {
             .hearingType(null)
             .hearingWindow(hearingWindowModel)
             .duration(Integer.parseInt(listCaseHearingLength))
-            .hearingPriorityType(PriorityType.STANDARD)
+            .hearingPriorityType(STANDARD)
             .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
             .hearingLocations(Collections.emptyList())
@@ -323,7 +350,7 @@ class ServiceHearingValuesProviderTest {
                .panelComposition(Collections.emptyList())
                .build())
             .hearingIsLinkedFlag(false)
-            .parties(partyDetails)
+            .parties(partyDetailsModels)
             .caseFlags(caseflags)
             .screenFlow(serviceHearingValuesProvider.getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_TEST))
             .vocabulary(Collections.emptyList())
@@ -332,7 +359,58 @@ class ServiceHearingValuesProviderTest {
             .build();
     }
 
-    private ServiceHearingValuesModel buildBailTestValues() {
+    private HmcHearingRequestPayload buildTestAsylumHmcHearingRequestPayload() {
+
+        HearingDetails hearingDetails = HearingDetails.builder()
+            .duration(Integer.parseInt(listCaseHearingLength))
+            .hearingType(substantiveHearingType)
+            .hearingChannels(hearingChannels)
+            .autolistFlag(false)
+            .facilitiesRequired(Collections.emptyList())
+            .hearingInWelshFlag(false)
+            .hearingLocations(List.of(HearingLocationModel.builder()
+                                          .locationId(BIRMINGHAM_ID)
+                                          .locationType(LOCATION_TYPE_COURT).build()))
+            .panelRequirements(PanelRequirementsModel.builder()
+                                   .authorisationSubType(Collections.emptyList())
+                                   .authorisationTypes(Collections.emptyList())
+                                   .panelPreferences(Collections.emptyList())
+                                   .panelSpecialisms(Collections.emptyList())
+                                   .roleType(List.of(TRIBUNAL_JUDGE))
+                                   .build())
+            .hearingRequester("")
+            .hearingPriorityType(STANDARD.toString())
+            .hearingWindow(hearingWindowModel)
+            .multiDayHearing(false)
+            .listingComments(listingComments)
+            .numberOfPhysicalAttendees(0)
+            .privateHearingRequiredFlag(true)
+            .build();
+
+        uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.CaseDetails caseDetails =
+            uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.CaseDetails.builder()
+                .hmctsServiceCode(serviceId)
+                .caseRef(caseReference)
+                .externalCaseReference(homeOfficeRef)
+                .caseDeepLink(baseUrl + caseDeepLink)
+                .hmctsInternalCaseName(hmctsCaseNameInternal)
+                .publicCaseName(caseReference)
+                .caseAdditionalSecurityFlag(true)
+                .caseInterpreterRequiredFlag(true)
+                .caseCategories(List.of(caseCategoryCaseType, caseCategoryCaseSubType))
+                .caseManagementLocationCode(BaseLocation.BIRMINGHAM.getId())
+                .caseRestrictedFlag(false)
+                .caseSlaStartDate(dateStr)
+                .build();
+
+        return HmcHearingRequestPayload.builder()
+            .caseDetails(caseDetails)
+            .hearingDetails(hearingDetails)
+            .partyDetails(partyDetails)
+            .build();
+    }
+
+    private ServiceHearingValuesModel buildTestBailServiceHearingValuesModel() {
 
         String bailListCaseHearingLength = "60";
         return ServiceHearingValuesModel.builder()
@@ -347,10 +425,10 @@ class ServiceHearingValuesProviderTest {
             .caseManagementLocationCode(BaseLocation.MANCHESTER.getId())
             .caseSlaStartDate(dateStr)
             .autoListFlag(false)
-            .hearingType(hearingType)
+            .hearingType(bailHearingType)
             .hearingWindow(hearingWindowModel)
             .duration(Integer.parseInt(bailListCaseHearingLength))
-            .hearingPriorityType(PriorityType.STANDARD)
+            .hearingPriorityType(STANDARD)
             .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
             .hearingLocations(Collections.emptyList())
@@ -369,7 +447,7 @@ class ServiceHearingValuesProviderTest {
                            .panelComposition(Collections.emptyList())
                            .build())
             .hearingIsLinkedFlag(false)
-            .parties(partyDetails)
+            .parties(partyDetailsModels)
             .caseFlags(caseflags)
             .screenFlow(serviceHearingValuesProvider.getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_TEST))
             .vocabulary(Collections.emptyList())
@@ -381,28 +459,28 @@ class ServiceHearingValuesProviderTest {
     @Test
     void number_of_physical_attendees_should_be_0() {
 
-        assertEquals(0, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetails));
+        assertEquals(0, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetailsModels));
     }
 
     @Test
     void number_of_physical_attendees_should_be_0_when_hearing_channel_is_on_the_papers() {
 
-        partyDetails.get(0).setIndividualDetails(IndividualDetailsModel.builder()
+        partyDetailsModels.get(0).setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("ONPPRS").build());
-        partyDetails.get(1).setIndividualDetails(IndividualDetailsModel.builder()
+        partyDetailsModels.get(1).setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("ONPPRS").build());
 
-        assertEquals(0, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetails));
+        assertEquals(0, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetailsModels));
     }
 
     @Test
     void number_of_physical_attendees_should_be_3() {
-        partyDetails.get(0).setIndividualDetails(IndividualDetailsModel.builder()
+        partyDetailsModels.get(0).setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("INTER").build());
-        partyDetails.get(1).setIndividualDetails(IndividualDetailsModel.builder()
+        partyDetailsModels.get(1).setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("INTER").build());
 
-        assertEquals(3, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetails));
+        assertEquals(3, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetailsModels));
     }
 
     @ParameterizedTest

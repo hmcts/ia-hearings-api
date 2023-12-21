@@ -209,6 +209,19 @@ class CaseDataToServiceHearingValuesMapperTest {
     }
 
     @Test
+    void getHearingWindowModel_should_return_correct_date_range_for_auto_request() {
+        ZonedDateTime expectedStartDate = ZonedDateTime.now().plusDays(11L);
+        when(hearingServiceDateProvider
+                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 11))
+            .thenReturn(expectedStartDate);
+        HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel(true);
+
+        assertEquals(hearingWindowModel.getDateRangeStart(), expectedStartDate
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        assertNull(hearingWindowModel.getDateRangeEnd());
+    }
+
+    @Test
     void getHearingWindowModel_should_return_null() {
 
         assertNull(mapper.getHearingWindowModel(DECISION));

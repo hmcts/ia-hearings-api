@@ -8,13 +8,14 @@ public enum PriorityType {
     URGENT("Urgent");
 
     @JsonValue
-    private final String priorityType;
+    private final String value;
 
-    PriorityType(String priorityType) {
-        this.priorityType = priorityType;
+    PriorityType(String value) {
+        this.value = value;
     }
 
-    public String getPriorityType() {
-        return priorityType;
+    @Override
+    public String toString() {
+        return value;
     }
 }

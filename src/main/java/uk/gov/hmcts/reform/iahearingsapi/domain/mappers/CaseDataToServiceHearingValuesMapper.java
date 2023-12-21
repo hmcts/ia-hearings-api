@@ -94,18 +94,29 @@ public class CaseDataToServiceHearingValuesMapper {
     }
 
     public HearingWindowModel getHearingWindowModel(State appealStatus) {
-
         if (appealStatus == State.LISTING) {
-            ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
-            String dateRangeStart = hearingServiceDateProvider
-                .calculateDueDate(now, HEARING_WINDOW_INTERVAL_DEFAULT)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            return HearingWindowModel.builder()
-                .dateRangeStart(dateRangeStart)
-                .build();
+            return calculateAsylumHearingWindow();
         } else {
             return null;
         }
+    }
+
+    public HearingWindowModel getHearingWindowModel(boolean isAutoRequest) {
+        if (isAutoRequest) {
+            return calculateAsylumHearingWindow();
+        } else {
+            return null;
+        }
+    }
+
+    private HearingWindowModel calculateAsylumHearingWindow() {
+        ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
+        String dateRangeStart = hearingServiceDateProvider
+            .calculateDueDate(now, HEARING_WINDOW_INTERVAL_DEFAULT)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return HearingWindowModel.builder()
+            .dateRangeStart(dateRangeStart)
+            .build();
     }
 
     public String getCaseSlaStartDate() {

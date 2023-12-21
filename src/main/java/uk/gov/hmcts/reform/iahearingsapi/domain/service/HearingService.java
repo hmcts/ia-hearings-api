@@ -70,6 +70,7 @@ public class HearingService {
 
             return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken, hearingPayload);
         } catch (Exception e) {
+            log.error(e.getMessage());
             throw new IllegalStateException("Service could not complete request to create hearing", e);
         }
     }
