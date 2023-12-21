@@ -55,6 +55,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
@@ -67,6 +68,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
 
 @Slf4j
 @Setter
@@ -75,12 +79,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServ
 public class ServiceHearingValuesProvider {
 
     private static final String SCREEN_FLOW = "screenFlow";
-
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_APPEALS = "classpath:appealsScreenFlow.json";
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_BAILS = "classpath:bailsScreenFlow.json";
-
-    private static final String IN_PERSON = "INTER";
     private static final String TRIBUNAL_JUDGE = "84";
+    private static final Integer DURATION_OF_DAY = 360;
+    private static final String LOCATION_TYPE_COURT = "court";
 
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
     private final BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper;
@@ -169,6 +172,75 @@ public class ServiceHearingValuesProvider {
             .hearingChannels(caseDataMapper
                 .getHearingChannels(asylumCase))
             .hearingLevelParticipantAttendance(Collections.emptyList())
+            .build();
+    }
+
+    public HmcHearingRequestPayload buildAsylumAutoHearingPayload(CaseDetails<AsylumCase> asylumCaseDetails) {
+
+        AsylumCase asylumCase = asylumCaseDetails.getCaseData();
+        Long caseReference = asylumCaseDetails.getId();
+
+        String hmctsInternalCaseName = asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("HMCTS internal case name is a required field"));
+
+        Integer duration = caseDataMapper.getHearingDuration(asylumCase);
+        List<PartyDetailsModel> partyDetailsModels = getPartyDetails(asylumCase);
+
+        HearingDetails hearingDetails = HearingDetails.builder()
+            .duration(duration)
+            .hearingType(HearingType.SUBSTANTIVE.getKey())
+            .hearingChannels(caseDataMapper.getHearingChannels(asylumCase))
+            .autolistFlag(caseFlagsMapper.getAutoListFlag(asylumCase))
+            .facilitiesRequired(MapperUtils.isS94B(asylumCase)
+                                    ? List.of(IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString())
+                                    : Collections.emptyList())
+            .hearingInWelshFlag(false)
+            .hearingLocations(List.of(
+                HearingLocationModel.builder()
+                    .locationType(LOCATION_TYPE_COURT)
+                    .locationId(caseDataMapper.getCaseManagementLocationCode(asylumCase))
+                    .build())
+            )
+            .panelRequirements(PanelRequirementsModel.builder()
+                                   .authorisationSubType(Collections.emptyList())
+                                   .authorisationTypes(Collections.emptyList())
+                                   .panelPreferences(Collections.emptyList())
+                                   .panelSpecialisms(Collections.emptyList())
+                                   .roleType(List.of(TRIBUNAL_JUDGE))
+                                   .build())
+            .hearingRequester("")
+            .hearingPriorityType(caseFlagsMapper.getHearingPriorityType(asylumCase).toString())
+            .hearingWindow(caseDataMapper.getHearingWindowModel(true))
+            .multiDayHearing(duration != null && duration > DURATION_OF_DAY)
+            .listingComments(listingCommentsMapper.getListingComments(asylumCase, caseFlagsMapper, caseDataMapper))
+            .numberOfPhysicalAttendees(getNumberOfPhysicalAttendees(partyDetailsModels))
+            .privateHearingRequiredFlag(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase))
+            .build();
+
+        uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.CaseDetails caseDetails =
+            uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.CaseDetails.builder()
+                .hmctsServiceCode(serviceId)
+                .caseRef(caseReference.toString())
+                .externalCaseReference(caseDataMapper.getExternalCaseReference(asylumCase))
+                .caseDeepLink(baseUrl.concat(caseDataMapper.getCaseDeepLink(caseReference.toString())))
+                .hmctsInternalCaseName(hmctsInternalCaseName)
+                .publicCaseName(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference.toString()))
+                .caseAdditionalSecurityFlag(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase))
+                .caseInterpreterRequiredFlag(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase))
+                .caseCategories(getCaseCategoriesValue(asylumCase))
+                .caseManagementLocationCode(caseDataMapper.getCaseManagementLocationCode(asylumCase))
+                .caseRestrictedFlag(false)
+                .caseSlaStartDate(caseDataMapper.getCaseSlaStartDate())
+                .build();
+
+        List<PartyDetails> partyDetails = partyDetailsModels.stream()
+            .map(PartyDetailsMapper::mapPartyDetailsModelToPartyDetails)
+            .toList();
+
+        return HmcHearingRequestPayload.builder()
+            .caseDetails(caseDetails)
+            .hearingDetails(hearingDetails)
+            .partyDetails(partyDetails)
             .build();
     }
 
