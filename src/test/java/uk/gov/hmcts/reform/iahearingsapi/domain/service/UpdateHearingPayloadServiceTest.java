@@ -3,6 +3,9 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -26,13 +29,16 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DECISION_HEARING_FEE_OPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
@@ -43,6 +49,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_T
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@SuppressWarnings("unchecked")
 class UpdateHearingPayloadServiceTest {
 
     @Mock
@@ -339,6 +346,55 @@ class UpdateHearingPayloadServiceTest {
         );
 
         assertEquals(List.of(partyDetailsModel), updateHearingRequest.getPartyDetails());
+    }
+
+    @ParameterizedTest
+    @MethodSource("triggerReviewInterpreterBookingTaskData")
+    void shouldTriggerReviewInterpreterBookingTask(Optional dateType, String channel,
+                                                   HearingCentre hearingCentre, boolean shouldTriggerTask) {
+        when(asylumCase.read(
+            CHANGE_HEARING_DATE_TYPE,
+            String.class
+        )).thenReturn(dateType);
+
+        when(asylumCase.read(
+            HEARING_CHANNEL,
+            DynamicList.class
+        )).thenReturn(Optional.of(new DynamicList(channel)));
+
+        when(asylumCase.read(
+            LIST_CASE_HEARING_CENTRE,
+            HearingCentre.class
+        )).thenReturn(Optional.of(hearingCentre));
+
+        hearingDetails.setHearingLocations(List.of(HearingLocationModel
+            .builder()
+            .locationId("231596")
+            .locationType(locationType)
+            .build()));
+
+        UpdateHearingRequest persistedHearingRequest =
+            UpdateHearingRequest.builder().hearingDetails(hearingDetails).build();
+
+        boolean actualValue = updateHearingPayloadService.shouldTriggerReviewInterpreterBookingTask(
+            asylumCase, persistedHearingRequest);
+
+        if (shouldTriggerTask) {
+            assertTrue(actualValue);
+        } else {
+            assertFalse(actualValue);
+        }
+
+    }
+
+    private static Stream<Arguments> triggerReviewInterpreterBookingTaskData() {
+
+        return Stream.of(
+            Arguments.of(Optional.empty(), "INTER", HearingCentre.BIRMINGHAM, false),
+            Arguments.of(Optional.of("FirstAvailableDate"), "INTER", HearingCentre.BIRMINGHAM, true),
+            Arguments.of(Optional.empty(), "TEL", HearingCentre.BIRMINGHAM, true),
+            Arguments.of(Optional.empty(), "INTER", HearingCentre.BRADFORD, true)
+        );
     }
 
     private void assertEqualsHearingDetails(UpdateHearingRequest updateHearingRequestSent) {

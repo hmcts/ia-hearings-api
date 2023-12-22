@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
@@ -54,6 +55,47 @@ public class UpdateHearingPayloadService {
         String reasonCode
     ) {
         return generateHearingPayload(asylumCase, hearingId, reasonCode, false, null);
+    }
+
+    /**
+     * Should trigger ReviewInterpreterBookingTask if the hearing channel, location or date is being updated.
+     */
+    public boolean shouldTriggerReviewInterpreterBookingTask(AsylumCase asylumCase,
+                                                             UpdateHearingRequest persistedHearingRequest) {
+        boolean triggerReviewInterpreterBookingTask;
+
+        triggerReviewInterpreterBookingTask = asylumCase.read(CHANGE_HEARING_DATE_TYPE, String.class).isPresent();
+
+        triggerReviewInterpreterBookingTask |= isHearingChannelUpdated(asylumCase, persistedHearingRequest);
+
+        triggerReviewInterpreterBookingTask |= isHearingLocationUpdated(asylumCase, persistedHearingRequest);
+
+        return triggerReviewInterpreterBookingTask;
+    }
+
+    private Boolean isHearingLocationUpdated(AsylumCase asylumCase, UpdateHearingRequest persistedHearingRequest) {
+        Optional<String> locationCodes = asylumCase.read(
+            LIST_CASE_HEARING_CENTRE,
+            HearingCentre.class
+        ).map(HearingCentre::getEpimsId);
+        return locationCodes.map(code ->
+                !code.equals(persistedHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId()))
+            .orElse(false);
+    }
+
+    private Boolean isHearingChannelUpdated(AsylumCase asylumCase, UpdateHearingRequest persistedHearingRequest) {
+
+        if (caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase)) {
+            return false;
+        }
+
+        Optional<String> hearingChannelCode = asylumCase.read(
+            HEARING_CHANNEL,
+            DynamicList.class
+        ).map(hearingChannel -> hearingChannel.getValue().getCode());
+
+        return hearingChannelCode.map(code ->
+            !code.equals(persistedHearingRequest.getHearingDetails().getHearingChannels().get(0))).orElse(false);
     }
 
     private UpdateHearingRequest generateHearingPayload(

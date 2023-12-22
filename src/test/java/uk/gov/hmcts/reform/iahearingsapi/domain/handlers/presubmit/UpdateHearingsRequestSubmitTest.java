@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -15,9 +17,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
@@ -47,6 +51,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
@@ -68,6 +73,8 @@ class UpdateHearingsRequestSubmitTest {
     HearingGetResponse hearingGetResponse;
     @Mock
     UpdateHearingRequest updateHearingRequest;
+    @Mock
+    private CoreCaseDataService coreCaseDataService;
     HearingDetails hearingDetails = new HearingDetails();
     private final String updateHearingsCode = "code 1";
     UpdateHearingRequestSubmit updateHearingRequestSubmit;
@@ -99,7 +106,7 @@ class UpdateHearingsRequestSubmitTest {
         )).thenReturn(updateHearingRequest);
 
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
-        updateHearingRequestSubmit = new UpdateHearingRequestSubmit(hearingService, updateHearingPayloadService);
+        updateHearingRequestSubmit = new UpdateHearingRequestSubmit(hearingService, updateHearingPayloadService, coreCaseDataService);
     }
 
     @Test
@@ -303,6 +310,22 @@ class UpdateHearingsRequestSubmitTest {
         );
 
         assertThat(asylumCase.read(MANUAL_UPDATE_HEARING_REQUIRED), samePropertyValuesAs(Optional.of(YES)));
+    }
+
+
+    @ParameterizedTest
+    @CsvSource({ "true", "false" })
+    void should_set_trigger_review_interpreter_booking_task(boolean shouldTriggerTask) {
+        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
+        when(updateHearingPayloadService.shouldTriggerReviewInterpreterBookingTask(any(), any())).thenReturn(shouldTriggerTask);
+
+        updateHearingRequestSubmit.handle(
+            ABOUT_TO_SUBMIT,
+            callback
+        );
+
+        Optional expectedValue = shouldTriggerTask ? Optional.of(YES) : Optional.empty();
+        assertThat(asylumCase.read(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK), samePropertyValuesAs(expectedValue));
     }
 
     private void verifyFieldsAreCleared() {

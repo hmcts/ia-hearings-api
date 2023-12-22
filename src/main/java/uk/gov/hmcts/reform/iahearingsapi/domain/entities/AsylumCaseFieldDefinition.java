@@ -259,7 +259,10 @@ public enum AsylumCaseFieldDefinition {
         "caseLinks", new TypeReference<List<IdValue<CaseLink>>>(){}),
 
     DECISION_HEARING_FEE_OPTION(
-        "decisionHearingFeeOption", new TypeReference<String>(){});
+        "decisionHearingFeeOption", new TypeReference<String>(){}),
+
+    SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK(
+        "shouldTriggerReviewInterpreterTask", new TypeReference<YesOrNo>(){});
 
     private final String value;
     private final TypeReference typeReference;

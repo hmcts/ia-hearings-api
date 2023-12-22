@@ -19,6 +19,7 @@ public enum Event {
     UPDATE_INTERPRETER_DETAILS("updateInterpreterDetails"),
     UPDATE_INTERPRETER_BOOKING_STATUS("updateInterpreterBookingStatus"),
     TRIGGER_CMR_LISTED("triggerCmrListed"),
+    TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK("triggerReviewInterpreterBookingTask"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");

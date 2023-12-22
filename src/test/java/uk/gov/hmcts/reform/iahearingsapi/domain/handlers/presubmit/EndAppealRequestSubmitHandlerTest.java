@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.END_APPEAL_OUTCOME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CANCEL_HEARINGS_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_APPEAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ADJOURNMENT_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
@@ -33,6 +34,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
@@ -50,6 +52,8 @@ class EndAppealRequestSubmitHandlerTest {
     private HearingService hearingService;
     @Mock
     private AsylumCase asylumCase;
+    @Mock
+    private CoreCaseDataService coreCaseDataService;
     @Mock private ResponseEntity<HmcHearingResponse> responseEntity;
     EndAppealRequestSubmitHandler endAppealRequestSubmitHandler;
 
@@ -60,7 +64,7 @@ class EndAppealRequestSubmitHandlerTest {
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(END_APPEAL);
 
-        endAppealRequestSubmitHandler = new EndAppealRequestSubmitHandler(hearingService);
+        endAppealRequestSubmitHandler = new EndAppealRequestSubmitHandler(hearingService, coreCaseDataService);
     }
 
     @Test
@@ -88,6 +92,7 @@ class EndAppealRequestSubmitHandlerTest {
         endAppealRequestSubmitHandler.handle(ABOUT_TO_SUBMIT, callback);
 
         verify(hearingService, times(2)).deleteHearing(eq(Long.valueOf(HEARING_ID)), eq("withdraw"));
+        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
     }
 
     @ParameterizedTest
@@ -102,6 +107,7 @@ class EndAppealRequestSubmitHandlerTest {
         endAppealRequestSubmitHandler.handle(ABOUT_TO_SUBMIT, callback);
 
         verify(hearingService, never()).deleteHearing(any(), any());
+        verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
     }
 
     @Test

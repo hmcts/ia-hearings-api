@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
@@ -9,7 +10,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
@@ -30,6 +33,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_UPDATE_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
 
@@ -40,13 +45,16 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
     HearingService hearingService;
 
     UpdateHearingPayloadService updateHearingPayloadService;
+    CoreCaseDataService coreCaseDataService;
 
     public UpdateHearingRequestSubmit(
         HearingService hearingService,
-        UpdateHearingPayloadService updateHearingPayloadService
+        UpdateHearingPayloadService updateHearingPayloadService,
+        CoreCaseDataService coreCaseDataService
     ) {
         this.hearingService = hearingService;
         this.updateHearingPayloadService = updateHearingPayloadService;
+        this.coreCaseDataService = coreCaseDataService;
     }
 
     @Override
@@ -82,16 +90,25 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
             }
 
             try {
-                hearingService.updateHearing(
+                UpdateHearingRequest updateHearingRequest =
                     updateHearingPayloadService.createUpdateHearingPayload(
                         asylumCase,
                         hearingId,
                         getReason(asylumCase),
                         firstAvailableDate,
                         updateHearingWindow(asylumCase)
-                    ),
+                    );
+                hearingService.updateHearing(
+                    updateHearingRequest,
                     hearingId
                 );
+
+                boolean shouldTriggerTask =
+                    updateHearingPayloadService.shouldTriggerReviewInterpreterBookingTask(asylumCase, updateHearingRequest);
+
+                if (shouldTriggerTask) {
+                    asylumCase.write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+                }
 
                 clearFields(asylumCase);
 
