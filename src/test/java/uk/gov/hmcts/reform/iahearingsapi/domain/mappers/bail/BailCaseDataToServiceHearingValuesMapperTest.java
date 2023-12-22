@@ -103,11 +103,11 @@ class BailCaseDataToServiceHearingValuesMapperTest {
         ZonedDateTime expectedStartDate = ZonedDateTime.now().plusDays(2L);
         ZonedDateTime expectedEndDate = ZonedDateTime.now().plusDays(7L);
         when(hearingServiceDateProvider
-                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 2))
+                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 3))
             .thenReturn(expectedStartDate);
 
         when(hearingServiceDateProvider
-                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 7))
+                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 8))
             .thenReturn(expectedEndDate);
         HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel("applicationSubmitted");
 
@@ -292,9 +292,9 @@ class BailCaseDataToServiceHearingValuesMapperTest {
         ZonedDateTime two = mock(ZonedDateTime.class);
         ZonedDateTime seven = mock(ZonedDateTime.class);
 
-        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(2))).thenReturn(two);
+        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(3))).thenReturn(two);
         when(two.format(any())).thenReturn("two");
-        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(7))).thenReturn(seven);
+        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(8))).thenReturn(seven);
         when(seven.format(any())).thenReturn("seven");
 
         HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel("applicationSubmitted");
@@ -306,7 +306,7 @@ class BailCaseDataToServiceHearingValuesMapperTest {
     void getHearingWindowModel_should_return_hearing_window_specific_date() {
         ZonedDateTime twentyEight = mock(ZonedDateTime.class);
 
-        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(28))).thenReturn(twentyEight);
+        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(29))).thenReturn(twentyEight);
         when(twentyEight.format(any())).thenReturn("twentyEight");
 
         HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel("decisionConditionalBail");
