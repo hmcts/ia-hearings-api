@@ -51,7 +51,12 @@ public class HearingService {
     private final ServiceHearingValuesProvider serviceHearingValuesProvider;
     private final CoreCaseDataService coreCaseDataService;
     private final IaCcdConvertService iaCcdConvertService;
+    private final FeatureToggler featureToggler;
     @Value("${hearingValues.hmctsServiceId}") String serviceId;
+
+    public boolean autoHearingRequestEnabled() {
+        return featureToggler.getValue("auto-hearing-request-feature", false);
+    }
 
     public HmcHearingResponse createHearing(HmcHearingRequestPayload hearingPayload) {
         try {
@@ -77,8 +82,7 @@ public class HearingService {
 
         if (caseDetails.getCaseTypeId().equals(CASE_TYPE_ASYLUM)) {
             return serviceHearingValuesProvider
-                .provideAsylumServiceHearingValues(iaCcdConvertService.convertToAsylumCaseData(caseDetails.getData()),
-                                                   caseReference);
+                .provideAsylumServiceHearingValues(iaCcdConvertService.convertToAsylumCaseDetails(caseDetails));
         } else if (caseDetails.getCaseTypeId().equals(CASE_TYPE_BAIL)) {
             return serviceHearingValuesProvider
                 .provideBailServiceHearingValues(iaCcdConvertService.convertToBailCaseData(caseDetails.getData()),

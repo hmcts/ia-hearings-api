@@ -139,7 +139,7 @@ class ListCaseHandlerTest {
     @Test
     void should_trigger_case_listing() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REF)).thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REF, "Asylum")).thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
@@ -161,9 +161,10 @@ class ListCaseHandlerTest {
         verify(asylumCase).write(HEARING_CHANNEL, new DynamicList(new Value(HearingChannel.INTER.name(),
                                                                             HearingChannel.INTER.getLabel()),
                                                                   List.of(new Value(HearingChannel.INTER.name(),
-                                                                            HearingChannel.INTER.getLabel()))));
+                                                                                    HearingChannel.INTER.getLabel()))));
 
         verify(coreCaseDataService).triggerSubmitEvent(LIST_CASE, CASE_REF,startEventResponse, asylumCase);
     }
 }
+
 

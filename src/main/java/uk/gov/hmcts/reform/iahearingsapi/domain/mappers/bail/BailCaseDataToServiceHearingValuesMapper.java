@@ -1,5 +1,17 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY1;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DOCUMENTS_WITH_METADATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_COMPANY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.VIDEO_HEARING1;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentTag.BAIL_SUBMISSION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
+
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -16,23 +28,13 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY1;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DOCUMENTS_WITH_METADATA;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_PARTY_ID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_COMPANY;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.VIDEO_HEARING1;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentTag.BAIL_SUBMISSION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
-
 @Service
 @RequiredArgsConstructor
 public class BailCaseDataToServiceHearingValuesMapper {
     static final int HEARING_START_WINDOW_INTERVAL_DEFAULT = 2;
     static final int HEARING_WINDOW_END_INTERVAL_DEFAULT = 7;
+    static final int HEARING_START_WINDOW_INTERVAL_CONDITIONAL_BAIL = 28;
+    static final String BAIL_STATE_DECISION_CONDITIONAL_BAIL = "decisionConditionalBail";
 
     private final DateProvider hearingServiceDateProvider;
 
@@ -54,18 +56,26 @@ public class BailCaseDataToServiceHearingValuesMapper {
         return "";
     }
 
-    public HearingWindowModel getHearingWindowModel() {
+    public HearingWindowModel getHearingWindowModel(String bailState) {
         ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
-        String dateRangeStart = hearingServiceDateProvider
-            .calculateDueDate(now, HEARING_START_WINDOW_INTERVAL_DEFAULT)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String dateRangeEnd = hearingServiceDateProvider
-            .calculateDueDate(now, HEARING_WINDOW_END_INTERVAL_DEFAULT)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        return HearingWindowModel.builder()
-            .dateRangeStart(dateRangeStart)
-            .dateRangeEnd(dateRangeEnd)
-            .build();
+
+        if (bailState.equals(BAIL_STATE_DECISION_CONDITIONAL_BAIL)) {
+            return HearingWindowModel.builder()
+                .firstDateTimeMustBe(hearingServiceDateProvider
+                                    .calculateDueDate(now, HEARING_START_WINDOW_INTERVAL_CONDITIONAL_BAIL)
+                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                .build();
+        } else {
+            return HearingWindowModel.builder()
+                .dateRangeStart(hearingServiceDateProvider
+                                    .calculateDueDate(now, HEARING_START_WINDOW_INTERVAL_DEFAULT)
+                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                .dateRangeEnd(hearingServiceDateProvider
+                                  .calculateDueDate(now, HEARING_WINDOW_END_INTERVAL_DEFAULT)
+                                  .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                .build();
+        }
+
     }
 
     public String getCaseSlaStartDate(BailCase bailCase) {

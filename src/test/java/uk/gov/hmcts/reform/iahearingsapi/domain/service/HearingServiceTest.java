@@ -3,7 +3,9 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -39,6 +41,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
@@ -74,6 +77,8 @@ class HearingServiceTest {
     private static final String APPELLANT_2 = "Name LastName";
 
     @Mock
+    private FeatureToggler featureToggler;
+    @Mock
     private IdamService idamService;
     @Mock
     private AuthTokenGenerator serviceAuthTokenGenerator;
@@ -89,6 +94,8 @@ class HearingServiceTest {
     private UpdateHearingRequest updateHearingRequest;
     @Mock
     private UnNotifiedHearingsResponse unNotifiedHearingsResponse;
+    @Mock
+    uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails<AsylumCase> domainCaseDetails;
     @Mock
     private AsylumCase asylumCase;
     @Mock
@@ -115,6 +122,20 @@ class HearingServiceTest {
 
         receivedDateTime = LocalDateTime.now();
         payload = PartiesNotified.builder().build();
+    }
+
+    @Test
+    void autoHearingEnabled_should_return_true() {
+        when(featureToggler.getValue("auto-hearing-request-feature", false)).thenReturn(true);
+
+        assertTrue(hearingService.autoHearingRequestEnabled());
+    }
+
+    @Test
+    void autoHearingEnabled_should_return_false() {
+        when(featureToggler.getValue("auto-hearing-request-feature", false)).thenReturn(false);
+
+        assertFalse(hearingService.autoHearingRequestEnabled());
     }
 
     @Test
@@ -160,20 +181,23 @@ class HearingServiceTest {
 
     @Test
     void testGetAsylumServiceHearingValues() {
-        when(serviceHearingValuesProvider.provideAsylumServiceHearingValues(asylumCase, CASE_ID))
-            .thenReturn(new ServiceHearingValuesModel());
 
         CaseDetails caseDetails = mock(CaseDetails.class);
         when(coreCaseDataService.getCaseDetails(CASE_ID)).thenReturn(caseDetails);
         when(caseDetails.getCaseTypeId()).thenReturn(CASE_TYPE_ASYLUM);
-        when(iaCcdConvertService.convertToAsylumCaseData(caseDetails.getData())).thenReturn(asylumCase);
+        when(domainCaseDetails.getState()).thenReturn(State.LISTING);
+        when(domainCaseDetails.getId()).thenReturn(Long.parseLong(CASE_ID));
+        when(domainCaseDetails.getCaseData()).thenReturn(asylumCase);
+        when(iaCcdConvertService.convertToAsylumCaseDetails(caseDetails)).thenReturn(domainCaseDetails);
+        when(serviceHearingValuesProvider.provideAsylumServiceHearingValues(domainCaseDetails))
+            .thenReturn(new ServiceHearingValuesModel());
 
         ServiceHearingValuesModel result = hearingService.getServiceHearingValues(
             new HearingRequestPayload(CASE_ID, null));
 
         assertThat(result).isNotNull();
         verify(serviceHearingValuesProvider, times(1))
-            .provideAsylumServiceHearingValues(asylumCase, CASE_ID);
+            .provideAsylumServiceHearingValues(domainCaseDetails);
     }
 
     @Test

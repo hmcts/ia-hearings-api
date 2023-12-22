@@ -4,7 +4,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATES_TO_AVOID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DECISION_HEARING_FEE_OPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
@@ -14,10 +13,13 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_COMPANY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,7 +37,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -89,14 +93,19 @@ public class CaseDataToServiceHearingValuesMapper {
             .orElseGet(() -> asylumCase.read(GWF_REFERENCE_NUMBER, String.class).orElse(null));
     }
 
-    public HearingWindowModel getHearingWindowModel() {
-        ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
-        String dateRangeStart = hearingServiceDateProvider
-            .calculateDueDate(now, HEARING_WINDOW_INTERVAL_DEFAULT)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        return HearingWindowModel.builder()
-            .dateRangeStart(dateRangeStart)
-            .build();
+    public HearingWindowModel getHearingWindowModel(State appealStatus) {
+
+        if (appealStatus == State.LISTING) {
+            ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
+            String dateRangeStart = hearingServiceDateProvider
+                .calculateDueDate(now, HEARING_WINDOW_INTERVAL_DEFAULT)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            return HearingWindowModel.builder()
+                .dateRangeStart(dateRangeStart)
+                .build();
+        } else {
+            return null;
+        }
     }
 
     public String getCaseSlaStartDate() {
@@ -109,6 +118,17 @@ public class CaseDataToServiceHearingValuesMapper {
 
     public String getHearingChannel(AsylumCase asylumCase) {
         return getHearingChannels(asylumCase).stream().findFirst().orElse(null);
+    }
+
+    public Integer getHearingDuration(AsylumCase asylumCase) {
+        if (isDecisionWithoutHearingAppeal(asylumCase)) {
+            return null;
+        }
+
+        int hearingDuration = asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)
+            .map(duration -> duration.isBlank() ? 0 : Integer.parseInt(duration))
+            .orElse(0);
+        return hearingDuration <= 0 ? null : hearingDuration;
     }
 
     public String getAppellantPartyId(AsylumCase asylumCase) {
@@ -224,8 +244,8 @@ public class CaseDataToServiceHearingValuesMapper {
     }
 
     public boolean isDecisionWithoutHearingAppeal(AsylumCase asylumCase) {
-        return asylumCase.read(DECISION_HEARING_FEE_OPTION, String.class)
-            .map(option -> option.equals("decisionWithoutHearing")).orElse(false);
+        return asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class)
+            .map(hearingCentre -> DECISION_WITHOUT_HEARING == hearingCentre).orElse(false);
     }
 
     private StringBuilder getGrantedHearingResponseFromField(AsylumCase asylumCase,

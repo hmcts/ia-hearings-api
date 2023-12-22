@@ -53,7 +53,7 @@ public class ServiceHearingValuesModel {
 
     private HearingWindowModel hearingWindow;
 
-    private int duration;
+    private Integer duration;
 
     @NonNull
     private PriorityType hearingPriorityType;

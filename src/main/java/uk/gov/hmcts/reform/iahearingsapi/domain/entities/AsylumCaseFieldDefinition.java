@@ -261,6 +261,9 @@ public enum AsylumCaseFieldDefinition {
     DECISION_HEARING_FEE_OPTION(
         "decisionHearingFeeOption", new TypeReference<String>(){}),
 
+    MAKE_AN_APPLICATION_DECISION_REASON(
+        "makeAnApplicationDecisionReason", new TypeReference<String>(){}),
+
     SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK(
         "shouldTriggerReviewInterpreterTask", new TypeReference<YesOrNo>(){});
 
