@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
@@ -282,5 +285,31 @@ class BailCaseDataToServiceHearingValuesMapperTest {
         assertEquals(
             Collections.emptyList(),
             mapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_PHONE));
+    }
+
+    @Test
+    void getHearingWindowModel_should_return_hearing_window_range() {
+        ZonedDateTime two = mock(ZonedDateTime.class);
+        ZonedDateTime seven = mock(ZonedDateTime.class);
+
+        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(2))).thenReturn(two);
+        when(two.format(any())).thenReturn("two");
+        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(7))).thenReturn(seven);
+        when(seven.format(any())).thenReturn("seven");
+
+        HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel("applicationSubmitted");
+        assertEquals("two", hearingWindowModel.getDateRangeStart());
+        assertEquals("seven", hearingWindowModel.getDateRangeEnd());
+    }
+
+    @Test
+    void getHearingWindowModel_should_return_hearing_window_specific_date() {
+        ZonedDateTime twentyEight = mock(ZonedDateTime.class);
+
+        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(28))).thenReturn(twentyEight);
+        when(twentyEight.format(any())).thenReturn("twentyEight");
+
+        HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel("decisionConditionalBail");
+        assertEquals("twentyEight", hearingWindowModel.getFirstDateTimeMustBe());
     }
 }
