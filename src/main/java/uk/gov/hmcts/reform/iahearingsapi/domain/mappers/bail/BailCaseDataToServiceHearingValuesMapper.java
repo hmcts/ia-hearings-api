@@ -61,7 +61,7 @@ public class BailCaseDataToServiceHearingValuesMapper {
 
         if (bailState.equals(BAIL_STATE_DECISION_CONDITIONAL_BAIL)) {
             return HearingWindowModel.builder()
-                .dateRangeStart(hearingServiceDateProvider
+                .firstDateTimeMustBe(hearingServiceDateProvider
                                     .calculateDueDate(now, HEARING_START_WINDOW_INTERVAL_CONDITIONAL_BAIL)
                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
                 .build();
