@@ -105,7 +105,8 @@ class UpdateHearingsRequestSubmitTest {
         )).thenReturn(updateHearingRequest);
 
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
-        updateHearingRequestSubmit = new UpdateHearingRequestSubmit(hearingService, updateHearingPayloadService, coreCaseDataService);
+        updateHearingRequestSubmit = new UpdateHearingRequestSubmit(
+            hearingService, updateHearingPayloadService, coreCaseDataService);
     }
 
     @Test
@@ -316,7 +317,8 @@ class UpdateHearingsRequestSubmitTest {
     @CsvSource({ "true", "false" })
     void should_set_trigger_review_interpreter_booking_task(boolean shouldTriggerTask) {
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
-        when(updateHearingPayloadService.shouldTriggerReviewInterpreterBookingTask(any(), any())).thenReturn(shouldTriggerTask);
+        when(updateHearingPayloadService.shouldTriggerReviewInterpreterBookingTask(
+            any(), any())).thenReturn(shouldTriggerTask);
 
         updateHearingRequestSubmit.handle(
             ABOUT_TO_SUBMIT,

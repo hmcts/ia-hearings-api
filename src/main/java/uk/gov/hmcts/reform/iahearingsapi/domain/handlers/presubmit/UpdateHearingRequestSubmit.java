@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
@@ -34,7 +33,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
 
@@ -104,7 +102,8 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                 );
 
                 boolean shouldTriggerTask =
-                    updateHearingPayloadService.shouldTriggerReviewInterpreterBookingTask(asylumCase, updateHearingRequest);
+                    updateHearingPayloadService.shouldTriggerReviewInterpreterBookingTask(
+                        asylumCase, updateHearingRequest);
 
                 if (shouldTriggerTask) {
                     asylumCase.write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
