@@ -31,9 +31,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 @Service
 @RequiredArgsConstructor
 public class BailCaseDataToServiceHearingValuesMapper {
-    static final int HEARING_START_WINDOW_INTERVAL_DEFAULT = 2;
-    static final int HEARING_WINDOW_END_INTERVAL_DEFAULT = 7;
-    static final int HEARING_START_WINDOW_INTERVAL_CONDITIONAL_BAIL = 28;
+    static final int HEARING_START_WINDOW_INTERVAL_DEFAULT = 3;
+    static final int HEARING_WINDOW_END_INTERVAL_DEFAULT = 8;
+    static final int HEARING_START_WINDOW_INTERVAL_CONDITIONAL_BAIL = 29;
     static final String BAIL_STATE_DECISION_CONDITIONAL_BAIL = "decisionConditionalBail";
 
     private final DateProvider hearingServiceDateProvider;
