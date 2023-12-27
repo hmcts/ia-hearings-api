@@ -55,8 +55,6 @@ public class HearingDetails {
     private boolean multiDayHearing;
 
     private List<String> hearingChannels;
-    private String caseSLAStartDate;
-    private String caserestrictedFlag;
 
 
     public String getHearingChannelDescription() {
