@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients;
 
 import com.launchdarkly.sdk.LDContext;
+import com.launchdarkly.sdk.LDValue;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.UserDetails;
@@ -20,7 +21,6 @@ public class LaunchDarklyFeatureToggler implements FeatureToggler {
 
     public boolean getValue(String key, Boolean defaultValue) {
 
-
         LDContext context = LDContext.builder(userDetails.getId())
             .set("firstName", userDetails.getForename())
             .set("lastName", userDetails.getSurname())
@@ -28,6 +28,21 @@ public class LaunchDarklyFeatureToggler implements FeatureToggler {
             .build();
 
         return ldClient.boolVariation(
+            key,
+            context,
+            defaultValue
+        );
+    }
+
+    public LDValue getJsonValue(String key, LDValue defaultValue) {
+
+        LDContext context = LDContext.builder(userDetails.getId())
+            .set("firstName", userDetails.getForename())
+            .set("lastName", userDetails.getSurname())
+            .set("email", userDetails.getEmailAddress())
+            .build();
+
+        return ldClient.jsonValueVariation(
             key,
             context,
             defaultValue
