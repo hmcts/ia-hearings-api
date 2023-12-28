@@ -28,8 +28,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.ApplicantDetailsMapper;
-import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailInterpreterDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.FinancialConditionSupporterDetailsMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -66,6 +67,8 @@ class PartyDetailsMapperTest {
     @Mock
     private InterpreterDetailsMapper interpreterDetailsMapper;
     @Mock
+    private BailInterpreterDetailsMapper bailInterpreterDetailsMapper;
+    @Mock
     private PartyDetailsModel partyDetailsModel;
 
     @Test
@@ -83,10 +86,13 @@ class PartyDetailsMapperTest {
             .thenReturn(PartyDetailsModel.builder().build());
         when(witnessDetailsMapper.map(asylumCase, caseDataMapper))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        when(interpreterDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
         when(asylumCase.read(AsylumCaseFieldDefinition.HAS_SPONSOR, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
 
         List<PartyDetailsModel> expected = Arrays.asList(
+            PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
@@ -103,7 +109,8 @@ class PartyDetailsMapperTest {
             sponsorDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
-            interpreterDetailsMapper
+            interpreterDetailsMapper,
+            bailInterpreterDetailsMapper
         );
 
         assertEquals(expected, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper));
@@ -121,10 +128,13 @@ class PartyDetailsMapperTest {
             .thenReturn(PartyDetailsModel.builder().build());
         when(financialConditionSupporterDetailsMapper.map(bailCase, bailCaseDataMapper))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        when(bailInterpreterDetailsMapper.map(bailCase, bailCaseDataMapper))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
         when(bailCase.read(BailCaseFieldDefinition.IS_LEGALLY_REPRESENTED_FOR_FLAG, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
 
         List<PartyDetailsModel> expected = Arrays.asList(
+            PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
@@ -140,7 +150,8 @@ class PartyDetailsMapperTest {
             sponsorDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
-            interpreterDetailsMapper
+            interpreterDetailsMapper,
+            bailInterpreterDetailsMapper
         );
 
         assertEquals(expected, mapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper));

@@ -14,10 +14,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.ApplicantDetailsMapper;
-import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailInterpreterDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailMapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.FinancialConditionSupporterDetailsMapper;
+
 
 @Component
 @AllArgsConstructor
@@ -36,6 +38,8 @@ public class PartyDetailsMapper {
     private WitnessDetailsMapper witnessDetailsMapper;
     private FinancialConditionSupporterDetailsMapper financialConditionSupporterDetailsMapper;
     private InterpreterDetailsMapper interpreterDetailsMapper;
+
+    private BailInterpreterDetailsMapper bailInterpreterDetailsMapper;
 
     public List<PartyDetailsModel> mapAsylumPartyDetails(
         AsylumCase asylumCase,
@@ -74,6 +78,7 @@ public class PartyDetailsMapper {
         }
 
         partyDetails.addAll(financialConditionSupporterDetailsMapper.map(bailCase, bailCaseDataMapper));
+        partyDetails.addAll(bailInterpreterDetailsMapper.map(bailCase, bailCaseDataMapper));
 
         return partyDetails;
     }
