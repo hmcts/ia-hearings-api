@@ -209,7 +209,6 @@ public class ServiceHearingValuesProvider {
             .privateHearingRequiredFlag(bailCaseFlagsMapper.getPrivateHearingRequiredFlag(bailCase))
             .caseInterpreterRequiredFlag(bailCaseFlagsMapper.getCaseInterpreterRequiredFlag(bailCase))
             .hearingRequester("")
-            .panelRequirements(null)
             .leadJudgeContractType("")
             .judiciary(JudiciaryModel.builder()
                            .roleType(Collections.emptyList())
