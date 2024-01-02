@@ -3,12 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.FCS_LEVEL_FLAGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.URGENT_CASE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.VULNERABLE_USER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -110,7 +105,7 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
             bailCase.read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class)
                 .map(List::of).orElse(Collections.emptyList());
 
-        return hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(VULNERABLE_USER));
+        return hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(VULNERABLE_USER, UNACCOMPANIED_MINOR));
     }
 
     public String getVulnerableDetails(BailCase bailCase) {
