@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -37,8 +38,8 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                                        CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
                                        PartyDetailsMapper partyDetailsMapper,
                                        ListingCommentsMapper listingCommentsMapper,
-                                       String serviceId,
-                                       String baseUrl,
+                                       @Value("${hearingValues.hmctsServiceId}") String serviceId,
+                                       @Value("${xui.api.baseUrl}") String baseUrl,
                                        HearingService hearingService) {
         super(caseDataMapper,
               caseFlagsMapper,
