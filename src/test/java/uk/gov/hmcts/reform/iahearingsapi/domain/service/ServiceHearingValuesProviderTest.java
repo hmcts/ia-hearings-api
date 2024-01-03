@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
@@ -23,10 +24,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -59,6 +62,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -125,11 +129,11 @@ class ServiceHearingValuesProviderTest {
     private ListingCommentsMapper listingCommentsMapper;
     @Mock
     private ResourceLoader resourceLoader;
+    private final MockedStatic<PayloadUtils> payloadUtils = mockStatic(PayloadUtils.class);
     private final String baseUrl = "http://localhost:3002";
     private String caseCategoriesValue = "BFA1-TST";
     private final String serviceId = "BFA1";
     private final String bailServiceId = "BFA1-BLS";
-    private final String substantiveHearingType = "BFA1-SUB";
     private final String bailHearingType = "BFA1-BAI";
 
     @BeforeEach
@@ -185,6 +189,11 @@ class ServiceHearingValuesProviderTest {
         caseCategoryCaseSubType.setCategoryValue(CaseTypeValue.RPD.getValue());
         caseCategoryCaseSubType.setCategoryParent(CaseTypeValue.RPD.getValue());
 
+        payloadUtils.when(() -> PayloadUtils.getNumberOfPhysicalAttendees(partyDetailsModels))
+            .thenReturn(0);
+        payloadUtils.when(() -> PayloadUtils.getCaseCategoriesValue(asylumCase))
+            .thenReturn(List.of(caseCategoryCaseType, caseCategoryCaseSubType));
+
         when(bailCaseDataMapper.getHearingChannels(bailCase)).thenReturn(bailHearingChannels);
         when(bailCaseDataMapper.getExternalCaseReference(bailCase)).thenReturn(homeOfficeRef);
         when(bailCaseDataMapper.getCaseSlaStartDate(bailCase)).thenReturn(date.toString());
@@ -226,6 +235,11 @@ class ServiceHearingValuesProviderTest {
         serviceHearingValuesProvider.setCaseCategoriesValue(caseCategoriesValue);
         serviceHearingValuesProvider.setBailCaseCategoriesValue(bailServiceId);
         serviceHearingValuesProvider.setServiceId(serviceId);
+    }
+
+    @AfterEach
+    void tearDown() {
+        payloadUtils.close();
     }
 
     @Test
