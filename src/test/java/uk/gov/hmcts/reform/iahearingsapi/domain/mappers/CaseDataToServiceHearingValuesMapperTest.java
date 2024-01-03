@@ -76,7 +76,7 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     public static final String GWF_REFERENCE = "gwfReference";
     private final String homeOfficeRef = "homeOfficeRef";
-    private final String dateStr = "2023-08-01";
+    private final LocalDate date = LocalDate.of(2023,8,1);
     private CaseDataToServiceHearingValuesMapper mapper;
     @Mock
     private DateProvider hearingServiceDateProvider;
@@ -85,7 +85,7 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     @BeforeEach
     void setup() {
-        when(hearingServiceDateProvider.now()).thenReturn(LocalDate.parse(dateStr));
+        when(hearingServiceDateProvider.now()).thenReturn(date);
         String startDate = "2023-08-01T10:46:48.962301+01:00[Europe/London]";
         ZonedDateTime zonedDateTimeFrom = ZonedDateTime.parse(startDate);
         when(hearingServiceDateProvider.zonedNowWithTime()).thenReturn(zonedDateTimeFrom);
@@ -230,7 +230,7 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Test
     void getCaseSlaStartDate_should_return_valid_date() {
 
-        assertEquals(mapper.getCaseSlaStartDate(), dateStr);
+        assertEquals(mapper.getCaseSlaStartDate(), date);
     }
 
     @Test

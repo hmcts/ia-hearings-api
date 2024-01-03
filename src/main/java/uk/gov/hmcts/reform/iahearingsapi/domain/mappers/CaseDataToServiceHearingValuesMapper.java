@@ -21,6 +21,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -119,8 +120,8 @@ public class CaseDataToServiceHearingValuesMapper {
             .build();
     }
 
-    public String getCaseSlaStartDate() {
-        return hearingServiceDateProvider.now().toString();
+    public LocalDate getCaseSlaStartDate() {
+        return hearingServiceDateProvider.now();
     }
 
     public String getCaseDeepLink(String caseReference) {

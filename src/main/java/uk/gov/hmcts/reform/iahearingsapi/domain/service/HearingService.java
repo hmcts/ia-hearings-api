@@ -36,7 +36,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotified
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
@@ -58,7 +58,7 @@ public class HearingService {
         return featureToggler.getValue("auto-hearing-request-feature", false);
     }
 
-    public HmcHearingResponse createHearing(HmcHearingRequestPayload hearingPayload) {
+    public HmcHearingResponse createHearing(CreateHearingRequest hearingPayload) {
         try {
             log.debug(
                 "Creating Hearing for Case ID {} and request:\n{}",
