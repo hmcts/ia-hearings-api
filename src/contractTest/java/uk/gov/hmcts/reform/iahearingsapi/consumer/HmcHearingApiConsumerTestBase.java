@@ -14,7 +14,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HearingRequestGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(PactConsumerTestExt.class)
@@ -36,7 +36,7 @@ public class HmcHearingApiConsumerTestBase {
         .serviceData(new ServiceData())
         .build();
 
-    protected HmcHearingRequestPayload hearingRequestPayload = HearingRequestGenerator
+    protected CreateHearingRequest hearingRequestPayload = HearingRequestGenerator
         .generateTestHearingRequest(CASE_REFERENCE);
 
     static final String AUTHORIZATION_HEADER = "Authorization";

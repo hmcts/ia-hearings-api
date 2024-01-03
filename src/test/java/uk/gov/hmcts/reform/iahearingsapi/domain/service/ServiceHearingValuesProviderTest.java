@@ -9,7 +9,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_APPEAL_SUITABLE_TO_FLOAT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_NAME_HMCTS_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CURRENT_CASE_STATE_VISIBLE_TO_ADMIN_OFFICER;
@@ -24,13 +23,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -52,9 +47,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
@@ -66,9 +59,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -76,14 +66,12 @@ class ServiceHearingValuesProviderTest {
 
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_TEST = "classpath:screenFlowTest.json";
     private static final String TRIBUNAL_JUDGE = "84";
-    private static final String LOCATION_TYPE_COURT = "court";
-    private static final String BIRMINGHAM_ID = "231596";
     private final String hmctsCaseNameInternal = "Eke Uke";
     private final String caseNameHmctsInternal = "John Doe";
     private final String listCaseHearingLength = "120";
     private final String caseReference = "1234567891234567";
     private final String homeOfficeRef = "homeOfficeRef";
-    private final String dateStr = "2023-08-01";
+    private final LocalDate date = LocalDate.of(2023, 8, 1);
     private final List<String> hearingChannels = List.of("INTER");
     private final List<String> bailHearingChannels = List.of("Video");
     private final String dateRangeEnd = "2023-08-15";
@@ -91,7 +79,7 @@ class ServiceHearingValuesProviderTest {
     private final String listingComments = "Customer behaviour: unfriendly";
     private final String bailState = "applicationSubmitted";
     private final HearingWindowModel hearingWindowModel = HearingWindowModel.builder()
-        .dateRangeStart(dateStr)
+        .dateRangeStart(date.toString())
         .dateRangeEnd(dateRangeEnd)
         .build();
     private final Caseflags caseflags = Caseflags.builder()
@@ -109,13 +97,6 @@ class ServiceHearingValuesProviderTest {
         PartyDetailsModel.builder().build(),
         PartyDetailsModel.builder().build(),
         PartyDetailsModel.builder().build()
-    );
-    private final List<PartyDetails> partyDetails = Arrays.asList(
-        PartyDetails.builder().build(),
-        PartyDetails.builder().build(),
-        PartyDetails.builder().build(),
-        PartyDetails.builder().build(),
-        PartyDetails.builder().build()
     );
     private final CaseCategoryModel caseCategoryCaseType = new CaseCategoryModel();
     private final CaseCategoryModel caseCategoryCaseSubType = new CaseCategoryModel();
@@ -156,7 +137,7 @@ class ServiceHearingValuesProviderTest {
 
         when(caseDetails.getCaseData()).thenReturn(asylumCase);
         when(asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)).thenReturn(Optional.of(hmctsCaseNameInternal));
-        when(hearingServiceDateProvider.now()).thenReturn(LocalDate.parse(dateStr));
+        when(hearingServiceDateProvider.now()).thenReturn(date);
         String startDate = "2023-08-01T10:46:48.962301+01:00[Europe/London]";
         ZonedDateTime zonedDateTimeFrom = ZonedDateTime.parse(startDate);
         when(hearingServiceDateProvider.zonedNowWithTime()).thenReturn(zonedDateTimeFrom);
@@ -177,7 +158,7 @@ class ServiceHearingValuesProviderTest {
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase))
             .thenReturn(BaseLocation.BIRMINGHAM.getId());
         when(caseDataMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);
-        when(caseDataMapper.getCaseSlaStartDate()).thenReturn(dateStr);
+        when(caseDataMapper.getCaseSlaStartDate()).thenReturn(date);
         when(caseDataMapper.getHearingDuration(asylumCase)).thenReturn(Integer.parseInt(listCaseHearingLength));
         when(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
             .thenReturn(caseReference);
@@ -206,7 +187,7 @@ class ServiceHearingValuesProviderTest {
 
         when(bailCaseDataMapper.getHearingChannels(bailCase)).thenReturn(bailHearingChannels);
         when(bailCaseDataMapper.getExternalCaseReference(bailCase)).thenReturn(homeOfficeRef);
-        when(bailCaseDataMapper.getCaseSlaStartDate(bailCase)).thenReturn(dateStr);
+        when(bailCaseDataMapper.getCaseSlaStartDate(bailCase)).thenReturn(date.toString());
         when(bailCaseDataMapper.getHearingWindowModel(bailState)).thenReturn(hearingWindowModel);
         when(bailCaseDataMapper.getListingComments(bailCase)).thenReturn(listingComments);
         when(bailCaseFlagsMapper.getPublicCaseName(bailCase, caseReference)).thenReturn(caseReference);
@@ -261,18 +242,6 @@ class ServiceHearingValuesProviderTest {
     }
 
     @Test
-    void should_get_hmc_hearing_request_payload() {
-
-        when(caseDetails.getCaseData()).thenReturn(asylumCase);
-        when(caseDetails.getId()).thenReturn(Long.parseLong(caseReference));
-        when(caseDetails.getState()).thenReturn(State.SUBMIT_HEARING_REQUIREMENTS);
-        HmcHearingRequestPayload expected = buildTestAsylumHmcHearingRequestPayload();
-        HmcHearingRequestPayload actual = serviceHearingValuesProvider.buildAsylumAutoHearingPayload(caseDetails);
-
-        assertEquals(expected, actual);
-    }
-
-    @Test
     void should_get_bail_service_hearing_values() {
 
         ServiceHearingValuesModel expected = buildTestBailServiceHearingValuesModel();
@@ -320,7 +289,7 @@ class ServiceHearingValuesProviderTest {
             .caserestrictedFlag(false)
             .externalCaseReference(homeOfficeRef)
             .caseManagementLocationCode(BaseLocation.BIRMINGHAM.getId())
-            .caseSlaStartDate(dateStr)
+            .caseSlaStartDate(date.toString())
             .autoListFlag(false)
             .hearingType(null)
             .hearingWindow(hearingWindowModel)
@@ -359,57 +328,6 @@ class ServiceHearingValuesProviderTest {
             .build();
     }
 
-    private HmcHearingRequestPayload buildTestAsylumHmcHearingRequestPayload() {
-
-        HearingDetails hearingDetails = HearingDetails.builder()
-            .duration(Integer.parseInt(listCaseHearingLength))
-            .hearingType(substantiveHearingType)
-            .hearingChannels(hearingChannels)
-            .autolistFlag(false)
-            .facilitiesRequired(Collections.emptyList())
-            .hearingInWelshFlag(false)
-            .hearingLocations(List.of(HearingLocationModel.builder()
-                                          .locationId(BIRMINGHAM_ID)
-                                          .locationType(LOCATION_TYPE_COURT).build()))
-            .panelRequirements(PanelRequirementsModel.builder()
-                                   .authorisationSubType(Collections.emptyList())
-                                   .authorisationTypes(Collections.emptyList())
-                                   .panelPreferences(Collections.emptyList())
-                                   .panelSpecialisms(Collections.emptyList())
-                                   .roleType(List.of(TRIBUNAL_JUDGE))
-                                   .build())
-            .hearingRequester("")
-            .hearingPriorityType(STANDARD.toString())
-            .hearingWindow(hearingWindowModel)
-            .multiDayHearing(false)
-            .listingComments(listingComments)
-            .numberOfPhysicalAttendees(0)
-            .privateHearingRequiredFlag(true)
-            .build();
-
-        uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.CaseDetails caseDetails =
-            uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.CaseDetails.builder()
-                .hmctsServiceCode(serviceId)
-                .caseRef(caseReference)
-                .externalCaseReference(homeOfficeRef)
-                .caseDeepLink(baseUrl + caseDeepLink)
-                .hmctsInternalCaseName(hmctsCaseNameInternal)
-                .publicCaseName(caseReference)
-                .caseAdditionalSecurityFlag(true)
-                .caseInterpreterRequiredFlag(true)
-                .caseCategories(List.of(caseCategoryCaseType, caseCategoryCaseSubType))
-                .caseManagementLocationCode(BaseLocation.BIRMINGHAM.getId())
-                .caseRestrictedFlag(false)
-                .caseSlaStartDate(dateStr)
-                .build();
-
-        return HmcHearingRequestPayload.builder()
-            .caseDetails(caseDetails)
-            .hearingDetails(hearingDetails)
-            .partyDetails(partyDetails)
-            .build();
-    }
-
     private ServiceHearingValuesModel buildTestBailServiceHearingValuesModel() {
 
         String bailListCaseHearingLength = "60";
@@ -423,7 +341,7 @@ class ServiceHearingValuesProviderTest {
             .caserestrictedFlag(false)
             .externalCaseReference(homeOfficeRef)
             .caseManagementLocationCode(BaseLocation.MANCHESTER.getId())
-            .caseSlaStartDate(dateStr)
+            .caseSlaStartDate(date.toString())
             .autoListFlag(false)
             .hearingType(bailHearingType)
             .hearingWindow(hearingWindowModel)
@@ -457,51 +375,6 @@ class ServiceHearingValuesProviderTest {
     }
 
     @Test
-    void number_of_physical_attendees_should_be_0() {
-
-        assertEquals(0, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetailsModels));
-    }
-
-    @Test
-    void number_of_physical_attendees_should_be_0_when_hearing_channel_is_on_the_papers() {
-
-        partyDetailsModels.get(0).setIndividualDetails(IndividualDetailsModel.builder()
-                                                     .preferredHearingChannel("ONPPRS").build());
-        partyDetailsModels.get(1).setIndividualDetails(IndividualDetailsModel.builder()
-                                                     .preferredHearingChannel("ONPPRS").build());
-
-        assertEquals(0, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetailsModels));
-    }
-
-    @Test
-    void number_of_physical_attendees_should_be_3() {
-        partyDetailsModels.get(0).setIndividualDetails(IndividualDetailsModel.builder()
-                                                     .preferredHearingChannel("INTER").build());
-        partyDetailsModels.get(1).setIndividualDetails(IndividualDetailsModel.builder()
-                                                     .preferredHearingChannel("INTER").build());
-
-        assertEquals(3, serviceHearingValuesProvider.getNumberOfPhysicalAttendees(partyDetailsModels));
-    }
-
-    @ParameterizedTest
-    @MethodSource("caseTypeValueTestCases")
-    void testGetCaseTypeValue(YesOrNo hasDeportationOrder, YesOrNo isSuitableToFloat,
-                              AppealType appealType, CaseTypeValue expectedValue) {
-        when(caseDetails.getCaseData()).thenReturn(asylumCase);
-        when(caseDetails.getId()).thenReturn(Long.parseLong(caseReference));
-        when(caseDetails.getState()).thenReturn(State.LISTING);
-        when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)).thenReturn(Optional.of(hasDeportationOrder));
-        when(asylumCase.read(IS_APPEAL_SUITABLE_TO_FLOAT, YesOrNo.class)).thenReturn(Optional.of(isSuitableToFloat));
-        when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(appealType));
-
-        List<CaseCategoryModel> caseCategoryModelList = serviceHearingValuesProvider
-            .provideAsylumServiceHearingValues(caseDetails)
-            .getCaseCategories();
-
-        assertEquals(expectedValue.getValue(), caseCategoryModelList.get(0).getCategoryValue());
-    }
-
-    @Test
     public void should_throw_exception_when_bail_case_name_hmcts_internal_is_missing() {
 
         when(bailCase.read(CASE_NAME_HMCTS_INTERNAL, String.class)).thenReturn(Optional.empty());
@@ -510,155 +383,6 @@ class ServiceHearingValuesProviderTest {
             .provideBailServiceHearingValues(bailCase, caseReference))
             .hasMessage("case name HMCTS internal case name is a required field")
             .isExactlyInstanceOf(RequiredFieldMissingException.class);
-    }
-
-    private static Stream<Arguments> caseTypeValueTestCases() {
-        return Stream.of(
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.HU,
-                CaseTypeValue.HUD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.EA,
-                CaseTypeValue.EAD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.EU,
-                CaseTypeValue.EUD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.DC,
-                CaseTypeValue.DCD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.PA,
-                CaseTypeValue.PAD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                RP,
-                CaseTypeValue.RPD
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.HU,
-                CaseTypeValue.HUX
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.EA,
-                CaseTypeValue.EAX
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.EU,
-                CaseTypeValue.EUX
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.DC,
-                CaseTypeValue.DCX
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.PA,
-                CaseTypeValue.PAX
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                RP,
-                CaseTypeValue.RPX
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                AppealType.HU,
-                CaseTypeValue.HUD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                AppealType.EA,
-                CaseTypeValue.EAD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                AppealType.EU,
-                CaseTypeValue.EUD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                AppealType.DC,
-                CaseTypeValue.DCD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                AppealType.PA,
-                CaseTypeValue.PAD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                RP,
-                CaseTypeValue.RPD
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.HU,
-                CaseTypeValue.HUF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.EA,
-                CaseTypeValue.EAF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.EU,
-                CaseTypeValue.EUF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.DC,
-                CaseTypeValue.DCF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.PA,
-                CaseTypeValue.PAF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                RP,
-                CaseTypeValue.RPF
-            )
-        );
     }
 
 }

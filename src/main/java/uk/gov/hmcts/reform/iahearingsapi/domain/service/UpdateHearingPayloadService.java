@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -20,23 +19,35 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
-public class UpdateHearingPayloadService {
+public class UpdateHearingPayloadService extends CreateHearingPayloadService {
 
-    private final HearingService hearingService;
-    private final PartyDetailsMapper partyDetailsMapper;
-    private final CaseDataToServiceHearingValuesMapper caseDataMapper;
-    private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
+    private HearingService hearingService;
+
+    public UpdateHearingPayloadService(CaseDataToServiceHearingValuesMapper caseDataMapper,
+                                       CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
+                                       PartyDetailsMapper partyDetailsMapper,
+                                       ListingCommentsMapper listingCommentsMapper,
+                                       String serviceId,
+                                       String baseUrl,
+                                       HearingService hearingService) {
+        super(caseDataMapper,
+              caseFlagsMapper,
+              partyDetailsMapper,
+              listingCommentsMapper,
+              serviceId,
+              baseUrl);
+        this.hearingService = hearingService;
+    }
 
     public UpdateHearingRequest createUpdateHearingPayload(
         AsylumCase asylumCase,
@@ -79,7 +90,7 @@ public class UpdateHearingPayloadService {
             .requestDetails(persistedHearing.getRequestDetails())
             .caseDetails(persistedHearing.getCaseDetails())
             .hearingDetails(buildHearingDetails(asylumCase, persistedHearing.getHearingDetails(), hearingDetails))
-            .partyDetails(getPartyDetails(asylumCase))
+            .partyDetails(getPartyDetailsModels(asylumCase))
             .build();
 
         log.info("Updated hearing request to be persisted: {}", updatedHearingRequest.toString());
@@ -87,9 +98,7 @@ public class UpdateHearingPayloadService {
     }
 
     private boolean getAutoListFlag(AsylumCase asylumCase, HearingDetails persistedHearingDetails) {
-        return caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase)
-            ? false
-            : persistedHearingDetails.isAutolistFlag();
+        return !caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase) && persistedHearingDetails.isAutolistFlag();
     }
 
     private List<String> getHearingChannels(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
@@ -183,9 +192,5 @@ public class UpdateHearingPayloadService {
                 .collect(Collectors.toList());
         }
         return filteredFacilities;
-    }
-
-    private List<PartyDetailsModel> getPartyDetails(AsylumCase asylumCase) {
-        return partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper);
     }
 }
