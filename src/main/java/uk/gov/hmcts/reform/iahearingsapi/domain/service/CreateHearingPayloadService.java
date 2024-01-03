@@ -41,17 +41,15 @@ public class CreateHearingPayloadService {
     protected final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
     protected final PartyDetailsMapper partyDetailsMapper;
     protected final ListingCommentsMapper listingCommentsMapper;
-    @Value("${hearingValues.hmctsServiceId}")
-    protected String serviceId;
-    @Value("${xui.api.baseUrl}")
-    protected String baseUrl;
+    private String serviceId;
+    private String baseUrl;
 
     public CreateHearingPayloadService(CaseDataToServiceHearingValuesMapper caseDataMapper,
                                        CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
                                        PartyDetailsMapper partyDetailsMapper,
                                        ListingCommentsMapper listingCommentsMapper,
-                                       String serviceId,
-                                       String baseUrl) {
+                                       @Value("${hearingValues.hmctsServiceId}") String serviceId,
+                                       @Value("${xui.api.baseUrl}") String baseUrl) {
         this.caseDataMapper = caseDataMapper;
         this.caseFlagsMapper = caseFlagsMapper;
         this.partyDetailsMapper = partyDetailsMapper;
