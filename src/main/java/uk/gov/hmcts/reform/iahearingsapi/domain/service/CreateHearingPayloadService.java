@@ -58,7 +58,7 @@ public class CreateHearingPayloadService {
         this.baseUrl = baseUrl;
     }
 
-    public CreateHearingRequest buildAsylumAutoHearingPayload(CaseDetails<AsylumCase> asylumCaseDetails) {
+    public CreateHearingRequest buildCreateHearingRequest(CaseDetails<AsylumCase> asylumCaseDetails) {
 
         AsylumCase asylumCase = asylumCaseDetails.getCaseData();
         Long caseReference = asylumCaseDetails.getId();

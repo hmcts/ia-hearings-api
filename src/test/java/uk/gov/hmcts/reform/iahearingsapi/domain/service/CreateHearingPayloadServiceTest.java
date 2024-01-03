@@ -138,7 +138,7 @@ public class CreateHearingPayloadServiceTest {
         when(caseDataMapper.getCaseSlaStartDate()).thenReturn(DATE_START);
 
         CreateHearingRequest expected = buildTestAsylumCreateHearingRequest();
-        CreateHearingRequest actual = createHearingPayloadService.buildAsylumAutoHearingPayload(caseDetails);
+        CreateHearingRequest actual = createHearingPayloadService.buildCreateHearingRequest(caseDetails);
 
         assertEquals(expected, actual);
     }
