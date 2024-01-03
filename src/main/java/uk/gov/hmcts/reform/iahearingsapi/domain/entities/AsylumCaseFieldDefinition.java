@@ -160,6 +160,8 @@ public enum AsylumCaseFieldDefinition {
         "manualCanHearingRequired", new TypeReference<YesOrNo>(){}),
     MANUAL_UPDATE_HEARING_REQUIRED(
         "manualUpdHearingRequired", new TypeReference<YesOrNo>(){}),
+    MANUAL_CREATE_HEARINGS_REQUIRED(
+        "manualCreHearingRequired", new TypeReference<YesOrNo>(){}),
     HEARING_ADJOURNMENT_WHEN(
         "hearingAdjournmentWhen", new TypeReference<HearingAdjournmentDay>(){}),
     RELIST_CASE_IMMEDIATELY(
