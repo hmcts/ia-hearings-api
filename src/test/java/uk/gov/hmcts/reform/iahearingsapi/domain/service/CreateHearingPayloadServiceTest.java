@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,6 +82,7 @@ public class CreateHearingPayloadServiceTest {
     private AsylumCase asylumCase;
 
     private CreateHearingPayloadService createHearingPayloadService;
+    private final MockedStatic<PayloadUtils> payloadUtils = mockStatic(PayloadUtils.class);
 
     @BeforeEach
     void setup() {
@@ -92,6 +94,11 @@ public class CreateHearingPayloadServiceTest {
             SERVICE_ID,
             BASE_URL
         );
+    }
+
+    @AfterEach
+    void tearDown() {
+        payloadUtils.close();
     }
 
     @Test
@@ -116,7 +123,6 @@ public class CreateHearingPayloadServiceTest {
                                                       caseDataMapper))
             .thenReturn(LISTING_COMMENTS);
 
-        MockedStatic<PayloadUtils> payloadUtils = mockStatic(PayloadUtils.class);
         payloadUtils.when(() -> PayloadUtils.getNumberOfPhysicalAttendees(PARTY_DETAILS_MODELS))
             .thenReturn(0);
         payloadUtils.when(() -> PayloadUtils.getCaseCategoriesValue(asylumCase))

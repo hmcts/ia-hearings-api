@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
@@ -189,10 +188,7 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_with_new_duration() {
         Integer duration = 240;
-        when(asylumCase.read(
-            LIST_CASE_HEARING_LENGTH,
-            String.class
-        )).thenReturn(Optional.of(duration.toString()));
+        when(caseDataMapper.getHearingDuration(asylumCase)).thenReturn(duration);
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
