@@ -75,7 +75,8 @@ public class PayloadUtilsTest {
         when(asylumCase.read(IS_APPEAL_SUITABLE_TO_FLOAT, YesOrNo.class)).thenReturn(Optional.of(isSuitableToFloat));
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(appealType));
 
-        assertEquals(expectedValue.getValue(), PayloadUtils.getCaseCategoriesValue(asylumCase).get(0).getCategoryValue());
+        assertEquals(expectedValue.getValue(),
+                     PayloadUtils.getCaseCategoriesValue(asylumCase).get(0).getCategoryValue());
     }
 
     private static Stream<Arguments> caseTypeValueTestCases() {

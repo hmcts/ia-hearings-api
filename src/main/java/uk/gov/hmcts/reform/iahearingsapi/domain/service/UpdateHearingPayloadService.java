@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 
 import java.util.ArrayList;
@@ -133,13 +133,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
     }
 
     private Integer getDuration(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
-
-        Optional<Integer> duration = asylumCase.read(
-            LIST_CASE_HEARING_LENGTH,
-            String.class
-        ).map(Integer::parseInt);
-
-        return duration.orElseGet(() -> persistedHearing.getHearingDetails().getDuration());
+        return defaultIfNull(getDuration(asylumCase), persistedHearing.getHearingDetails().getDuration());
     }
 
     private HearingWindowModel updateHearingWindow(boolean firstAvailable,
