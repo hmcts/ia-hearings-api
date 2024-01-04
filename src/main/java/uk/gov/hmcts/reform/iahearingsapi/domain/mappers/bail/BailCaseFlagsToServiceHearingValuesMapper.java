@@ -34,6 +34,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 @RequiredArgsConstructor
 public class BailCaseFlagsToServiceHearingValuesMapper {
 
+    private static final String caseLevelFlags = "Case level flags";
+    private static final String caseLevelFlagsPartyID = "Caselevelflags";
     private final BailCaseDataToServiceHearingValuesMapper caseDataMapper;
 
     public String getPublicCaseName(BailCase bailCase, String caseReference) {
@@ -150,7 +152,7 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
 
     private List<PartyFlagsModel> getCaseLevelFlags(BailCase bailCase) {
         return bailCase.read(BailCaseFieldDefinition.CASE_FLAGS, BailStrategicCaseFlag.class)
-            .map(flag -> buildCaseFlags(flag.getDetails(), null, flag.getPartyName()))
+            .map(flag -> buildCaseFlags(flag.getDetails(), caseLevelFlagsPartyID, caseLevelFlags))
             .orElse(Collections.emptyList());
     }
 
@@ -185,7 +187,17 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
                 .partyName(partyName)
                 .flagId(detail.getCaseFlagValue().getFlagCode())
                 .flagStatus(detail.getCaseFlagValue().getStatus())
-                .flagDescription(detail.getCaseFlagValue().getName())
+                .flagDescription(getFlagDescription(detail))
                 .build()).collect(Collectors.toList());
+    }
+
+    private static String getFlagDescription(CaseFlagDetail detail) {
+        String flagCode = detail.getCaseFlagValue().getFlagCode();
+        if (LANGUAGE_INTERPRETER.getFlagCode().equals(flagCode)
+            || SIGN_LANGUAGE_INTERPRETER.getFlagCode().equals(flagCode)) {
+            return detail.getCaseFlagValue().getSubTypeValue();
+        }
+
+        return detail.getCaseFlagValue().getFlagComment();
     }
 }

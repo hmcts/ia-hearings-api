@@ -57,6 +57,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CaseFlagsToServiceHearingValuesMapperTest {
 
+    private static final String caseLevelFlags = "Case level flags";
+    private static final String caseLevelFlagsPartyID = "Caselevelflags";
     private final String caseReference = "caseReference";
     private final String flagAmendUrl = "/cases/case-details/" + caseReference + "#Case%20flags";
     private CaseFlagsToServiceHearingValuesMapper mapper;
@@ -429,8 +431,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagAmendUrl(flagAmendUrl)
             .flags(List.of(
                 PartyFlagsModel.builder()
-                    .partyId(null)
-                    .partyName(null)
+                    .partyId(caseLevelFlagsPartyID)
+                    .partyName(caseLevelFlags)
                     .flagId(ANONYMITY.getFlagCode())
                     .flagStatus("Active")
                     .flagDescription("test comment")

@@ -45,6 +45,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 public class CaseFlagsToServiceHearingValuesMapper {
 
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
+    private static final String caseLevelFlags = "Case level flags";
+    private static final String caseLevelFlagsPartyID = "Caselevelflags";
 
     public String getPublicCaseName(AsylumCase asylumCase, String caseReference) {
 
@@ -222,7 +224,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
     public List<PartyFlagsModel> getCaseLevelFlags(AsylumCase asylumCase) {
         return asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
-            .map(flag -> buildCaseFlags(flag.getDetails(), null, flag.getPartyName()))
+            .map(flag -> buildCaseFlags(flag.getDetails(), caseLevelFlagsPartyID, caseLevelFlags))
             .orElse(Collections.emptyList());
     }
 
