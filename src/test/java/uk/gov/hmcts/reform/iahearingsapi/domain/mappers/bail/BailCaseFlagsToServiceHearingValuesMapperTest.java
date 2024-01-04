@@ -47,6 +47,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class BailCaseFlagsToServiceHearingValuesMapperTest {
 
+    private static final String caseLevelFlags = "Case level flags";
+    private static final String caseLevelFlagsPartyID = "Caselevelflags";
     private final String caseReference = "caseReference";
     private final String flagAmendUrl = "/cases/case-details/" + caseReference + "#Case%20flags";
     private BailCaseFlagsToServiceHearingValuesMapper mapper;
@@ -210,6 +212,7 @@ class BailCaseFlagsToServiceHearingValuesMapperTest {
                     .name(ANONYMITY.getName())
                     .status("Active")
                     .hearingRelevant(YesOrNo.YES)
+                    .flagComment("test comment")
                     .build())))));
 
 
@@ -217,11 +220,11 @@ class BailCaseFlagsToServiceHearingValuesMapperTest {
             .flagAmendUrl(flagAmendUrl)
             .flags(List.of(
                 PartyFlagsModel.builder()
-                    .partyId(null)
-                    .partyName(null)
+                    .partyId(caseLevelFlagsPartyID)
+                    .partyName(caseLevelFlags)
                     .flagId(ANONYMITY.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(ANONYMITY.getName())
+                    .flagDescription("test comment")
                     .build()
             )).build();
 
@@ -241,6 +244,7 @@ class BailCaseFlagsToServiceHearingValuesMapperTest {
                 .name(LITIGATION_FRIEND.getName())
                 .status("Active")
                 .hearingRelevant(YesOrNo.YES)
+                .flagComment("test comment")
                 .build()),
             new CaseFlagDetail("id5", CaseFlagValue.builder()
                 .flagCode(HEARING_LOOP.getFlagCode())
@@ -253,6 +257,20 @@ class BailCaseFlagsToServiceHearingValuesMapperTest {
                 .name(LACKING_CAPACITY.getName())
                 .status("Active")
                 .hearingRelevant(YesOrNo.NO)
+                .build()),
+            new CaseFlagDetail("id7", CaseFlagValue.builder()
+                .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+                .name(LANGUAGE_INTERPRETER.getName())
+                .status("Active")
+                .hearingRelevant(YesOrNo.YES)
+                .subTypeValue("French")
+                .build()),
+            new CaseFlagDetail("id8", CaseFlagValue.builder()
+                .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
+                .name(SIGN_LANGUAGE_INTERPRETER.getName())
+                .status("Active")
+                .hearingRelevant(YesOrNo.YES)
+                .subTypeValue("International Sign (IS)")
                 .build()));
         when(bailCase.read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class))
             .thenReturn(Optional.of(
@@ -280,21 +298,33 @@ class BailCaseFlagsToServiceHearingValuesMapperTest {
                     .partyName("applicant1")
                     .flagId(LITIGATION_FRIEND.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(LITIGATION_FRIEND.getName())
+                    .flagDescription("test comment")
                     .build(),
                 PartyFlagsModel.builder()
                     .partyId("applicantPartyId")
                     .partyName("applicant1")
                     .flagId(LACKING_CAPACITY.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(LACKING_CAPACITY.getName())
+                    .build(),
+                PartyFlagsModel.builder()
+                    .partyId("applicantPartyId")
+                    .partyName("applicant1")
+                    .flagId(LANGUAGE_INTERPRETER.getFlagCode())
+                    .flagStatus("Active")
+                    .flagDescription("French")
+                    .build(),
+                PartyFlagsModel.builder()
+                    .partyId("applicantPartyId")
+                    .partyName("applicant1")
+                    .flagId(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
+                    .flagStatus("Active")
+                    .flagDescription("International Sign (IS)")
                     .build(),
                 PartyFlagsModel.builder()
                     .partyId("fcsPartyId")
                     .partyName("fcs3")
                     .flagId(HEARING_LOOP.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(HEARING_LOOP.getName())
                     .build()
             )).build();
 
