@@ -5,6 +5,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CANCEL_HEARINGS_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.DECIDE_AN_APPLICATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.HEARING_REQUESTED;
@@ -69,6 +70,7 @@ public class DecideAnApplicationHandler  implements PreSubmitCallbackHandler<Asy
                             .deleteHearing(Long.valueOf(hearing.getHearingRequestId()), cancellationReason)
                             .getStatusCode();
                     });
+            asylumCase.write(MANUAL_CANCEL_HEARINGS_REQUIRED, NO);
         } catch (HmcException e) {
             asylumCase.write(MANUAL_CANCEL_HEARINGS_REQUIRED, YES);
         }
