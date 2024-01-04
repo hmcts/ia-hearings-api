@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_ADJOURNMENT_DETAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
@@ -14,11 +15,10 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.ADJOURNED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPEAL_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -32,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AdjournmentDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
@@ -76,12 +77,18 @@ class EditCaseListingAfterAdjournmentHandlerTest {
             .thenReturn(Optional.of(HmcStatus.LISTED));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.class))
             .thenReturn(Optional.of(ListingStatus.FIXED));
-        when(coreCaseDataService.getCaseState(CASE_REFERENCE))
-            .thenReturn(ADJOURNED);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
+
+        AdjournmentDetail adjournmentDetail = AdjournmentDetail.builder()
+            .adjournmentDetailsHearing("Hearing1").build();
+
+        when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERENCE));
+        when(coreCaseDataService.getCase(CASE_REFERENCE)).thenReturn(asylumCase);
+        when(asylumCase.read(CURRENT_ADJOURNMENT_DETAIL, AdjournmentDetail.class))
+            .thenReturn(Optional.of(adjournmentDetail));
     }
 
     @Test
@@ -123,9 +130,9 @@ class EditCaseListingAfterAdjournmentHandlerTest {
     }
 
     @Test
-    void should_not_handle_if_case_status_unqualified() {
-        when(coreCaseDataService.getCaseState(CASE_REFERENCE))
-            .thenReturn(APPEAL_SUBMITTED);
+    void should_not_handle_if_adjournment_details_not_yet_recorded() {
+        when(asylumCase.read(CURRENT_ADJOURNMENT_DETAIL, AdjournmentDetail.class))
+            .thenReturn(Optional.empty());
 
         assertFalse(handler.canHandle(serviceData));
     }
@@ -140,8 +147,8 @@ class EditCaseListingAfterAdjournmentHandlerTest {
 
     @Test
     void should_trigger_case_listing() {
-        when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERENCE));
-        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REFERENCE, CoreCaseDataService.CASE_TYPE_ASYLUM))
+
+        when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REFERENCE, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
