@@ -173,9 +173,9 @@ public class CaseDataToServiceHearingValuesMapper {
     public String getLegalRepOrganisationIdentifier(AsylumCase asylumCase) {
         Organisation organisation = asylumCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class)
             .map(OrganisationPolicy::getOrganisation)
-            .orElseThrow(() -> new RequiredFieldMissingException("localAuthorityPolicy is a required field"));
+            .orElse(null);
 
-        return defaultIfNull(organisation.getOrganisationID(), "");
+        return organisation == null ? "" : defaultIfNull(organisation.getOrganisationID(), "");
     }
 
     public List<UnavailabilityRangeModel> getUnavailabilityRanges(AsylumCase asylumCase) {

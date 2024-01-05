@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
@@ -488,12 +487,11 @@ class CaseDataToServiceHearingValuesMapperTest {
     }
 
     @Test
-    void getLegalRepOrganisationIdentifier_should_throw_exception_if_no_local_authority_policy() {
+    void getLegalRepOrganisationIdentifier_should_default_to_empty_string_if_no_local_authority() {
         when(asylumCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class))
             .thenReturn(Optional.empty());
 
-        assertThrows(RequiredFieldMissingException.class,
-                     () -> mapper.getLegalRepOrganisationIdentifier(asylumCase));
+        assertEquals("", mapper.getLegalRepOrganisationIdentifier(asylumCase));
     }
 
 }
