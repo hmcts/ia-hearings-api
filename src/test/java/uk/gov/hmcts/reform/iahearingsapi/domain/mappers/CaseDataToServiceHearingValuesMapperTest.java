@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
@@ -29,6 +30,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
@@ -63,6 +65,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -82,6 +86,10 @@ class CaseDataToServiceHearingValuesMapperTest {
     private DateProvider hearingServiceDateProvider;
     @Mock
     private AsylumCase asylumCase;
+    @Mock
+    private OrganisationPolicy organisationPolicy;
+    @Mock
+    private Organisation organisation;
 
     @BeforeEach
     void setup() {
@@ -456,6 +464,36 @@ class CaseDataToServiceHearingValuesMapperTest {
     void isDecisionWithoutHearingAppeal_should_return_false() {
 
         assertFalse(mapper.isDecisionWithoutHearingAppeal(asylumCase));
+    }
+
+    @Test
+    void getLegalRepOrganisationIdentifier_should_retrieve_org_id() {
+        String expected = "IDENTIFIER";
+        when(asylumCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class))
+            .thenReturn(Optional.of(organisationPolicy));
+        when(organisationPolicy.getOrganisation()).thenReturn(organisation);
+        when(organisation.getOrganisationID()).thenReturn(expected);
+
+        assertEquals(expected, mapper.getLegalRepOrganisationIdentifier(asylumCase));
+    }
+
+    @Test
+    void getLegalRepOrganisationIdentifier_should_default_to_empty_string_if_no_org_id() {
+        when(asylumCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class))
+            .thenReturn(Optional.of(organisationPolicy));
+        when(organisationPolicy.getOrganisation()).thenReturn(organisation);
+        // no stubbing of gerOrganisationID will make the method return null
+
+        assertEquals("", mapper.getLegalRepOrganisationIdentifier(asylumCase));
+    }
+
+    @Test
+    void getLegalRepOrganisationIdentifier_should_throw_exception_if_no_local_authority_policy() {
+        when(asylumCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class))
+            .thenReturn(Optional.empty());
+
+        assertThrows(RequiredFieldMissingException.class,
+                     () -> mapper.getLegalRepOrganisationIdentifier(asylumCase));
     }
 
 }
