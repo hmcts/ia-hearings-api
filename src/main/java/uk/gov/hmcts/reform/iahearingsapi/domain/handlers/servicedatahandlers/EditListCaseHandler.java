@@ -8,7 +8,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_CMR_UPDATED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.FINAL_BUNDLING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PRE_HEARING;
@@ -59,9 +58,7 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
             .getCaseState(caseId);
         List<State> targetStates = Arrays.asList(PREPARE_FOR_HEARING, FINAL_BUNDLING, PRE_HEARING);
 
-        return (isSubstantiveListedHearing(serviceData)
-            || isCaseManagementReviewListedHearing(serviceData))
-            && targetStates.contains(caseState);
+        return isSubstantiveListedHearing(serviceData) && targetStates.contains(caseState);
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
@@ -145,26 +142,7 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
         if (sendUpdate) {
             log.info("Sending `{}` event for case ID `{}`", EDIT_CASE_LISTING, caseId);
             coreCaseDataService.triggerSubmitEvent(EDIT_CASE_LISTING, caseId, startEventResponse, asylumCase);
-            if (isCaseManagementReviewListedHearing(serviceData)) {
-                triggerCmrUpdatedNotification(startEventResponse, caseId);
-            }
         }
-    }
-
-    private void triggerCmrUpdatedNotification(StartEventResponse startEventResponse, String caseId) {
-        StartEventResponse startCmrEventResponse = coreCaseDataService.startCaseEvent(
-            EDIT_CASE_LISTING,
-            caseId,
-            CASE_TYPE_ASYLUM
-        );
-        AsylumCase asylumCaseCmr = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
-        log.info("Sending `{}` event for case ID `{}`", TRIGGER_CMR_UPDATED, caseId);
-        coreCaseDataService.triggerSubmitEvent(
-            TRIGGER_CMR_UPDATED,
-            caseId,
-            startCmrEventResponse,
-            asylumCaseCmr
-        );
     }
 }
 

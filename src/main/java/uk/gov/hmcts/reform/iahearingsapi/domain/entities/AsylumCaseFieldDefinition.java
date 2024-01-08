@@ -40,6 +40,8 @@ public enum AsylumCaseFieldDefinition {
     LEGAL_REP_MOBILE_PHONE_NUMBER(
         "legalRepMobilePhoneNumber", new TypeReference<String>(){}),
     LEGAL_REP_COMPANY_NAME("legalRepCompanyName", new TypeReference<String>(){}),
+    LOCAL_AUTHORITY_POLICY(
+        "localAuthorityPolicy", new TypeReference<OrganisationPolicy>(){}),
     APPELLANT_TITLE(
         "appellantTitle", new TypeReference<String>(){}),
     APPELLANT_GIVEN_NAMES(
@@ -263,7 +265,9 @@ public enum AsylumCaseFieldDefinition {
 
     MAKE_AN_APPLICATION_DECISION_REASON(
         "makeAnApplicationDecisionReason", new TypeReference<String>(){}
-    );
+    ),
+    CURRENT_ADJOURNMENT_DETAIL(
+        "currentAdjournmentDetail", new TypeReference<AdjournmentDetail>(){});
 
     private final String value;
     private final TypeReference typeReference;
