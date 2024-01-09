@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServi
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailInterpreterDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailMapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.FinancialConditionSupporterDetailsMapper;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
 
 
 @Component
@@ -120,5 +121,17 @@ public class PartyDetailsMapper {
             .setOtherReasonableAdjustmentDetails((otherReasonableAdjustments + " " + status).trim());
 
         return partyDetailsModel;
+    }
+
+    public static PartyDetails mapPartyDetailsModelToPartyDetails(PartyDetailsModel partyDetailsModel) {
+        return PartyDetails.builder()
+            .individualDetails(partyDetailsModel.getIndividualDetails())
+            .partyID(partyDetailsModel.getPartyID())
+            .organisationDetails(partyDetailsModel.getOrganisationDetails())
+            .partyRole(partyDetailsModel.getPartyRole())
+            .partyType(partyDetailsModel.getPartyType())
+            .unavailabilityDayOfWeek(partyDetailsModel.getUnavailabilityDOW())
+            .unavailabilityRanges(partyDetailsModel.getUnavailabilityRanges())
+            .build();
     }
 }
