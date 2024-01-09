@@ -26,12 +26,16 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityDayOfWeekModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityRangeModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.ApplicantDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailInterpreterDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.FinancialConditionSupporterDetailsMapper;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
 
 @ExtendWith(MockitoExtension.class)
 class PartyDetailsMapperTest {
@@ -70,6 +74,14 @@ class PartyDetailsMapperTest {
     private BailInterpreterDetailsMapper bailInterpreterDetailsMapper;
     @Mock
     private PartyDetailsModel partyDetailsModel;
+    @Mock
+    private IndividualDetailsModel individualDetailsModel;
+    @Mock
+    private OrganisationDetailsModel organisationDetailsModel;
+    @Mock
+    private UnavailabilityDayOfWeekModel unavailabilityDayOfWeekModel;
+    @Mock
+    private UnavailabilityRangeModel unavailabilityRangeModel;
 
     @Test
     void should_map_asylum_correctly() {
@@ -246,5 +258,31 @@ class PartyDetailsMapperTest {
         } else {
             assertEquals(expected, result.getIndividualDetails().getOtherReasonableAdjustmentDetails());
         }
+    }
+
+    @Test
+    void should_map_party_details_model_to_party_details() {
+        List<UnavailabilityDayOfWeekModel> unavailabilityDayOfWeekModels = List.of(unavailabilityDayOfWeekModel);
+        List<UnavailabilityRangeModel> unavailabilityRangeModels = List.of(unavailabilityRangeModel);
+        PartyDetailsModel partyDetailsModel = PartyDetailsModel.builder()
+            .individualDetails(individualDetailsModel)
+            .partyName("partyName")
+            .partyID("partyId")
+            .organisationDetails(organisationDetailsModel)
+            .partyRole("partyRole")
+            .partyType("partyType")
+            .unavailabilityDOW(unavailabilityDayOfWeekModels)
+            .unavailabilityRanges(unavailabilityRangeModels)
+            .build();
+
+        PartyDetails partyDetails = PartyDetailsMapper.mapPartyDetailsModelToPartyDetails(partyDetailsModel);
+
+        assertEquals(individualDetailsModel, partyDetails.getIndividualDetails());
+        assertEquals("partyId", partyDetails.getPartyID());
+        assertEquals(organisationDetailsModel, partyDetails.getOrganisationDetails());
+        assertEquals("partyRole", partyDetails.getPartyRole());
+        assertEquals("partyType", partyDetails.getPartyType());
+        assertEquals(unavailabilityDayOfWeekModels, partyDetails.getUnavailabilityDayOfWeek());
+        assertEquals(unavailabilityRangeModels, partyDetails.getUnavailabilityRanges());
     }
 }
