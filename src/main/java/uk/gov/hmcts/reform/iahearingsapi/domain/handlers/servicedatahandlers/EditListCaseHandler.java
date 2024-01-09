@@ -5,12 +5,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.FINAL_BUNDLING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PRE_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
@@ -111,6 +113,7 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
             String.class
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingLength can not be null"));
         boolean sendUpdate = false;
+        boolean triggerReviewInterpreterTask = false;
         final String nextHearingChannel = nextHearingChannelList.get(0).name();
 
         if (nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name())) {
@@ -124,13 +127,22 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
             );
             sendUpdate = true;
+            triggerReviewInterpreterTask = true;
         }
-        if (!currentHearingChannel.equals(nextHearingChannel) || !currentVenueId.equals(nextHearingVenueId)) {
+        if (!currentVenueId.equals(nextHearingVenueId)) {
             asylumCase.write(
                 LIST_CASE_HEARING_CENTRE,
                 HandlerUtils.getLocation(nextHearingChannelList, nextHearingVenueId)
             );
             sendUpdate = true;
+            triggerReviewInterpreterTask = true;
+        }
+        if (!currentHearingChannel.equals(nextHearingChannel)) {
+            asylumCase.write(
+                HEARING_CHANNEL,
+                buildHearingChannelDynmicList(nextHearingChannelList));
+            sendUpdate = true;
+            triggerReviewInterpreterTask = true;
         }
         int nextDuration = getHearingDuration(serviceData);
         if ((nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name()))
@@ -140,6 +152,12 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
         }
 
         if (sendUpdate) {
+            // Only trigger review interpreter task if the hearing location, date or channel are updated.
+            asylumCase.clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
+            if (triggerReviewInterpreterTask) {
+                asylumCase.write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+            }
+
             log.info("Sending `{}` event for case ID `{}`", EDIT_CASE_LISTING, caseId);
             coreCaseDataService.triggerSubmitEvent(EDIT_CASE_LISTING, caseId, startEventResponse, asylumCase);
         }

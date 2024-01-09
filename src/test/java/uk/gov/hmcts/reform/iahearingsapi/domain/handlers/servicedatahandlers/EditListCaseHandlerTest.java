@@ -14,7 +14,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
@@ -39,8 +41,10 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPEAL_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
@@ -170,6 +174,8 @@ class EditListCaseHandlerTest {
 
         editListCaseHandler.handle(serviceData);
 
+        verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+
         verify(coreCaseDataService, never()).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
@@ -189,6 +195,9 @@ class EditListCaseHandlerTest {
         verify(asylumCase).write(
             LIST_CASE_HEARING_CENTRE, HearingCentre.BRADFORD
         );
+
+        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
@@ -204,9 +213,6 @@ class EditListCaseHandlerTest {
 
         editListCaseHandler.handle(serviceData);
 
-        verify(asylumCase).write(
-            LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING
-        );
         verify(asylumCase).write(
             LIST_CASE_HEARING_LENGTH, "100"
         );
@@ -226,11 +232,58 @@ class EditListCaseHandlerTest {
         editListCaseHandler.handle(serviceData);
 
         verify(asylumCase).write(
-            LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING
-        );
-        verify(asylumCase).write(
             LIST_CASE_HEARING_LENGTH, "100"
         );
+        verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_trigger_events_when_hearing_venue_updated() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+        when(serviceData.read(ServiceDataFieldDefinition.DURATION, Integer.class))
+            .thenReturn(Optional.of(100));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of("231596"));
+
+        editListCaseHandler.handle(serviceData);
+
+        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
+
+        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+
+        verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_trigger_events_when_hearing_channel_updated() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.ONPPRS)));
+        when(serviceData.read(ServiceDataFieldDefinition.DURATION, Integer.class))
+            .thenReturn(Optional.of(100));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of("231596"));
+
+        editListCaseHandler.handle(serviceData);
+
+        verify(asylumCase).write(
+            HEARING_CHANNEL, new DynamicList(new Value(
+                HearingChannel.ONPPRS.name(),
+                HearingChannel.ONPPRS.getLabel()
+            ), List.of(new Value(
+                HearingChannel.ONPPRS.name(),
+                HearingChannel.ONPPRS.getLabel()
+            )))
+        );
+
+        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }

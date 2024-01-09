@@ -264,10 +264,13 @@ public enum AsylumCaseFieldDefinition {
         "decisionHearingFeeOption", new TypeReference<String>(){}),
 
     MAKE_AN_APPLICATION_DECISION_REASON(
-        "makeAnApplicationDecisionReason", new TypeReference<String>(){}
-    ),
+        "makeAnApplicationDecisionReason", new TypeReference<String>(){}),
+
     CURRENT_ADJOURNMENT_DETAIL(
-        "currentAdjournmentDetail", new TypeReference<AdjournmentDetail>(){});
+        "currentAdjournmentDetail", new TypeReference<AdjournmentDetail>(){}),
+
+    SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK(
+        "shouldTriggerReviewInterpreterTask", new TypeReference<YesOrNo>(){});
 
     private final String value;
     private final TypeReference typeReference;
