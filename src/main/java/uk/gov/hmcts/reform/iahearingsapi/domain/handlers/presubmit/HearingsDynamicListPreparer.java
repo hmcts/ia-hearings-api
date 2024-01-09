@@ -97,7 +97,7 @@ public class HearingsDynamicListPreparer implements PreSubmitCallbackHandler<Asy
             case UPDATE_SUBMITTED -> // UPDATE SUBMITTED
                 caseHearing.getHearingTypeDescription()
                     + " " + UPDATE_REQUESTED;
-            default -> "test";
+            default -> null;
         };
     }
 
