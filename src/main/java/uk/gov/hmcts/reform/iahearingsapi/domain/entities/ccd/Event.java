@@ -21,6 +21,7 @@ public enum Event {
     TRIGGER_CMR_LISTED("triggerCmrListed"),
     DECIDE_AN_APPLICATION("decideAnApplication"),
     SEND_UPLOAD_BAIL_SUMMARY_DIRECTION("sendUploadBailSummaryDirection"),
+    LIST_CASE_WITHOUT_HEARING_REQUIREMENTS("listCaseWithoutHearingRequirements"),
     TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK("triggerReviewInterpreterBookingTask"),
 
     @JsonEnumDefaultValue
