@@ -29,7 +29,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class ListCaseWithoutHearingRequirementsHandlerTest {
+public class AutoCreateHearingRequestHandlerTest {
 
     @Mock
     private Callback<AsylumCase> callback;
@@ -44,7 +44,7 @@ public class ListCaseWithoutHearingRequirementsHandlerTest {
     @Mock
     private CreateHearingRequest createHearingRequest;
 
-    private ListCaseWithoutHearingRequirementsHandler handler;
+    private AutoCreateHearingRequestHandler handler;
 
 
     @BeforeEach
@@ -54,7 +54,7 @@ public class ListCaseWithoutHearingRequirementsHandlerTest {
         when(caseDetails.getId()).thenReturn(1L);
         when(callback.getEvent()).thenReturn(LIST_CASE_WITHOUT_HEARING_REQUIREMENTS);
 
-        handler = new ListCaseWithoutHearingRequirementsHandler(hearingService, createHearingPayloadService);
+        handler = new AutoCreateHearingRequestHandler(hearingService, createHearingPayloadService);
     }
 
     @Test

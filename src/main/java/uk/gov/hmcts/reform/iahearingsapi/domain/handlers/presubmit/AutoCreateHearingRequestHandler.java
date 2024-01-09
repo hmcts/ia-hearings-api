@@ -20,7 +20,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class ListCaseWithoutHearingRequirementsHandler implements PreSubmitCallbackHandler<AsylumCase> {
+public class AutoCreateHearingRequestHandler implements PreSubmitCallbackHandler<AsylumCase> {
 
     private final HearingService hearingService;
     private final CreateHearingPayloadService createHearingPayloadService;
