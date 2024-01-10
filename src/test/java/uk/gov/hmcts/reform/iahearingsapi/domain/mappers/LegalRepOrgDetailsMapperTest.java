@@ -51,6 +51,7 @@ class LegalRepOrgDetailsMapperTest {
 
         when(bailCaseDataMapper.getLegalRepOrgPartyId(bailCase)).thenReturn("partyId");
         when(bailCaseDataMapper.getLegalRepCompanyName(bailCase)).thenReturn("legaRepPartyName");
+        when(bailCaseDataMapper.getLegalRepOrganisationIdentifier(bailCase)).thenReturn("legalRepOrgId");
 
         PartyDetailsModel expected = PartyDetailsModel.builder()
             .partyID("partyId")
@@ -60,7 +61,7 @@ class LegalRepOrgDetailsMapperTest {
                 OrganisationDetailsModel.builder()
                     .organisationType("ORG")
                     .name("legaRepPartyName")
-                    .cftOrganisationID("partyId")
+                    .cftOrganisationID("legalRepOrgId")
                     .build())
             .build();
 
