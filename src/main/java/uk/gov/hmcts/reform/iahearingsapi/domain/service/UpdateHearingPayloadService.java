@@ -62,7 +62,13 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         HearingWindowModel hearingWindowModel,
         Boolean isAdjournmentDetails
     ) {
-        return generateHearingPayload(asylumCase, hearingId, reasonCode, firstAvailableDate, hearingWindowModel, isAdjournmentDetails);
+        return generateHearingPayload(
+            asylumCase,
+            hearingId,
+            reasonCode,
+            firstAvailableDate,
+            hearingWindowModel,
+            isAdjournmentDetails);
     }
 
     public UpdateHearingRequest createUpdateHearingPayload(
@@ -151,7 +157,9 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
             .orElseGet(() -> persistedHearing.getHearingDetails().getHearingLocations());
     }
 
-    private Integer getDuration(AsylumCase asylumCase, HearingGetResponse persistedHearing, Boolean isAdjournmentDetails) {
+    private Integer getDuration(AsylumCase asylumCase,
+                                HearingGetResponse persistedHearing,
+                                Boolean isAdjournmentDetails) {
         return defaultIfNull(getDuration(asylumCase, isAdjournmentDetails),
             persistedHearing.getHearingDetails().getDuration());
     }
