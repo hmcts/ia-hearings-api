@@ -7,10 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,14 +74,10 @@ class CancelledHearingHandlerTest {
     @Test
     void should_trigger_review_interpreter_booking_task() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_REF, CASE_TYPE_ASYLUM))
-            .thenReturn(startEventResponse);
-        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
 
         cancelledHearingHandler.handle(serviceData);
 
-        verify(coreCaseDataService).triggerSubmitEvent(
-            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerReviewInterpreterBookingTask(CASE_REF);
     }
 
 }
