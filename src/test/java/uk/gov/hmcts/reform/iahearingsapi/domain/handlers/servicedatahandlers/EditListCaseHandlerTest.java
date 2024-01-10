@@ -313,7 +313,7 @@ class EditListCaseHandlerTest {
     }
 
     @Test
-    void should_trigger_event_when_adjournment_details_has_been_previously_recorded() {
+    void should_trigger_event_when_adjournment_details_have_been_previously_recorded() {
 
         when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REFERENCE, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
