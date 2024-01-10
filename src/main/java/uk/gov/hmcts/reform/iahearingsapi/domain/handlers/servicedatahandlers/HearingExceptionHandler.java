@@ -1,11 +1,14 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_CATEGORY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HANDLE_HEARING_EXCEPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHmcStatus;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -14,6 +17,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
@@ -34,7 +38,11 @@ public class HearingExceptionHandler implements ServiceDataHandler<ServiceData> 
     ) {
         requireNonNull(serviceData, "serviceData must not be null");
 
-        return isHmcStatus(serviceData, HmcStatus.EXCEPTION);
+        Optional<List<CaseCategoryModel>> maybeCaseCategory = serviceData.read(CASE_CATEGORY);
+        List<CaseCategoryModel> caseCategory = maybeCaseCategory
+            .orElseThrow(() -> new IllegalStateException("Case category can not be null"));
+        boolean isBailsCase = caseCategory.stream().anyMatch(category -> category.getCategoryValue().contains("BLS"));
+        return isHmcStatus(serviceData, HmcStatus.EXCEPTION) && !isBailsCase;
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {

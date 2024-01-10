@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataServi
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 import com.github.dockerjava.api.exception.NotFoundException;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 
@@ -47,6 +51,12 @@ class HearingExceptionHandlerTest {
 
     @BeforeEach
     public void setUp() {
+        CaseCategoryModel caseCategoryModel = new CaseCategoryModel();
+        caseCategoryModel.setCategoryType(CategoryType.CASE_TYPE);
+        caseCategoryModel.setCategoryValue(CaseTypeValue.RPD.getValue());
+        caseCategoryModel.setCategoryParent("");
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_CATEGORY))
+            .thenReturn(Optional.of(List.of(caseCategoryModel)));
         hearingExceptionHandler = new HearingExceptionHandler(coreCaseDataService);
     }
 
@@ -108,6 +118,19 @@ class HearingExceptionHandlerTest {
         verify(coreCaseDataService, never()).triggerSubmitEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, startEventResponse,
                                                                 asylumCase
         );
+    }
+
+    @Test
+    void should_not_handle_if_case_type_is_bails() {
+        CaseCategoryModel caseCategoryModel = new CaseCategoryModel();
+        caseCategoryModel.setCategoryType(CategoryType.CASE_TYPE);
+        caseCategoryModel.setCategoryValue("BFA1-BLS");
+        caseCategoryModel.setCategoryParent("");
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_CATEGORY))
+            .thenReturn(Optional.of(List.of(caseCategoryModel)));
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
+            .thenReturn(Optional.of(HmcStatus.EXCEPTION));
+        assertFalse(hearingExceptionHandler.canHandle(serviceData));
     }
 }
 
