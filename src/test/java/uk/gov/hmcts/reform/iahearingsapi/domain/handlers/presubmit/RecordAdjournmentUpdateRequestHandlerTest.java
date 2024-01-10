@@ -126,7 +126,8 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
             CANCELLATION_REASON.getValue().getCode(),
             false,
             HearingWindowModel.builder().firstDateTimeMustBe(
-                HearingsUtils.convertToLocalDateFormat(DATE1).toString()).build()
+                HearingsUtils.convertToLocalDateFormat(DATE1).toString()).build(),
+            relistCaseImmediately.equals(YES)
         ))
             .thenReturn(updateHearingRequest);
 
@@ -155,7 +156,8 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
             HEARING_ID,
             CANCELLATION_REASON.getValue().getCode(),
             true,
-            null
+            null,
+            true
         )).thenReturn(updateHearingRequest);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(
@@ -184,7 +186,8 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
             HearingWindowModel.builder()
                 .dateRangeStart(HearingsUtils.convertToLocalDateFormat(DATE1).toString())
                 .dateRangeEnd(HearingsUtils.convertToLocalDateFormat(DATE2).toString())
-                .build()
+                .build(),
+            true
         )).thenReturn(updateHearingRequest);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(

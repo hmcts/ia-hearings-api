@@ -70,6 +70,7 @@ class UpdateInterpreterDetailsHandlerTest {
             any(),
             any(),
             any(),
+            any(),
             any()
         )).thenReturn(updateHearingRequest);
 
