@@ -23,6 +23,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -98,22 +99,33 @@ public class CaseDataToServiceHearingValuesMapper {
     }
 
     public HearingWindowModel getHearingWindowModel(State appealStatus) {
-
         if (appealStatus == State.LISTING) {
-            ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
-            String dateRangeStart = hearingServiceDateProvider
-                .calculateDueDate(now, HEARING_WINDOW_INTERVAL_DEFAULT)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            return HearingWindowModel.builder()
-                .dateRangeStart(dateRangeStart)
-                .build();
+            return calculateAsylumHearingWindow();
         } else {
             return null;
         }
     }
 
-    public String getCaseSlaStartDate() {
-        return hearingServiceDateProvider.now().toString();
+    public HearingWindowModel getHearingWindowModel(boolean isAutoRequest) {
+        if (isAutoRequest) {
+            return calculateAsylumHearingWindow();
+        } else {
+            return null;
+        }
+    }
+
+    private HearingWindowModel calculateAsylumHearingWindow() {
+        ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
+        String dateRangeStart = hearingServiceDateProvider
+            .calculateDueDate(now, HEARING_WINDOW_INTERVAL_DEFAULT)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return HearingWindowModel.builder()
+            .dateRangeStart(dateRangeStart)
+            .build();
+    }
+
+    public LocalDate getCaseSlaStartDate() {
+        return hearingServiceDateProvider.now();
     }
 
     public String getCaseDeepLink(String caseReference) {

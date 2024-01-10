@@ -12,7 +12,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HearingRequestGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(PactConsumerTestExt.class)
@@ -20,6 +22,8 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 @PactFolder("pacts")
 @ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
 public class HmcHearingApiConsumerTestBase {
+
+    protected static final String CASE_REFERENCE = "1111222233334444";
 
     @Autowired
     HmcHearingApi hmcHearingApi;
@@ -31,6 +35,9 @@ public class HmcHearingApiConsumerTestBase {
     protected PartiesNotified partiesNotified = PartiesNotified.builder()
         .serviceData(new ServiceData())
         .build();
+
+    protected CreateHearingRequest hearingRequestPayload = HearingRequestGenerator
+        .generateTestHearingRequest(CASE_REFERENCE);
 
     static final String AUTHORIZATION_HEADER = "Authorization";
     static final String AUTHORIZATION_TOKEN = "Bearer some-access-token";
