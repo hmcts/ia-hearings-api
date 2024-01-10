@@ -41,7 +41,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 
 @Slf4j
-public class SubstantiveListedHearingService {
+public class ListedHearingService {
 
     public boolean isSubstantiveListedHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)

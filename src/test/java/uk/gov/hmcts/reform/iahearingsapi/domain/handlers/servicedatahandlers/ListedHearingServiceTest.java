@@ -31,20 +31,20 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 
-class SubstantiveListedHearingServiceTest {
+class ListedHearingServiceTest {
 
     private static final String GLASGOW_EPIMMS_ID = "366559";
     public static final String LISTING_REF = "LAI";
 
     ServiceData serviceData;
     AsylumCase asylumCase;
-    SubstantiveListedHearingService substantiveListedHearingService;
+    ListedHearingService listedHearingService;
 
     @BeforeEach
     public void setUp() {
         asylumCase = new AsylumCase();
         serviceData = new ServiceData();
-        substantiveListedHearingService = new SubstantiveListedHearingService();
+        listedHearingService = new ListedHearingService();
     }
 
     @Test
@@ -53,7 +53,7 @@ class SubstantiveListedHearingServiceTest {
         serviceData.write(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.CANCELLED);
         serviceData.write(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.CNCL);
 
-        assertTrue(substantiveListedHearingService.isSubstantiveCancelledHearing(serviceData));
+        assertTrue(listedHearingService.isSubstantiveCancelledHearing(serviceData));
     }
 
     @ParameterizedTest
@@ -74,7 +74,7 @@ class SubstantiveListedHearingServiceTest {
             new Value(HearingChannel.INTER.name(), HearingChannel.INTER.getLabel()),
             List.of(new Value(HearingChannel.INTER.name(), HearingChannel.INTER.getLabel()))));
 
-        substantiveListedHearingService.updateListCaseHearingDetails(serviceData, asylumCase);
+        listedHearingService.updateListCaseHearingDetails(serviceData, asylumCase);
 
         assertEquals(shouldTriggerTask, asylumCase.read(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK));
         assertEquals(Optional.of(LISTING_REF), asylumCase.read(ARIA_LISTING_REFERENCE));

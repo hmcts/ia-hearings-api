@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_ADJOURNMENT_DETAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
@@ -26,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AdjournmentDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
@@ -40,10 +42,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class EditListCaseHandler extends SubstantiveListedHearingService implements ServiceDataHandler<ServiceData> {
+public class EditListCaseHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
-    private static final String GLASGOW_EPIMMS_ID = "366559";
 
 
     @Override
@@ -74,93 +75,99 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
             coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, caseId, CASE_TYPE_ASYLUM);
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
-        sendEditListingEventIfHearingIsUpdated(
-            startEventResponse,
-            asylumCase,
-            caseId,
-            serviceData
-        );
-        return new ServiceDataResponse<>(serviceData);
-    }
-
-    private void sendEditListingEventIfHearingIsUpdated(StartEventResponse startEventResponse,
-                                                        AsylumCase asylumCase,
-                                                        String caseId,
-                                                        ServiceData serviceData
-    ) {
-
-        List<HearingChannel> nextHearingChannelList = getHearingChannels(serviceData);
-
-        LocalDateTime nextHearingDate = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
-            .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
-
-        String nextHearingVenueId = getHearingVenueId(serviceData);
-
-        LocalDateTime currentHearingDate = LocalDateTime.parse(asylumCase.read(
-            LIST_CASE_HEARING_DATE,
-            String.class
-        ).orElseThrow(() -> new IllegalStateException("listCaseHearingDate can not be null")));
-
-        final String currentVenueId = asylumCase.read(
-            LIST_CASE_HEARING_CENTRE,
-            HearingCentre.class
-        ).orElseThrow(() -> new IllegalStateException("listCaseHearingCentre can not be null")).getEpimsId();
-        DynamicList currentHearingChannels = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
-            .orElseThrow(() -> new IllegalStateException("hearingChannel can not be null"));
-        final String currentHearingChannel = currentHearingChannels.getValue().getCode();
-        final String currentDuration = asylumCase.read(
-            LIST_CASE_HEARING_LENGTH,
-            String.class
-        ).orElseThrow(() -> new IllegalStateException("listCaseHearingLength can not be null"));
-        boolean sendUpdate = false;
-        boolean triggerReviewInterpreterTask = false;
-        final String nextHearingChannel = nextHearingChannelList.get(0).name();
-
-        if (nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name())) {
-            nextHearingVenueId = REMOTE_HEARING.getEpimsId();
-        }
-
-        if (!(currentHearingDate.truncatedTo(ChronoUnit.DAYS)).equals(nextHearingDate.truncatedTo(ChronoUnit.DAYS))) {
-            asylumCase.write(
-                LIST_CASE_HEARING_DATE,
-                HandlerUtils.getHearingDateAndTime(nextHearingDate, nextHearingVenueId)
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
-            );
-            sendUpdate = true;
-            triggerReviewInterpreterTask = true;
-        }
-        if (!currentHearingChannel.equals(nextHearingChannel) || !currentVenueId.equals(nextHearingVenueId)) {
-            asylumCase.write(
-                LIST_CASE_HEARING_CENTRE,
-                HandlerUtils.getLocation(nextHearingChannelList, nextHearingVenueId)
-            );
-            sendUpdate = true;
-            triggerReviewInterpreterTask = true;
-        }
-        if (!currentHearingChannel.equals(nextHearingChannel)) {
-            asylumCase.write(
-                HEARING_CHANNEL,
-                buildHearingChannelDynmicList(nextHearingChannelList));
-            sendUpdate = true;
-            triggerReviewInterpreterTask = true;
-        }
-        int nextDuration = getHearingDuration(serviceData);
-        if ((nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name()))
-            && !currentDuration.equals(String.valueOf(nextDuration))) {
-            asylumCase.write(LIST_CASE_HEARING_LENGTH, String.valueOf(nextDuration));
-            sendUpdate = true;
-        }
-
-        if (sendUpdate) {
-            // Only trigger review interpreter task if the hearing location, date or channel are updated.
-            asylumCase.clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
-            if (triggerReviewInterpreterTask) {
-                asylumCase.write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
-            }
-
+        if (tryUpdateListCaseHearingDetails(asylumCase, serviceData)) {
             log.info("Sending `{}` event for case ID `{}`", EDIT_CASE_LISTING, caseId);
             coreCaseDataService.triggerSubmitEvent(EDIT_CASE_LISTING, caseId, startEventResponse, asylumCase);
         }
+
+        return new ServiceDataResponse<>(serviceData);
+    }
+
+    private boolean tryUpdateListCaseHearingDetails(AsylumCase asylumCase, ServiceData serviceData) {
+
+        if (adjournedPreviously(asylumCase)) {
+            updateListCaseHearingDetails(serviceData, asylumCase);
+            return true;
+        } else {
+            final List<HearingChannel> nextHearingChannelList = getHearingChannels(serviceData);
+
+            final LocalDateTime nextHearingDate = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
+                .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
+
+            final LocalDateTime currentHearingDate = LocalDateTime.parse(asylumCase.read(
+                LIST_CASE_HEARING_DATE,
+                String.class
+            ).orElseThrow(() -> new IllegalStateException("listCaseHearingDate can not be null")));
+
+            final String currentVenueId = asylumCase.read(
+                LIST_CASE_HEARING_CENTRE,
+                HearingCentre.class
+            ).orElseThrow(() -> new IllegalStateException("listCaseHearingCentre can not be null")).getEpimsId();
+            DynamicList currentHearingChannels = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
+                .orElseThrow(() -> new IllegalStateException("hearingChannel can not be null"));
+            final String currentHearingChannel = currentHearingChannels.getValue().getCode();
+            final String currentDuration = asylumCase.read(
+                LIST_CASE_HEARING_LENGTH,
+                String.class
+            ).orElseThrow(() -> new IllegalStateException("listCaseHearingLength can not be null"));
+            final String nextHearingChannel = nextHearingChannelList.get(0).name();
+            final boolean hearingDateChanged = !(currentHearingDate.truncatedTo(ChronoUnit.DAYS))
+                .equals(nextHearingDate.truncatedTo(ChronoUnit.DAYS));
+            final boolean isRemoteHearing = nextHearingChannel.equals(VID.name())
+                                            || nextHearingChannel.equals(TEL.name());
+            final String nextHearingVenueId = isRemoteHearing
+                ? REMOTE_HEARING.getEpimsId()
+                : getHearingVenueId(serviceData);
+            final boolean hearingChannelChanged = !currentHearingChannel.equals(nextHearingChannel);
+            final boolean hearingVenueChanged = !currentVenueId.equals(nextHearingVenueId);
+            final boolean hearingCentreChanged = hearingChannelChanged || hearingVenueChanged;
+            final int nextDuration = getHearingDuration(serviceData);
+            final boolean durationChanged = !currentDuration.equals(String.valueOf(nextDuration));
+            boolean sendUpdate = false;
+
+            if (hearingDateChanged) {
+                asylumCase.write(
+                    LIST_CASE_HEARING_DATE,
+                    HandlerUtils.getHearingDateAndTime(nextHearingDate, nextHearingVenueId)
+                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
+                );
+                sendUpdate = true;
+            }
+            if (isRemoteHearing && durationChanged) {
+                asylumCase.write(LIST_CASE_HEARING_LENGTH, String.valueOf(nextDuration));
+                sendUpdate = true;
+            }
+            if (hearingChannelChanged) {
+                asylumCase.write(
+                    HEARING_CHANNEL,
+                    buildHearingChannelDynmicList(nextHearingChannelList));
+                sendUpdate = true;
+            }
+            if (hearingCentreChanged) {
+                asylumCase.write(
+                    LIST_CASE_HEARING_CENTRE,
+                    HandlerUtils.getLocation(nextHearingChannelList, nextHearingVenueId)
+                );
+                sendUpdate = true;
+            }
+
+            // Only trigger review interpreter task if the hearing location, date or channel are updated.
+            if (hearingChannelChanged || hearingCentreChanged || hearingDateChanged) {
+                asylumCase.write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+            } else if (sendUpdate) {
+                asylumCase.clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
+            }
+
+            return sendUpdate;
+        }
+    }
+
+    private boolean adjournedPreviously(AsylumCase asylumCase) {
+
+        AdjournmentDetail adjournmentDetail = asylumCase
+            .read(CURRENT_ADJOURNMENT_DETAIL, AdjournmentDetail.class).orElse(null);
+
+        return adjournmentDetail != null && adjournmentDetail.getAdjournmentDetailsHearing() != null;
     }
 }
 

@@ -21,7 +21,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 @Component
 @RequiredArgsConstructor
 public class EditCaseListingAfterAdjournmentHandler
-    extends SubstantiveListedHearingService implements ServiceDataHandler<ServiceData> {
+    extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
 
