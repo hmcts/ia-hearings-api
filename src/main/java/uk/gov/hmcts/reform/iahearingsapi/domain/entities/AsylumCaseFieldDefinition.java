@@ -39,6 +39,7 @@ public enum AsylumCaseFieldDefinition {
         "legalRepresentativeEmailAddress", new TypeReference<String>(){}),
     LEGAL_REP_MOBILE_PHONE_NUMBER(
         "legalRepMobilePhoneNumber", new TypeReference<String>(){}),
+    LEGAL_REP_COMPANY("legalRepCompany", new TypeReference<String>(){}),
     LEGAL_REP_COMPANY_NAME("legalRepCompanyName", new TypeReference<String>(){}),
     LOCAL_AUTHORITY_POLICY(
         "localAuthorityPolicy", new TypeReference<OrganisationPolicy>(){}),
@@ -269,7 +270,9 @@ public enum AsylumCaseFieldDefinition {
         "makeAnApplicationDecisionReason", new TypeReference<String>(){}
     ),
     CURRENT_ADJOURNMENT_DETAIL(
-        "currentAdjournmentDetail", new TypeReference<AdjournmentDetail>(){});
+        "currentAdjournmentDetail", new TypeReference<AdjournmentDetail>(){}),
+    CHANGE_ORGANISATION_REQUEST_FIELD(
+        "changeOrganisationRequestField", new TypeReference<ChangeOrganisationRequest>(){}),;
 
     private final String value;
     private final TypeReference typeReference;
