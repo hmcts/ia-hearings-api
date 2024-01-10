@@ -255,6 +255,12 @@ public enum AsylumCaseFieldDefinition {
 
     NEXT_HEARING_DATE_RANGE_LATEST(
         "nextHearingDateRangeLatest", new TypeReference<String>(){}),
+    NEXT_HEARING_FORMAT(
+        "nextHearingFormat", new TypeReference<DynamicList>(){}),
+    NEXT_HEARING_DURATION(
+        "nextHearingDuration", new TypeReference<String>(){}),
+    NEXT_HEARING_LOCATION(
+        "nextHearingLocation", new TypeReference<String>(){}),
 
     IS_APPEAL_SUITABLE_TO_FLOAT(
         "isAppealSuitableToFloat", new TypeReference<YesOrNo>() {}),

@@ -119,7 +119,8 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
                     hearingId,
                     cancellationReason.getValue().getCode(),
                     nextHearingDate.equals(NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE),
-                    updateHearingWindow(asylumCase)
+                    updateHearingWindow(asylumCase),
+                    true
                 ),
                 hearingId
             );
