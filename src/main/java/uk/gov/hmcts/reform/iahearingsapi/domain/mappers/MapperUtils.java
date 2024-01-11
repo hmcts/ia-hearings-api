@@ -4,6 +4,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_IN_UK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HAS_SPONSOR;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
@@ -12,6 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
 
 import java.util.Objects;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ChangeOrganisationRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 
 public class MapperUtils {
@@ -42,6 +44,11 @@ public class MapperUtils {
     public static boolean isRepJourney(AsylumCase asylumCase) {
         return asylumCase.read(JOURNEY_TYPE, String.class)
             .map(journeyType -> Objects.equals(REP.getValue(), journeyType)).orElse(true);
+    }
+
+    // ChangeOrganisationRequest is present when the case is in between representations
+    public static boolean isChangeOrganisationRequestPresent(AsylumCase asylumCase) {
+        return asylumCase.read(CHANGE_ORGANISATION_REQUEST_FIELD, ChangeOrganisationRequest.class).isPresent();
     }
 
     public static boolean isAppellantInUk(AsylumCase asylumCase) {
