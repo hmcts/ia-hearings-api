@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.BOOKED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.CANCELLED;
@@ -19,11 +20,15 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ChangeOrganisationRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
@@ -38,6 +43,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.FinancialConditionS
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class PartyDetailsMapperTest {
 
     @Mock
@@ -102,6 +108,9 @@ class PartyDetailsMapperTest {
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
         when(asylumCase.read(AsylumCaseFieldDefinition.HAS_SPONSOR, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD,
+                             ChangeOrganisationRequest.class))
+            .thenReturn(Optional.empty());
 
         List<PartyDetailsModel> expected = Arrays.asList(
             PartyDetailsModel.builder().build(),
@@ -126,6 +135,62 @@ class PartyDetailsMapperTest {
         );
 
         assertEquals(expected, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper));
+    }
+
+    static Stream<Arguments> noLegalRepDetailsNeeded() {
+        return Stream.of(
+            Arguments.of(Optional.empty(), Optional.empty()),
+            Arguments.of(Optional.of(JourneyType.AIP.getValue()), Optional.empty()),
+            Arguments.of(Optional.empty(), Optional.of(mock(ChangeOrganisationRequest.class))),
+            Arguments.of(Optional.of(JourneyType.AIP.getValue()), Optional.of(mock(ChangeOrganisationRequest.class)))
+            );
+    }
+
+    @ParameterizedTest
+    @MethodSource("noLegalRepDetailsNeeded")
+    void should_skip_mapping_legal_rep_details_accordingly(Optional<String> journeyType,
+                                                           Optional<ChangeOrganisationRequest> changeOrgReq) {
+
+        when(appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(legalRepDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(legalRepOrgDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(sponsorDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(respondentDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(witnessDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        when(interpreterDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        when(asylumCase.read(AsylumCaseFieldDefinition.HAS_SPONSOR, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(AsylumCaseFieldDefinition.JOURNEY_TYPE, String.class))
+            .thenReturn(journeyType);
+        when(asylumCase.read(AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD,
+                             ChangeOrganisationRequest.class))
+            .thenReturn(changeOrgReq);
+
+        PartyDetailsMapper mapper = new PartyDetailsMapper(
+            appellantDetailsMapper,
+            applicantDetailsMapper,
+            legalRepDetailsMapper,
+            legalRepOrgDetailsMapper,
+            respondentDetailsMapper,
+            sponsorDetailsMapper,
+            witnessDetailsMapper,
+            financialConditionSupporterDetailsMapper,
+            interpreterDetailsMapper,
+            bailInterpreterDetailsMapper
+        );
+
+        if (journeyType.isPresent() || changeOrgReq.isPresent()) {
+            assertEquals(5, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper).size());
+        } else {
+            assertEquals(7, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper).size());
+        }
     }
 
     @Test
