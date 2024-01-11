@@ -111,7 +111,7 @@ public class CreateHearingPayloadServiceTest {
         when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase,
                                                       caseFlagsMapper,
                                                       caseDataMapper)).thenReturn(PARTY_DETAILS_MODELS);
-        when(caseDataMapper.getHearingDuration(asylumCase)).thenReturn(LIST_CASE_HEARING_LENGTH);
+        when(caseDataMapper.getHearingDuration(asylumCase, false)).thenReturn(LIST_CASE_HEARING_LENGTH);
         when(caseDataMapper.getHearingChannels(asylumCase)).thenReturn(HEARING_CHANNELS);
         when(caseFlagsMapper.getAutoListFlag(asylumCase)).thenReturn(false);
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase)).thenReturn(BIRMINGHAM_ID);

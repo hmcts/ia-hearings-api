@@ -88,7 +88,8 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                         hearingId,
                         getReason(asylumCase),
                         firstAvailableDate,
-                        updateHearingWindow(asylumCase)
+                        updateHearingWindow(asylumCase),
+                        false
                     ),
                     hearingId
                 );
