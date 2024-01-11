@@ -96,6 +96,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "decideAnApplication"
       - "listCaseWithoutHearingRequirements"
+      - "reviewHearingRequirements"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
       - "decideAnApplication"
