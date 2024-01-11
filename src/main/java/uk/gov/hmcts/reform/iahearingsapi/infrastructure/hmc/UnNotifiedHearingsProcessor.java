@@ -13,6 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HMC_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_CATEGORY;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -69,7 +70,7 @@ public class UnNotifiedHearingsProcessor implements Runnable {
         serviceData.write(CASE_REF, hearing.getCaseDetails().getCaseRef());
         serviceData.write(HMCTS_SERVICE_CODE, hearing.getCaseDetails().getHmctsServiceCode());
         serviceData.write(HEARING_ID, unNotifiedHearingId);
-
+        serviceData.write(CASE_CATEGORY, hearing.getCaseDetails().getCaseCategories());
         HearingDaySchedule hearingDaySchedule = hearing.getHearingResponse().getHearingDaySchedule()
             .stream().min(Comparator.comparing(HearingDaySchedule::getHearingStartDateTime))
             .orElse(null);

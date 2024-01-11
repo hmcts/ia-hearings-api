@@ -36,7 +36,7 @@ public class LegalRepOrgDetailsMapper {
                 OrganisationDetailsModel.builder()
                     .organisationType(PartyType.ORG.getPartyType())
                     .name(caseDataMapper.getLegalRepCompanyName(bailCase))
-                    .cftOrganisationID(caseDataMapper.getLegalRepOrgPartyId(bailCase))
+                    .cftOrganisationID(caseDataMapper.getLegalRepOrganisationIdentifier(bailCase))
                     .build())
             .build();
     }
