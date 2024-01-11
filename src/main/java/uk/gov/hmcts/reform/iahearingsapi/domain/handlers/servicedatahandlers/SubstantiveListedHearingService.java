@@ -5,12 +5,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
@@ -48,6 +50,12 @@ public class SubstantiveListedHearingService {
             && isHearingType(serviceData, SUBSTANTIVE);
     }
 
+    public boolean isSubstantiveCancelledHearing(ServiceData serviceData) {
+        return isHmcStatus(serviceData, HmcStatus.CANCELLATION_REQUESTED)
+            && !isHearingChannel(serviceData, ONPPRS)
+            && isHearingType(serviceData, SUBSTANTIVE);
+    }
+
     public boolean isBailListedHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)
             && isHearingListingStatus(serviceData, ListingStatus.FIXED)
@@ -65,14 +73,38 @@ public class SubstantiveListedHearingService {
         List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
         String hearingVenueId = getHearingVenueId(serviceData);
 
+        String newHearingDateTime = formatHearingDateTime(getHearingDatetime(serviceData, hearingVenueId));
+        HearingCentre newHearingCentre = getHearingCenter(hearingChannels, hearingVenueId);
+        DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
+
+        boolean triggerReviewInterpreterTask;
+
+        triggerReviewInterpreterTask = asylumCase.read(LIST_CASE_HEARING_DATE, String.class)
+            .map(hearingDate -> !hearingDate.equals(newHearingDateTime))
+            .orElse(true);
+
+        triggerReviewInterpreterTask |= asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class)
+            .map(hearingCentre -> !hearingCentre.equals(newHearingCentre))
+            .orElse(true);
+
+        triggerReviewInterpreterTask |= asylumCase.read(HEARING_CHANNEL, DynamicList.class)
+            .map(hearingChannel -> !hearingChannel.equals(newHearingChannel))
+            .orElse(true);
+
+        //Review Interpreter Task will be triggered when List Case event is submitted with this flag set to Yes
+        asylumCase.clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
+        if (triggerReviewInterpreterTask) {
+            asylumCase.write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        }
+
         asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
-        asylumCase.write(LIST_CASE_HEARING_DATE, formatHearingDateTime(
-            getHearingDatetime(serviceData, hearingVenueId)));
+        asylumCase.write(LIST_CASE_HEARING_DATE, newHearingDateTime);
         asylumCase.write(LIST_CASE_HEARING_LENGTH,
                          String.valueOf(getHearingDuration(serviceData)));
         asylumCase.write(LIST_CASE_HEARING_CENTRE,
-                         getHearingCenter(hearingChannels, hearingVenueId));
-        asylumCase.write(HEARING_CHANNEL, buildHearingChannelDynmicList(hearingChannels));
+                         newHearingCentre);
+        asylumCase.write(HEARING_CHANNEL, newHearingChannel);
+
     }
 
     public List<HearingChannel> getHearingChannels(ServiceData serviceData) {

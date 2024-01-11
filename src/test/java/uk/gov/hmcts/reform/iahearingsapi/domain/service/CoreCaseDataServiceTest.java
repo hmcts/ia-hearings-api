@@ -2,10 +2,14 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 
 import java.util.Collections;
@@ -18,7 +22,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
@@ -31,6 +38,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class CoreCaseDataServiceTest {
 
     private static final String CASE_ID = "123456789";
@@ -42,6 +50,7 @@ public class CoreCaseDataServiceTest {
     private static final String USER_ID = "userId";
     private static final String EVENT_TOKEN = "eventToken";
 
+    @Spy
     @InjectMocks
     private CoreCaseDataService coreCaseDataService;
     @Mock
@@ -65,14 +74,29 @@ public class CoreCaseDataServiceTest {
 
     @BeforeEach
     void setup() {
+        CaseDetails caseDetails = mock(CaseDetails.class);
+        Map<String, Object> data = new HashMap<>();
+        when(caseDetails.getData()).thenReturn(data);
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
 
+        when(coreCaseDataApi.submitEventForCaseWorker(
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            anyBoolean(),
+            any()
+        )).thenReturn(caseDetails);
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
+        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
+        when(idamService.getUserInfo()).thenReturn(userInfo);
+        when(userInfo.getUid()).thenReturn(USER_ID);
     }
 
     @Test
     public void should_fetch_one_case_by_id() {
-        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
-        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
-
         CaseDetails caseDetails = mock(CaseDetails.class);
         Map<String, Object> data = new HashMap<>();
         when(caseDetails.getData()).thenReturn(data);
@@ -88,8 +112,6 @@ public class CoreCaseDataServiceTest {
     public void should_get_case_status() {
         CaseDetails caseDetails = CaseDetails.builder().state("listing").build();
 
-        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
-        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
         when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(caseDetails);
 
         State caseState = coreCaseDataService.getCaseState(CASE_ID);
@@ -102,8 +124,6 @@ public class CoreCaseDataServiceTest {
     public void should_get_case_type(String caseType) {
         CaseDetails caseDetails = CaseDetails.builder().caseTypeId(caseType).build();
 
-        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
-        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
         when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(caseDetails);
 
         String expectedCaseType = coreCaseDataService.getCaseType(CASE_ID);
@@ -142,10 +162,6 @@ public class CoreCaseDataServiceTest {
     @ParameterizedTest
     @ValueSource(strings = {"Asylum", "Bail"})
     public void should_start_case_event(String caseType) {
-        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
-        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
-        when(idamService.getUserInfo()).thenReturn(userInfo);
-        when(userInfo.getUid()).thenReturn(USER_ID);
         when(coreCaseDataApi.startEventForCaseWorker(
             AUTH_TOKEN,
             SERVICE_TOKEN,
@@ -163,10 +179,6 @@ public class CoreCaseDataServiceTest {
 
     @Test
     public void should_trigger_event() {
-        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
-        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
-        when(idamService.getUserInfo()).thenReturn(userInfo);
-        when(userInfo.getUid()).thenReturn(USER_ID);
         when(startEventResponse.getToken()).thenReturn(EVENT_TOKEN);
 
         CaseDataContent caseDataContent = CaseDataContent.builder()
@@ -201,10 +213,6 @@ public class CoreCaseDataServiceTest {
 
     @Test
     public void should_trigger_event_bailCase() {
-        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
-        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
-        when(idamService.getUserInfo()).thenReturn(userInfo);
-        when(userInfo.getUid()).thenReturn(USER_ID);
         when(startEventResponse.getToken()).thenReturn(EVENT_TOKEN);
 
         CaseDataContent caseDataContent = CaseDataContent.builder()
@@ -239,9 +247,36 @@ public class CoreCaseDataServiceTest {
 
     @Test
     public void should_throw_exception() {
+        when(coreCaseDataApi.startEventForCaseWorker(any(), any(), any(), any(), any(), any(), any()))
+            .thenThrow(new RuntimeException("test"));
+
         assertThatThrownBy(() -> coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_ASYLUM))
             .hasMessage(String.format("Case %s not found", CASE_ID))
             .isExactlyInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void triggerReviewInterpreterBookingTask() {
+
+        when(coreCaseDataApi.startEventForCaseWorker(
+            AUTH_TOKEN,
+            SERVICE_TOKEN,
+            USER_ID,
+            JURISDICTION,
+            "Asylum",
+            CASE_ID,
+            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK.toString()
+        )).thenReturn(startEventResponse);
+
+        when(coreCaseDataService.startCaseEvent(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+
+        coreCaseDataService.triggerReviewInterpreterBookingTask(CASE_ID);
+
+        verify(coreCaseDataService).triggerSubmitEvent(
+            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, startEventResponse, asylumCase);
+
     }
 
 }
