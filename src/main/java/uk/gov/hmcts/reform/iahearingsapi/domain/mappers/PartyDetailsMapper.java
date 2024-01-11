@@ -54,7 +54,9 @@ public class PartyDetailsMapper {
         if (MapperUtils.hasSponsor(asylumCase)) {
             partyDetails.add(sponsorDetailsMapper.map(asylumCase, caseDataMapper));
         }
-        if (MapperUtils.isRepJourney(asylumCase)) {
+        if (MapperUtils.isRepJourney(asylumCase)
+            && !MapperUtils.isChangeOrganisationRequestPresent(asylumCase)) {
+
             partyDetails.add(legalRepDetailsMapper.map(asylumCase, caseDataMapper));
             partyDetails.add(legalRepOrgDetailsMapper.map(asylumCase, caseDataMapper));
         }
