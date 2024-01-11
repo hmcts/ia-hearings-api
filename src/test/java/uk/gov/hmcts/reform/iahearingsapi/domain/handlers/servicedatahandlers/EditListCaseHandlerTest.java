@@ -4,6 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -28,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -44,7 +48,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPEAL_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
@@ -238,26 +241,46 @@ class EditListCaseHandlerTest {
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
-    @Test
-    void should_trigger_events_when_hearing_venue_updated() {
+    @ParameterizedTest
+    @MethodSource("updateHearingCentreSource")
+    void should_update_hearing_centre_when_channel_or_venue_updated(List<HearingChannel> hearingChannel,
+                                                                    String hearingLocation,
+                                                                    boolean hasUpdated) {
         initializeServiceData();
         initializeAsylumCaseData();
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
-            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+            .thenReturn(Optional.of(hearingChannel));
         when(serviceData.read(ServiceDataFieldDefinition.DURATION, Integer.class))
             .thenReturn(Optional.of(100));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
-            .thenReturn(Optional.of("231596"));
+            .thenReturn(Optional.of(hearingLocation));
 
         editListCaseHandler.handle(serviceData);
 
-        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
-
-        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
-
-        verify(coreCaseDataService).triggerSubmitEvent(
-            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+        if (hasUpdated) {
+            if (hearingChannel.equals(List.of(HearingChannel.INTER))) {
+                verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
+                verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+            } else {
+                verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
+                verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+            }
+        } else {
+            verify(asylumCase, never()).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
+            verify(asylumCase, never()).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
+            verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+        }
     }
+
+    private static Stream<Arguments> updateHearingCentreSource() {
+        return Stream.of(
+            Arguments.of(List.of(HearingChannel.INTER), HearingCentre.BIRMINGHAM.getEpimsId(), true),
+            Arguments.of(List.of(HearingChannel.TEL), HearingCentre.GLASGOW.getEpimsId(), true),
+            Arguments.of(List.of(HearingChannel.INTER), HearingCentre.GLASGOW.getEpimsId(), false)
+
+        );
+    }
+
 
     @Test
     void should_trigger_events_when_hearing_channel_updated() {

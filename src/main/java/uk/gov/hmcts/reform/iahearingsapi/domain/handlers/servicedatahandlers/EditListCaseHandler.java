@@ -129,7 +129,7 @@ public class EditListCaseHandler extends SubstantiveListedHearingService impleme
             sendUpdate = true;
             triggerReviewInterpreterTask = true;
         }
-        if (!currentVenueId.equals(nextHearingVenueId)) {
+        if (!currentHearingChannel.equals(nextHearingChannel) || !currentVenueId.equals(nextHearingVenueId)) {
             asylumCase.write(
                 LIST_CASE_HEARING_CENTRE,
                 HandlerUtils.getLocation(nextHearingChannelList, nextHearingVenueId)
