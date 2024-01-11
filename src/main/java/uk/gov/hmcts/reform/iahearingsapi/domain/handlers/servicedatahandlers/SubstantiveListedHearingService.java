@@ -56,12 +56,6 @@ public class SubstantiveListedHearingService {
             && isHearingType(serviceData, SUBSTANTIVE);
     }
 
-    public boolean isSubstantiveAwaitingListingHearing(ServiceData serviceData) {
-        return isHmcStatus(serviceData, HmcStatus.AWAITING_LISTING)
-            && !isHearingChannel(serviceData, ONPPRS)
-            && isHearingType(serviceData, SUBSTANTIVE);
-    }
-
     public boolean isBailListedHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)
             && isHearingListingStatus(serviceData, ListingStatus.FIXED)

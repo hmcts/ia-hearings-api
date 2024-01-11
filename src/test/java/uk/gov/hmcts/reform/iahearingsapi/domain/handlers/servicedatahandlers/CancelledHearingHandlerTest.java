@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import java.util.List;
 import java.util.Optional;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -69,6 +70,16 @@ class CancelledHearingHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(CASE_MANAGEMENT_REVIEW.getKey()));
         assertFalse(cancelledHearingHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_throw_message_if_hearing_type_unqualified() {
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
+            .thenReturn(Optional.of(CASE_MANAGEMENT_REVIEW.getKey()));
+
+        assertThatThrownBy(() -> cancelledHearingHandler.handle(serviceData))
+            .hasMessage("Cannot handle service data")
+            .isExactlyInstanceOf(IllegalStateException.class);
     }
 
     @Test

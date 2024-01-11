@@ -54,14 +54,6 @@ class SubstantiveListedHearingServiceTest {
         assertTrue(substantiveListedHearingService.isSubstantiveCancelledHearing(serviceData));
     }
 
-    @Test
-    void isSubstantiveAwaitingListingHearing() {
-        setUpForNonPaperSubstantiveHearing();
-        serviceData.write(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.CANCELLATION_REQUESTED);
-
-        assertTrue(substantiveListedHearingService.isSubstantiveCancelledHearing(serviceData));
-    }
-
     @ParameterizedTest
     @MethodSource("updateListCaseHearingDetailsSource")
     void updateListCaseHearingDetails(String venueId, HearingChannel channel,
