@@ -39,7 +39,10 @@ public enum AsylumCaseFieldDefinition {
         "legalRepresentativeEmailAddress", new TypeReference<String>(){}),
     LEGAL_REP_MOBILE_PHONE_NUMBER(
         "legalRepMobilePhoneNumber", new TypeReference<String>(){}),
+    LEGAL_REP_COMPANY("legalRepCompany", new TypeReference<String>(){}),
     LEGAL_REP_COMPANY_NAME("legalRepCompanyName", new TypeReference<String>(){}),
+    LOCAL_AUTHORITY_POLICY(
+        "localAuthorityPolicy", new TypeReference<OrganisationPolicy>(){}),
     APPELLANT_TITLE(
         "appellantTitle", new TypeReference<String>(){}),
     APPELLANT_GIVEN_NAMES(
@@ -160,6 +163,8 @@ public enum AsylumCaseFieldDefinition {
         "manualCanHearingRequired", new TypeReference<YesOrNo>(){}),
     MANUAL_UPDATE_HEARING_REQUIRED(
         "manualUpdHearingRequired", new TypeReference<YesOrNo>(){}),
+    MANUAL_CREATE_HEARINGS_REQUIRED(
+        "manualCreHearingRequired", new TypeReference<YesOrNo>(){}),
     HEARING_ADJOURNMENT_WHEN(
         "hearingAdjournmentWhen", new TypeReference<HearingAdjournmentDay>(){}),
     RELIST_CASE_IMMEDIATELY(
@@ -251,12 +256,34 @@ public enum AsylumCaseFieldDefinition {
 
     NEXT_HEARING_DATE_RANGE_LATEST(
         "nextHearingDateRangeLatest", new TypeReference<String>(){}),
+    NEXT_HEARING_FORMAT(
+        "nextHearingFormat", new TypeReference<DynamicList>(){}),
+    NEXT_HEARING_DURATION(
+        "nextHearingDuration", new TypeReference<String>(){}),
+    NEXT_HEARING_LOCATION(
+        "nextHearingLocation", new TypeReference<String>(){}),
 
     IS_APPEAL_SUITABLE_TO_FLOAT(
         "isAppealSuitableToFloat", new TypeReference<YesOrNo>() {}),
 
     CASE_LINKS(
-        "caseLinks", new TypeReference<List<IdValue<CaseLink>>>(){});
+        "caseLinks", new TypeReference<List<IdValue<CaseLink>>>(){}),
+
+    DECISION_HEARING_FEE_OPTION(
+        "decisionHearingFeeOption", new TypeReference<String>(){}),
+
+    MAKE_AN_APPLICATION_DECISION_REASON(
+        "makeAnApplicationDecisionReason", new TypeReference<String>(){}),
+
+    CURRENT_ADJOURNMENT_DETAIL(
+        "currentAdjournmentDetail", new TypeReference<AdjournmentDetail>(){}),
+    
+    CHANGE_ORGANISATION_REQUEST_FIELD(
+        "changeOrganisationRequestField", new TypeReference<ChangeOrganisationRequest>(){}),
+
+    SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK(
+        "shouldTriggerReviewInterpreterTask", new TypeReference<YesOrNo>(){});
+
 
     private final String value;
     private final TypeReference typeReference;

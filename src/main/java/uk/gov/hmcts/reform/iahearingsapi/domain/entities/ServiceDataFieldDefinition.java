@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 
 public enum ServiceDataFieldDefinition {
 
@@ -24,7 +25,8 @@ public enum ServiceDataFieldDefinition {
     DURATION("duration", new TypeReference<Integer>() {}),
     HEARING_REQUEST_VERSION_NUMBER("hearingRequestVesionNumber", new TypeReference<Long>() {}),
     HEARING_GET_RESPONSE("hearingGetResponse", new TypeReference<HearingGetResponse>() {}),
-    HEARING_RESPONSE_RECEIVED_DATE_TIME("hearingResponseReceivedDateTime", new TypeReference<LocalDateTime>() {});
+    HEARING_RESPONSE_RECEIVED_DATE_TIME("hearingResponseReceivedDateTime", new TypeReference<LocalDateTime>() {}),
+    CASE_CATEGORY("caseCategory", new TypeReference<List<CaseCategoryModel>>() {});
 
     private final String value;
     private final TypeReference typeReference;

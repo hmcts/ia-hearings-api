@@ -29,8 +29,8 @@ class LegalRepOrgDetailsMapperTest {
     void should_asylum_map_correctly() {
 
         when(caseDataMapper.getLegalRepOrgPartyId(asylumCase)).thenReturn("partyId");
-        when(caseDataMapper.getLegalRepCompanyName(asylumCase)).thenReturn("legaRepPartyName");
-
+        when(caseDataMapper.getLegalRepCompany(asylumCase)).thenReturn("legaRepPartyName");
+        when(caseDataMapper.getLegalRepOrganisationIdentifier(asylumCase)).thenReturn("legalRepOrgId");
         PartyDetailsModel expected = PartyDetailsModel.builder()
             .partyID("partyId")
             .partyType("ORG")
@@ -39,7 +39,7 @@ class LegalRepOrgDetailsMapperTest {
                 OrganisationDetailsModel.builder()
                             .organisationType("ORG")
                             .name("legaRepPartyName")
-                            .cftOrganisationID("partyId")
+                            .cftOrganisationID("legalRepOrgId")
                             .build())
             .build();
 
@@ -51,6 +51,7 @@ class LegalRepOrgDetailsMapperTest {
 
         when(bailCaseDataMapper.getLegalRepOrgPartyId(bailCase)).thenReturn("partyId");
         when(bailCaseDataMapper.getLegalRepCompanyName(bailCase)).thenReturn("legaRepPartyName");
+        when(bailCaseDataMapper.getLegalRepOrganisationIdentifier(bailCase)).thenReturn("legalRepOrgId");
 
         PartyDetailsModel expected = PartyDetailsModel.builder()
             .partyID("partyId")
@@ -60,7 +61,7 @@ class LegalRepOrgDetailsMapperTest {
                 OrganisationDetailsModel.builder()
                     .organisationType("ORG")
                     .name("legaRepPartyName")
-                    .cftOrganisationID("partyId")
+                    .cftOrganisationID("legalRepOrgId")
                     .build())
             .build();
 

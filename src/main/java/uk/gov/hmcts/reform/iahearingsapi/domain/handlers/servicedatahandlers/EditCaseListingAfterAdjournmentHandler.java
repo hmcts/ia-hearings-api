@@ -1,18 +1,17 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_ADJOURNMENT_DETAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.ADJOURNED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AdjournmentDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
@@ -26,7 +25,6 @@ public class EditCaseListingAfterAdjournmentHandler
 
     private final CoreCaseDataService coreCaseDataService;
 
-
     @Override
     public DispatchPriority getDispatchPriority() {
         return DispatchPriority.EARLY;
@@ -36,10 +34,8 @@ public class EditCaseListingAfterAdjournmentHandler
     ) {
         requireNonNull(serviceData, "serviceData must not be null");
 
-        State caseState = coreCaseDataService
-            .getCaseState(getCaseReference(serviceData));
-
-        return isSubstantiveListedHearing(serviceData) && ADJOURNED == caseState;
+        return isSubstantiveListedHearing(serviceData)
+               && adjournmentDetailsRecorded(getCaseReference(serviceData));
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
@@ -49,7 +45,8 @@ public class EditCaseListingAfterAdjournmentHandler
 
         String caseId = getCaseReference(serviceData);
 
-        StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(LIST_CASE, caseId, CASE_TYPE_ASYLUM);
+        StartEventResponse startEventResponse = coreCaseDataService
+            .startCaseEvent(EDIT_CASE_LISTING, caseId, CASE_TYPE_ASYLUM);
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
         updateListCaseHearingDetails(serviceData, asylumCase);
@@ -58,6 +55,15 @@ public class EditCaseListingAfterAdjournmentHandler
         coreCaseDataService.triggerSubmitEvent(EDIT_CASE_LISTING, caseId, startEventResponse, asylumCase);
 
         return new ServiceDataResponse<>(serviceData);
+    }
+
+    private boolean adjournmentDetailsRecorded(String caseId) {
+        AsylumCase asylumCase = coreCaseDataService.getCase(caseId);
+
+        AdjournmentDetail adjournmentDetail = asylumCase
+            .read(CURRENT_ADJOURNMENT_DETAIL, AdjournmentDetail.class).orElse(null);
+
+        return adjournmentDetail != null && adjournmentDetail.getAdjournmentDetailsHearing() != null;
     }
 }
 

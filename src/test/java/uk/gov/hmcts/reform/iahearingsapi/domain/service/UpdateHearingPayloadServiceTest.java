@@ -8,10 +8,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_FORMAT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.LEEDS_MAGS;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +38,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
@@ -43,6 +46,8 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 @MockitoSettings(strictness = Strictness.LENIENT)
 class UpdateHearingPayloadServiceTest {
 
+    private static final String SERVICE_ID = "BFA1";
+    private static final String BASE_URL = "baseUrl";
     @Mock
     private HearingService hearingService;
     @Mock
@@ -51,6 +56,8 @@ class UpdateHearingPayloadServiceTest {
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
     @Mock
     private CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
+    @Mock
+    private ListingCommentsMapper listingCommentsMapper;
     @Mock
     HearingGetResponse hearingGetResponse;
     @Mock
@@ -84,10 +91,13 @@ class UpdateHearingPayloadServiceTest {
         when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
         updateHearingPayloadService = new UpdateHearingPayloadService(
-            hearingService,
-            partyDetailsMapper,
             caseDataMapper,
-            caseFlagsMapper
+            caseFlagsMapper,
+            partyDetailsMapper,
+            listingCommentsMapper,
+            SERVICE_ID,
+            BASE_URL,
+            hearingService
         );
     }
 
@@ -104,7 +114,8 @@ class UpdateHearingPayloadServiceTest {
             updateHearingsCode,
             reasonCode,
             false,
-            null
+            null,
+            false
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -127,7 +138,8 @@ class UpdateHearingPayloadServiceTest {
             updateHearingsCode,
             reasonCode,
             false,
-            null
+            null,
+            false
         );
 
         assertEquals(
@@ -147,7 +159,8 @@ class UpdateHearingPayloadServiceTest {
             updateHearingsCode,
             reasonCode,
             false,
-            null
+            null,
+            false
         );
 
         assertFalse(updateHearingRequest.getHearingDetails().isAutolistFlag());
@@ -166,7 +179,8 @@ class UpdateHearingPayloadServiceTest {
             updateHearingsCode,
             reasonCode,
             false,
-            null
+            null,
+            false
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -181,17 +195,15 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_with_new_duration() {
         Integer duration = 240;
-        when(asylumCase.read(
-            LIST_CASE_HEARING_LENGTH,
-            String.class
-        )).thenReturn(Optional.of(duration.toString()));
+        when(caseDataMapper.getHearingDuration(asylumCase, false)).thenReturn(duration);
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
             updateHearingsCode,
             reasonCode,
             false,
-            null
+            null,
+            false
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -210,7 +222,8 @@ class UpdateHearingPayloadServiceTest {
             updateHearingsCode,
             reasonCode,
             true,
-            null
+            null,
+            false
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -229,7 +242,8 @@ class UpdateHearingPayloadServiceTest {
             updateHearingsCode,
             reasonCode,
             false,
-            hearingWindow
+            hearingWindow,
+            false
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -249,7 +263,8 @@ class UpdateHearingPayloadServiceTest {
             updateHearingsCode,
             reasonCode,
             false,
-            hearingWindow
+            hearingWindow,
+            false
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -265,7 +280,8 @@ class UpdateHearingPayloadServiceTest {
             updateHearingsCode,
             reasonCode,
             false,
-            null
+            null,
+            false
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -286,7 +302,8 @@ class UpdateHearingPayloadServiceTest {
             updateHearingsCode,
             reasonCode,
             false,
-            null
+            null,
+            false
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -313,7 +330,8 @@ class UpdateHearingPayloadServiceTest {
             updateHearingsCode,
             reasonCode,
             false,
-            null
+            null,
+            false
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -333,10 +351,51 @@ class UpdateHearingPayloadServiceTest {
             updateHearingsCode,
             reasonCode,
             true,
-            null
+            null,
+            false
         );
 
         assertEquals(List.of(partyDetailsModel), updateHearingRequest.getPartyDetails());
+    }
+
+
+    @Test
+    void should_create_an_update_hearing_request_for_adjournment_details_cases() {
+        String hearingChannel = "TEL";
+        when(asylumCase.read(
+            NEXT_HEARING_FORMAT,
+            DynamicList.class
+        )).thenReturn(Optional.of(new DynamicList(hearingChannel)));
+
+        when(asylumCase.read(NEXT_HEARING_LOCATION, String.class))
+            .thenReturn(Optional.of(LEEDS_MAGS.getValue()));
+        Integer duration = 240;
+        when(caseDataMapper.getHearingDuration(asylumCase, true)).thenReturn(duration);
+
+
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            false,
+            null,
+            true
+        );
+
+        verify(hearingService, times(1)).getHearing(updateHearingsCode);
+
+        assertEquals(
+            List.of(hearingChannel),
+            updateHearingRequest.getHearingDetails().getHearingChannels()
+        );
+        assertEquals(
+            LEEDS_MAGS.getEpimsId(),
+            updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId()
+        );
+        assertEquals(
+            duration,
+            updateHearingRequest.getHearingDetails().getDuration()
+        );
     }
 
     private void assertEqualsHearingDetails(UpdateHearingRequest updateHearingRequestSent) {

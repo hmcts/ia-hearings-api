@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_REQUEST_VERSION_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_CATEGORY;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,7 +27,9 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingDaySchedule;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
@@ -92,6 +95,10 @@ class UnNotifiedHearingsProcessorTest {
     }
 
     private List<HearingGetResponse> createHearingGetResponses() {
+        CaseCategoryModel caseCategoryModel = new CaseCategoryModel();
+        caseCategoryModel.setCategoryType(CategoryType.CASE_TYPE);
+        caseCategoryModel.setCategoryValue("BFA1-BLS");
+        caseCategoryModel.setCategoryParent("");
         HearingGetResponse hearing1 = HearingGetResponse.builder()
             .requestDetails(HearingRequestDetails.builder()
                                 .status(HMC_STATUS_LISTED.name())
@@ -99,6 +106,7 @@ class UnNotifiedHearingsProcessorTest {
                                 .build())
             .caseDetails(CaseDetailsHearing.builder()
                              .caseRef(String.valueOf(CASE_ID_1))
+                             .caseCategories(List.of(caseCategoryModel))
                              .hmctsServiceCode(HMCTS_SERVICE_CODE)
                              .build())
             .hearingResponse(HearingResponse.builder()
@@ -124,6 +132,7 @@ class UnNotifiedHearingsProcessorTest {
                                 .build())
             .caseDetails(CaseDetailsHearing.builder()
                              .caseRef(String.valueOf(CASE_ID_2))
+                             .caseCategories(List.of(caseCategoryModel))
                              .hmctsServiceCode(HMCTS_SERVICE_CODE)
                              .build())
             .hearingResponse(HearingResponse.builder()
@@ -205,7 +214,8 @@ class UnNotifiedHearingsProcessorTest {
                                                                       .value(),
                                                         HEARING_CHANNELS.value(),
                                                         HEARING_TYPE.value(),
-                                                        DURATION.value())));
+                                                        DURATION.value(),
+                                                        CASE_CATEGORY.value())));
         assertTrue(actualServiceData2.keySet().containsAll(Set.of(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE.value(),
                                                                   ServiceDataFieldDefinition.HEARING_ID.value(),
                                                                   ServiceDataFieldDefinition.NEXT_HEARING_DATE.value(),
@@ -219,7 +229,8 @@ class UnNotifiedHearingsProcessorTest {
                                                                       .HEARING_RESPONSE_RECEIVED_DATE_TIME.value(),
                                                                   HEARING_CHANNELS.value(),
                                                                   HEARING_TYPE.value(),
-                                                                  DURATION.value())));
+                                                                  DURATION.value(),
+                                                                  CASE_CATEGORY.value())));
 
         assertEquals(HEARING_ID_1, actualServiceData1.read(HEARING_ID, String.class).orElse(""));
         assertEquals(HEARING_ID_2, actualServiceData2.read(HEARING_ID, String.class).orElse(""));

@@ -24,7 +24,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.DisableHystrixFeignConfiguration;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.FeignConfiguration;
@@ -46,7 +46,7 @@ public interface HmcHearingApi {
     HmcHearingResponse createHearingRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
-        @RequestBody HmcHearingRequestPayload hearingPayload
+        @RequestBody CreateHearingRequest hearingPayload
     );
 
     @GetMapping(HEARING_ENDPOINT + "/{id}")

@@ -134,7 +134,11 @@ public enum BailCaseFieldDefinition {
     DATE_OF_COMPLIANCE(
         "dateOfCompliance", new TypeReference<String>(){}),
     CURRENT_CASE_STATE_VISIBLE_TO_ADMIN_OFFICER(
-        "currentCaseStateVisibleToAdminOfficer", new TypeReference<String>(){});
+        "currentCaseStateVisibleToAdminOfficer", new TypeReference<String>(){}),
+    INTERPRETER_DETAILS(
+        "interpreterDetails", new TypeReference<List<IdValue<InterpreterDetails>>>() {}),
+    LOCAL_AUTHORITY_POLICY(
+        "localAuthorityPolicy", new TypeReference<OrganisationPolicy>() {});
 
     private final String value;
     private final TypeReference typeReference;

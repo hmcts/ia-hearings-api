@@ -13,6 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HMC_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_CATEGORY;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,8 @@ public class HmcMessageProcessor {
         serviceData.write(CASE_REF, hmcMessage.getCaseId());
         serviceData.write(HMCTS_SERVICE_CODE, hmcMessage.getHmctsServiceCode());
         serviceData.write(HEARING_ID, hmcMessage.getHearingId());
-
+        HearingGetResponse hearingGetResponse = hearingService.getHearing(hmcMessage.getHearingId());
+        serviceData.write(CASE_CATEGORY, hearingGetResponse.getCaseDetails().getCaseCategories());
         /*
         This is only true if the strategy chosen to consume updates is real-time processing
         for messages with any HmcStatus from HmcHearingsEventTopicListener instead of batch-processing
@@ -61,8 +63,6 @@ public class HmcMessageProcessor {
             serviceData.write(HEARING_LISTING_STATUS, hearingUpdate.getHearingListingStatus());
             serviceData.write(LIST_ASSIST_CASE_STATUS, hearingUpdate.getListAssistCaseStatus());
             serviceData.write(HEARING_RESPONSE_RECEIVED_DATE_TIME, hearingUpdate.getHearingResponseReceivedDateTime());
-
-            HearingGetResponse hearingGetResponse = hearingService.getHearing(hmcMessage.getHearingId());
             addExtraDataFromHearingResponse(serviceData, hearingGetResponse);
         }
 

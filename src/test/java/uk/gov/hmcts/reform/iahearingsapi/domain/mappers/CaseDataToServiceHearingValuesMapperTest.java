@@ -29,7 +29,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
@@ -63,6 +65,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -76,16 +80,20 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     public static final String GWF_REFERENCE = "gwfReference";
     private final String homeOfficeRef = "homeOfficeRef";
-    private final String dateStr = "2023-08-01";
+    private final LocalDate date = LocalDate.of(2023,8,1);
     private CaseDataToServiceHearingValuesMapper mapper;
     @Mock
     private DateProvider hearingServiceDateProvider;
     @Mock
     private AsylumCase asylumCase;
+    @Mock
+    private OrganisationPolicy organisationPolicy;
+    @Mock
+    private Organisation organisation;
 
     @BeforeEach
     void setup() {
-        when(hearingServiceDateProvider.now()).thenReturn(LocalDate.parse(dateStr));
+        when(hearingServiceDateProvider.now()).thenReturn(date);
         String startDate = "2023-08-01T10:46:48.962301+01:00[Europe/London]";
         ZonedDateTime zonedDateTimeFrom = ZonedDateTime.parse(startDate);
         when(hearingServiceDateProvider.zonedNowWithTime()).thenReturn(zonedDateTimeFrom);
@@ -153,13 +161,13 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of("120"));
 
-        assertEquals(120, mapper.getHearingDuration(asylumCase));
+        assertEquals(120, mapper.getHearingDuration(asylumCase, false));
     }
 
     @Test
     void getHearingDuration_should_return_null_when_listCaseHearingLength_is_not_set() {
 
-        assertNull(mapper.getHearingDuration(asylumCase));
+        assertNull(mapper.getHearingDuration(asylumCase, false));
     }
 
     @ParameterizedTest
@@ -168,7 +176,16 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of(duration));
 
-        assertNull(mapper.getHearingDuration(asylumCase));
+        assertNull(mapper.getHearingDuration(asylumCase, false));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"0", "-20"})
+    void getHearingDuration_should_return_null_when_is_adjourned(String duration) {
+
+        when(asylumCase.read(NEXT_HEARING_DURATION, String.class)).thenReturn(Optional.of(duration));
+
+        assertNull(mapper.getHearingDuration(asylumCase, true));
     }
 
     @Test
@@ -209,6 +226,19 @@ class CaseDataToServiceHearingValuesMapperTest {
     }
 
     @Test
+    void getHearingWindowModel_should_return_correct_date_range_for_auto_request() {
+        ZonedDateTime expectedStartDate = ZonedDateTime.now().plusDays(11L);
+        when(hearingServiceDateProvider
+                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 11))
+            .thenReturn(expectedStartDate);
+        HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel(true);
+
+        assertEquals(hearingWindowModel.getDateRangeStart(), expectedStartDate
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        assertNull(hearingWindowModel.getDateRangeEnd());
+    }
+
+    @Test
     void getHearingWindowModel_should_return_null() {
 
         assertNull(mapper.getHearingWindowModel(DECISION));
@@ -217,7 +247,7 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Test
     void getCaseSlaStartDate_should_return_valid_date() {
 
-        assertEquals(mapper.getCaseSlaStartDate(), dateStr);
+        assertEquals(mapper.getCaseSlaStartDate(), date);
     }
 
     @Test
@@ -456,6 +486,35 @@ class CaseDataToServiceHearingValuesMapperTest {
     void isDecisionWithoutHearingAppeal_should_return_false() {
 
         assertFalse(mapper.isDecisionWithoutHearingAppeal(asylumCase));
+    }
+
+    @Test
+    void getLegalRepOrganisationIdentifier_should_retrieve_org_id() {
+        String expected = "IDENTIFIER";
+        when(asylumCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class))
+            .thenReturn(Optional.of(organisationPolicy));
+        when(organisationPolicy.getOrganisation()).thenReturn(organisation);
+        when(organisation.getOrganisationID()).thenReturn(expected);
+
+        assertEquals(expected, mapper.getLegalRepOrganisationIdentifier(asylumCase));
+    }
+
+    @Test
+    void getLegalRepOrganisationIdentifier_should_default_to_empty_string_if_no_org_id() {
+        when(asylumCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class))
+            .thenReturn(Optional.of(organisationPolicy));
+        when(organisationPolicy.getOrganisation()).thenReturn(organisation);
+        // no stubbing of gerOrganisationID will make the method return null
+
+        assertEquals("", mapper.getLegalRepOrganisationIdentifier(asylumCase));
+    }
+
+    @Test
+    void getLegalRepOrganisationIdentifier_should_default_to_empty_string_if_no_local_authority() {
+        when(asylumCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class))
+            .thenReturn(Optional.empty());
+
+        assertEquals("", mapper.getLegalRepOrganisationIdentifier(asylumCase));
     }
 
 }

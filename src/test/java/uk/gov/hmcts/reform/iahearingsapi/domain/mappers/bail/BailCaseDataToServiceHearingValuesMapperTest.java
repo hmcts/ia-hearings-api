@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
@@ -16,6 +19,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_PHONE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.VIDEO_HEARING1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentTag.BAIL_SUBMISSION;
 
@@ -37,6 +41,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentWithMetadata;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.Document;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -55,6 +61,10 @@ class BailCaseDataToServiceHearingValuesMapperTest {
     private BailCase bailCase;
     @Mock
     private Document document;
+    @Mock
+    private OrganisationPolicy organisationPolicy;
+    @Mock
+    private Organisation organisation;
 
     private final IdValue<DocumentWithMetadata> bailSubmission = new IdValue<>(
         "1",
@@ -100,11 +110,11 @@ class BailCaseDataToServiceHearingValuesMapperTest {
         ZonedDateTime expectedStartDate = ZonedDateTime.now().plusDays(2L);
         ZonedDateTime expectedEndDate = ZonedDateTime.now().plusDays(7L);
         when(hearingServiceDateProvider
-                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 2))
+                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 3))
             .thenReturn(expectedStartDate);
 
         when(hearingServiceDateProvider
-                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 7))
+                 .calculateDueDate(hearingServiceDateProvider.zonedNowWithTime(), 8))
             .thenReturn(expectedEndDate);
         HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel("applicationSubmitted");
 
@@ -282,5 +292,60 @@ class BailCaseDataToServiceHearingValuesMapperTest {
         assertEquals(
             Collections.emptyList(),
             mapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_PHONE));
+    }
+
+    @Test
+    void getHearingWindowModel_should_return_hearing_window_range() {
+        ZonedDateTime two = mock(ZonedDateTime.class);
+        ZonedDateTime seven = mock(ZonedDateTime.class);
+
+        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(3))).thenReturn(two);
+        when(two.format(any())).thenReturn("two");
+        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(8))).thenReturn(seven);
+        when(seven.format(any())).thenReturn("seven");
+
+        HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel("applicationSubmitted");
+        assertEquals("two", hearingWindowModel.getDateRangeStart());
+        assertEquals("seven", hearingWindowModel.getDateRangeEnd());
+    }
+
+    @Test
+    void getHearingWindowModel_should_return_hearing_window_specific_date() {
+        ZonedDateTime twentyEight = mock(ZonedDateTime.class);
+
+        when(hearingServiceDateProvider.calculateDueDate(any(ZonedDateTime.class), eq(29))).thenReturn(twentyEight);
+        when(twentyEight.format(any())).thenReturn("twentyEight");
+
+        HearingWindowModel hearingWindowModel = mapper.getHearingWindowModel("decisionConditionalBail");
+        assertEquals("twentyEight", hearingWindowModel.getFirstDateTimeMustBe());
+    }
+
+    @Test
+    void getLegalRepOrganisationIdentifier_should_retrieve_org_id() {
+        String expected = "IDENTIFIER";
+        when(bailCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class))
+            .thenReturn(Optional.of(organisationPolicy));
+        when(organisationPolicy.getOrganisation()).thenReturn(organisation);
+        when(organisation.getOrganisationID()).thenReturn(expected);
+
+        assertEquals(expected, mapper.getLegalRepOrganisationIdentifier(bailCase));
+    }
+
+    @Test
+    void getLegalRepOrganisationIdentifier_should_default_to_empty_string_if_no_org_id() {
+        when(bailCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class))
+            .thenReturn(Optional.of(organisationPolicy));
+        when(organisationPolicy.getOrganisation()).thenReturn(organisation);
+        // no stubbing of gerOrganisationID will make the method return null
+
+        assertEquals("", mapper.getLegalRepOrganisationIdentifier(bailCase));
+    }
+
+    @Test
+    void getLegalRepOrganisationIdentifier_should_default_to_empty_string_if_no_local_authority() {
+        when(bailCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class))
+            .thenReturn(Optional.empty());
+
+        assertEquals("", mapper.getLegalRepOrganisationIdentifier(bailCase));
     }
 }

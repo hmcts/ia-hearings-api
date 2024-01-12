@@ -2,39 +2,18 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static java.util.Objects.requireNonNull;
 import static net.minidev.json.parser.JSONParser.DEFAULT_PERMISSIVE_MODE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DEPORTATION_ORDER_OPTIONS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_APPEAL_SUITABLE_TO_FLOAT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_NAME_HMCTS_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CURRENT_CASE_STATE_VISIBLE_TO_ADMIN_OFFICER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCD;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCF;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCX;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EAD;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EAF;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EAX;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EUD;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EUF;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EUX;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.HUD;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.HUF;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.HUX;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.PAD;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.PAF;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.PAX;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPD;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPF;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPX;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.INTER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils.getCaseCategoriesValue;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils.getNumberOfPhysicalAttendees;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -50,10 +29,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
@@ -75,11 +51,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServ
 public class ServiceHearingValuesProvider {
 
     private static final String SCREEN_FLOW = "screenFlow";
-
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_APPEALS = "classpath:appealsScreenFlow.json";
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_BAILS = "classpath:bailsScreenFlow.json";
-
-    private static final String IN_PERSON = "INTER";
     private static final String TRIBUNAL_JUDGE = "84";
 
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
@@ -129,8 +102,8 @@ public class ServiceHearingValuesProvider {
             .caseManagementLocationCode(caseDataMapper
                 .getCaseManagementLocationCode(asylumCase))
             .autoListFlag(caseFlagsMapper.getAutoListFlag(asylumCase))
-            .caseSlaStartDate(caseDataMapper.getCaseSlaStartDate())
-            .duration(caseDataMapper.getHearingDuration(asylumCase))
+            .caseSlaStartDate(caseDataMapper.getCaseSlaStartDate().toString())
+            .duration(caseDataMapper.getHearingDuration(asylumCase, false))
             .hearingWindow(caseDataMapper
                 .getHearingWindowModel(caseDetails.getState()))
             .hearingPriorityType(caseFlagsMapper.getHearingPriorityType(asylumCase))
@@ -209,7 +182,6 @@ public class ServiceHearingValuesProvider {
             .privateHearingRequiredFlag(bailCaseFlagsMapper.getPrivateHearingRequiredFlag(bailCase))
             .caseInterpreterRequiredFlag(bailCaseFlagsMapper.getCaseInterpreterRequiredFlag(bailCase))
             .hearingRequester("")
-            .panelRequirements(null)
             .leadJudgeContractType("")
             .judiciary(JudiciaryModel.builder()
                            .roleType(Collections.emptyList())
@@ -252,32 +224,6 @@ public class ServiceHearingValuesProvider {
         return screenFlowValue;
     }
 
-    public int getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {
-
-        int physicalAttendees = (int) partyDetails.stream()
-            .filter(this::isInPersonAttendee)
-            .count();
-
-        // Plus one to include respondent (Home Office) which is an ORG type party
-        return physicalAttendees > 0 ? physicalAttendees + 1 : 0;
-    }
-
-    private List<CaseCategoryModel> getCaseCategoriesValue(AsylumCase asylumCase) {
-        CaseTypeValue caseTypeValue = getCaseTypeValue(asylumCase);
-
-        CaseCategoryModel caseCategoryCaseType = new CaseCategoryModel();
-        caseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
-        caseCategoryCaseType.setCategoryValue(caseTypeValue.getValue());
-        caseCategoryCaseType.setCategoryParent("");
-
-        CaseCategoryModel caseCategoryCaseSubType = new CaseCategoryModel();
-        caseCategoryCaseSubType.setCategoryType(CategoryType.CASE_SUB_TYPE);
-        caseCategoryCaseSubType.setCategoryValue(caseTypeValue.getValue());
-        caseCategoryCaseSubType.setCategoryParent(caseTypeValue.getValue());
-
-        return List.of(caseCategoryCaseType, caseCategoryCaseSubType);
-    }
-
     private List<CaseCategoryModel> getBailCaseCategoriesValue() {
         CaseCategoryModel caseCategoryCaseType = new CaseCategoryModel();
         caseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
@@ -292,41 +238,11 @@ public class ServiceHearingValuesProvider {
         return List.of(caseCategoryCaseType, caseCategoryCaseSubType);
     }
 
-    @SuppressWarnings({"java:S3776", "java:S3358"})
-    private static CaseTypeValue getCaseTypeValue(AsylumCase asylumCase) {
-        boolean hasDeportationOrder = asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)
-            .map(deportation -> deportation == YesOrNo.YES)
-            .orElse(false);
-
-        boolean isSuitableToFloat = asylumCase.read(IS_APPEAL_SUITABLE_TO_FLOAT, YesOrNo.class)
-            .map(deportation -> deportation == YesOrNo.YES)
-            .orElse(false);
-
-        AppealType appealType = asylumCase.read(APPEAL_TYPE, AppealType.class)
-            .orElseThrow(() -> new RequiredFieldMissingException("Appeal Type is a required field"));
-
-        CaseTypeValue caseTypeValue = switch (appealType) {
-            case HU -> hasDeportationOrder ? HUD : isSuitableToFloat ? HUF : HUX;
-            case EA -> hasDeportationOrder ? EAD : isSuitableToFloat ? EAF : EAX;
-            case EU -> hasDeportationOrder ? EUD : isSuitableToFloat ? EUF : EUX;
-            case DC -> hasDeportationOrder ? DCD : isSuitableToFloat ? DCF : DCX;
-            case PA -> hasDeportationOrder ? PAD : isSuitableToFloat ? PAF : PAX;
-            case RP -> hasDeportationOrder ? RPD : isSuitableToFloat ? RPF : RPX;
-        };
-
-        return caseTypeValue;
-    }
-
     private List<PartyDetailsModel> getPartyDetails(AsylumCase asylumCase) {
         return partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper);
     }
 
     private List<PartyDetailsModel> getPartyDetails(BailCase bailCase) {
         return partyDetailsMapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper);
-    }
-
-    private boolean isInPersonAttendee(PartyDetailsModel party) {
-        return party.getIndividualDetails() != null
-               && Objects.equals(party.getIndividualDetails().getPreferredHearingChannel(), INTER.name());
     }
 }

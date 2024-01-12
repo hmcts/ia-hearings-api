@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.BOOKED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.CANCELLED;
@@ -19,20 +20,30 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ChangeOrganisationRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityDayOfWeekModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityRangeModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.ApplicantDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailInterpreterDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.FinancialConditionSupporterDetailsMapper;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class PartyDetailsMapperTest {
 
     @Mock
@@ -66,7 +77,17 @@ class PartyDetailsMapperTest {
     @Mock
     private InterpreterDetailsMapper interpreterDetailsMapper;
     @Mock
+    private BailInterpreterDetailsMapper bailInterpreterDetailsMapper;
+    @Mock
     private PartyDetailsModel partyDetailsModel;
+    @Mock
+    private IndividualDetailsModel individualDetailsModel;
+    @Mock
+    private OrganisationDetailsModel organisationDetailsModel;
+    @Mock
+    private UnavailabilityDayOfWeekModel unavailabilityDayOfWeekModel;
+    @Mock
+    private UnavailabilityRangeModel unavailabilityRangeModel;
 
     @Test
     void should_map_asylum_correctly() {
@@ -83,10 +104,16 @@ class PartyDetailsMapperTest {
             .thenReturn(PartyDetailsModel.builder().build());
         when(witnessDetailsMapper.map(asylumCase, caseDataMapper))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        when(interpreterDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
         when(asylumCase.read(AsylumCaseFieldDefinition.HAS_SPONSOR, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD,
+                             ChangeOrganisationRequest.class))
+            .thenReturn(Optional.empty());
 
         List<PartyDetailsModel> expected = Arrays.asList(
+            PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
@@ -103,10 +130,67 @@ class PartyDetailsMapperTest {
             sponsorDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
-            interpreterDetailsMapper
+            interpreterDetailsMapper,
+            bailInterpreterDetailsMapper
         );
 
         assertEquals(expected, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper));
+    }
+
+    static Stream<Arguments> noLegalRepDetailsNeeded() {
+        return Stream.of(
+            Arguments.of(Optional.empty(), Optional.empty()),
+            Arguments.of(Optional.of(JourneyType.AIP.getValue()), Optional.empty()),
+            Arguments.of(Optional.empty(), Optional.of(mock(ChangeOrganisationRequest.class))),
+            Arguments.of(Optional.of(JourneyType.AIP.getValue()), Optional.of(mock(ChangeOrganisationRequest.class)))
+            );
+    }
+
+    @ParameterizedTest
+    @MethodSource("noLegalRepDetailsNeeded")
+    void should_skip_mapping_legal_rep_details_accordingly(Optional<String> journeyType,
+                                                           Optional<ChangeOrganisationRequest> changeOrgReq) {
+
+        when(appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(legalRepDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(legalRepOrgDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(sponsorDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(respondentDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(witnessDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        when(interpreterDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        when(asylumCase.read(AsylumCaseFieldDefinition.HAS_SPONSOR, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(AsylumCaseFieldDefinition.JOURNEY_TYPE, String.class))
+            .thenReturn(journeyType);
+        when(asylumCase.read(AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD,
+                             ChangeOrganisationRequest.class))
+            .thenReturn(changeOrgReq);
+
+        PartyDetailsMapper mapper = new PartyDetailsMapper(
+            appellantDetailsMapper,
+            applicantDetailsMapper,
+            legalRepDetailsMapper,
+            legalRepOrgDetailsMapper,
+            respondentDetailsMapper,
+            sponsorDetailsMapper,
+            witnessDetailsMapper,
+            financialConditionSupporterDetailsMapper,
+            interpreterDetailsMapper,
+            bailInterpreterDetailsMapper
+        );
+
+        if (journeyType.isPresent() || changeOrgReq.isPresent()) {
+            assertEquals(5, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper).size());
+        } else {
+            assertEquals(7, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper).size());
+        }
     }
 
     @Test
@@ -121,10 +205,13 @@ class PartyDetailsMapperTest {
             .thenReturn(PartyDetailsModel.builder().build());
         when(financialConditionSupporterDetailsMapper.map(bailCase, bailCaseDataMapper))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        when(bailInterpreterDetailsMapper.map(bailCase, bailCaseDataMapper))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
         when(bailCase.read(BailCaseFieldDefinition.IS_LEGALLY_REPRESENTED_FOR_FLAG, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
 
         List<PartyDetailsModel> expected = Arrays.asList(
+            PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
             PartyDetailsModel.builder().build(),
@@ -140,7 +227,8 @@ class PartyDetailsMapperTest {
             sponsorDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
-            interpreterDetailsMapper
+            interpreterDetailsMapper,
+            bailInterpreterDetailsMapper
         );
 
         assertEquals(expected, mapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper));
@@ -235,5 +323,31 @@ class PartyDetailsMapperTest {
         } else {
             assertEquals(expected, result.getIndividualDetails().getOtherReasonableAdjustmentDetails());
         }
+    }
+
+    @Test
+    void should_map_party_details_model_to_party_details() {
+        List<UnavailabilityDayOfWeekModel> unavailabilityDayOfWeekModels = List.of(unavailabilityDayOfWeekModel);
+        List<UnavailabilityRangeModel> unavailabilityRangeModels = List.of(unavailabilityRangeModel);
+        PartyDetailsModel partyDetailsModel = PartyDetailsModel.builder()
+            .individualDetails(individualDetailsModel)
+            .partyName("partyName")
+            .partyID("partyId")
+            .organisationDetails(organisationDetailsModel)
+            .partyRole("partyRole")
+            .partyType("partyType")
+            .unavailabilityDOW(unavailabilityDayOfWeekModels)
+            .unavailabilityRanges(unavailabilityRangeModels)
+            .build();
+
+        PartyDetails partyDetails = PartyDetailsMapper.mapPartyDetailsModelToPartyDetails(partyDetailsModel);
+
+        assertEquals(individualDetailsModel, partyDetails.getIndividualDetails());
+        assertEquals("partyId", partyDetails.getPartyID());
+        assertEquals(organisationDetailsModel, partyDetails.getOrganisationDetails());
+        assertEquals("partyRole", partyDetails.getPartyRole());
+        assertEquals("partyType", partyDetails.getPartyType());
+        assertEquals(unavailabilityDayOfWeekModels, partyDetails.getUnavailabilityDayOfWeek());
+        assertEquals(unavailabilityRangeModels, partyDetails.getUnavailabilityRanges());
     }
 }

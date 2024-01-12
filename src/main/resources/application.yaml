@@ -94,8 +94,11 @@ security:
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
+      - "decideAnApplication"
+      - "listCaseWithoutHearingRequirements"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
+      - "decideAnApplication"
     caseworker-ia-system:
       - "handleHearingException"
       - "triggerCmrUpdated"

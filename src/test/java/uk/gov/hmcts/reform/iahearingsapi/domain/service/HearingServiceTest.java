@@ -3,7 +3,9 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -55,7 +57,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHear
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HearingRequestGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
@@ -74,6 +76,8 @@ class HearingServiceTest {
     private static final String REASON_FOR_LINK = "Reason for case to be linked";
     private static final String APPELLANT_2 = "Name LastName";
 
+    @Mock
+    private FeatureToggler featureToggler;
     @Mock
     private IdamService idamService;
     @Mock
@@ -121,8 +125,22 @@ class HearingServiceTest {
     }
 
     @Test
+    void autoHearingEnabled_should_return_true() {
+        when(featureToggler.getValue("auto-hearing-request-feature", false)).thenReturn(true);
+
+        assertTrue(hearingService.autoHearingRequestEnabled());
+    }
+
+    @Test
+    void autoHearingEnabled_should_return_false() {
+        when(featureToggler.getValue("auto-hearing-request-feature", false)).thenReturn(false);
+
+        assertFalse(hearingService.autoHearingRequestEnabled());
+    }
+
+    @Test
     void testCreateTestHearing() {
-        HmcHearingRequestPayload payload = HearingRequestGenerator.generateTestHearingRequest(CASE_ID);
+        CreateHearingRequest payload = HearingRequestGenerator.generateTestHearingRequest(CASE_ID);
         HmcHearingResponse response = HmcHearingResponse.builder()
             .hearingRequestId(HEARING_REQUEST_ID)
             .versionNumber(VERSION)
@@ -140,7 +158,7 @@ class HearingServiceTest {
 
     @Test
     void testCreateTestHearingException() {
-        HmcHearingRequestPayload payload = new HmcHearingRequestPayload();
+        CreateHearingRequest payload = new CreateHearingRequest();
 
         when(idamService.getServiceUserToken()).thenThrow(new RuntimeException("Token generation failed"));
 

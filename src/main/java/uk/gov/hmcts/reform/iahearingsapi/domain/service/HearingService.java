@@ -36,7 +36,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotified
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
@@ -51,9 +51,14 @@ public class HearingService {
     private final ServiceHearingValuesProvider serviceHearingValuesProvider;
     private final CoreCaseDataService coreCaseDataService;
     private final IaCcdConvertService iaCcdConvertService;
+    private final FeatureToggler featureToggler;
     @Value("${hearingValues.hmctsServiceId}") String serviceId;
 
-    public HmcHearingResponse createHearing(HmcHearingRequestPayload hearingPayload) {
+    public boolean autoHearingRequestEnabled() {
+        return featureToggler.getValue("auto-hearing-request-feature", false);
+    }
+
+    public HmcHearingResponse createHearing(CreateHearingRequest hearingPayload) {
         try {
             log.debug(
                 "Creating Hearing for Case ID {} and request:\n{}",
@@ -65,6 +70,7 @@ public class HearingService {
 
             return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken, hearingPayload);
         } catch (Exception e) {
+            log.error(e.getMessage());
             throw new IllegalStateException("Service could not complete request to create hearing", e);
         }
     }

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DOCUMENTS_WITH_METADATA;
@@ -8,6 +9,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_COMPANY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.VIDEO_HEARING1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentTag.BAIL_SUBMISSION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
@@ -24,6 +26,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentWithMetadata;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -31,9 +35,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 @Service
 @RequiredArgsConstructor
 public class BailCaseDataToServiceHearingValuesMapper {
-    static final int HEARING_START_WINDOW_INTERVAL_DEFAULT = 2;
-    static final int HEARING_WINDOW_END_INTERVAL_DEFAULT = 7;
-    static final int HEARING_START_WINDOW_INTERVAL_CONDITIONAL_BAIL = 28;
+    static final int HEARING_START_WINDOW_INTERVAL_DEFAULT = 3;
+    static final int HEARING_WINDOW_END_INTERVAL_DEFAULT = 8;
+    static final int HEARING_START_WINDOW_INTERVAL_CONDITIONAL_BAIL = 29;
     static final String BAIL_STATE_DECISION_CONDITIONAL_BAIL = "decisionConditionalBail";
 
     private final DateProvider hearingServiceDateProvider;
@@ -61,7 +65,7 @@ public class BailCaseDataToServiceHearingValuesMapper {
 
         if (bailState.equals(BAIL_STATE_DECISION_CONDITIONAL_BAIL)) {
             return HearingWindowModel.builder()
-                .dateRangeStart(hearingServiceDateProvider
+                .firstDateTimeMustBe(hearingServiceDateProvider
                                     .calculateDueDate(now, HEARING_START_WINDOW_INTERVAL_CONDITIONAL_BAIL)
                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
                 .build();
@@ -129,5 +133,13 @@ public class BailCaseDataToServiceHearingValuesMapper {
         BailCase bailCase,
         BailCaseFieldDefinition emailFieldDefinition) {
         return bailCase.read(emailFieldDefinition, String.class).map(List::of).orElse(Collections.emptyList());
+    }
+
+    public String getLegalRepOrganisationIdentifier(BailCase bailCase) {
+        Organisation organisation = bailCase.read(LOCAL_AUTHORITY_POLICY, OrganisationPolicy.class)
+            .map(OrganisationPolicy::getOrganisation)
+            .orElse(null);
+
+        return organisation == null ? "" : defaultIfNull(organisation.getOrganisationID(), "");
     }
 }

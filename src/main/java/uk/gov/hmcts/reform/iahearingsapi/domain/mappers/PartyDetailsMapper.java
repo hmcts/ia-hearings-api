@@ -16,8 +16,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.ApplicantDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailInterpreterDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailMapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.FinancialConditionSupporterDetailsMapper;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
+
 
 @Component
 @AllArgsConstructor
@@ -37,6 +40,8 @@ public class PartyDetailsMapper {
     private FinancialConditionSupporterDetailsMapper financialConditionSupporterDetailsMapper;
     private InterpreterDetailsMapper interpreterDetailsMapper;
 
+    private BailInterpreterDetailsMapper bailInterpreterDetailsMapper;
+
     public List<PartyDetailsModel> mapAsylumPartyDetails(
         AsylumCase asylumCase,
         CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
@@ -49,7 +54,9 @@ public class PartyDetailsMapper {
         if (MapperUtils.hasSponsor(asylumCase)) {
             partyDetails.add(sponsorDetailsMapper.map(asylumCase, caseDataMapper));
         }
-        if (MapperUtils.isRepJourney(asylumCase)) {
+        if (MapperUtils.isRepJourney(asylumCase)
+            && !MapperUtils.isChangeOrganisationRequestPresent(asylumCase)) {
+
             partyDetails.add(legalRepDetailsMapper.map(asylumCase, caseDataMapper));
             partyDetails.add(legalRepOrgDetailsMapper.map(asylumCase, caseDataMapper));
         }
@@ -74,6 +81,7 @@ public class PartyDetailsMapper {
         }
 
         partyDetails.addAll(financialConditionSupporterDetailsMapper.map(bailCase, bailCaseDataMapper));
+        partyDetails.addAll(bailInterpreterDetailsMapper.map(bailCase, bailCaseDataMapper));
 
         return partyDetails;
     }
@@ -115,5 +123,17 @@ public class PartyDetailsMapper {
             .setOtherReasonableAdjustmentDetails((otherReasonableAdjustments + " " + status).trim());
 
         return partyDetailsModel;
+    }
+
+    public static PartyDetails mapPartyDetailsModelToPartyDetails(PartyDetailsModel partyDetailsModel) {
+        return PartyDetails.builder()
+            .individualDetails(partyDetailsModel.getIndividualDetails())
+            .partyID(partyDetailsModel.getPartyID())
+            .organisationDetails(partyDetailsModel.getOrganisationDetails())
+            .partyRole(partyDetailsModel.getPartyRole())
+            .partyType(partyDetailsModel.getPartyType())
+            .unavailabilityDayOfWeek(partyDetailsModel.getUnavailabilityDOW())
+            .unavailabilityRanges(partyDetailsModel.getUnavailabilityRanges())
+            .build();
     }
 }
