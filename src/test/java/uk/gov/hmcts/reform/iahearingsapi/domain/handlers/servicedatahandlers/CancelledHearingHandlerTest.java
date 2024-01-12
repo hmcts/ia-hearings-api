@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinit
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -48,7 +49,9 @@ class CancelledHearingHandlerTest {
             new CancelledHearingHandler(coreCaseDataService);
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
-            .thenReturn(Optional.of(HmcStatus.CANCELLATION_REQUESTED));
+            .thenReturn(Optional.of(HmcStatus.CANCELLED));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.class))
+            .thenReturn(Optional.of(ListingStatus.CNCL));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
