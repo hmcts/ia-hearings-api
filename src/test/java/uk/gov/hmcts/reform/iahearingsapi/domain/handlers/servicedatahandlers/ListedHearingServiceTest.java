@@ -10,7 +10,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.GLASGOW_TRIBUNALS_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.HATTON_CROSS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
@@ -26,7 +25,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
@@ -59,8 +57,7 @@ class ListedHearingServiceTest {
     @ParameterizedTest
     @MethodSource("updateListCaseHearingDetailsSource")
     void updateListCaseHearingDetails(String venueId, HearingChannel channel,
-                                      String hearingDate, HearingCentre expectedHearingCentre,
-                                      Optional<YesOrNo> shouldTriggerTask) {
+                                      String hearingDate, HearingCentre expectedHearingCentre) {
         serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
             List.of(channel));
         serviceData.write(ServiceDataFieldDefinition.HEARING_TYPE, SUBSTANTIVE.getKey());
@@ -76,7 +73,6 @@ class ListedHearingServiceTest {
 
         listedHearingService.updateListCaseHearingDetails(serviceData, asylumCase);
 
-        assertEquals(shouldTriggerTask, asylumCase.read(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK));
         assertEquals(Optional.of(LISTING_REF), asylumCase.read(ARIA_LISTING_REFERENCE));
         assertEquals(Optional.of(hearingDate), asylumCase.read(LIST_CASE_HEARING_DATE));
         assertEquals(Optional.of("200"), asylumCase.read(LIST_CASE_HEARING_LENGTH));
@@ -92,9 +88,9 @@ class ListedHearingServiceTest {
 
         return Stream.of(
             Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER,
-                "2023-12-02T10:00:00.000", HATTON_CROSS, Optional.of(YesOrNo.YES)),
+                "2023-12-02T10:00:00.000", HATTON_CROSS),
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
-                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, Optional.empty())
+                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE)
         );
     }
 

@@ -8,7 +8,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_ADJOURNMENT_DETAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
@@ -43,7 +42,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AdjournmentDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
@@ -310,40 +308,6 @@ class EditListCaseHandlerTest {
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
 
-    }
-
-    @Test
-    void should_trigger_event_when_adjournment_details_have_been_previously_recorded() {
-
-        when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REFERENCE, CASE_TYPE_ASYLUM))
-            .thenReturn(startEventResponse);
-        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
-        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
-            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
-        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
-            .thenReturn(Optional.of(NEXT_HEARING_DATE));
-        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
-            .thenReturn(Optional.of(HEARING_VENUE_ID));
-        when(serviceData.read(DURATION, Integer.class))
-            .thenReturn(Optional.of(150));
-
-        AdjournmentDetail adjournmentDetail = AdjournmentDetail.builder()
-            .adjournmentDetailsHearing("Hearing1").build();
-        when(asylumCase.read(CURRENT_ADJOURNMENT_DETAIL, AdjournmentDetail.class))
-            .thenReturn(Optional.of(adjournmentDetail));
-
-        editListCaseHandler.handle(serviceData);
-
-        verify(asylumCase).write(ARIA_LISTING_REFERENCE, LISTING_REFERENCE);
-        verify(asylumCase).write(LIST_CASE_HEARING_DATE, LocalDateTime.of(2023, 9, 29, 9, 45)
-            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
-        verify(asylumCase).write(LIST_CASE_HEARING_LENGTH, "150");
-        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
-        verify(asylumCase).write(HEARING_CHANNEL, new DynamicList(
-            new Value(HearingChannel.INTER.name(), HearingChannel.INTER.getLabel()),
-            List.of(new Value(HearingChannel.INTER.name(), HearingChannel.INTER.getLabel()))));
-        verify(coreCaseDataService).triggerSubmitEvent(
-            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
     private void initializeServiceData() {
