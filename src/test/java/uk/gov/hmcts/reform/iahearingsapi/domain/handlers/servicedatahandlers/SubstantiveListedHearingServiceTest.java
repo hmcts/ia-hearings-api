@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 
 class SubstantiveListedHearingServiceTest {
 
@@ -49,7 +50,8 @@ class SubstantiveListedHearingServiceTest {
     @Test
     void isSubstantiveCancelledHearing() {
         setUpForNonPaperSubstantiveHearing();
-        serviceData.write(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.CANCELLATION_REQUESTED);
+        serviceData.write(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.CANCELLED);
+        serviceData.write(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.CNCL);
 
         assertTrue(substantiveListedHearingService.isSubstantiveCancelledHearing(serviceData));
     }
