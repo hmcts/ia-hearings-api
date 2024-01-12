@@ -275,9 +275,6 @@ public enum AsylumCaseFieldDefinition {
     MAKE_AN_APPLICATION_DECISION_REASON(
         "makeAnApplicationDecisionReason", new TypeReference<String>(){}),
 
-    CURRENT_ADJOURNMENT_DETAIL(
-        "currentAdjournmentDetail", new TypeReference<AdjournmentDetail>(){}),
-    
     CHANGE_ORGANISATION_REQUEST_FIELD(
         "changeOrganisationRequestField", new TypeReference<ChangeOrganisationRequest>(){}),
 

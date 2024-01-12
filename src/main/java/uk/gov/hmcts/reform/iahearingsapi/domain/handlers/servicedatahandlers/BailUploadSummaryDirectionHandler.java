@@ -19,7 +19,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataServi
 @Component
 @RequiredArgsConstructor
 public class BailUploadSummaryDirectionHandler
-    extends SubstantiveListedHearingService implements ServiceDataHandler<ServiceData> {
+    extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
 

@@ -1,5 +1,35 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPEAL_SUBMITTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,41 +49,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPEAL_SUBMITTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -177,7 +176,7 @@ class EditListCaseHandlerTest {
 
         editListCaseHandler.handle(serviceData);
 
-        verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+        verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
         verify(coreCaseDataService, never()).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
@@ -199,7 +198,7 @@ class EditListCaseHandlerTest {
             LIST_CASE_HEARING_CENTRE, HearingCentre.BRADFORD
         );
 
-        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
@@ -260,15 +259,15 @@ class EditListCaseHandlerTest {
         if (hasUpdated) {
             if (hearingChannel.equals(List.of(HearingChannel.INTER))) {
                 verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
-                verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+                verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
             } else {
                 verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
-                verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+                verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
             }
         } else {
             verify(asylumCase, never()).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
             verify(asylumCase, never()).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
-            verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
+            verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
         }
     }
 
@@ -305,10 +304,10 @@ class EditListCaseHandlerTest {
             )))
         );
 
-        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YesOrNo.YES);
-
+        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+
     }
 
     private void initializeServiceData() {
@@ -361,4 +360,3 @@ class EditListCaseHandlerTest {
         return caseData;
     }
 }
-

@@ -13,7 +13,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CancelledHearingHandler extends SubstantiveListedHearingService
+public class CancelledHearingHandler extends ListedHearingService
     implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
