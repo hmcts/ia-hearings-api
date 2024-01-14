@@ -39,11 +39,18 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 
 @Slf4j
-public class SubstantiveListedHearingService {
+public class ListedHearingService {
 
     public boolean isSubstantiveListedHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)
             && isHearingListingStatus(serviceData, ListingStatus.FIXED)
+            && !isHearingChannel(serviceData, ONPPRS)
+            && isHearingType(serviceData, SUBSTANTIVE);
+    }
+
+    public boolean isSubstantiveCancelledHearing(ServiceData serviceData) {
+        return isHmcStatus(serviceData, HmcStatus.CANCELLED)
+            && isHearingListingStatus(serviceData, ListingStatus.CNCL)
             && !isHearingChannel(serviceData, ONPPRS)
             && isHearingType(serviceData, SUBSTANTIVE);
     }
@@ -65,14 +72,18 @@ public class SubstantiveListedHearingService {
         List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
         String hearingVenueId = getHearingVenueId(serviceData);
 
+        String newHearingDateTime = formatHearingDateTime(getHearingDatetime(serviceData, hearingVenueId));
+        HearingCentre newHearingCentre = getHearingCenter(hearingChannels, hearingVenueId);
+        DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
+
         asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
-        asylumCase.write(LIST_CASE_HEARING_DATE, formatHearingDateTime(
-            getHearingDatetime(serviceData, hearingVenueId)));
+        asylumCase.write(LIST_CASE_HEARING_DATE, newHearingDateTime);
         asylumCase.write(LIST_CASE_HEARING_LENGTH,
                          String.valueOf(getHearingDuration(serviceData)));
         asylumCase.write(LIST_CASE_HEARING_CENTRE,
-                         getHearingCenter(hearingChannels, hearingVenueId));
-        asylumCase.write(HEARING_CHANNEL, buildHearingChannelDynmicList(hearingChannels));
+                         newHearingCentre);
+        asylumCase.write(HEARING_CHANNEL, newHearingChannel);
+
     }
 
     public List<HearingChannel> getHearingChannels(ServiceData serviceData) {

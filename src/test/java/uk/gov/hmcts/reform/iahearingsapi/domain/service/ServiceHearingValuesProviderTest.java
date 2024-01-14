@@ -164,7 +164,7 @@ class ServiceHearingValuesProviderTest {
             .thenReturn(BaseLocation.BIRMINGHAM.getId());
         when(caseDataMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);
         when(caseDataMapper.getCaseSlaStartDate()).thenReturn(date);
-        when(caseDataMapper.getHearingDuration(asylumCase)).thenReturn(Integer.parseInt(listCaseHearingLength));
+        when(caseDataMapper.getHearingDuration(asylumCase, false)).thenReturn(Integer.parseInt(listCaseHearingLength));
         when(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
             .thenReturn(caseReference);
         when(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);

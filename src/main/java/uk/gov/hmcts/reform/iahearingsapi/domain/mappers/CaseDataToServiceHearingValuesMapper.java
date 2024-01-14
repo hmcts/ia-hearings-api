@@ -11,13 +11,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_ADDITIONAL_ADJUSTMENTS_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_MULTIMEDIA_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VULNERABILITIES_ALLOWED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_COMPANY_NAME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_COMPANY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
@@ -136,12 +137,13 @@ public class CaseDataToServiceHearingValuesMapper {
         return getHearingChannels(asylumCase).stream().findFirst().orElse(null);
     }
 
-    public Integer getHearingDuration(AsylumCase asylumCase) {
+    public Integer getHearingDuration(AsylumCase asylumCase, Boolean isAdjournmentDetails) {
         if (isDecisionWithoutHearingAppeal(asylumCase)) {
             return null;
         }
 
-        int hearingDuration = asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)
+        int hearingDuration =
+            asylumCase.read(isAdjournmentDetails ? NEXT_HEARING_DURATION : LIST_CASE_HEARING_LENGTH, String.class)
             .map(duration -> duration.isBlank() ? 0 : Integer.parseInt(duration))
             .orElse(0);
         return hearingDuration <= 0 ? null : hearingDuration;
@@ -177,9 +179,9 @@ public class CaseDataToServiceHearingValuesMapper {
             .orElseThrow(() -> new RequiredFieldMissingException("sponsorPartyId is a required field"));
     }
 
-    public String getLegalRepCompanyName(AsylumCase asylumCase) {
-        return asylumCase.read(LEGAL_REP_COMPANY_NAME, String.class)
-            .orElseThrow(() -> new RequiredFieldMissingException("legalRepCompanyName is a required field"));
+    public String getLegalRepCompany(AsylumCase asylumCase) {
+        return asylumCase.read(LEGAL_REP_COMPANY, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("legalRepCompany is a required field"));
     }
 
     public String getLegalRepOrganisationIdentifier(AsylumCase asylumCase) {

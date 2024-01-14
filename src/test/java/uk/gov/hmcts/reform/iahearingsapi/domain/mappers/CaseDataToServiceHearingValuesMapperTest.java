@@ -31,6 +31,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
@@ -160,13 +161,13 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of("120"));
 
-        assertEquals(120, mapper.getHearingDuration(asylumCase));
+        assertEquals(120, mapper.getHearingDuration(asylumCase, false));
     }
 
     @Test
     void getHearingDuration_should_return_null_when_listCaseHearingLength_is_not_set() {
 
-        assertNull(mapper.getHearingDuration(asylumCase));
+        assertNull(mapper.getHearingDuration(asylumCase, false));
     }
 
     @ParameterizedTest
@@ -175,7 +176,16 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of(duration));
 
-        assertNull(mapper.getHearingDuration(asylumCase));
+        assertNull(mapper.getHearingDuration(asylumCase, false));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"0", "-20"})
+    void getHearingDuration_should_return_null_when_is_adjourned(String duration) {
+
+        when(asylumCase.read(NEXT_HEARING_DURATION, String.class)).thenReturn(Optional.of(duration));
+
+        assertNull(mapper.getHearingDuration(asylumCase, true));
     }
 
     @Test

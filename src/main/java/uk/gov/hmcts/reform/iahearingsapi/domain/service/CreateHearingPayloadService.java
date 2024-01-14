@@ -68,7 +68,7 @@ public class CreateHearingPayloadService {
 
         List<PartyDetailsModel> partyDetailsModels = getPartyDetailsModels(asylumCase);
 
-        Integer duration = getDuration(asylumCase);
+        Integer duration = getDuration(asylumCase, false);
 
         HearingDetails hearingDetails = HearingDetails.builder()
             .duration(duration)
@@ -143,8 +143,8 @@ public class CreateHearingPayloadService {
         return caseDataMapper.getExternalCaseReference(asylumCase);
     }
 
-    protected Integer getDuration(AsylumCase asylumCase) {
-        return caseDataMapper.getHearingDuration(asylumCase);
+    protected Integer getDuration(AsylumCase asylumCase, Boolean isAdjournmentDetails) {
+        return caseDataMapper.getHearingDuration(asylumCase, isAdjournmentDetails);
     }
 
     protected List<String> getHearingChannels(AsylumCase asylumCase) {

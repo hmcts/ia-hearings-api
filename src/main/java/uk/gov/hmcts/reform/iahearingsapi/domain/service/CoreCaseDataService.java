@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import java.util.Collections;
 import java.util.Map;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -212,5 +213,16 @@ public class CoreCaseDataService {
             return iaCcdConvertService.convertToBailCaseData(caseDetails.getData());
         }
         return null;
+    }
+
+    public void triggerReviewInterpreterBookingTask(String caseId) {
+        StartEventResponse startEventResponse = startCaseEvent(
+            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId, CASE_TYPE_ASYLUM);
+
+        AsylumCase asylumCase = getCaseFromStartedEvent(startEventResponse);
+
+        log.info("Sending `{}` event for  Case ID `{}`", TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId);
+        triggerSubmitEvent(
+            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId, startEventResponse, asylumCase);
     }
 }

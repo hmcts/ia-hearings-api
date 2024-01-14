@@ -3,13 +3,17 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_FORMAT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.getEpimsIdByValue;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -55,9 +59,16 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         String hearingId,
         String reasonCode,
         Boolean firstAvailableDate,
-        HearingWindowModel hearingWindowModel
+        HearingWindowModel hearingWindowModel,
+        Boolean isAdjournmentDetails
     ) {
-        return generateHearingPayload(asylumCase, hearingId, reasonCode, firstAvailableDate, hearingWindowModel);
+        return generateHearingPayload(
+            asylumCase,
+            hearingId,
+            reasonCode,
+            firstAvailableDate,
+            hearingWindowModel,
+            isAdjournmentDetails);
     }
 
     public UpdateHearingRequest createUpdateHearingPayload(
@@ -65,7 +76,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         String hearingId,
         String reasonCode
     ) {
-        return generateHearingPayload(asylumCase, hearingId, reasonCode, false, null);
+        return generateHearingPayload(asylumCase, hearingId, reasonCode, false, null, false);
     }
 
     private UpdateHearingRequest generateHearingPayload(
@@ -73,15 +84,16 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         String hearingId,
         String reasonCode,
         Boolean firstAvailableDate,
-        HearingWindowModel hearingWindowModel
+        HearingWindowModel hearingWindowModel,
+        Boolean isAdjournmentDetails
     ) {
         HearingGetResponse persistedHearing = hearingService.getHearing(hearingId);
 
         HearingDetails hearingDetails = HearingDetails.builder()
             .autolistFlag(getAutoListFlag(asylumCase, persistedHearing.getHearingDetails()))
-            .hearingChannels(getHearingChannels(asylumCase, persistedHearing))
-            .hearingLocations(getLocations(asylumCase, persistedHearing))
-            .duration(getDuration(asylumCase, persistedHearing))
+            .hearingChannels(getHearingChannels(asylumCase, persistedHearing, isAdjournmentDetails))
+            .hearingLocations(getLocations(asylumCase, persistedHearing, isAdjournmentDetails))
+            .duration(getDuration(asylumCase, persistedHearing, isAdjournmentDetails))
             .amendReasonCodes(List.of(reasonCode))
             .hearingWindow(updateHearingWindow(firstAvailableDate, hearingWindowModel, persistedHearing))
             .build();
@@ -102,14 +114,16 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         return !caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase) && persistedHearingDetails.isAutolistFlag();
     }
 
-    private List<String> getHearingChannels(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
+    private List<String> getHearingChannels(AsylumCase asylumCase,
+                                            HearingGetResponse persistedHearing,
+                                            Boolean isAdjournmentDetails) {
 
         if (caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase)) {
             return List.of(HearingChannel.ONPPRS.name());
         }
 
         Optional<String> hearingChannels = asylumCase.read(
-            HEARING_CHANNEL,
+            isAdjournmentDetails ? NEXT_HEARING_FORMAT : HEARING_CHANNEL,
             DynamicList.class
         ).map(hearingChannel -> hearingChannel.getValue().getCode());
 
@@ -117,24 +131,37 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
     }
 
     private List<HearingLocationModel> getLocations(AsylumCase asylumCase,
-                                                    HearingGetResponse persistedHearing) {
-        Optional<String> locationCodes = asylumCase.read(
-            LIST_CASE_HEARING_CENTRE,
-            HearingCentre.class
-        ).map(HearingCentre::getEpimsId);
+                                                    HearingGetResponse persistedHearing,
+                                                    Boolean isAdjournmentDetails) {
+        Optional<String> locationCodes;
+        if (isAdjournmentDetails) {
+            locationCodes = Optional.of(getEpimsIdByValue(asylumCase.read(
+                    NEXT_HEARING_LOCATION,
+                    String.class)
+                .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_LOCATION + "  is not present"))));
+
+        } else {
+            locationCodes = asylumCase.read(
+                LIST_CASE_HEARING_CENTRE,
+                HearingCentre.class
+            ).map(HearingCentre::getEpimsId);
+        }
 
         return locationCodes.map(locationCode ->
-                                     List.of(HearingLocationModel.builder()
-                                                 .locationId(locationCode)
-                                                 .locationType(persistedHearing
-                                                                   .getHearingDetails()
-                                                                   .getHearingLocations().get(0)
-                                                                   .getLocationType()).build()))
+                List.of(HearingLocationModel.builder()
+                    .locationId(locationCode)
+                    .locationType(persistedHearing
+                        .getHearingDetails()
+                        .getHearingLocations().get(0)
+                        .getLocationType()).build()))
             .orElseGet(() -> persistedHearing.getHearingDetails().getHearingLocations());
     }
 
-    private Integer getDuration(AsylumCase asylumCase, HearingGetResponse persistedHearing) {
-        return defaultIfNull(getDuration(asylumCase), persistedHearing.getHearingDetails().getDuration());
+    private Integer getDuration(AsylumCase asylumCase,
+                                HearingGetResponse persistedHearing,
+                                Boolean isAdjournmentDetails) {
+        return defaultIfNull(getDuration(asylumCase, isAdjournmentDetails),
+            persistedHearing.getHearingDetails().getDuration());
     }
 
     private HearingWindowModel updateHearingWindow(boolean firstAvailable,
