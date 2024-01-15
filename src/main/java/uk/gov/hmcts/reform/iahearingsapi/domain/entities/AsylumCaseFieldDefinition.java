@@ -279,7 +279,10 @@ public enum AsylumCaseFieldDefinition {
         "changeOrganisationRequestField", new TypeReference<ChangeOrganisationRequest>(){}),
 
     SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK(
-        "shouldTriggerReviewInterpreterTask", new TypeReference<YesOrNo>(){});
+        "shouldTriggerReviewInterpreterTask", new TypeReference<YesOrNo>(){}),
+
+    DECISION_WITHOUT_HEARING_LISTED(
+        "decisionWithoutHearingListed", new TypeReference<YesOrNo>(){});
 
 
     private final String value;
