@@ -50,7 +50,6 @@ public class ListedHearingService {
 
     public boolean isSubstantiveCancelledHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.CANCELLED)
-            && isHearingListingStatus(serviceData, ListingStatus.CNCL)
             && !isHearingChannel(serviceData, ONPPRS)
             && isHearingType(serviceData, SUBSTANTIVE);
     }
