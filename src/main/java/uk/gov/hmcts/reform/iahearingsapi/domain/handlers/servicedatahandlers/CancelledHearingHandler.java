@@ -36,6 +36,7 @@ public class CancelledHearingHandler extends ListedHearingService
         }
 
         String caseId = getCaseReference(serviceData);
+        log.info("CancelledHearingHandler triggered for case " + caseId);
         coreCaseDataService.triggerReviewInterpreterBookingTask(caseId);
 
         return new ServiceDataResponse<>(serviceData);

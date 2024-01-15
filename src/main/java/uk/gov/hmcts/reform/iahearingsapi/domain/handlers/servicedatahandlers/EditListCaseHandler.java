@@ -7,6 +7,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.FINAL_BUNDLING;
@@ -68,7 +69,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         }
 
         String caseId = getCaseReference(serviceData);
-
+        log.info("EditListCaseHandler triggered for case " + caseId);
         StartEventResponse startEventResponse =
             coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, caseId, CASE_TYPE_ASYLUM);
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
@@ -119,6 +120,9 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         final boolean durationChanged = !currentDuration.equals(String.valueOf(nextDuration));
         boolean sendUpdate = false;
 
+        String hearingId = serviceData.read(HEARING_ID, String.class)
+            .orElseThrow(() -> new IllegalStateException("hearing id can not be null"));
+
         if (hearingDateChanged) {
             asylumCase.write(
                 LIST_CASE_HEARING_DATE,
@@ -126,16 +130,19 @@ public class EditListCaseHandler extends ListedHearingService implements Service
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
             );
             sendUpdate = true;
+            log.info("hearing date updated for hearing " + hearingId);
         }
         if (isRemoteHearing && durationChanged) {
             asylumCase.write(LIST_CASE_HEARING_LENGTH, String.valueOf(nextDuration));
             sendUpdate = true;
+            log.info("hearing length updated for hearing " + hearingId);
         }
         if (hearingChannelChanged) {
             asylumCase.write(
                 HEARING_CHANNEL,
                 buildHearingChannelDynmicList(nextHearingChannelList));
             sendUpdate = true;
+            log.info("hearing channel updated for hearing " + hearingId);
         }
         if (hearingCentreChanged) {
             asylumCase.write(
@@ -143,11 +150,13 @@ public class EditListCaseHandler extends ListedHearingService implements Service
                 HandlerUtils.getLocation(nextHearingChannelList, nextHearingVenueId)
             );
             sendUpdate = true;
+            log.info("hearing centre updated for hearing " + hearingId);
         }
 
         // Only trigger review interpreter task if the hearing location, date or channel are updated.
         if (hearingChannelChanged || hearingCentreChanged || hearingDateChanged) {
             asylumCase.write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+            log.info("Setting trigger review interpreter task flag for hearing " + hearingId);
         } else if (sendUpdate) {
             asylumCase.clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
         }
