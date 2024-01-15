@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DECISION_WITHOUT_HEARING_LISTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingChannel;
@@ -32,7 +33,8 @@ public class DecisionWithoutHearingListed implements ServiceDataHandler<ServiceD
         requireNonNull(serviceData, "serviceData must not be null");
 
         return isHearingChannel(serviceData, ONPPRS)
-               && isHmcStatus(serviceData, HmcStatus.LISTED);
+               && (isHmcStatus(serviceData, HmcStatus.LISTED)
+                   || isHmcStatus(serviceData, HmcStatus.CANCELLATION_SUBMITTED));
     }
 
     @Override
@@ -53,7 +55,8 @@ public class DecisionWithoutHearingListed implements ServiceDataHandler<ServiceD
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
-        asylumCase.write(DECISION_WITHOUT_HEARING_LISTED, YES);
+        asylumCase.write(DECISION_WITHOUT_HEARING_LISTED,
+                         isHmcStatus(serviceData, HmcStatus.LISTED) ? YES : NO);
 
         coreCaseDataService.triggerSubmitEvent(
             Event.DECISION_WITHOUT_HEARING_LISTED,

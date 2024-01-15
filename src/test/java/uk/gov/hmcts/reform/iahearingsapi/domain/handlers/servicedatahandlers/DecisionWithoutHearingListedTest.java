@@ -9,6 +9,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HMC_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.HEARING_REQUESTED;
@@ -20,6 +21,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
@@ -65,9 +68,10 @@ public class DecisionWithoutHearingListedTest {
         assertThrows(IllegalStateException.class, () -> decisionWithoutHearingListed.handle(serviceData));
     }
 
-    @Test
-    void should_trigger_decisionWithoutHearingListed() {
-        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(LISTED));
+    @ParameterizedTest
+    @EnumSource(value = HmcStatus.class, names = { "LISTED", "CANCELLATION_SUBMITTED" })
+    void should_trigger_decisionWithoutHearingListed(HmcStatus hmcStatus) {
+        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(hmcStatus));
         when(serviceData.read(HEARING_CHANNELS, List.class)).thenReturn(Optional.of(List.of(ONPPRS)));
         when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERNECE));
         when(coreCaseDataService.startCaseEvent(
@@ -83,7 +87,8 @@ public class DecisionWithoutHearingListedTest {
             CASE_TYPE_ASYLUM
         );
 
-        verify(asylumCase, times(1)).write(DECISION_WITHOUT_HEARING_LISTED, YES);
+        verify(asylumCase, times(1))
+            .write(DECISION_WITHOUT_HEARING_LISTED, hmcStatus == LISTED ? YES : NO);
 
         verify(coreCaseDataService, times(1)).triggerSubmitEvent(
             Event.DECISION_WITHOUT_HEARING_LISTED,
@@ -91,6 +96,5 @@ public class DecisionWithoutHearingListedTest {
             startEventResponse,
             asylumCase
         );
-
     }
 }
