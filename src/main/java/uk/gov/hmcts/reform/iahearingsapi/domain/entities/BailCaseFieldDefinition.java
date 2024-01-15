@@ -138,7 +138,9 @@ public enum BailCaseFieldDefinition {
     INTERPRETER_DETAILS(
         "interpreterDetails", new TypeReference<List<IdValue<InterpreterDetails>>>() {}),
     LOCAL_AUTHORITY_POLICY(
-        "localAuthorityPolicy", new TypeReference<OrganisationPolicy>() {});
+        "localAuthorityPolicy", new TypeReference<OrganisationPolicy>() {}),
+    HEARING_CENTRE(
+        "hearingCentre", new TypeReference<HearingCentre>(){});
 
     private final String value;
     private final TypeReference typeReference;

@@ -41,6 +41,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
@@ -202,6 +203,8 @@ class ServiceHearingValuesProviderTest {
         when(bailCaseFlagsMapper.getPublicCaseName(bailCase, caseReference)).thenReturn(caseReference);
         when(bailCaseFlagsMapper.getHearingPriorityType(bailCase)).thenReturn(STANDARD);
         when(bailCaseFlagsMapper.getCaseFlags(bailCase, caseReference)).thenReturn(caseflags);
+        when(bailCaseDataMapper.getCaseManagementLocationCode(bailCase))
+            .thenReturn(HearingCentre.MANCHESTER.getEpimsId());
 
         bailCaseCategoryCaseType.setCategoryType(CategoryType.CASE_TYPE);
         bailCaseCategoryCaseType.setCategoryValue(bailServiceId);
@@ -354,7 +357,7 @@ class ServiceHearingValuesProviderTest {
             .caseDeepLink(baseUrl + caseDeepLink)
             .caserestrictedFlag(false)
             .externalCaseReference(homeOfficeRef)
-            .caseManagementLocationCode(BaseLocation.MANCHESTER.getId())
+            .caseManagementLocationCode(HearingCentre.MANCHESTER.getEpimsId())
             .caseSlaStartDate(date.toString())
             .autoListFlag(false)
             .hearingType(bailHearingType)

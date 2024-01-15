@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
@@ -166,7 +165,7 @@ public class ServiceHearingValuesProvider {
             .caseCategories(getBailCaseCategoriesValue())
             .caseDeepLink(baseUrl.concat(caseDataMapper.getCaseDeepLink(caseReference)))
             .externalCaseReference(bailCaseDataMapper.getExternalCaseReference(bailCase))
-            .caseManagementLocationCode(BaseLocation.MANCHESTER.getId())
+            .caseManagementLocationCode(bailCaseDataMapper.getCaseManagementLocationCode(bailCase))
             .autoListFlag(false)
             .caseSlaStartDate(bailCaseDataMapper.getCaseSlaStartDate(bailCase))
             .duration(Integer.parseInt(listCaseHearingLength))

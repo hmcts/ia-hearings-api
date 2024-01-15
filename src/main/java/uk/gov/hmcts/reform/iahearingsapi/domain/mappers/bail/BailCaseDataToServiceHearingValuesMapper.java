@@ -5,6 +5,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DOCUMENTS_WITH_METADATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_COMPANY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
@@ -26,6 +27,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentWithMetadata;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
@@ -141,5 +143,23 @@ public class BailCaseDataToServiceHearingValuesMapper {
             .orElse(null);
 
         return organisation == null ? "" : defaultIfNull(organisation.getOrganisationID(), "");
+    }
+
+    public String getCaseManagementLocationCode(BailCase bailCase) {
+        //CaseManagemnetLocationCode is set based on Hearing Centre Location
+        Optional<HearingCentre> hearingCentreOptional = bailCase
+            .read(HEARING_CENTRE, HearingCentre.class);
+        if (hearingCentreOptional.isPresent()) {
+            HearingCentre hearingCentre = hearingCentreOptional.get();
+            if (hearingCentre != null) {
+                // if hearingCentre epims id is empty, throw exception
+                if (hearingCentre.getEpimsId().isEmpty()) {
+                    throw new RequiredFieldMissingException("Hearing Centre EPIMS ID is not available for : "
+                                                                + hearingCentre.getValue());
+                }
+                return hearingCentre.getEpimsId();
+            }
+        }
+        return null;
     }
 }

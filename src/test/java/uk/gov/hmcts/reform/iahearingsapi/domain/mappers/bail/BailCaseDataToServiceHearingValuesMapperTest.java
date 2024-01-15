@@ -7,11 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DOCUMENTS_WITH_METADATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_COMPANY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_EMAIL;
@@ -41,6 +44,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DocumentWithMetadata;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.Document;
@@ -347,5 +351,23 @@ class BailCaseDataToServiceHearingValuesMapperTest {
             .thenReturn(Optional.empty());
 
         assertEquals("", mapper.getLegalRepOrganisationIdentifier(bailCase));
+    }
+
+    @Test
+    void getCaseManagementLocationCode_should_return_code_based_on_hearing_centre() {
+        when(bailCase.read(HEARING_CENTRE, HearingCentre.class))
+            .thenReturn(Optional.of(HearingCentre.BIRMINGHAM));
+        assertEquals(HearingCentre.BIRMINGHAM.getEpimsId(), mapper.getCaseManagementLocationCode(bailCase));
+        verify(bailCase, times(1)).read(HEARING_CENTRE, HearingCentre.class);
+    }
+
+    @Test
+    void getCaseManagementLocationCode_should_throw_ex_if_missing_epims() {
+        when(bailCase.read(HEARING_CENTRE, HearingCentre.class))
+            .thenReturn(Optional.of(HearingCentre.REMOTE_HEARING));
+        assertThatThrownBy(() -> mapper.getCaseManagementLocationCode(bailCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("Hearing Centre EPIMS ID is not available for : remoteHearing");
+        verify(bailCase, times(1)).read(HEARING_CENTRE, HearingCentre.class);
     }
 }
