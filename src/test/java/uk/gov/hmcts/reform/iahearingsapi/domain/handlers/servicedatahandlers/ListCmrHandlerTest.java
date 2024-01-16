@@ -31,7 +31,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPr
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
@@ -65,8 +64,6 @@ class ListCmrHandlerTest {
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
-        when(serviceData.read(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.class))
-            .thenReturn(Optional.of(ListingStatus.FIXED));
         when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
             .thenReturn(Optional.of(ListAssistCaseStatus.LISTED));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
@@ -105,13 +102,6 @@ class ListCmrHandlerTest {
     void should_not_handle_if_hearing_channels_on_papers() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS, List.class))
             .thenReturn(Optional.of(List.of(HearingChannel.ONPPRS)));
-        assertFalse(listCmrHandler.canHandle(serviceData));
-    }
-
-    @Test
-    void should_not_handle_if_hearing_listing_status_unqualified() {
-        when(serviceData.read(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.class))
-            .thenReturn(Optional.of(ListingStatus.DRAFT));
         assertFalse(listCmrHandler.canHandle(serviceData));
     }
 
