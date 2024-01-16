@@ -8,11 +8,13 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DECISION_WITHOUT_HEARING_LISTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HMC_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.HEARING_REQUESTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
@@ -55,6 +57,7 @@ public class DecisionWithoutHearingListedTest {
 
     @Test
     void should_handle_only_if_service_data_qualifies() {
+        when(serviceData.read(HEARING_TYPE, String.class)).thenReturn(Optional.of(SUBSTANTIVE.getKey()));
         when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(LISTED));
         when(serviceData.read(HEARING_CHANNELS, List.class)).thenReturn(Optional.of(List.of(ONPPRS)));
         assertTrue(decisionWithoutHearingListed.canHandle(serviceData));
@@ -62,8 +65,7 @@ public class DecisionWithoutHearingListedTest {
 
     @Test
     void should_throw_error_if_cannot_handle() {
-        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HEARING_REQUESTED));
-        when(serviceData.read(HEARING_CHANNELS, List.class)).thenReturn(Optional.of(List.of(ONPPRS)));
+        when(serviceData.read(HEARING_TYPE, String.class)).thenReturn(Optional.of(BAIL.getKey()));
 
         assertThrows(IllegalStateException.class, () -> decisionWithoutHearingListed.handle(serviceData));
     }
@@ -71,6 +73,7 @@ public class DecisionWithoutHearingListedTest {
     @ParameterizedTest
     @EnumSource(value = HmcStatus.class, names = { "LISTED", "CANCELLATION_SUBMITTED" })
     void should_trigger_decisionWithoutHearingListed(HmcStatus hmcStatus) {
+        when(serviceData.read(HEARING_TYPE, String.class)).thenReturn(Optional.of(SUBSTANTIVE.getKey()));
         when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(hmcStatus));
         when(serviceData.read(HEARING_CHANNELS, List.class)).thenReturn(Optional.of(List.of(ONPPRS)));
         when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERNECE));

@@ -7,6 +7,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrN
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingChannel;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingType;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHmcStatus;
 
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
@@ -32,7 +34,8 @@ public class DecisionWithoutHearingListed implements ServiceDataHandler<ServiceD
     public boolean canHandle(ServiceData serviceData) {
         requireNonNull(serviceData, "serviceData must not be null");
 
-        return isHearingChannel(serviceData, ONPPRS)
+        return isHearingType(serviceData, HearingType.SUBSTANTIVE)
+               && isHearingChannel(serviceData, ONPPRS)
                && (isHmcStatus(serviceData, HmcStatus.LISTED)
                    || isHmcStatus(serviceData, HmcStatus.CANCELLATION_SUBMITTED));
     }
