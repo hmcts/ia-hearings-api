@@ -23,6 +23,7 @@ public enum Event {
     SEND_UPLOAD_BAIL_SUMMARY_DIRECTION("sendUploadBailSummaryDirection"),
     LIST_CASE_WITHOUT_HEARING_REQUIREMENTS("listCaseWithoutHearingRequirements"),
     TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK("triggerReviewInterpreterBookingTask"),
+    DECISION_WITHOUT_HEARING_LISTED("decisionWithoutHearingListed"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");
