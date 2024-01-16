@@ -52,12 +52,14 @@ public class UnNotifiedHearingsProcessor implements Runnable {
 
         unNotifiedHearings.getHearingIds().forEach(unNotifiedHearingId -> {
             try {
+                log.info("UnNotifiedHearingsProcessor processing hearing " + unNotifiedHearingId);
                 HearingGetResponse hearing = hearingService.getHearing(unNotifiedHearingId);
                 ServiceData serviceData = mapHearingFieldsToServiceDataFields(hearing, unNotifiedHearingId);
 
                 dispatcher.dispatch(serviceData);
             } catch (Exception ex) {
-                log.info(ex.getMessage());
+                log.info("Hearing " + unNotifiedHearingId
+                    + "failed to be process by UnNotifiedHearingsProcessor. Reason: " + ex.getMessage());
             }
         });
     }
