@@ -48,7 +48,10 @@ public class ListCmrHandler extends ListedHearingService implements ServiceDataH
 
         String hearingId = serviceData.read(HEARING_ID, String.class)
             .orElseThrow(() -> new IllegalStateException("HearingID can not be missing"));
+        log.info("ListCmrHandler triggered for hearing " + hearingId);
         PartiesNotifiedResponses partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId);
+        log.info("partiesNotifiedResponses for hearing " + hearingId + " : "
+            + partiesNotifiedResponses.getResponses().toString());
         String caseId = getCaseReference(serviceData);
         if (partiesNotifiedResponses.getResponses().isEmpty()) {
             triggerCmrListedNotification(caseId);

@@ -139,7 +139,6 @@ public class ListedHearingService {
 
     public boolean isCaseManagementReview(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)
-            && isHearingListingStatus(serviceData, ListingStatus.FIXED)
             && !isHearingChannel(serviceData, ONPPRS)
             && serviceData.read(HEARING_TYPE, String.class)
             .map(hearingType -> Objects.equals(hearingType, CASE_MANAGEMENT_REVIEW.getKey()))
