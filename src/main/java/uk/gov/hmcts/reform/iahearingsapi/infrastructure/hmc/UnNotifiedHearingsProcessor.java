@@ -48,7 +48,7 @@ public class UnNotifiedHearingsProcessor implements Runnable {
     public void processUnNotifiedHearings() {
 
         UnNotifiedHearingsResponse unNotifiedHearings = hearingService.getUnNotifiedHearings(
-            LocalDateTime.now().minusDays(3));
+            LocalDateTime.now().minusMonths(10));
 
         unNotifiedHearings.getHearingIds().forEach(unNotifiedHearingId -> {
             try {
