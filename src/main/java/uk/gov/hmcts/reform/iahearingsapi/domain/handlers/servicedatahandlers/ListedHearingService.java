@@ -5,6 +5,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
@@ -12,6 +13,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
@@ -34,6 +37,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.ListingEvent;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
@@ -114,6 +118,11 @@ public class ListedHearingService {
             hearingDateTime.truncatedTo(ChronoUnit.MINUTES), hearingVenueId);
     }
 
+    public LocalDateTime getBailHearingDatetime(ServiceData serviceData) {
+        return serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
+            .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
+    }
+
     public int getHearingDuration(ServiceData serviceData) {
         return serviceData.read(DURATION, Integer.class)
             .orElseThrow(() -> new IllegalStateException("duration can not be null"));
@@ -145,32 +154,19 @@ public class ListedHearingService {
             .orElse(false);
     }
 
-    public void updateListCaseSendHomeOfficeDirection(ServiceData serviceData, BailCase bailCase) {
+    public void updateBailCaseListing(ServiceData serviceData, BailCase bailCase) {
+        List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
+        final String nextHearingChannel = hearingChannels.get(0).name();
+        final boolean isRemoteHearing = nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
+        final String nextHearingVenueId = isRemoteHearing
+            ? REMOTE_HEARING.getEpimsId() : getHearingVenueId(serviceData);
+        LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
+        HearingCentre newHearingCentre = getHearingCenter(hearingChannels, nextHearingVenueId);
 
-        String dueDate = formatHearingDate(getHearingDatetime(serviceData, null)
-                                               .minusDays(1));
-
-        bailCase.write(BailCaseFieldDefinition.SEND_DIRECTION_DESCRIPTION,
-                       "You must upload the Bail Summary by the date indicated below.\n"
-                         + "If the applicant does not have a legal representative, "
-                           + "you must also send them a copy of the Bail Summary.\n"
-                         + "The Bail Summary must include:\n"
-                         + "\n"
-                         + "- the date when the current period of immigration detention started\n"
-                         + "- whether the applicant is subject to Section 2 of the Illegal Migration Act 2023\n"
-                         + "- any concerns in relation to the factors listed in paragraph 3(2) of Schedule "
-                           + "10 to the 2016 Act\n"
-                         + "- the bail conditions being sought should bail be granted\n"
-                         + "- whether removal directions are in place\n"
-                         + "- whether the applicant’s release is subject to licence, and if so the relevant details\n"
-                         + "- any other relevant information\n\n"
-                         + "Next steps\n"
-                         + "Sign in to your account to upload the Bail Summary.\n"
-                         + "You must complete this direction by: " + dueDate
-        );
-
-        bailCase.write(BailCaseFieldDefinition.SEND_DIRECTION_LIST, "Home Office");
-        bailCase.write(BailCaseFieldDefinition.DATE_OF_COMPLIANCE, dueDate);
+        bailCase.write(BailCaseFieldDefinition.LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
+        bailCase.write(BailCaseFieldDefinition.LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
+        bailCase.write(BailCaseFieldDefinition.LISTING_HEARING_LENGTH, String.valueOf(getHearingDuration(serviceData)));
+        bailCase.write(BailCaseFieldDefinition.LISTING_LOCATION, newHearingCentre.getValue());
     }
 }
 

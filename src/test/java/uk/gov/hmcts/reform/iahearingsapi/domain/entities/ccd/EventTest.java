@@ -24,7 +24,7 @@ public class EventTest {
         assertEquals("updateInterpreterBookingStatus", Event.UPDATE_INTERPRETER_BOOKING_STATUS.toString());
         assertEquals("triggerCmrListed", Event.TRIGGER_CMR_LISTED.toString());
         assertEquals("decideAnApplication", Event.DECIDE_AN_APPLICATION.toString());
-        assertEquals("sendUploadBailSummaryDirection", Event.SEND_UPLOAD_BAIL_SUMMARY_DIRECTION.toString());
+        assertEquals("caseListing", Event.CASE_LISTING.toString());
         assertEquals("listCaseWithoutHearingRequirements",
                      Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS.toString());
         assertEquals("triggerReviewInterpreterBookingTask", Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK.toString());
