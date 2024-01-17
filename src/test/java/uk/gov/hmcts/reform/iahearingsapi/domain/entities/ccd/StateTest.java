@@ -38,11 +38,12 @@ public class StateTest {
         assertEquals("decision", State.DECISION.toString());
         assertEquals("ended", State.ENDED.toString());
         assertEquals("appealTakenOffline", State.APPEAL_TAKEN_OFFLINE.toString());
+        assertEquals("applicationSubmitted", State.APPLICATION_SUBMITTED.toString());
         assertEquals("unknown", State.UNKNOWN.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(30, State.values().length);
+        assertEquals(31, State.values().length);
     }
 }
