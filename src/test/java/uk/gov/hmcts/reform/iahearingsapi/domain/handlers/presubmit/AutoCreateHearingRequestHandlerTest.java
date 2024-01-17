@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CREATE_HEARINGS_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_APPEAL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 
@@ -16,12 +15,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CreateHearingPayloadService;
@@ -29,7 +31,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class ListCaseWithoutHearingRequirementsHandlerTest {
+public class AutoCreateHearingRequestHandlerTest {
 
     @Mock
     private Callback<AsylumCase> callback;
@@ -44,7 +46,7 @@ public class ListCaseWithoutHearingRequirementsHandlerTest {
     @Mock
     private CreateHearingRequest createHearingRequest;
 
-    private ListCaseWithoutHearingRequirementsHandler handler;
+    private AutoCreateHearingRequestHandler handler;
 
 
     @BeforeEach
@@ -52,13 +54,16 @@ public class ListCaseWithoutHearingRequirementsHandlerTest {
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(caseDetails.getCaseData()).thenReturn(asylumCase);
         when(caseDetails.getId()).thenReturn(1L);
-        when(callback.getEvent()).thenReturn(LIST_CASE_WITHOUT_HEARING_REQUIREMENTS);
 
-        handler = new ListCaseWithoutHearingRequirementsHandler(hearingService, createHearingPayloadService);
+        handler = new AutoCreateHearingRequestHandler(hearingService, createHearingPayloadService);
     }
 
-    @Test
-    void should_handle_successfully() {
+    @ParameterizedTest
+    @EnumSource(value = Event.class, names = {
+        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS"
+    })
+    void should_handle_successfully(Event event) {
+        when(callback.getEvent()).thenReturn(event);
         Assertions.assertTrue(handler.canHandle(ABOUT_TO_SUBMIT, callback));
     }
 
@@ -70,8 +75,12 @@ public class ListCaseWithoutHearingRequirementsHandlerTest {
             .isExactlyInstanceOf(IllegalStateException.class);
     }
 
-    @Test
-    void should_send_hearing_creation_request_to_hmc() {
+    @ParameterizedTest
+    @EnumSource(value = Event.class, names = {
+        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS"
+    })
+    void should_send_hearing_creation_request_to_hmc(Event event) {
+        when(callback.getEvent()).thenReturn(event);
         when(createHearingPayloadService.buildCreateHearingRequest(caseDetails))
             .thenReturn(createHearingRequest);
 
@@ -81,8 +90,12 @@ public class ListCaseWithoutHearingRequirementsHandlerTest {
         verify(asylumCase, times(1)).write(MANUAL_CREATE_HEARINGS_REQUIRED, NO);
     }
 
-    @Test
-    void should_throw_exception_if_call_unsuccessful() {
+    @ParameterizedTest
+    @EnumSource(value = Event.class, names = {
+        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS"
+    })
+    void should_throw_exception_if_call_unsuccessful(Event event) {
+        when(callback.getEvent()).thenReturn(event);
         when(createHearingPayloadService.buildCreateHearingRequest(caseDetails))
             .thenReturn(createHearingRequest);
         when(hearingService.createHearing(createHearingRequest)).thenThrow(new IllegalStateException());

@@ -29,10 +29,11 @@ public class EventTest {
                      Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS.toString());
         assertEquals("triggerReviewInterpreterBookingTask", Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK.toString());
         assertEquals("decisionWithoutHearingListed", Event.DECISION_WITHOUT_HEARING_LISTED.toString());
+        assertEquals("reviewHearingRequirements", Event.REVIEW_HEARING_REQUIREMENTS.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(20, Event.values().length);
+        assertEquals(21, Event.values().length);
     }
 }
