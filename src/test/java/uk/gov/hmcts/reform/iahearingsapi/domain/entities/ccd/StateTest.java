@@ -39,11 +39,19 @@ public class StateTest {
         assertEquals("ended", State.ENDED.toString());
         assertEquals("appealTakenOffline", State.APPEAL_TAKEN_OFFLINE.toString());
         assertEquals("applicationSubmitted", State.APPLICATION_SUBMITTED.toString());
+        assertEquals("applicationStarted", State.APPLICATION_STARTED.toString());
+        assertEquals("applicationStartedByLR", State.APPLICATION_STARTED_BY_LR.toString());
+        assertEquals("applicationStartedByHO", State.APPLICATION_STARTED_BY_HO.toString());
+        assertEquals("applicationEnded", State.APPLICATION_ENDED.toString());
+        assertEquals("bailSummaryUploaded", State.BAIL_SUMMARY_UPLOADED.toString());
+        assertEquals("unsignedDecision", State.UNSIGNED_DECISION.toString());
+        assertEquals("decisionDecided", State.DECISION_DECIDED.toString());
+        assertEquals("decisionConditionalBail", State.DECISION_CONDITIONAL_BAIL.toString());
         assertEquals("unknown", State.UNKNOWN.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(31, State.values().length);
+        assertEquals(39, State.values().length);
     }
 }

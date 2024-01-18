@@ -159,18 +159,17 @@ class ListedHearingServiceTest {
 
     @Test
     void update_relisting_bail_case_listing() {
-        Set<ServiceDataFieldDefinition> fieldsToUpdate =
-            Set.of(NEXT_HEARING_DATE, HEARING_CHANNELS, HEARING_VENUE_ID, DURATION);
-
         ServiceData serviceData = mock(ServiceData.class);
         LocalDateTime nextHearingDate = mock(LocalDateTime.class);
-        BailCase bailCase = mock(BailCase.class);
 
         when(serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class))
             .thenReturn(Optional.of(nextHearingDate));
         when(nextHearingDate.format(any(DateTimeFormatter.class))).thenReturn("2023-12-02T09:45:00.000");
         when(serviceData.read(HEARING_CHANNELS)).thenReturn(Optional.of(List.of(VID)));
         when(serviceData.read(DURATION, Integer.class)).thenReturn(Optional.of(60));
+        BailCase bailCase = mock(BailCase.class);
+        Set<ServiceDataFieldDefinition> fieldsToUpdate =
+            Set.of(NEXT_HEARING_DATE, HEARING_CHANNELS, HEARING_VENUE_ID, DURATION);
         listedHearingService.updateRelistingBailCaseListing(serviceData, bailCase, fieldsToUpdate);
 
         verify(bailCase).write(LISTING_HEARING_DATE, "2023-12-02T09:45:00.000");
