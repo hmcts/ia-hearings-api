@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ListingEvent.RELISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
@@ -90,7 +89,7 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
                 BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
                 updateRelistingBailCaseListing(serviceData, bailCase, serviceDataFieldsWithUpdates);
 
-                log.info("Sending `{}` event for Case ID `{}` (`{}`)", CASE_LISTING, caseId, RELISTING.getValue());
+                log.info("Sending `{}` event for Case ID `{}`", CASE_LISTING, caseId);
                 coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId, startEventResponse, bailCase);
             }
         }
