@@ -5,6 +5,10 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
@@ -29,13 +33,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.ListingEvent;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
@@ -154,7 +159,7 @@ public class ListedHearingService {
             .orElse(false);
     }
 
-    public void updateBailCaseListing(ServiceData serviceData, BailCase bailCase) {
+    public void updateInitialBailCaseListing(ServiceData serviceData, BailCase bailCase) {
         List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
         final String nextHearingChannel = hearingChannels.get(0).name();
         final boolean isRemoteHearing = nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
@@ -163,10 +168,38 @@ public class ListedHearingService {
         LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
         HearingCentre newHearingCentre = getHearingCenter(hearingChannels, nextHearingVenueId);
 
-        bailCase.write(BailCaseFieldDefinition.LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
-        bailCase.write(BailCaseFieldDefinition.LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
-        bailCase.write(BailCaseFieldDefinition.LISTING_HEARING_LENGTH, String.valueOf(getHearingDuration(serviceData)));
-        bailCase.write(BailCaseFieldDefinition.LISTING_LOCATION, newHearingCentre.getValue());
+        bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
+        bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
+        bailCase.write(LISTING_HEARING_LENGTH, String.valueOf(getHearingDuration(serviceData)));
+        bailCase.write(LISTING_LOCATION, newHearingCentre.getValue());
     }
+
+    public void updateRelistingBailCaseListing(ServiceData serviceData, BailCase bailCase,
+                                               Set<ServiceDataFieldDefinition> fieldsToUpdate) {
+
+        if (fieldsToUpdate.contains(NEXT_HEARING_DATE)) {
+            LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
+            bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
+        }
+
+        if (fieldsToUpdate.contains(HEARING_CHANNELS) || fieldsToUpdate.contains(HEARING_VENUE_ID)) {
+            List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
+            final String nextHearingChannel = hearingChannels.get(0).name();
+            final boolean isRemoteHearing = nextHearingChannel.equals(VID.name())
+                                            || nextHearingChannel.equals(TEL.name());
+            final String nextHearingVenueId = isRemoteHearing
+                ? REMOTE_HEARING.getEpimsId() : getHearingVenueId(serviceData);
+            HearingCentre newHearingCentre = getHearingCenter(hearingChannels, nextHearingVenueId);
+
+            bailCase.write(LISTING_LOCATION, newHearingCentre.getValue());
+        }
+
+        if (fieldsToUpdate.contains(DURATION)) {
+            bailCase.write(LISTING_HEARING_LENGTH, String.valueOf(getHearingDuration(serviceData)));
+        }
+
+        bailCase.write(LISTING_EVENT, ListingEvent.RELISTING.toString());
+    }
+
 }
 

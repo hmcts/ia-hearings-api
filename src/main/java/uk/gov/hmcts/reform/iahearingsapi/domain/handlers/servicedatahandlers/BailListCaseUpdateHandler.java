@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ListingEvent.RELISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
@@ -12,9 +11,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CASE_L
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPLICATION_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +23,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
@@ -34,8 +33,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class BailCaseListingUpdateHandler
-    extends ListedHearingService implements ServiceDataHandler<ServiceData> {
+public class BailListCaseUpdateHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
@@ -52,6 +50,11 @@ public class BailCaseListingUpdateHandler
                && !caseState.equals(APPLICATION_SUBMITTED);
     }
 
+    @Override
+    public DispatchPriority getDispatchPriority() {
+        return DispatchPriority.LATE;
+    }
+
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
         if (!canHandle(serviceData)) {
             throw new IllegalStateException("Cannot handle service data");
@@ -63,22 +66,21 @@ public class BailCaseListingUpdateHandler
         List<PartiesNotifiedResponse> partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId)
             .getResponses();
 
-        boolean shouldTriggerCaseListing = false;
-
         if (!partiesNotifiedResponses.isEmpty()) {
             ServiceData previousServiceData = partiesNotifiedResponses.get(partiesNotifiedResponses.size() - 1)
                 .getServiceData();
 
-            Map<ServiceDataFieldDefinition,Object> updatedFieldValues = updatedFieldValues(
+            Set<ServiceDataFieldDefinition> serviceDataFieldsWithUpdates = findServiceDataFieldsWithUpdates(
                 serviceData,
                 previousServiceData,
-                Set.of(NEXT_HEARING_DATE,
-                       HEARING_CHANNELS,
-                       DURATION,
-                       HEARING_VENUE_ID
+                Set.of(
+                    NEXT_HEARING_DATE,
+                    HEARING_CHANNELS,
+                    DURATION,
+                    HEARING_VENUE_ID
                 ));
 
-            if (!updatedFieldValues.isEmpty()) {
+            if (!serviceDataFieldsWithUpdates.isEmpty()) {
 
                 String caseId = getCaseReference(serviceData);
 
@@ -86,7 +88,7 @@ public class BailCaseListingUpdateHandler
                     coreCaseDataService.startCaseEvent(CASE_LISTING, caseId, CASE_TYPE_BAIL);
 
                 BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
-                bailCase.write(LISTING_EVENT, RELISTING);
+                updateRelistingBailCaseListing(serviceData, bailCase, serviceDataFieldsWithUpdates);
 
                 log.info("Sending `{}` event for Case ID `{}` (`{}`)", CASE_LISTING, caseId, RELISTING.getValue());
                 coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId, startEventResponse, bailCase);
@@ -96,21 +98,24 @@ public class BailCaseListingUpdateHandler
         return new ServiceDataResponse<>(serviceData);
     }
 
-    private Map<ServiceDataFieldDefinition,Object> updatedFieldValues(ServiceData latest, ServiceData previous,
-                                                                      Set<ServiceDataFieldDefinition> fieldsToCompare) {
+    private Set<ServiceDataFieldDefinition> findServiceDataFieldsWithUpdates(
+        ServiceData latest,
+        ServiceData previous,
+        Set<ServiceDataFieldDefinition> fieldsToCompare
+    ) {
 
-        Map<ServiceDataFieldDefinition,Object> updatedFieldValues = new HashMap<>();
+        Set<ServiceDataFieldDefinition> updatedFields = new HashSet<>();
 
         fieldsToCompare
             .forEach(field -> {
                 Object latestValue = latest.read(field).orElse(null);
                 Object previousValue = previous.read(field).orElse(null);
                 if (!Objects.equals(latestValue, previousValue)) {
-                    updatedFieldValues.put(field, latestValue);
+                    updatedFields.add(field);
                 }
             });
 
-        return updatedFieldValues;
+        return updatedFields;
     }
 
 }
