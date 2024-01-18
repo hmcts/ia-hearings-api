@@ -1,10 +1,11 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
@@ -18,13 +19,24 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.GL
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.HATTON_CROSS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mock;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -40,6 +52,9 @@ class ListedHearingServiceTest {
 
     private static final String GLASGOW_EPIMMS_ID = "366559";
     public static final String LISTING_REF = "LAI";
+
+    @Mock
+    private LocalDateTime nextHearingDate;
 
     ServiceData serviceData;
     AsylumCase asylumCase;
@@ -104,7 +119,7 @@ class ListedHearingServiceTest {
 
     private void setUpForNonPaperSubstantiveHearing() {
         serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
-            List.of(HearingChannel.INTER, HearingChannel.TEL, HearingChannel.VID, HearingChannel.NA));
+            List.of(HearingChannel.INTER, HearingChannel.TEL, VID, HearingChannel.NA));
         serviceData.write(ServiceDataFieldDefinition.HEARING_TYPE, SUBSTANTIVE.getKey());
     }
 
@@ -123,7 +138,7 @@ class ListedHearingServiceTest {
         bailCase.write(LISTING_HEARING_DATE, hearingDate);
         bailCase.write(LISTING_LOCATION, REMOTE_HEARING.getValue());
 
-        listedHearingService.updateBailCaseListing(serviceData, bailCase);
+        listedHearingService.updateInitialBailCaseListing(serviceData, bailCase);
 
         assertEquals(Optional.of(hearingDate), bailCase.read(LISTING_HEARING_DATE));
         assertEquals(Optional.of("60"), bailCase.read(LISTING_HEARING_LENGTH));
@@ -136,9 +151,30 @@ class ListedHearingServiceTest {
         return Stream.of(
             Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER,
                          "2023-12-02T10:00:00.000", HATTON_CROSS),
-            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.VID,
+            Arguments.of(GLASGOW_EPIMMS_ID, VID,
                          "2023-12-02T09:45:00.000", REMOTE_HEARING)
         );
     }
 
+
+    @Test
+    void update_relisting_bail_case_listing() {
+        ServiceData serviceData = mock(ServiceData.class);
+        LocalDateTime nextHearingDate = mock(LocalDateTime.class);
+
+        when(serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(nextHearingDate));
+        when(nextHearingDate.format(any(DateTimeFormatter.class))).thenReturn("2023-12-02T09:45:00.000");
+        when(serviceData.read(HEARING_CHANNELS)).thenReturn(Optional.of(List.of(VID)));
+        when(serviceData.read(DURATION, Integer.class)).thenReturn(Optional.of(60));
+        BailCase bailCase = mock(BailCase.class);
+        Set<ServiceDataFieldDefinition> fieldsToUpdate =
+            Set.of(NEXT_HEARING_DATE, HEARING_CHANNELS, HEARING_VENUE_ID, DURATION);
+        listedHearingService.updateRelistingBailCaseListing(serviceData, bailCase, fieldsToUpdate);
+
+        verify(bailCase).write(LISTING_HEARING_DATE, "2023-12-02T09:45:00.000");
+        verify(bailCase).write(LISTING_LOCATION, "remoteHearing");
+        verify(bailCase).write(LISTING_HEARING_LENGTH, "60");
+        verify(bailCase).write(LISTING_EVENT, ListingEvent.RELISTING.toString());
+    }
 }
