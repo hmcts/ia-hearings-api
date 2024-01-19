@@ -22,11 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.CreateHearingPayloadService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,26 +33,16 @@ public class AutoCreateHearingRequestHandlerTest {
     @Mock
     private Callback<AsylumCase> callback;
     @Mock
-    private CaseDetails<AsylumCase> caseDetails;
-    @Mock
     private AsylumCase asylumCase;
     @Mock
     private HearingService hearingService;
-    @Mock
-    private CreateHearingPayloadService createHearingPayloadService;
-    @Mock
-    private CreateHearingRequest createHearingRequest;
 
     private AutoCreateHearingRequestHandler handler;
 
 
     @BeforeEach
     void setUp() {
-        when(callback.getCaseDetails()).thenReturn(caseDetails);
-        when(caseDetails.getCaseData()).thenReturn(asylumCase);
-        when(caseDetails.getId()).thenReturn(1L);
-
-        handler = new AutoCreateHearingRequestHandler(hearingService, createHearingPayloadService);
+        handler = new AutoCreateHearingRequestHandler(hearingService);
     }
 
     @ParameterizedTest
@@ -81,13 +68,11 @@ public class AutoCreateHearingRequestHandlerTest {
     })
     void should_send_hearing_creation_request_to_hmc(Event event) {
         when(callback.getEvent()).thenReturn(event);
-        when(createHearingPayloadService.buildCreateHearingRequest(caseDetails))
-            .thenReturn(createHearingRequest);
+        when(hearingService.createHearingWithPayload(callback)).thenReturn(asylumCase);
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
-        verify(hearingService, times(1)).createHearing(createHearingRequest);
-        verify(asylumCase, times(1)).write(MANUAL_CREATE_HEARINGS_REQUIRED, NO);
+        verify(hearingService, times(1)).createHearingWithPayload(callback);
     }
 
     @ParameterizedTest
@@ -96,9 +81,7 @@ public class AutoCreateHearingRequestHandlerTest {
     })
     void should_throw_exception_if_call_unsuccessful(Event event) {
         when(callback.getEvent()).thenReturn(event);
-        when(createHearingPayloadService.buildCreateHearingRequest(caseDetails))
-            .thenReturn(createHearingRequest);
-        when(hearingService.createHearing(createHearingRequest)).thenThrow(new IllegalStateException());
+        when(hearingService.createHearingWithPayload(callback)).thenThrow(new IllegalStateException());
 
         assertThrows(IllegalStateException.class, () -> handler.handle(ABOUT_TO_SUBMIT, callback));
 

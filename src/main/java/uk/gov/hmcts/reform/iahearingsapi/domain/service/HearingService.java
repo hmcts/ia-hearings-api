@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_LINKS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CREATE_HEARINGS_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
@@ -24,6 +26,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
@@ -53,6 +56,7 @@ public class HearingService {
     private final IaCcdConvertService iaCcdConvertService;
     private final FeatureToggler featureToggler;
     @Value("${hearingValues.hmctsServiceId}") String serviceId;
+    private final CreateHearingPayloadService createHearingPayloadService;
 
     public boolean autoHearingRequestEnabled() {
         return featureToggler.getValue("auto-hearing-request-feature", false);
@@ -267,5 +271,27 @@ public class HearingService {
 
     public void setServiceId(String serviceId) {
         this.serviceId = serviceId;
+    }
+
+    public AsylumCase createHearingWithPayload(Callback<AsylumCase> callback) {
+        AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
+        log.info("Handling {} and creating new hearing for case {}",
+            callback.getEvent().toString(), callback.getCaseDetails().getId());
+
+        try {
+            CreateHearingRequest hmcHearingRequestPayload = createHearingPayloadService
+                .buildCreateHearingRequest(callback.getCaseDetails());
+
+            log.info("Sending request to HMC to create a hearing for case {}", callback.getCaseDetails().getId());
+            createHearing(hmcHearingRequestPayload);
+
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            throw new IllegalStateException(ex.getMessage());
+        }
+
+        asylumCase.write(MANUAL_CREATE_HEARINGS_REQUIRED, NO);
+
+        return asylumCase;
     }
 }

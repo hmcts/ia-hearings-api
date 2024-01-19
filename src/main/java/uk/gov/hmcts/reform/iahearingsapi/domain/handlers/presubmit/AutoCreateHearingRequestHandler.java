@@ -25,7 +25,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 public class AutoCreateHearingRequestHandler implements PreSubmitCallbackHandler<AsylumCase> {
 
     private final HearingService hearingService;
-    private final CreateHearingPayloadService createHearingPayloadService;
 
     @Override
     public boolean canHandle(PreSubmitCallbackStage callbackStage, Callback<AsylumCase> callback) {
@@ -43,24 +42,6 @@ public class AutoCreateHearingRequestHandler implements PreSubmitCallbackHandler
             throw new IllegalStateException("Cannot handle callback");
         }
 
-        AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
-        log.info("Handling {} and creating new hearing for case {}",
-                 callback.getEvent().toString(), callback.getCaseDetails().getId());
-
-        try {
-            CreateHearingRequest hmcHearingRequestPayload = createHearingPayloadService
-                .buildCreateHearingRequest(callback.getCaseDetails());
-
-            log.info("Sending request to HMC to create a hearing for case {}", callback.getCaseDetails().getId());
-            hearingService.createHearing(hmcHearingRequestPayload);
-
-        } catch (Exception ex) {
-            log.error(ex.getMessage());
-            throw new IllegalStateException(ex.getMessage());
-        }
-
-        asylumCase.write(MANUAL_CREATE_HEARINGS_REQUIRED, NO);
-
-        return new PreSubmitCallbackResponse<>(asylumCase);
+        return new PreSubmitCallbackResponse<>(hearingService.createHearingWithPayload(callback));
     }
 }
