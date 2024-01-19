@@ -28,10 +28,11 @@ public class EventTest {
         assertEquals("listCaseWithoutHearingRequirements",
                      Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS.toString());
         assertEquals("triggerReviewInterpreterBookingTask", Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK.toString());
+        assertEquals("decisionAndReasonsStarted", Event.DECISION_AND_REASONS_STARTED.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(19, Event.values().length);
+        assertEquals(20, Event.values().length);
     }
 }
