@@ -132,7 +132,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
             sendUpdate = true;
             log.info("hearing date updated for hearing " + hearingId);
         }
-        if (isRemoteHearing && durationChanged) {
+        if (durationChanged) {
             asylumCase.write(LIST_CASE_HEARING_LENGTH, String.valueOf(nextDuration));
             sendUpdate = true;
             log.info("hearing length updated for hearing " + hearingId);
