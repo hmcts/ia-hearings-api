@@ -24,15 +24,17 @@ public class EventTest {
         assertEquals("updateInterpreterBookingStatus", Event.UPDATE_INTERPRETER_BOOKING_STATUS.toString());
         assertEquals("triggerCmrListed", Event.TRIGGER_CMR_LISTED.toString());
         assertEquals("decideAnApplication", Event.DECIDE_AN_APPLICATION.toString());
-        assertEquals("sendUploadBailSummaryDirection", Event.SEND_UPLOAD_BAIL_SUMMARY_DIRECTION.toString());
+        assertEquals("caseListing", Event.CASE_LISTING.toString());
         assertEquals("listCaseWithoutHearingRequirements",
                      Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS.toString());
         assertEquals("triggerReviewInterpreterBookingTask", Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK.toString());
+        assertEquals("decisionWithoutHearingListed", Event.DECISION_WITHOUT_HEARING_LISTED.toString());
+        assertEquals("reviewHearingRequirements", Event.REVIEW_HEARING_REQUIREMENTS.toString());
         assertEquals("decisionAndReasonsStarted", Event.DECISION_AND_REASONS_STARTED.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(20, Event.values().length);
+        assertEquals(22, Event.values().length);
     }
 }

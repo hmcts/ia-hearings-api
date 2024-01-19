@@ -140,7 +140,15 @@ public enum BailCaseFieldDefinition {
     LOCAL_AUTHORITY_POLICY(
         "localAuthorityPolicy", new TypeReference<OrganisationPolicy>() {}),
     HEARING_CENTRE(
-        "hearingCentre", new TypeReference<HearingCentre>(){});
+        "hearingCentre", new TypeReference<HearingCentre>(){}),
+    LISTING_EVENT(
+        "listingEvent", new TypeReference<String>(){}),
+    LISTING_HEARING_DATE(
+        "listingHearingDate", new TypeReference<String>(){}),
+    LISTING_HEARING_LENGTH(
+        "listingHearingLength", new TypeReference<String>() {}),
+    LISTING_LOCATION(
+        "listingLocation", new TypeReference<String>() {});
 
     private final String value;
     private final TypeReference typeReference;

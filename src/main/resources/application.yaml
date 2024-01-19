@@ -96,6 +96,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "decideAnApplication"
       - "listCaseWithoutHearingRequirements"
+      - "reviewHearingRequirements"
       - "decisionAndReasonsStarted"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
@@ -106,6 +107,7 @@ security:
       - "recordAdjournmentDetails"
       - "listCaseForFTOnly"
       - "triggerCmrListed"
+      - "decisionWithoutHearingListed"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
