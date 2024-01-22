@@ -17,6 +17,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_LINKS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CREATE_HEARINGS_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -41,7 +44,9 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
@@ -108,6 +113,17 @@ class HearingServiceTest {
     private ReasonForLink reasonForLink;
     @Mock
     private Request request;
+    @Mock
+    private Callback<AsylumCase> callback;
+    @Mock
+    private uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails<AsylumCase> caseDetails;
+    @Mock
+    private CreateHearingPayloadService createHearingPayloadService;
+    @Mock
+    private CreateHearingRequest createHearingRequest;
+    @Mock
+    private CaseDetailsHearing caseDetailsHearing;
+    @Spy
     @InjectMocks
     private HearingService hearingService;
 
@@ -416,5 +432,27 @@ class HearingServiceTest {
                                                      Collections.emptyMap()));
 
         assertThrows(HmcException.class, () -> hearingService.getUnNotifiedHearings(now));
+    }
+
+    @Test
+    void testCreateHearingWithPayload() {
+        when(callback.getEvent()).thenReturn(Event.DECISION_AND_REASONS_STARTED);
+        when(callback.getCaseDetails()).thenReturn(caseDetails);
+        when(caseDetails.getCaseData()).thenReturn(asylumCase);
+        when(createHearingPayloadService.buildCreateHearingRequest(caseDetails))
+            .thenReturn(createHearingRequest);
+        when(createHearingRequest.getCaseDetails()).thenReturn(caseDetailsHearing);
+        when(caseDetailsHearing.getCaseRef()).thenReturn("caseRef");
+        HmcHearingResponse response = HmcHearingResponse.builder()
+            .hearingRequestId(HEARING_REQUEST_ID)
+            .versionNumber(VERSION)
+            .build();
+        when(hmcHearingApi.createHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, createHearingRequest))
+            .thenReturn(response);
+
+        hearingService.createHearingWithPayload(callback);
+
+        verify(hearingService, times(1)).createHearing(createHearingRequest);
+        verify(asylumCase, times(1)).write(MANUAL_CREATE_HEARINGS_REQUIRED, NO);
     }
 }

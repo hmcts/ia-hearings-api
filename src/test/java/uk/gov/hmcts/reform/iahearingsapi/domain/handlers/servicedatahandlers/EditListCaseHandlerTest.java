@@ -205,29 +205,9 @@ class EditListCaseHandlerTest {
     }
 
     @Test
-    void should_trigger_events_when_hearing_channel_is_video_and_duration_changes() {
+    void should_trigger_events_when_duration_changes() {
         initializeServiceData();
         initializeAsylumCaseData();
-        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
-            .thenReturn(Optional.of(List.of(HearingChannel.VID)));
-        when(serviceData.read(ServiceDataFieldDefinition.DURATION, Integer.class))
-            .thenReturn(Optional.of(100));
-
-        editListCaseHandler.handle(serviceData);
-
-        verify(asylumCase).write(
-            LIST_CASE_HEARING_LENGTH, "100"
-        );
-        verify(coreCaseDataService).triggerSubmitEvent(
-            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
-    }
-
-    @Test
-    void should_trigger_events_when_hearing_channel_is_telephone_and_duration_changes() {
-        initializeServiceData();
-        initializeAsylumCaseData();
-        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
-            .thenReturn(Optional.of(List.of(HearingChannel.TEL)));
         when(serviceData.read(ServiceDataFieldDefinition.DURATION, Integer.class))
             .thenReturn(Optional.of(100));
 
