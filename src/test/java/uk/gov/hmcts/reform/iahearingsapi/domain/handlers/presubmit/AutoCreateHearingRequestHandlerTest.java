@@ -47,7 +47,7 @@ public class AutoCreateHearingRequestHandlerTest {
 
     @ParameterizedTest
     @EnumSource(value = Event.class, names = {
-        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS"
+        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS", "DECISION_AND_REASONS_STARTED"
     })
     void should_handle_successfully(Event event) {
         when(callback.getEvent()).thenReturn(event);
@@ -64,7 +64,7 @@ public class AutoCreateHearingRequestHandlerTest {
 
     @ParameterizedTest
     @EnumSource(value = Event.class, names = {
-        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS"
+        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS", "DECISION_AND_REASONS_STARTED"
     })
     void should_send_hearing_creation_request_to_hmc(Event event) {
         when(callback.getEvent()).thenReturn(event);
@@ -77,7 +77,7 @@ public class AutoCreateHearingRequestHandlerTest {
 
     @ParameterizedTest
     @EnumSource(value = Event.class, names = {
-        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS"
+        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS", "DECISION_AND_REASONS_STARTED"
     })
     void should_throw_exception_if_call_unsuccessful(Event event) {
         when(callback.getEvent()).thenReturn(event);

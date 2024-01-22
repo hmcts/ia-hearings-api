@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.DECISION_AND_REASONS_STARTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.REVIEW_HEARING_REQUIREMENTS;
 
@@ -27,7 +28,8 @@ public class AutoCreateHearingRequestHandler implements PreSubmitCallbackHandler
         requireNonNull(callback, "callback must not be null");
 
         return callbackStage == PreSubmitCallbackStage.ABOUT_TO_SUBMIT
-               && List.of(LIST_CASE_WITHOUT_HEARING_REQUIREMENTS, REVIEW_HEARING_REQUIREMENTS)
+               && List.of(LIST_CASE_WITHOUT_HEARING_REQUIREMENTS, REVIEW_HEARING_REQUIREMENTS,
+                DECISION_AND_REASONS_STARTED)
                    .contains(callback.getEvent());
     }
 
