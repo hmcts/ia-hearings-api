@@ -14,6 +14,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.LEEDS_MAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 
 import java.util.List;
 import java.util.Optional;
@@ -195,7 +196,7 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_with_new_duration() {
         Integer duration = 240;
-        when(caseDataMapper.getHearingDuration(asylumCase, false)).thenReturn(duration);
+        when(caseDataMapper.getHearingDuration(asylumCase, false, UPDATE_HEARING_REQUEST)).thenReturn(duration);
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -203,7 +204,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            false
+            false,
+            UPDATE_HEARING_REQUEST
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -370,7 +372,7 @@ class UpdateHearingPayloadServiceTest {
         when(asylumCase.read(NEXT_HEARING_LOCATION, String.class))
             .thenReturn(Optional.of(LEEDS_MAGS.getValue()));
         Integer duration = 240;
-        when(caseDataMapper.getHearingDuration(asylumCase, true)).thenReturn(duration);
+        when(caseDataMapper.getHearingDuration(asylumCase, true, UPDATE_HEARING_REQUEST)).thenReturn(duration);
 
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
@@ -379,7 +381,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            true
+            true,
+            UPDATE_HEARING_REQUEST
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
