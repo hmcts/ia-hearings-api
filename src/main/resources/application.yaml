@@ -97,6 +97,7 @@ security:
       - "decideAnApplication"
       - "listCaseWithoutHearingRequirements"
       - "reviewHearingRequirements"
+      - "decisionAndReasonsStarted"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
       - "decideAnApplication"

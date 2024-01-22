@@ -25,6 +25,7 @@ public enum Event {
     TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK("triggerReviewInterpreterBookingTask"),
     DECISION_WITHOUT_HEARING_LISTED("decisionWithoutHearingListed"),
     REVIEW_HEARING_REQUIREMENTS("reviewHearingRequirements"),
+    DECISION_AND_REASONS_STARTED("decisionAndReasonsStarted"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");
