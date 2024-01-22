@@ -13,7 +13,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
 
 import java.util.Objects;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ChangeOrganisationRequest;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 
 public class MapperUtils {
@@ -63,5 +65,18 @@ public class MapperUtils {
 
     public static boolean hasSponsor(AsylumCase asylumCase) {
         return asylumCase.read(HAS_SPONSOR, YesOrNo.class).map(sponsor -> YesOrNo.YES == sponsor).orElse(false);
+    }
+
+    public static AsylumCaseFieldDefinition getCaseFieldWhenEventIsUpdateHearingRequest(Event event,
+        AsylumCaseFieldDefinition defaultCaseField,
+        AsylumCaseFieldDefinition requestUpdateCaseField) {
+
+        AsylumCaseFieldDefinition needToUpdateHearingChannel = defaultCaseField;
+
+        if (event != null && Objects.equals(event, Event.UPDATE_HEARING_REQUEST)) {
+            needToUpdateHearingChannel = requestUpdateCaseField;
+        }
+
+        return needToUpdateHearingChannel;
     }
 }

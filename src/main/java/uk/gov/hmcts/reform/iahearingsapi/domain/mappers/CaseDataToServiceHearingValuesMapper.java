@@ -19,6 +19,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
@@ -45,6 +46,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
@@ -138,14 +140,23 @@ public class CaseDataToServiceHearingValuesMapper {
     }
 
     public Integer getHearingDuration(AsylumCase asylumCase, Boolean isAdjournmentDetails) {
+        return getHearingDuration(asylumCase, isAdjournmentDetails, null);
+    }
+
+    public Integer getHearingDuration(AsylumCase asylumCase, Boolean isAdjournmentDetails, Event event) {
         if (isDecisionWithoutHearingAppeal(asylumCase)) {
             return null;
         }
 
+        AsylumCaseFieldDefinition needToUpdateHearingChannel
+            = MapperUtils.getCaseFieldWhenEventIsUpdateHearingRequest(event,
+                                                                      LIST_CASE_HEARING_LENGTH,
+                                                                      REQUEST_HEARING_LENGTH);
+
         int hearingDuration =
-            asylumCase.read(isAdjournmentDetails ? NEXT_HEARING_DURATION : LIST_CASE_HEARING_LENGTH, String.class)
-            .map(duration -> duration.isBlank() ? 0 : Integer.parseInt(duration))
-            .orElse(0);
+            asylumCase.read(isAdjournmentDetails ? NEXT_HEARING_DURATION : needToUpdateHearingChannel, String.class)
+                .map(duration -> duration.isBlank() ? 0 : Integer.parseInt(duration))
+                .orElse(0);
         return hearingDuration <= 0 ? null : hearingDuration;
     }
 

@@ -28,7 +28,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_UPDATE_REASON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
@@ -89,7 +89,8 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                         getReason(asylumCase),
                         firstAvailableDate,
                         updateHearingWindow(asylumCase),
-                        false
+                        false,
+                        Event.UPDATE_HEARING_REQUEST
                     ),
                     hearingId
                 );
@@ -127,9 +128,9 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
         return switch (hearingDateChangeType) {
             case "DateToBeFixed" -> {
                 String fixedDate = asylumCase.read(
-                    LIST_CASE_HEARING_DATE,
+                    REQUEST_HEARING_DATE,
                     String.class
-                ).orElseThrow(() -> new IllegalStateException(LIST_CASE_HEARING_DATE + " type is not present"));
+                ).orElseThrow(() -> new IllegalStateException(REQUEST_HEARING_DATE + " type is not present"));
 
                 yield HearingWindowModel.builder()
                     .firstDateTimeMustBe(HearingsUtils.convertToLocalDateTimeFormat(fixedDate).toString()).build();

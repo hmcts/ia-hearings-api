@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandle
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.HearingsDynamicListPreparer;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.CcdEventAuthorizor;
 
 import java.util.Arrays;
@@ -274,7 +275,7 @@ public class AsylumPreSubmitCallbackDispatcherTest {
 
 
         PreSubmitCallbackHandler<AsylumCase> h3 = new UpdateHearingRequestHandler(
-            mock(HearingService.class)
+            mock(HearingService.class), mock(LocationRefDataService.class)
         );
 
         PreSubmitCallbackDispatcher<AsylumCase> dispatcher = new AsylumPreSubmitCallbackDispatcher(

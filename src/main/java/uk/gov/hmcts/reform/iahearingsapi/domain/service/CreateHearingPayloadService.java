@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
@@ -145,6 +146,10 @@ public class CreateHearingPayloadService {
 
     protected Integer getDuration(AsylumCase asylumCase, Boolean isAdjournmentDetails) {
         return caseDataMapper.getHearingDuration(asylumCase, isAdjournmentDetails);
+    }
+
+    protected Integer getDuration(AsylumCase asylumCase, Boolean isAdjournmentDetails, Event event) {
+        return caseDataMapper.getHearingDuration(asylumCase, isAdjournmentDetails, event);
     }
 
     protected List<String> getHearingChannels(AsylumCase asylumCase) {
