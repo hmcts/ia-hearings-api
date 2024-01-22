@@ -55,7 +55,10 @@ public class DecisionWithoutHearingListed implements ServiceDataHandler<ServiceD
             .orElseThrow(() -> new IllegalStateException("HearingID can not be missing"));
         PartiesNotifiedResponses partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId);
 
-        if (partiesNotifiedResponses != null && !partiesNotifiedResponses.getResponses().isEmpty()) {
+        boolean isFirstListingUpdate = partiesNotifiedResponses == null
+                                              || partiesNotifiedResponses.getResponses().isEmpty();
+
+        if (isFirstListingUpdate) {
             String caseId = serviceData.read(CASE_REF, String.class)
                 .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
 

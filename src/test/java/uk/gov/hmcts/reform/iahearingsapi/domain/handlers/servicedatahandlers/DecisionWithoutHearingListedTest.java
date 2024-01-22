@@ -94,7 +94,7 @@ public class DecisionWithoutHearingListedTest {
         when(hearingService.getPartiesNotified(HEARING_REQ_ID)).thenReturn(
             PartiesNotifiedResponses.builder()
                 .hearingID(HEARING_REQ_ID)
-                .responses(List.of(partiesNotifiedResponse))
+                .responses(Collections.emptyList())
                 .build()
         );
         when(coreCaseDataService.startCaseEvent(
@@ -131,7 +131,7 @@ public class DecisionWithoutHearingListedTest {
         when(hearingService.getPartiesNotified(HEARING_REQ_ID)).thenReturn(
             PartiesNotifiedResponses.builder()
                 .hearingID(HEARING_REQ_ID)
-                .responses(Collections.emptyList())
+                .responses(List.of(partiesNotifiedResponse))
                 .build()
         );
 
