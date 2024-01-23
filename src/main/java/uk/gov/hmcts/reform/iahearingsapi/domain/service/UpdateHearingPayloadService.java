@@ -146,7 +146,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                                             Boolean isAdjournmentDetails,
                                             Event event) {
 
-        AsylumCaseFieldDefinition needToUpdateHearingChannel
+        AsylumCaseFieldDefinition needToUpdateHearingChannelCaseField
             = MapperUtils.getCaseFieldWhenEventIsUpdateHearingRequest(event,
                                                                HEARING_CHANNEL,
                                                                REQUEST_HEARING_CHANNEL);
@@ -156,7 +156,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         }
 
         Optional<String> hearingChannels = asylumCase.read(
-            isAdjournmentDetails ? NEXT_HEARING_FORMAT : needToUpdateHearingChannel,
+            isAdjournmentDetails ? NEXT_HEARING_FORMAT : needToUpdateHearingChannelCaseField,
             DynamicList.class
         ).map(hearingChannel -> hearingChannel.getValue().getCode());
 
@@ -168,7 +168,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                                                     Boolean isAdjournmentDetails,
                                                     Event event) {
 
-        AsylumCaseFieldDefinition needToUpdateHearingChannel
+        AsylumCaseFieldDefinition needToUpdateLocationCaseField
             = MapperUtils.getCaseFieldWhenEventIsUpdateHearingRequest(event,
                                                                LIST_CASE_HEARING_CENTRE,
                                                                HEARING_LOCATION);
@@ -181,14 +181,14 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                 .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_LOCATION + "  is not present"))));
 
         } else {
-            if (Objects.equals(needToUpdateHearingChannel, HEARING_LOCATION)) {
+            if (Objects.equals(needToUpdateLocationCaseField, HEARING_LOCATION)) {
                 locationCodes = asylumCase.read(
-                    needToUpdateHearingChannel,
+                    needToUpdateLocationCaseField,
                     DynamicList.class
                 ).map(hearingLocation -> hearingLocation.getValue().getCode());
             } else {
                 locationCodes = asylumCase.read(
-                    needToUpdateHearingChannel,
+                    needToUpdateLocationCaseField,
                     HearingCentre.class
                 ).map(HearingCentre::getEpimsId);
             }

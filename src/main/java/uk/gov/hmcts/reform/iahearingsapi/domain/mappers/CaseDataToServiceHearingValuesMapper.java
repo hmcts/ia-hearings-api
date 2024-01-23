@@ -148,13 +148,13 @@ public class CaseDataToServiceHearingValuesMapper {
             return null;
         }
 
-        AsylumCaseFieldDefinition needToUpdateHearingChannel
+        AsylumCaseFieldDefinition needToUpdateDurationCaseField
             = MapperUtils.getCaseFieldWhenEventIsUpdateHearingRequest(event,
                                                                       LIST_CASE_HEARING_LENGTH,
                                                                       REQUEST_HEARING_LENGTH);
 
         int hearingDuration =
-            asylumCase.read(isAdjournmentDetails ? NEXT_HEARING_DURATION : needToUpdateHearingChannel, String.class)
+            asylumCase.read(isAdjournmentDetails ? NEXT_HEARING_DURATION : needToUpdateDurationCaseField, String.class)
                 .map(duration -> duration.isBlank() ? 0 : Integer.parseInt(duration))
                 .orElse(0);
         return hearingDuration <= 0 ? null : hearingDuration;

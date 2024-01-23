@@ -71,12 +71,12 @@ public class MapperUtils {
         AsylumCaseFieldDefinition defaultCaseField,
         AsylumCaseFieldDefinition requestUpdateCaseField) {
 
-        AsylumCaseFieldDefinition needToUpdateHearingChannel = defaultCaseField;
+        AsylumCaseFieldDefinition needToUpdateCaseField = defaultCaseField;
 
         if (event != null && Objects.equals(event, Event.UPDATE_HEARING_REQUEST)) {
-            needToUpdateHearingChannel = requestUpdateCaseField;
+            needToUpdateCaseField = requestUpdateCaseField;
         }
 
-        return needToUpdateHearingChannel;
+        return needToUpdateCaseField;
     }
 }
