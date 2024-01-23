@@ -39,4 +39,8 @@ public class LocationRefDataService {
             ? Collections.emptyList()
             : locationCategory.getCourtVenues();
     }
+
+    public void setServiceId(String serviceId) {
+        this.serviceId = serviceId;
+    }
 }
