@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.refdata.LocationRefDataApi;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.when;
@@ -43,7 +42,7 @@ public class LocationRefDataServiceTest {
 
     private LocationRefDataService locationRefDataService;
 
-    private final String SERVICE_ID = "BFA1";
+    private final String serviceId = "BFA1";
 
     @BeforeEach
     void setup() {
@@ -52,7 +51,7 @@ public class LocationRefDataServiceTest {
             userDetails,
             locationRefDataApi
         );
-        locationRefDataService.setServiceId(SERVICE_ID);
+        locationRefDataService.setServiceId(serviceId);
     }
 
     @Test
@@ -64,7 +63,7 @@ public class LocationRefDataServiceTest {
         when(locationRefDataApi.getCourtVenues(
             token,
             authToken,
-            SERVICE_ID
+            serviceId
         )).thenReturn(locationCategory);
 
         courtVenue = new CourtVenue("Manchester Magistrates",
