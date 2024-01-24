@@ -105,7 +105,7 @@ class BailListCaseUpdateHandlerTest {
 
     @Test
     void should_have_early_dispatch_priority() {
-        Assertions.assertEquals(DispatchPriority.LATE, bailListCaseUpdateHandler.getDispatchPriority());
+        Assertions.assertEquals(DispatchPriority.EARLIEST, bailListCaseUpdateHandler.getDispatchPriority());
     }
 
     @Test
