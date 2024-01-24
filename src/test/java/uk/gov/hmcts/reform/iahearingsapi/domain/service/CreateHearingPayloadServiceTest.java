@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
@@ -108,12 +109,13 @@ public class CreateHearingPayloadServiceTest {
         when(caseDetails.getId()).thenReturn(CASE_REFERENCE_L);
         when(asylumCase.read(AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL, String.class))
             .thenReturn(Optional.of(HMCTS_CASE_NAME_INTERNAL));
+        when(asylumCase.read(AsylumCaseFieldDefinition.AUTO_LIST_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
         when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase,
                                                       caseFlagsMapper,
                                                       caseDataMapper)).thenReturn(PARTY_DETAILS_MODELS);
         when(caseDataMapper.getHearingDuration(asylumCase, false)).thenReturn(LIST_CASE_HEARING_LENGTH);
         when(caseDataMapper.getHearingChannels(asylumCase)).thenReturn(HEARING_CHANNELS);
-        when(caseFlagsMapper.getAutoListFlag(asylumCase)).thenReturn(false);
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase)).thenReturn(BIRMINGHAM_ID);
         when(caseFlagsMapper.getHearingPriorityType(asylumCase)).thenReturn(STANDARD);
         when(caseDataMapper.getHearingWindowModel(true))
@@ -149,7 +151,7 @@ public class CreateHearingPayloadServiceTest {
             .duration(LIST_CASE_HEARING_LENGTH)
             .hearingType(SUBSTANTIVE_HEARING_TYPE)
             .hearingChannels(HEARING_CHANNELS)
-            .autolistFlag(false)
+            .autolistFlag(true)
             .facilitiesRequired(Collections.emptyList())
             .hearingInWelshFlag(false)
             .hearingLocations(List.of(HearingLocationModel.builder()
