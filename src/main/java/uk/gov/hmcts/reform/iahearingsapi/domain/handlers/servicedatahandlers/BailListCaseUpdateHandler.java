@@ -51,7 +51,7 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
 
     @Override
     public DispatchPriority getDispatchPriority() {
-        return DispatchPriority.LATE;
+        return DispatchPriority.EARLIEST;
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
