@@ -23,6 +23,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -248,6 +249,45 @@ class BailListCaseUpdateHandlerTest {
 
         verify(coreCaseDataService).triggerBailSubmitEvent(CASE_LISTING, CASE_REF,
                                                            startEventResponse, bailCase);
+    }
+
+    @Test
+    void should_trigger_case_listing_relisted_with_null_response() {
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
+            .thenReturn(Optional.of(HEARING_ID));
+
+        when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
+        when(partiesNotifiedResponses.getResponses()).thenReturn(Collections.emptyList());
+        when(partiesNotifiedResponse.getServiceData()).thenReturn(previousServiceData);
+        when(coreCaseDataService.startCaseEvent(CASE_LISTING, CASE_REF, CASE_TYPE_BAIL))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse)).thenReturn(bailCase);
+
+        when(serviceData.read(HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(TEL)));
+
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(timeOne));
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE))
+            .thenReturn(Optional.of(timeOne));
+
+        when(serviceData.read(DURATION)).thenReturn(Optional.of(60));
+        when(serviceData.read(DURATION, Integer.class)).thenReturn(Optional.of(60));
+
+        when(serviceData.read(HEARING_VENUE_ID)).thenReturn(Optional.of(VENUE_ONE));
+
+        when(timeOne.format(any())).thenReturn("formattedDate");
+
+        bailListCaseUpdateHandler.handle(serviceData);
+
+        verify(bailCase).write(LISTING_EVENT, RELISTING.toString());
+        verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
+        verify(bailCase).write(LISTING_HEARING_LENGTH, "60");
+        verify(bailCase).write(LISTING_HEARING_DATE, "formattedDate");
+
+        verify(coreCaseDataService).triggerBailSubmitEvent(CASE_LISTING, CASE_REF,
+            startEventResponse, bailCase);
     }
 
     @Test
