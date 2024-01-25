@@ -23,8 +23,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.ListCaseWithoutHearingRequirementsHandler;
 
 /**
- * This functional test class covers all callback handlers in relation to ListCaseWithoutHearingRequirementsHandler including.
- * {@link ListCaseWithoutHearingRequirementsHandler}
+ * This functional test class covers all callback handlers in relation to ListCaseWithoutHearingRequirementsHandler.
+ * This includes {@link ListCaseWithoutHearingRequirementsHandler}
  */
 @Slf4j
 @ActiveProfiles("functional")

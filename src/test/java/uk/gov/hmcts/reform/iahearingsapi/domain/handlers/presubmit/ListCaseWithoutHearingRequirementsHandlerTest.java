@@ -16,14 +16,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
@@ -38,12 +35,12 @@ public class ListCaseWithoutHearingRequirementsHandlerTest {
     @Mock
     private HearingService hearingService;
 
-    private ListCaseWithoutHearingRequirements handler;
+    private ListCaseWithoutHearingRequirementsHandler handler;
 
 
     @BeforeEach
     void setUp() {
-        handler = new ListCaseWithoutHearingRequirements(hearingService);
+        handler = new ListCaseWithoutHearingRequirementsHandler(hearingService);
     }
 
     @Test

@@ -5,6 +5,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_LINKS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CREATE_HEARINGS_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
@@ -57,10 +58,6 @@ public class HearingService {
     private final FeatureToggler featureToggler;
     @Value("${hearingValues.hmctsServiceId}") String serviceId;
     private final CreateHearingPayloadService createHearingPayloadService;
-
-    public boolean autoHearingRequestEnabled() {
-        return featureToggler.getValue("auto-hearing-request-feature", false);
-    }
 
     public HmcHearingResponse createHearing(CreateHearingRequest hearingPayload) {
         try {
@@ -286,8 +283,8 @@ public class HearingService {
             createHearing(hmcHearingRequestPayload);
 
         } catch (Exception ex) {
-            log.error(ex.getMessage());
-            throw new IllegalStateException(ex.getMessage());
+            log.error("Error updating HMC hearing details. ", ex);
+            asylumCase.write(MANUAL_CREATE_HEARINGS_REQUIRED, YES);
         }
 
         asylumCase.write(MANUAL_CREATE_HEARINGS_REQUIRED, NO);
