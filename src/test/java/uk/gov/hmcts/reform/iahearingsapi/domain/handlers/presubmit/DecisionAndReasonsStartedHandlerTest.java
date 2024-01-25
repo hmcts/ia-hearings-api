@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CREATE_HEARINGS_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_APPEAL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.DECISION_AND_REASONS_STARTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 
@@ -28,7 +29,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class AutoCreateHearingRequestHandlerTest {
+public class DecisionAndReasonsStartedHandlerTest {
 
     @Mock
     private Callback<AsylumCase> callback;
@@ -37,20 +38,17 @@ public class AutoCreateHearingRequestHandlerTest {
     @Mock
     private HearingService hearingService;
 
-    private AutoCreateHearingRequestHandler handler;
+    private DecisionAndReasonsStartedHandler handler;
 
 
     @BeforeEach
     void setUp() {
-        handler = new AutoCreateHearingRequestHandler(hearingService);
+        handler = new DecisionAndReasonsStartedHandler(hearingService);
     }
 
-    @ParameterizedTest
-    @EnumSource(value = Event.class, names = {
-        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS", "DECISION_AND_REASONS_STARTED"
-    })
-    void should_handle_successfully(Event event) {
-        when(callback.getEvent()).thenReturn(event);
+    @Test
+    void should_handle_successfully() {
+        when(callback.getEvent()).thenReturn(DECISION_AND_REASONS_STARTED);
         Assertions.assertTrue(handler.canHandle(ABOUT_TO_SUBMIT, callback));
     }
 
@@ -62,12 +60,9 @@ public class AutoCreateHearingRequestHandlerTest {
             .isExactlyInstanceOf(IllegalStateException.class);
     }
 
-    @ParameterizedTest
-    @EnumSource(value = Event.class, names = {
-        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS", "DECISION_AND_REASONS_STARTED"
-    })
-    void should_send_hearing_creation_request_to_hmc(Event event) {
-        when(callback.getEvent()).thenReturn(event);
+    @Test
+    void should_send_hearing_creation_request_to_hmc() {
+        when(callback.getEvent()).thenReturn(DECISION_AND_REASONS_STARTED);
         when(hearingService.createHearingWithPayload(callback)).thenReturn(asylumCase);
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
@@ -75,12 +70,9 @@ public class AutoCreateHearingRequestHandlerTest {
         verify(hearingService, times(1)).createHearingWithPayload(callback);
     }
 
-    @ParameterizedTest
-    @EnumSource(value = Event.class, names = {
-        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS", "REVIEW_HEARING_REQUIREMENTS", "DECISION_AND_REASONS_STARTED"
-    })
-    void should_throw_exception_if_call_unsuccessful(Event event) {
-        when(callback.getEvent()).thenReturn(event);
+    @Test
+    void should_throw_exception_if_call_unsuccessful() {
+        when(callback.getEvent()).thenReturn(DECISION_AND_REASONS_STARTED);
         when(hearingService.createHearingWithPayload(callback)).thenThrow(new IllegalStateException());
 
         assertThrows(IllegalStateException.class, () -> handler.handle(ABOUT_TO_SUBMIT, callback));

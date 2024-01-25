@@ -20,11 +20,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
-import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.AutoCreateHearingRequestHandler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.ListCaseWithoutHearingRequirementsHandler;
 
 /**
- * This functional test class covers all callback handlers in relation to ListCaseWithoutHearingRequirements including.
- * {@link AutoCreateHearingRequestHandler}
+ * This functional test class covers all callback handlers in relation to ListCaseWithoutHearingRequirementsHandler including.
+ * {@link ListCaseWithoutHearingRequirementsHandler}
  */
 @Slf4j
 @ActiveProfiles("functional")
