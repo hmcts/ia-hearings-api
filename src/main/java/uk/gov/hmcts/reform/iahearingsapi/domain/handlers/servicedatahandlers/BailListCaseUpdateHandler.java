@@ -51,7 +51,7 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
 
     @Override
     public DispatchPriority getDispatchPriority() {
-        return DispatchPriority.LATE;
+        return DispatchPriority.EARLIEST;
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
@@ -65,33 +65,37 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
         List<PartiesNotifiedResponse> partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId)
             .getResponses();
 
+        ServiceData previousServiceData = null;
+
         if (!partiesNotifiedResponses.isEmpty()) {
-            ServiceData previousServiceData = partiesNotifiedResponses.get(partiesNotifiedResponses.size() - 1)
+            previousServiceData = partiesNotifiedResponses.get(partiesNotifiedResponses.size() - 1)
                 .getServiceData();
+        } else {
+            previousServiceData = new ServiceData();
+        }
 
-            Set<ServiceDataFieldDefinition> serviceDataFieldsWithUpdates = findServiceDataFieldsWithUpdates(
-                serviceData,
-                previousServiceData,
-                Set.of(
-                    NEXT_HEARING_DATE,
-                    HEARING_CHANNELS,
-                    DURATION,
-                    HEARING_VENUE_ID
-                ));
+        Set<ServiceDataFieldDefinition> serviceDataFieldsWithUpdates = findServiceDataFieldsWithUpdates(
+            serviceData,
+            previousServiceData,
+            Set.of(
+                NEXT_HEARING_DATE,
+                HEARING_CHANNELS,
+                DURATION,
+                HEARING_VENUE_ID
+            ));
 
-            if (!serviceDataFieldsWithUpdates.isEmpty()) {
+        if (!serviceDataFieldsWithUpdates.isEmpty()) {
 
-                String caseId = getCaseReference(serviceData);
+            String caseId = getCaseReference(serviceData);
 
-                StartEventResponse startEventResponse =
-                    coreCaseDataService.startCaseEvent(CASE_LISTING, caseId, CASE_TYPE_BAIL);
+            StartEventResponse startEventResponse =
+                coreCaseDataService.startCaseEvent(CASE_LISTING, caseId, CASE_TYPE_BAIL);
 
-                BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
-                updateRelistingBailCaseListing(serviceData, bailCase, serviceDataFieldsWithUpdates);
+            BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
+            updateRelistingBailCaseListing(serviceData, bailCase, serviceDataFieldsWithUpdates);
 
-                log.info("Sending `{}` event for Case ID `{}`", CASE_LISTING, caseId);
-                coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId, startEventResponse, bailCase);
-            }
+            log.info("Sending `{}` event for Case ID `{}`", CASE_LISTING, caseId);
+            coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId, startEventResponse, bailCase);
         }
 
         return new ServiceDataResponse<>(serviceData);

@@ -1,7 +1,9 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.AUTO_LIST_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils.getCaseCategoriesValue;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils.getNumberOfPhysicalAttendees;
 
@@ -16,6 +18,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
@@ -71,11 +74,15 @@ public class CreateHearingPayloadService {
 
         Integer duration = getDuration(asylumCase, null);
 
+        boolean isAutoListHearing = asylumCase.read(AUTO_LIST_HEARING, YesOrNo.class)
+            .map(autoList -> YES == autoList)
+            .orElse(false);
+
         HearingDetails hearingDetails = HearingDetails.builder()
             .duration(duration)
             .hearingType(HearingType.SUBSTANTIVE.getKey())
             .hearingChannels(getHearingChannels(asylumCase))
-            .autolistFlag(getAutoListFlag(asylumCase))
+            .autolistFlag(isAutoListHearing)
             .facilitiesRequired(getFacilitiesRequired(asylumCase))
             .hearingInWelshFlag(false)
             .hearingLocations(getLocations(asylumCase))
@@ -150,10 +157,6 @@ public class CreateHearingPayloadService {
 
     protected List<String> getHearingChannels(AsylumCase asylumCase) {
         return caseDataMapper.getHearingChannels(asylumCase);
-    }
-
-    protected boolean getAutoListFlag(AsylumCase asylumCase) {
-        return caseFlagsMapper.getAutoListFlag(asylumCase);
     }
 
     protected List<String> getFacilitiesRequired(AsylumCase asylumCase) {
