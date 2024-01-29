@@ -69,7 +69,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
             List.of(UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR, FOREIGN_NATIONAL_OFFENDER));
     }
 
-    public boolean getAutoListFlag(AsylumCase asylumCase) {
+    public boolean getDefaultAutoListFlag(AsylumCase asylumCase) {
         List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
         boolean isDecisionWithoutHearingAppeal = caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase);

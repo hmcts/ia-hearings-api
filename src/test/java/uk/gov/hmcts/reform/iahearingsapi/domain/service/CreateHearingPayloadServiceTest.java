@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.AUTO_LIST_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_HEARING_LINKED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType.STANDARD;
 
 import java.time.LocalDate;
@@ -17,6 +19,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
@@ -37,6 +41,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class CreateHearingPayloadServiceTest {
 
     private static final Integer LIST_CASE_HEARING_LENGTH = 120;
@@ -109,7 +114,9 @@ public class CreateHearingPayloadServiceTest {
         when(caseDetails.getId()).thenReturn(CASE_REFERENCE_L);
         when(asylumCase.read(AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL, String.class))
             .thenReturn(Optional.of(HMCTS_CASE_NAME_INTERNAL));
-        when(asylumCase.read(AsylumCaseFieldDefinition.AUTO_LIST_HEARING, YesOrNo.class))
+        when(asylumCase.read(AUTO_LIST_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(IS_HEARING_LINKED, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
         when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase,
                                                       caseFlagsMapper,
@@ -138,6 +145,8 @@ public class CreateHearingPayloadServiceTest {
         when(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase)).thenReturn(BaseLocation.BIRMINGHAM.getId());
         when(caseDataMapper.getCaseSlaStartDate()).thenReturn(DATE_START);
+        when(caseDataMapper.getAutoListHearingFlag(asylumCase)).thenReturn(true);
+        when(caseDataMapper.getHearingLinkedFlag(asylumCase)).thenReturn(true);
 
         CreateHearingRequest expected = buildTestAsylumCreateHearingRequest();
         CreateHearingRequest actual = createHearingPayloadService.buildCreateHearingRequest(caseDetails);
@@ -171,6 +180,8 @@ public class CreateHearingPayloadServiceTest {
             .listingComments(LISTING_COMMENTS)
             .numberOfPhysicalAttendees(0)
             .privateHearingRequiredFlag(true)
+            .autolistFlag(true)
+            .hearingIsLinkedFlag(true)
             .build();
 
         CaseDetailsHearing caseDetails =
