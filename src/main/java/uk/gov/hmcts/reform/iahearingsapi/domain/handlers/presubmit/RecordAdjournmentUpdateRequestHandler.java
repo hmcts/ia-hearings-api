@@ -112,7 +112,6 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
             .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE + "  is not present"));
 
         try {
-
             hearingService.updateHearing(
                 updateHearingPayloadService.createUpdateHearingPayload(
                     asylumCase,
@@ -120,7 +119,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
                     cancellationReason.getValue().getCode(),
                     nextHearingDate.equals(NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE),
                     updateHearingWindow(asylumCase),
-                    true
+                    Event.RECORD_ADJOURNMENT_DETAILS
                 ),
                 hearingId
             );

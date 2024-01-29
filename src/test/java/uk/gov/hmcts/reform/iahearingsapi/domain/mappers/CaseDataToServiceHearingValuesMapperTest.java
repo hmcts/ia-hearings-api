@@ -68,6 +68,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -161,13 +162,13 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of("120"));
 
-        assertEquals(120, mapper.getHearingDuration(asylumCase, false));
+        assertEquals(120, mapper.getHearingDuration(asylumCase, null));
     }
 
     @Test
     void getHearingDuration_should_return_null_when_listCaseHearingLength_is_not_set() {
 
-        assertNull(mapper.getHearingDuration(asylumCase, false));
+        assertNull(mapper.getHearingDuration(asylumCase, null));
     }
 
     @ParameterizedTest
@@ -176,7 +177,7 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of(duration));
 
-        assertNull(mapper.getHearingDuration(asylumCase, false));
+        assertNull(mapper.getHearingDuration(asylumCase, null));
     }
 
     @ParameterizedTest
@@ -185,7 +186,7 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(NEXT_HEARING_DURATION, String.class)).thenReturn(Optional.of(duration));
 
-        assertNull(mapper.getHearingDuration(asylumCase, true));
+        assertNull(mapper.getHearingDuration(asylumCase, Event.RECORD_ADJOURNMENT_DETAILS));
     }
 
     @Test

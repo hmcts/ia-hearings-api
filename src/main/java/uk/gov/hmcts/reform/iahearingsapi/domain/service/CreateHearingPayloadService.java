@@ -69,7 +69,7 @@ public class CreateHearingPayloadService {
 
         List<PartyDetailsModel> partyDetailsModels = getPartyDetailsModels(asylumCase);
 
-        Integer duration = getDuration(asylumCase, false);
+        Integer duration = getDuration(asylumCase, null);
 
         HearingDetails hearingDetails = HearingDetails.builder()
             .duration(duration)
@@ -144,12 +144,8 @@ public class CreateHearingPayloadService {
         return caseDataMapper.getExternalCaseReference(asylumCase);
     }
 
-    protected Integer getDuration(AsylumCase asylumCase, Boolean isAdjournmentDetails) {
-        return caseDataMapper.getHearingDuration(asylumCase, isAdjournmentDetails);
-    }
-
-    protected Integer getDuration(AsylumCase asylumCase, Boolean isAdjournmentDetails, Event event) {
-        return caseDataMapper.getHearingDuration(asylumCase, isAdjournmentDetails, event);
+    protected Integer getDuration(AsylumCase asylumCase, Event event) {
+        return caseDataMapper.getHearingDuration(asylumCase, event);
     }
 
     protected List<String> getHearingChannels(AsylumCase asylumCase) {

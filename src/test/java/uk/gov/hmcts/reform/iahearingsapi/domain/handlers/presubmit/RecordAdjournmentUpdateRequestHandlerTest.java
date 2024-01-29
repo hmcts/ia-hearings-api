@@ -21,6 +21,7 @@ import static org.mockito.Mockito.times;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -127,7 +128,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
             false,
             HearingWindowModel.builder().firstDateTimeMustBe(
                 HearingsUtils.convertToLocalDateFormat(DATE1).toString()).build(),
-                relistCaseImmediately.equals(YES)
+            Event.RECORD_ADJOURNMENT_DETAILS
         ))
             .thenReturn(updateHearingRequest);
 
@@ -157,7 +158,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
             CANCELLATION_REASON.getValue().getCode(),
             true,
             null,
-            true
+            Event.RECORD_ADJOURNMENT_DETAILS
         )).thenReturn(updateHearingRequest);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(
@@ -187,7 +188,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
                 .dateRangeStart(HearingsUtils.convertToLocalDateFormat(DATE1).toString())
                 .dateRangeEnd(HearingsUtils.convertToLocalDateFormat(DATE2).toString())
                 .build(),
-            true
+            Event.RECORD_ADJOURNMENT_DETAILS
         )).thenReturn(updateHearingRequest);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(

@@ -89,7 +89,6 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                         getReason(asylumCase),
                         firstAvailableDate,
                         updateHearingWindow(asylumCase),
-                        false,
                         Event.UPDATE_HEARING_REQUEST
                     ),
                     hearingId

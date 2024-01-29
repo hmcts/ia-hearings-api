@@ -96,7 +96,6 @@ class UpdateHearingsRequestSubmitTest {
             any(),
             any(),
             any(),
-            any(),
             any()
         )).thenReturn(updateHearingRequest);
 
@@ -123,7 +122,6 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            false,
             UPDATE_HEARING_REQUEST
         );
 
@@ -150,7 +148,6 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            false,
             UPDATE_HEARING_REQUEST
         );
 
@@ -180,7 +177,6 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             newHearingWindow,
-            false,
             UPDATE_HEARING_REQUEST
         );
         verifyFieldsAreCleared();
@@ -210,7 +206,6 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             newHearingWindow,
-            false,
             UPDATE_HEARING_REQUEST
         );
         verifyFieldsAreCleared();
@@ -234,7 +229,6 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             true,
             null,
-            false,
             UPDATE_HEARING_REQUEST
         );
         verifyFieldsAreCleared();
@@ -291,7 +285,6 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            false,
             UPDATE_HEARING_REQUEST
         );
         verifyFieldsAreCleared();

@@ -65,25 +65,6 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         String reasonCode,
         Boolean firstAvailableDate,
         HearingWindowModel hearingWindowModel,
-        Boolean isAdjournmentDetails
-    ) {
-        return generateHearingPayload(
-            asylumCase,
-            hearingId,
-            reasonCode,
-            firstAvailableDate,
-            hearingWindowModel,
-            isAdjournmentDetails,
-            null);
-    }
-
-    public UpdateHearingRequest createUpdateHearingPayload(
-        AsylumCase asylumCase,
-        String hearingId,
-        String reasonCode,
-        Boolean firstAvailableDate,
-        HearingWindowModel hearingWindowModel,
-        Boolean isAdjournmentDetails,
         Event event
     ) {
         return generateHearingPayload(
@@ -92,17 +73,16 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
             reasonCode,
             firstAvailableDate,
             hearingWindowModel,
-            isAdjournmentDetails,
             event);
     }
-
 
     public UpdateHearingRequest createUpdateHearingPayload(
         AsylumCase asylumCase,
         String hearingId,
-        String reasonCode
+        String reasonCode,
+        Event event
     ) {
-        return generateHearingPayload(asylumCase, hearingId, reasonCode, false, null, false, null);
+        return generateHearingPayload(asylumCase, hearingId, reasonCode, false, null, event);
     }
 
     private UpdateHearingRequest generateHearingPayload(
@@ -111,16 +91,15 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         String reasonCode,
         Boolean firstAvailableDate,
         HearingWindowModel hearingWindowModel,
-        Boolean isAdjournmentDetails,
         Event event
     ) {
         HearingGetResponse persistedHearing = hearingService.getHearing(hearingId);
 
         HearingDetails hearingDetails = HearingDetails.builder()
             .autolistFlag(getAutoListFlag(asylumCase, persistedHearing.getHearingDetails()))
-            .hearingChannels(getHearingChannels(asylumCase, persistedHearing, isAdjournmentDetails, event))
-            .hearingLocations(getLocations(asylumCase, persistedHearing, isAdjournmentDetails, event))
-            .duration(getDuration(asylumCase, persistedHearing, isAdjournmentDetails, event))
+            .hearingChannels(getHearingChannels(asylumCase, persistedHearing, event))
+            .hearingLocations(getLocations(asylumCase, persistedHearing, event))
+            .duration(getDuration(asylumCase, persistedHearing, event))
             .amendReasonCodes(List.of(reasonCode))
             .hearingWindow(updateHearingWindow(firstAvailableDate, hearingWindowModel, persistedHearing))
             .build();
@@ -143,7 +122,6 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
 
     private List<String> getHearingChannels(AsylumCase asylumCase,
                                             HearingGetResponse persistedHearing,
-                                            Boolean isAdjournmentDetails,
                                             Event event) {
 
         AsylumCaseFieldDefinition needToUpdateHearingChannelCaseField
@@ -156,7 +134,8 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         }
 
         Optional<String> hearingChannels = asylumCase.read(
-            isAdjournmentDetails ? NEXT_HEARING_FORMAT : needToUpdateHearingChannelCaseField,
+            MapperUtils.isRecordAdjournmentDetailsEvent(event)
+                ? NEXT_HEARING_FORMAT : needToUpdateHearingChannelCaseField,
             DynamicList.class
         ).map(hearingChannel -> hearingChannel.getValue().getCode());
 
@@ -165,7 +144,6 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
 
     private List<HearingLocationModel> getLocations(AsylumCase asylumCase,
                                                     HearingGetResponse persistedHearing,
-                                                    Boolean isAdjournmentDetails,
                                                     Event event) {
 
         AsylumCaseFieldDefinition needToUpdateLocationCaseField
@@ -174,7 +152,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                                                                HEARING_LOCATION);
 
         Optional<String> locationCodes;
-        if (isAdjournmentDetails) {
+        if (MapperUtils.isRecordAdjournmentDetailsEvent(event)) {
             locationCodes = Optional.of(getEpimsIdByValue(asylumCase.read(
                     NEXT_HEARING_LOCATION,
                     String.class)
@@ -206,9 +184,8 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
 
     private Integer getDuration(AsylumCase asylumCase,
                                 HearingGetResponse persistedHearing,
-                                Boolean isAdjournmentDetails,
                                 Event event) {
-        return defaultIfNull(getDuration(asylumCase, isAdjournmentDetails, event),
+        return defaultIfNull(getDuration(asylumCase, event),
             persistedHearing.getHearingDetails().getDuration());
     }
 

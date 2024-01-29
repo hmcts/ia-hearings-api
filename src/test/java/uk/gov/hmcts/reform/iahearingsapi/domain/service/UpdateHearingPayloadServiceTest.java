@@ -15,6 +15,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_T
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.LEEDS_MAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_INTERPRETER_DETAILS;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +30,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ReasonCodes;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
@@ -116,7 +118,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            false
+            UPDATE_INTERPRETER_DETAILS
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -140,7 +142,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            false
+            UPDATE_HEARING_REQUEST
         );
 
         assertEquals(
@@ -161,7 +163,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            false
+            UPDATE_HEARING_REQUEST
         );
 
         assertFalse(updateHearingRequest.getHearingDetails().isAutolistFlag());
@@ -181,7 +183,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            false
+            UPDATE_INTERPRETER_DETAILS
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -196,7 +198,7 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_with_new_duration() {
         Integer duration = 240;
-        when(caseDataMapper.getHearingDuration(asylumCase, false, UPDATE_HEARING_REQUEST)).thenReturn(duration);
+        when(caseDataMapper.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(duration);
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -204,7 +206,6 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            false,
             UPDATE_HEARING_REQUEST
         );
 
@@ -225,7 +226,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             true,
             null,
-            false
+            UPDATE_HEARING_REQUEST
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -245,7 +246,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             hearingWindow,
-            false
+            UPDATE_HEARING_REQUEST
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -266,7 +267,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             hearingWindow,
-            false
+            UPDATE_HEARING_REQUEST
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -283,7 +284,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            false
+            UPDATE_HEARING_REQUEST
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -305,7 +306,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            false
+            UPDATE_HEARING_REQUEST
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -333,7 +334,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            false
+            UPDATE_HEARING_REQUEST
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -354,7 +355,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             true,
             null,
-            false
+            UPDATE_HEARING_REQUEST
         );
 
         assertEquals(List.of(partyDetailsModel), updateHearingRequest.getPartyDetails());
@@ -372,7 +373,7 @@ class UpdateHearingPayloadServiceTest {
         when(asylumCase.read(NEXT_HEARING_LOCATION, String.class))
             .thenReturn(Optional.of(LEEDS_MAGS.getValue()));
         Integer duration = 240;
-        when(caseDataMapper.getHearingDuration(asylumCase, true, UPDATE_HEARING_REQUEST)).thenReturn(duration);
+        when(caseDataMapper.getHearingDuration(asylumCase, Event.RECORD_ADJOURNMENT_DETAILS)).thenReturn(duration);
 
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
@@ -381,8 +382,7 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            true,
-            UPDATE_HEARING_REQUEST
+            Event.RECORD_ADJOURNMENT_DETAILS
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);

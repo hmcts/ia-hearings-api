@@ -79,4 +79,8 @@ public class MapperUtils {
 
         return needToUpdateCaseField;
     }
+
+    public static boolean isRecordAdjournmentDetailsEvent(Event event) {
+        return (event != null && Objects.equals(event, Event.RECORD_ADJOURNMENT_DETAILS));
+    }
 }

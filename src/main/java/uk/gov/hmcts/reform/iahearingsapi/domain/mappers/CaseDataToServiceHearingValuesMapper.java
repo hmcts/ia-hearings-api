@@ -139,11 +139,7 @@ public class CaseDataToServiceHearingValuesMapper {
         return getHearingChannels(asylumCase).stream().findFirst().orElse(null);
     }
 
-    public Integer getHearingDuration(AsylumCase asylumCase, Boolean isAdjournmentDetails) {
-        return getHearingDuration(asylumCase, isAdjournmentDetails, null);
-    }
-
-    public Integer getHearingDuration(AsylumCase asylumCase, Boolean isAdjournmentDetails, Event event) {
+    public Integer getHearingDuration(AsylumCase asylumCase, Event event) {
         if (isDecisionWithoutHearingAppeal(asylumCase)) {
             return null;
         }
@@ -154,7 +150,8 @@ public class CaseDataToServiceHearingValuesMapper {
                                                                       REQUEST_HEARING_LENGTH);
 
         int hearingDuration =
-            asylumCase.read(isAdjournmentDetails ? NEXT_HEARING_DURATION : needToUpdateDurationCaseField, String.class)
+            asylumCase.read(MapperUtils.isRecordAdjournmentDetailsEvent(event)
+                                ? NEXT_HEARING_DURATION : needToUpdateDurationCaseField, String.class)
                 .map(duration -> duration.isBlank() ? 0 : Integer.parseInt(duration))
                 .orElse(0);
         return hearingDuration <= 0 ? null : hearingDuration;

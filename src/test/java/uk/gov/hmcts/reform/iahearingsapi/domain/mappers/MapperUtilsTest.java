@@ -193,4 +193,24 @@ class MapperUtilsTest {
         );
     }
 
+    @Test
+    void should_return_true_when_event_is_record_adjourment_details() {
+        assertEquals(
+            true,
+            MapperUtils.isRecordAdjournmentDetailsEvent(
+                Event.RECORD_ADJOURNMENT_DETAILS
+            )
+        );
+    }
+
+    @Test
+    void should_return_false_when_event_is_not_record_adjourment_details() {
+        assertEquals(
+            false,
+            MapperUtils.isRecordAdjournmentDetailsEvent(
+                Event.UPDATE_HEARING_REQUEST
+            )
+        );
+    }
+
 }
