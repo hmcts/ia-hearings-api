@@ -168,7 +168,8 @@ class ServiceHearingValuesProviderTest {
         when(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
             .thenReturn(caseReference);
         when(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);
-        when(caseFlagsMapper.getAutoListFlag(asylumCase)).thenReturn(false);
+        when(caseDataMapper.getAutoListHearingFlag(asylumCase)).thenReturn(true);
+        when(caseDataMapper.getHearingLinkedFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getHearingPriorityType(asylumCase))
             .thenReturn(STANDARD);
         when(listingCommentsMapper.getListingComments(asylumCase, caseFlagsMapper, caseDataMapper))
@@ -307,7 +308,7 @@ class ServiceHearingValuesProviderTest {
             .externalCaseReference(homeOfficeRef)
             .caseManagementLocationCode(BaseLocation.BIRMINGHAM.getId())
             .caseSlaStartDate(date.toString())
-            .autoListFlag(false)
+            .autoListFlag(true)
             .hearingType(null)
             .hearingWindow(hearingWindowModel)
             .duration(Integer.parseInt(listCaseHearingLength))
@@ -335,7 +336,7 @@ class ServiceHearingValuesProviderTest {
                .judiciarySpecialisms(Collections.emptyList())
                .panelComposition(Collections.emptyList())
                .build())
-            .hearingIsLinkedFlag(false)
+            .hearingIsLinkedFlag(true)
             .parties(partyDetailsModels)
             .caseFlags(caseflags)
             .screenFlow(serviceHearingValuesProvider.getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_TEST))

@@ -100,7 +100,7 @@ public class ServiceHearingValuesProvider {
                 .getExternalCaseReference(asylumCase))
             .caseManagementLocationCode(caseDataMapper
                 .getCaseManagementLocationCode(asylumCase))
-            .autoListFlag(caseFlagsMapper.getAutoListFlag(asylumCase))
+            .autoListFlag(caseDataMapper.getAutoListHearingFlag(asylumCase))
             .caseSlaStartDate(caseDataMapper.getCaseSlaStartDate().toString())
             .duration(caseDataMapper.getHearingDuration(asylumCase, null))
             .hearingWindow(caseDataMapper
@@ -133,7 +133,7 @@ public class ServiceHearingValuesProvider {
                .judiciarySpecialisms(Collections.emptyList())
                .panelComposition(Collections.emptyList())
                .build())
-            .hearingIsLinkedFlag(false)
+            .hearingIsLinkedFlag(caseDataMapper.getHearingLinkedFlag(asylumCase))
             .parties(partyDetails)
             .caseFlags(caseFlagsMapper.getCaseFlags(asylumCase, caseReference.toString()))
             .screenFlow(getScreenFlowJson(LOCATION_OF_SCREEN_FLOW_FILE_APPEALS))

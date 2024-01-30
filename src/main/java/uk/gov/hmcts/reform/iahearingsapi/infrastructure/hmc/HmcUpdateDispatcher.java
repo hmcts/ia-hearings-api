@@ -35,15 +35,8 @@ public class HmcUpdateDispatcher<T extends ServiceData> {
         List<ServiceDataHandler<T>> handlers,
         DispatchPriority dispatchPriority
     ) {
-        for (ServiceDataHandler<T> handler : handlers) {
-
-            if (handler.getDispatchPriority() == dispatchPriority) {
-
-                if (handler.canHandle(update)) {
-
-                    handler.handle(update);
-                }
-            }
-        }
+        handlers.stream()
+            .filter(h -> h.getDispatchPriority() == dispatchPriority && h.canHandle(update))
+            .forEach(h -> h.handle(update));
     }
 }

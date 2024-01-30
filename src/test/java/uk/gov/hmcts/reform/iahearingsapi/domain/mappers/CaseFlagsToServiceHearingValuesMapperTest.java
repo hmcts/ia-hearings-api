@@ -146,7 +146,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
-        assertFalse(mapper.getAutoListFlag(asylumCase));
+        assertFalse(mapper.getDefaultAutoListFlag(asylumCase));
 
         caseFlagDetails.addAll(Arrays.asList(new CaseFlagDetail("id1", CaseFlagValue.builder()
             .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
@@ -175,13 +175,13 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                         .status("Active")
                         .build())))));
 
-        assertFalse(mapper.getAutoListFlag(asylumCase));
+        assertFalse(mapper.getDefaultAutoListFlag(asylumCase));
     }
 
     @Test
     void getAutoListFlag_should_return_true() {
 
-        assertTrue(mapper.getAutoListFlag(asylumCase));
+        assertTrue(mapper.getDefaultAutoListFlag(asylumCase));
 
         List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
         caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
@@ -191,7 +191,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
-        assertTrue(mapper.getAutoListFlag(asylumCase));
+        assertTrue(mapper.getDefaultAutoListFlag(asylumCase));
     }
 
     @Test
@@ -207,7 +207,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
         when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
             .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
 
-        assertTrue(mapper.getAutoListFlag(asylumCase));
+        assertTrue(mapper.getDefaultAutoListFlag(asylumCase));
     }
 
     @Test
