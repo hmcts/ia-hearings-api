@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 import java.util.List;
@@ -26,10 +27,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_EARLIEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_LATEST;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
@@ -47,6 +48,8 @@ class UpdateHearingsRequestHandlerTest {
 
     @Mock
     private HearingService hearingService;
+    @Mock
+    private LocationRefDataService locationRefDataService;
     @Mock
     HearingGetResponse hearingGetResponse;
 
@@ -66,7 +69,7 @@ class UpdateHearingsRequestHandlerTest {
         when(callback.getEvent()).thenReturn(UPDATE_HEARING_REQUEST);
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(hearingGetResponse);
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
-        updateHearingsRequestHandler = new UpdateHearingRequestHandler(hearingService);
+        updateHearingsRequestHandler = new UpdateHearingRequestHandler(hearingService, locationRefDataService);
     }
 
     @Test
@@ -84,7 +87,7 @@ class UpdateHearingsRequestHandlerTest {
             "In Person"
         );
         assertEquals(
-            callbackResponse.getData().read(HEARING_CHANNEL, DynamicList.class).get().getValue().getCode(),
+            callbackResponse.getData().read(REQUEST_HEARING_CHANNEL, DynamicList.class).get().getValue().getCode(),
             "INTER"
         );
     }
@@ -172,7 +175,7 @@ class UpdateHearingsRequestHandlerTest {
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
         assertEquals(callbackResponse.getData().read(CHANGE_HEARING_DURATION, String.class).get(), "2 hours");
         assertEquals(
-            callbackResponse.getData().read(LIST_CASE_HEARING_LENGTH, String.class).get(),
+            callbackResponse.getData().read(REQUEST_HEARING_LENGTH, String.class).get(),
             "120"
         );
     }

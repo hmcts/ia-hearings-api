@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.AIP;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
 
 import java.util.Objects;
+
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ChangeOrganisationRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;

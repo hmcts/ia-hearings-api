@@ -57,7 +57,8 @@ public class UpdateInterpreterDetailsHandler implements PreSubmitCallbackHandler
                 updateHearingPayloadService.createUpdateHearingPayload(
                     asylumCase,
                     latestSubstantiveHearing.getHearingRequestId(),
-                    ReasonCodes.OTHER.toString()
+                    ReasonCodes.OTHER.toString(),
+                    callback.getEvent()
                 ),
                 latestSubstantiveHearing.getHearingRequestId()
             );

@@ -163,5 +163,4 @@ class MapperUtilsTest {
 
         assertFalse(MapperUtils.isChangeOrganisationRequestPresent(asylumCase));
     }
-
 }

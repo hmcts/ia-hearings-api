@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
 import java.time.LocalDateTime;
@@ -31,9 +32,10 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 
 @Component
 @Slf4j
@@ -41,11 +43,15 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
 
     HearingService hearingService;
 
+    LocationRefDataService locationRefDataService;
+
 
     public UpdateHearingRequestHandler(
-        HearingService hearingService
+        HearingService hearingService,
+        LocationRefDataService locationRefDataService
     ) {
         this.hearingService = hearingService;
+        this.locationRefDataService = locationRefDataService;
     }
 
     @Override
@@ -82,13 +88,14 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
                                                                 .values())
                     .map(hearingChannel -> new Value(hearingChannel.name(), hearingChannel.getLabel()))
                     .toList();
-                asylumCase.write(HEARING_CHANNEL, new DynamicList(
+                asylumCase.write(REQUEST_HEARING_CHANNEL, new DynamicList(
                     new Value(
                         hearingResponse.getHearingDetails().getHearingChannels().get(0),
                         hearingResponse.getHearingDetails().getHearingChannelDescription()
                     ),
                     hearingChannels
                 ));
+                asylumCase.write(HEARING_LOCATION, locationRefDataService.getHearingLocationsDynamicList());
             }
 
             if (hearingResponse.getHearingDetails().getHearingLocations() != null
@@ -107,7 +114,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
                                                                           .getDuration());
                 duration.ifPresent(hearingLength -> {
                     asylumCase.write(CHANGE_HEARING_DURATION, hearingLength.convertToHourMinuteString());
-                    asylumCase.write(LIST_CASE_HEARING_LENGTH, String.valueOf(hearingLength.getValue()));
+                    asylumCase.write(REQUEST_HEARING_LENGTH, String.valueOf(hearingLength.getValue()));
                 });
             }
 
@@ -142,7 +149,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
         } else if (hearingWindowModel.getFirstDateTimeMustBe() != null) {
             LocalDateTime firstDateTime = LocalDateTime.parse(hearingWindowModel.getFirstDateTimeMustBe());
             asylumCase.write(
-                LIST_CASE_HEARING_DATE,
+                REQUEST_HEARING_DATE,
                 firstDateTime
             );
             asylumCase.write(

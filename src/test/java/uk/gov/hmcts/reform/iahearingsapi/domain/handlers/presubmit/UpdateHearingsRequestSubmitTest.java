@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ReasonCodes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
@@ -23,6 +22,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadServ
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -42,11 +42,11 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_UPDATE_REASON;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
@@ -106,7 +106,7 @@ class UpdateHearingsRequestSubmitTest {
     @Test
     void should_send_an_update_of_the_hearing_channels() {
 
-        asylumCase.write(HEARING_CHANNEL, "TEL");
+        asylumCase.write(REQUEST_HEARING_CHANNEL, "TEL");
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
@@ -122,7 +122,7 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            false
+            UPDATE_HEARING_REQUEST
         );
 
         verifyFieldsAreCleared();
@@ -130,7 +130,9 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_send_an_update_of_the_hearing_locations() {
-        asylumCase.write(LIST_CASE_HEARING_CENTRE, HearingCentre.BRADFORD);
+        asylumCase.write(HEARING_LOCATION, new DynamicList(
+            new Value("366796", "Newcastle"),
+            List.of(new Value("366796", "Newcastle"))));
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
@@ -146,7 +148,7 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            false
+            UPDATE_HEARING_REQUEST
         );
 
         verifyFieldsAreCleared();
@@ -155,7 +157,7 @@ class UpdateHearingsRequestSubmitTest {
     @Test
     void should_send_an_update_of_the_hearing_window_date_to_be_fixed() {
         asylumCase.write(CHANGE_HEARING_DATE_TYPE, "DateToBeFixed");
-        asylumCase.write(LIST_CASE_HEARING_DATE, "2023-12-02T00:00:00.000");
+        asylumCase.write(REQUEST_HEARING_DATE, "2023-12-02T00:00:00.000");
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
@@ -175,7 +177,7 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             newHearingWindow,
-            false
+            UPDATE_HEARING_REQUEST
         );
         verifyFieldsAreCleared();
     }
@@ -204,7 +206,7 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             newHearingWindow,
-            false
+            UPDATE_HEARING_REQUEST
         );
         verifyFieldsAreCleared();
     }
@@ -227,7 +229,7 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             true,
             null,
-            false
+            UPDATE_HEARING_REQUEST
         );
         verifyFieldsAreCleared();
     }
@@ -268,7 +270,7 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_send_an_update_of_the_hearing_duration() {
-        asylumCase.write(LIST_CASE_HEARING_LENGTH, "240");
+        asylumCase.write(REQUEST_HEARING_LENGTH, "240");
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
@@ -283,7 +285,7 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            false
+            UPDATE_HEARING_REQUEST
         );
         verifyFieldsAreCleared();
     }
@@ -299,7 +301,7 @@ class UpdateHearingsRequestSubmitTest {
 
     @Test
     void should_require_manual_update_hearing_if_update_hearing_call_failed() {
-        asylumCase.write(HEARING_CHANNEL, "TEL");
+        asylumCase.write(REQUEST_HEARING_CHANNEL, "TEL");
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
         when(hearingService.updateHearing(any(UpdateHearingRequest.class), any()))
             .thenThrow(new HmcException(new Throwable()));
