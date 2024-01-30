@@ -12,11 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HAS_SPONSOR;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.AIP;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
@@ -30,7 +26,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ChangeOrganisationRequest;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 
 @ExtendWith(MockitoExtension.class)
@@ -168,49 +163,4 @@ class MapperUtilsTest {
 
         assertFalse(MapperUtils.isChangeOrganisationRequestPresent(asylumCase));
     }
-
-    @Test
-    void should_return_requested_update_field_when_event_is_trigger_update_hearing_request() {
-        assertEquals(
-            REQUEST_HEARING_CHANNEL,
-            MapperUtils.getCaseFieldWhenEventIsUpdateHearingRequest(
-                Event.UPDATE_HEARING_REQUEST,
-                HEARING_CHANNEL,
-                REQUEST_HEARING_CHANNEL
-            )
-        );
-    }
-
-    @Test
-    void should_return_requested_update_field_when_event_is_null() {
-        assertEquals(
-            LIST_CASE_HEARING_CENTRE,
-            MapperUtils.getCaseFieldWhenEventIsUpdateHearingRequest(
-                null,
-                LIST_CASE_HEARING_CENTRE,
-                HEARING_LOCATION
-            )
-        );
-    }
-
-    @Test
-    void should_return_true_when_event_is_record_adjourment_details() {
-        assertEquals(
-            true,
-            MapperUtils.isRecordAdjournmentDetailsEvent(
-                Event.RECORD_ADJOURNMENT_DETAILS
-            )
-        );
-    }
-
-    @Test
-    void should_return_false_when_event_is_not_record_adjourment_details() {
-        assertEquals(
-            false,
-            MapperUtils.isRecordAdjournmentDetailsEvent(
-                Event.UPDATE_HEARING_REQUEST
-            )
-        );
-    }
-
 }

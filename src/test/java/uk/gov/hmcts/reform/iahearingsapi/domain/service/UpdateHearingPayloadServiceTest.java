@@ -6,10 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_FORMAT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
@@ -62,7 +63,7 @@ class UpdateHearingPayloadServiceTest {
     @Mock
     private ListingCommentsMapper listingCommentsMapper;
     @Mock
-    HearingGetResponse hearingGetResponse;
+    HearingGetResponse persistedHearing;
     @Mock
     private AsylumCase asylumCase;
     @Mock
@@ -71,13 +72,17 @@ class UpdateHearingPayloadServiceTest {
     private final String updateHearingsCode = "code 1";
     UpdateHearingPayloadService updateHearingPayloadService;
 
-    private final String locationId = "1234";
-    private final String locationType = "court";
+    private final String persistedHearingLocationId = "1234";
+    private final String persistedHearingLocationType = "court";
+    private final List<String> persistedHearingChannel = List.of("INTER");
+    private final Integer persistedHearingDuration = 120;
     private final String reasonCode = ReasonCodes.OTHER.toString();
     private final List<HearingLocationModel> hearingLocations = List.of(HearingLocationModel
                                                                             .builder()
-                                                                            .locationId(locationId)
-                                                                            .locationType(locationType)
+                                                                            .locationId(
+                                                                                persistedHearingLocationId)
+                                                                            .locationType(
+                                                                                persistedHearingLocationType)
                                                                             .build());
     private final HearingWindowModel hearingWindow = HearingWindowModel
         .builder()
@@ -88,8 +93,8 @@ class UpdateHearingPayloadServiceTest {
     @BeforeEach
     void setUp() {
         setDefaultHearingDetails();
-        when(hearingService.getHearing(updateHearingsCode)).thenReturn(hearingGetResponse);
-        when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
+        when(hearingService.getHearing(updateHearingsCode)).thenReturn(persistedHearing);
+        when(persistedHearing.getHearingDetails()).thenReturn(hearingDetails);
         when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
         when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
@@ -106,11 +111,6 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_create_an_update_hearing_request_with_new_hearing_channels() {
-        String hearingChannel = "TEL";
-        when(asylumCase.read(
-            HEARING_CHANNEL,
-            DynamicList.class
-        )).thenReturn(Optional.of(new DynamicList(hearingChannel)));
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -124,7 +124,7 @@ class UpdateHearingPayloadServiceTest {
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
 
         assertEquals(
-            List.of(hearingChannel),
+            persistedHearingChannel,
             updateHearingRequest.getHearingDetails().getHearingChannels()
         );
         assertEqualsHearingDetails(updateHearingRequest);
@@ -172,11 +172,6 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_with_new_location_code() {
 
-        when(asylumCase.read(
-            LIST_CASE_HEARING_CENTRE,
-            HearingCentre.class
-        )).thenReturn(Optional.of(HearingCentre.BRADFORD));
-
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
             updateHearingsCode,
@@ -189,7 +184,7 @@ class UpdateHearingPayloadServiceTest {
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
 
         assertEquals(
-            HearingCentre.BRADFORD.getEpimsId(),
+            persistedHearingLocationId,
             updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId()
         );
         assertEqualsHearingDetails(updateHearingRequest);
@@ -423,10 +418,113 @@ class UpdateHearingPayloadServiceTest {
         );
     }
 
+    @Test
+    void should_return_default_hearing_value_when_the_event_is_null() {
+        when(caseDataMapper.getHearingDuration(asylumCase, null)).thenReturn(null);
+
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            false,
+            null,
+            null
+        );
+
+        verify(hearingService, times(1)).getHearing(updateHearingsCode);
+
+        assertEquals(
+            persistedHearingChannel,
+            updateHearingRequest.getHearingDetails().getHearingChannels());
+
+        assertEquals(
+            persistedHearingLocationId,
+            updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId());
+
+        assertEquals(
+            persistedHearingDuration,
+            updateHearingRequest.getHearingDetails().getDuration());
+
+        assertEqualsHearingDetails(updateHearingRequest);
+    }
+
+    @Test
+    void should_return_requested_update_hearing_value_when_the_event_is_update_hearing_request() {
+        when(asylumCase.read(REQUEST_HEARING_CHANNEL, DynamicList.class)).thenReturn(
+            Optional.of(new DynamicList("VID"))
+        );
+        when(asylumCase.read(HEARING_LOCATION, DynamicList.class)).thenReturn(
+            Optional.of(new DynamicList("783803"))
+        );
+        when(caseDataMapper.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(90);
+
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            false,
+            null,
+            UPDATE_HEARING_REQUEST
+        );
+
+        verify(hearingService, times(1)).getHearing(updateHearingsCode);
+
+        assertEquals(
+            List.of("VID"),
+            updateHearingRequest.getHearingDetails().getHearingChannels());
+
+        assertEquals(
+            "783803",
+            updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId());
+
+        assertEquals(
+            90,
+            updateHearingRequest.getHearingDetails().getDuration());
+
+        assertEqualsHearingDetails(updateHearingRequest);
+    }
+
+    @Test
+    void should_return_next_hearing_value_when_the_event_is_record_adjournment_details() {
+
+        when(asylumCase.read(NEXT_HEARING_FORMAT, DynamicList.class)).thenReturn(
+            Optional.of(new DynamicList("TEL"))
+        );
+        when(asylumCase.read(NEXT_HEARING_LOCATION, String.class)).thenReturn(
+            Optional.of(HearingCentre.NEWPORT.getValue())
+        );
+        when(caseDataMapper.getHearingDuration(asylumCase, Event.RECORD_ADJOURNMENT_DETAILS)).thenReturn(60);
+
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            false,
+            null,
+            Event.RECORD_ADJOURNMENT_DETAILS
+        );
+
+        verify(hearingService, times(1)).getHearing(updateHearingsCode);
+
+        assertEquals(
+            List.of("TEL"),
+            updateHearingRequest.getHearingDetails().getHearingChannels());
+
+        assertEquals(
+            HearingCentre.NEWPORT.getEpimsId(),
+            updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId());
+
+        assertEquals(
+            60,
+            updateHearingRequest.getHearingDetails().getDuration());
+
+        assertEqualsHearingDetails(updateHearingRequest);
+    }
+
     private void setDefaultHearingDetails() {
-        hearingDetails.setHearingChannels(List.of("INTER"));
+        hearingDetails.setHearingChannels(persistedHearingChannel);
         hearingDetails.setHearingLocations(hearingLocations);
-        hearingDetails.setDuration(120);
+        hearingDetails.setDuration(persistedHearingDuration);
         hearingDetails.setHearingWindow(hearingWindow);
         hearingDetails.setFacilitiesRequired(List.of("1"));
     }

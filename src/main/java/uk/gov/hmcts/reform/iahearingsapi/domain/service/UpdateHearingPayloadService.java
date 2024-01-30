@@ -1,10 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_FORMAT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
@@ -13,7 +11,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.ge
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -21,9 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
@@ -124,51 +119,49 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                                             HearingGetResponse persistedHearing,
                                             Event event) {
 
-        AsylumCaseFieldDefinition needToUpdateHearingChannelCaseField
-            = MapperUtils.getCaseFieldWhenEventIsUpdateHearingRequest(event,
-                                                               HEARING_CHANNEL,
-                                                               REQUEST_HEARING_CHANNEL);
-
         if (caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase)) {
             return List.of(HearingChannel.ONPPRS.name());
         }
 
-        Optional<String> hearingChannels = asylumCase.read(
-            MapperUtils.isRecordAdjournmentDetailsEvent(event)
-                ? NEXT_HEARING_FORMAT : needToUpdateHearingChannelCaseField,
-            DynamicList.class
-        ).map(hearingChannel -> hearingChannel.getValue().getCode());
+        Optional<String> hearingChannels = Optional.empty();
+        if (event != null) {
+            switch (event) {
+                case RECORD_ADJOURNMENT_DETAILS:
+                    hearingChannels = asylumCase.read(NEXT_HEARING_FORMAT, DynamicList.class)
+                        .map(nextHearingFormat -> nextHearingFormat.getValue().getCode());
+                    break;
 
-        return hearingChannels.map(List::of).orElseGet(() -> persistedHearing.getHearingDetails().getHearingChannels());
+                case UPDATE_HEARING_REQUEST:
+                    hearingChannels = asylumCase.read(REQUEST_HEARING_CHANNEL, DynamicList.class)
+                        .map(requestHearingChannel -> requestHearingChannel.getValue().getCode());
+                    break;
+            }
+        }
+
+        return hearingChannels
+            .map(List::of)
+            .orElseGet(() -> persistedHearing.getHearingDetails().getHearingChannels());
     }
 
     private List<HearingLocationModel> getLocations(AsylumCase asylumCase,
                                                     HearingGetResponse persistedHearing,
                                                     Event event) {
 
-        AsylumCaseFieldDefinition needToUpdateLocationCaseField
-            = MapperUtils.getCaseFieldWhenEventIsUpdateHearingRequest(event,
-                                                               LIST_CASE_HEARING_CENTRE,
-                                                               HEARING_LOCATION);
+        Optional<String> locationCodes = Optional.empty();
+        if (event != null) {
+            switch (event) {
+                case RECORD_ADJOURNMENT_DETAILS:
+                    locationCodes = Optional.of(
+                        getEpimsIdByValue(
+                            asylumCase.read(NEXT_HEARING_LOCATION, String.class)
+                                .orElseThrow(() -> new IllegalStateException(
+                                 NEXT_HEARING_LOCATION + "  is not present"))));
+                    break;
 
-        Optional<String> locationCodes;
-        if (MapperUtils.isRecordAdjournmentDetailsEvent(event)) {
-            locationCodes = Optional.of(getEpimsIdByValue(asylumCase.read(
-                    NEXT_HEARING_LOCATION,
-                    String.class)
-                .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_LOCATION + "  is not present"))));
-
-        } else {
-            if (Objects.equals(needToUpdateLocationCaseField, HEARING_LOCATION)) {
-                locationCodes = asylumCase.read(
-                    needToUpdateLocationCaseField,
-                    DynamicList.class
-                ).map(hearingLocation -> hearingLocation.getValue().getCode());
-            } else {
-                locationCodes = asylumCase.read(
-                    needToUpdateLocationCaseField,
-                    HearingCentre.class
-                ).map(HearingCentre::getEpimsId);
+                case UPDATE_HEARING_REQUEST:
+                    locationCodes = asylumCase.read(HEARING_LOCATION, DynamicList.class)
+                        .map(hearingLocation -> hearingLocation.getValue().getCode());
+                    break;
             }
         }
 

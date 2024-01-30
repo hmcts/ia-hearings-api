@@ -15,7 +15,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
@@ -144,16 +143,18 @@ public class CaseDataToServiceHearingValuesMapper {
             return null;
         }
 
-        AsylumCaseFieldDefinition needToUpdateDurationCaseField
-            = MapperUtils.getCaseFieldWhenEventIsUpdateHearingRequest(event,
-                                                                      LIST_CASE_HEARING_LENGTH,
-                                                                      REQUEST_HEARING_LENGTH);
+        int hearingDuration = 0;
+        if (event != null) {
+            switch (event) {
+                case RECORD_ADJOURNMENT_DETAILS:
+                    hearingDuration = getIntHearingDurationFromString(asylumCase, NEXT_HEARING_DURATION);
+                    break;
 
-        int hearingDuration =
-            asylumCase.read(MapperUtils.isRecordAdjournmentDetailsEvent(event)
-                                ? NEXT_HEARING_DURATION : needToUpdateDurationCaseField, String.class)
-                .map(duration -> duration.isBlank() ? 0 : Integer.parseInt(duration))
-                .orElse(0);
+                case UPDATE_HEARING_REQUEST:
+                    hearingDuration = getIntHearingDurationFromString(asylumCase, REQUEST_HEARING_LENGTH);
+                    break;
+            }
+        }
         return hearingDuration <= 0 ? null : hearingDuration;
     }
 
@@ -292,5 +293,11 @@ public class CaseDataToServiceHearingValuesMapper {
         result.append(";");
 
         return result;
+    }
+
+    private int getIntHearingDurationFromString(AsylumCase asylumCase, AsylumCaseFieldDefinition caseField) {
+        return asylumCase.read(caseField, String.class)
+            .map(duration -> duration.isBlank() ? 0 : Integer.parseInt(duration))
+            .orElse(0);
     }
 }
