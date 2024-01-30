@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.iahearingsapi;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.SUBMIT_HEARING_REQUIREMENTS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.DECISION_AND_REASONS_STARTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PRE_HEARING;
 
 import io.restassured.http.Header;
 import io.restassured.response.Response;
@@ -20,16 +20,16 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
-import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.ListCaseWithoutHearingRequirementsHandler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.DecisionAndReasonsStartedHandler;
 
 /**
- * This functional test class covers all callback handlers in relation to ListCaseWithoutHearingRequirementsHandler.
- * This includes {@link ListCaseWithoutHearingRequirementsHandler}
+ * This functional test class covers all callback handlers in relation to DecisionAndReasonsStartedHandler.
+ * This includes {@link DecisionAndReasonsStartedHandler}
  */
 @Slf4j
 @ActiveProfiles("functional")
 @Disabled
-public class ListCaseWithoutHearingRequirementsFunctionalTest extends CcdCaseCreationTest {
+public class DecisionAndReasonsStartedFunctionalTest extends CcdCaseCreationTest {
 
     @BeforeEach
     void getAuthentications() {
@@ -45,14 +45,14 @@ public class ListCaseWithoutHearingRequirementsFunctionalTest extends CcdCaseCre
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
             result.getCaseId(),
             "IA",
-            SUBMIT_HEARING_REQUIREMENTS,
+            PRE_HEARING,
             asylumCase,
             LocalDateTime.now(),
             "securityClassification"
         );
 
         Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails),
-                                           LIST_CASE_WITHOUT_HEARING_REQUIREMENTS);
+                                           DECISION_AND_REASONS_STARTED);
 
         Response response = given(hearingsSpecification)
             .when()
@@ -74,14 +74,14 @@ public class ListCaseWithoutHearingRequirementsFunctionalTest extends CcdCaseCre
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
             00000111,
             "IA",
-            SUBMIT_HEARING_REQUIREMENTS,
+            PRE_HEARING,
             asylumCase,
             LocalDateTime.now(),
             "securityClassification"
         );
 
         Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails),
-                                           LIST_CASE_WITHOUT_HEARING_REQUIREMENTS);
+                                           DECISION_AND_REASONS_STARTED);
 
         Response response = given(hearingsSpecification)
             .when()
