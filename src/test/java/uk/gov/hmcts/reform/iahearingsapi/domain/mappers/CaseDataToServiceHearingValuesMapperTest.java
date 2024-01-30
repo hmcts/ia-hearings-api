@@ -13,12 +13,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_IN_UK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PHONE_NUMBER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.AUTO_LIST_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATES_TO_AVOID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_ADDITIONAL_ADJUSTMENTS_ALLOWED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_HEARING_LINKED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_MULTIMEDIA_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VULNERABILITIES_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
@@ -515,6 +517,38 @@ class CaseDataToServiceHearingValuesMapperTest {
             .thenReturn(Optional.empty());
 
         assertEquals("", mapper.getLegalRepOrganisationIdentifier(asylumCase));
+    }
+
+    @Test
+    void getAutoListHearingFlag_should_return_true_if_value_is_yes() {
+        when(asylumCase.read(AUTO_LIST_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+
+        assertEquals(true, mapper.getAutoListHearingFlag(asylumCase));
+    }
+
+    @Test
+    void getAutoListHearingFlag_should_default_to_false_if_no_value_present() {
+        when(asylumCase.read(AUTO_LIST_HEARING, YesOrNo.class))
+            .thenReturn(Optional.empty());
+
+        assertEquals(false, mapper.getAutoListHearingFlag(asylumCase));
+    }
+
+    @Test
+    void getHearingLinkedFlag_should_return_true_if_value_is_yes() {
+        when(asylumCase.read(IS_HEARING_LINKED, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+
+        assertEquals(true, mapper.getHearingLinkedFlag(asylumCase));
+    }
+
+    @Test
+    void getHearingLinkedFlag_should_default_to_false_if_no_value_present() {
+        when(asylumCase.read(IS_HEARING_LINKED, YesOrNo.class))
+            .thenReturn(Optional.empty());
+
+        assertEquals(false, mapper.getHearingLinkedFlag(asylumCase));
     }
 
 }
