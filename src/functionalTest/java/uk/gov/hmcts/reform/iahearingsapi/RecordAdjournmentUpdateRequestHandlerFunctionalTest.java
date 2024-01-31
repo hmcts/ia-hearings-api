@@ -13,7 +13,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.RELIST_CASE_IMMEDIATELY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingAdjournmentDay.BEFORE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingAdjournmentDay.ON_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ADJOURNMENT_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 
@@ -117,41 +116,6 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
             .statusCode(HttpStatus.SC_OK)
             .log().all(true)
             .assertThat().body("data.updateHmcRequestSuccess", notNullValue());
-    }
-
-    @ParameterizedTest
-    @CsvSource({"true", "false"})
-    void should_handle_record_adjournment_details_auto_hearing_request_successfully(boolean isAipJourney) {
-        Case result = createAndGetCase(isAipJourney);
-        createHearing(result);
-
-        AsylumCase asylumCase = result.getCaseData();
-        asylumCase.write(RELIST_CASE_IMMEDIATELY, "Yes");
-        asylumCase.write(HEARING_ADJOURNMENT_WHEN, ON_HEARING_DATE);
-        asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(HEARING_ID));
-
-        CaseDetails<CaseData> caseDetails = new CaseDetails<>(
-            result.getCaseId(),
-            "IA",
-            LISTING,
-            result.getCaseData(),
-            LocalDateTime.now(),
-            "securityClassification"
-        );
-
-        Callback<CaseData> callback = new Callback<>(caseDetails, Optional.of(caseDetails),
-                                                     RECORD_ADJOURNMENT_DETAILS);
-        given(hearingsSpecification)
-            .when()
-            .contentType("application/json")
-            .header(new Header(AUTHORIZATION, caseOfficerToken))
-            .header(new Header(SERVICE_AUTHORIZATION, s2sToken))
-            .body(callback)
-            .post("/asylum/ccdAboutToSubmit")
-            .then()
-            .statusCode(HttpStatus.SC_OK)
-            .log().all(true)
-            .assertThat().body("data.manualCreHearingRequired", notNullValue());
     }
 
     @ParameterizedTest

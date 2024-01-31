@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -53,7 +53,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationBasedFeatureToggler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
@@ -77,8 +76,6 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
     @Mock
     private UpdateHearingPayloadService updateHearingPayloadService;
     @Mock
-    private LocationBasedFeatureToggler locationBasedFeatureToggler;
-    @Mock
     HearingGetResponse hearingGetResponse;
     HearingDetails hearingDetails = new HearingDetails();
     private final String updateHearingsCode = "code 1";
@@ -96,14 +93,14 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
         asylumCase.write(HEARING_REASON_TO_CANCEL, CANCELLATION_REASON);
         asylumCase.write(HEARING_REASON_TO_UPDATE, CANCELLATION_REASON);
         asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(HEARING_ID));
+        asylumCase.write(HEARING_ADJOURNMENT_WHEN, BEFORE_HEARING_DATE);
 
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(RECORD_ADJOURNMENT_DETAILS);
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(hearingGetResponse);
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
-        handler = new RecordAdjournmentUpdateRequestHandler(
-            hearingService, updateHearingPayloadService, locationBasedFeatureToggler);
+        handler = new RecordAdjournmentUpdateRequestHandler(hearingService, updateHearingPayloadService);
     }
 
     @Test
@@ -119,11 +116,20 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
             .isExactlyInstanceOf(IllegalStateException.class);
     }
 
+    @Test
+    void should_fail_to_handle_if_not_adjourned_before_hearing_day() {
+        asylumCase.write(HEARING_ADJOURNMENT_WHEN, ON_HEARING_DATE);
+
+        when(callback.getEvent()).thenReturn(END_APPEAL);
+        assertThatThrownBy(() -> handler.handle(ABOUT_TO_SUBMIT, callback))
+            .hasMessage("Cannot handle callback")
+            .isExactlyInstanceOf(IllegalStateException.class);
+    }
+
     @ParameterizedTest
     @EnumSource(value = YesOrNo.class, names = {"YES", "NO"})
     void should_send_update_if_relist_case_immediately(YesOrNo relistCaseImmediately) {
         asylumCase.write(RELIST_CASE_IMMEDIATELY, relistCaseImmediately);
-        asylumCase.write(HEARING_ADJOURNMENT_WHEN, BEFORE_HEARING_DATE);
         asylumCase.write(NEXT_HEARING_DATE, NEXT_HEARING_DATE_DATE_TO_BE_FIXED);
         asylumCase.write(NEXT_HEARING_DATE_FIXED, DATE1);
 
@@ -157,7 +163,6 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
     @Test
     void should_send_update_if_relist_case_immediately_with_first_available_date() {
         asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
-        asylumCase.write(HEARING_ADJOURNMENT_WHEN, BEFORE_HEARING_DATE);
         asylumCase.write(NEXT_HEARING_DATE, NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE);
         when(updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -183,7 +188,6 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
     @Test
     void should_send_update_if_relist_case_immediately_with_date_range() {
         asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
-        asylumCase.write(HEARING_ADJOURNMENT_WHEN, BEFORE_HEARING_DATE);
         asylumCase.write(NEXT_HEARING_DATE, NEXT_HEARING_DATE_CHOOSE_DATE_RANGE);
         asylumCase.write(NEXT_HEARING_DATE_RANGE_EARLIEST, DATE1);
         asylumCase.write(NEXT_HEARING_DATE_RANGE_LATEST, DATE2);
@@ -215,7 +219,6 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
     @EnumSource(value = YesOrNo.class, names = {"YES", "NO"})
     void should_delete_hearing_if_not_relist_case_immediately(YesOrNo relistCaseImmediately) {
         asylumCase.write(RELIST_CASE_IMMEDIATELY, relistCaseImmediately);
-        asylumCase.write(HEARING_ADJOURNMENT_WHEN, BEFORE_HEARING_DATE);
         asylumCase.write(NEXT_HEARING_DATE, NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE);
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
@@ -230,59 +233,6 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
             assertEquals(Optional.of(NO), asylumCase.read(MANUAL_CANCEL_HEARINGS_REQUIRED));
         }
 
-    }
-
-    @Test
-    void should_auto_request_hearing() {
-        asylumCase.write(HEARING_ADJOURNMENT_WHEN, ON_HEARING_DATE);
-        asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
-        when(locationBasedFeatureToggler.isAutoHearingRequestEnabled(asylumCase)).thenReturn(YES);
-
-        handler.handle(ABOUT_TO_SUBMIT, callback);
-
-        verify(hearingService, times(1)).createHearingWithPayload(callback);
-    }
-
-    @Test
-    void should_not_auto_request_hearing_when_auto_request_not_enabled() {
-        asylumCase.write(HEARING_ADJOURNMENT_WHEN, ON_HEARING_DATE);
-        asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
-        when(locationBasedFeatureToggler.isAutoHearingRequestEnabled(asylumCase)).thenReturn(NO);
-
-        handler.handle(ABOUT_TO_SUBMIT, callback);
-
-        verify(hearingService, never()).createHearingWithPayload(callback);
-    }
-
-    @Test
-    void should_not_auto_request_hearing_when_not_relist_immediately() {
-        asylumCase.write(HEARING_ADJOURNMENT_WHEN, ON_HEARING_DATE);
-        asylumCase.write(RELIST_CASE_IMMEDIATELY, NO);
-        when(locationBasedFeatureToggler.isAutoHearingRequestEnabled(asylumCase)).thenReturn(YES);
-
-        handler.handle(ABOUT_TO_SUBMIT, callback);
-
-        verify(hearingService, never()).createHearingWithPayload(callback);
-    }
-
-    @Test
-    void should_throw_exception_if_hearing_adjournment_when_is_not_set() {
-        asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
-        when(locationBasedFeatureToggler.isAutoHearingRequestEnabled(asylumCase)).thenReturn(YES);
-
-        assertThatThrownBy(() -> handler.handle(ABOUT_TO_SUBMIT, callback))
-            .hasMessage("'Hearing adjournment when' is not present")
-            .isExactlyInstanceOf(IllegalStateException.class);
-    }
-
-    @Test
-    void should_throw_exception_when_relist_immediately_response_is_missing() {
-        asylumCase.write(HEARING_ADJOURNMENT_WHEN, ON_HEARING_DATE);
-        when(locationBasedFeatureToggler.isAutoHearingRequestEnabled(asylumCase)).thenReturn(YES);
-
-        assertThatThrownBy(() -> handler.handle(ABOUT_TO_SUBMIT, callback))
-            .hasMessage("Response to relist case immediately is not present")
-            .isExactlyInstanceOf(IllegalStateException.class);
     }
 
     @Test

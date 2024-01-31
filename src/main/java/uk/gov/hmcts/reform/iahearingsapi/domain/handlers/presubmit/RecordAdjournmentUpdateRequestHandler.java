@@ -16,7 +16,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingAdjournme
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ADJOURNMENT_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingAdjournmentDay.ON_HEARING_DATE;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationBasedFeatureToggler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
@@ -46,7 +44,6 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
 
     private final HearingService hearingService;
     private final UpdateHearingPayloadService updateHearingPayloadService;
-    private final LocationBasedFeatureToggler locationBasedFeatureToggler;
 
     @Override
     public boolean canHandle(PreSubmitCallbackStage callbackStage, Callback<AsylumCase> callback) {
@@ -54,7 +51,8 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
         requireNonNull(callback, "callback must not be null");
 
         return callbackStage == PreSubmitCallbackStage.ABOUT_TO_SUBMIT
-               && RECORD_ADJOURNMENT_DETAILS == callback.getEvent();
+               && RECORD_ADJOURNMENT_DETAILS == callback.getEvent()
+               && adjournedBeforeHearingDay(callback.getCaseDetails().getCaseData());
     }
 
     @Override
@@ -67,11 +65,9 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
 
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
 
-        if (shouldAutoRequestHearing(asylumCase)) {
-            hearingService.createHearingWithPayload(callback);
-        } else if (shouldUpdateHearing(asylumCase)) {
+        if (relistCaseImmediately(asylumCase)) {
             updateHearing(asylumCase, getHearingId(asylumCase));
-        } else if (shouldDeleteHearing(asylumCase)) {
+        } else {
             deleteHearing(asylumCase, getHearingId(asylumCase));
         }
 
@@ -91,30 +87,11 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
             .orElseThrow(() -> new IllegalStateException("Response to relist case immediately is not present"));
     }
 
-    private HearingAdjournmentDay getHearingAdjournmentDay(AsylumCase asylumCase) {
+    private boolean adjournedBeforeHearingDay(AsylumCase asylumCase) {
         return asylumCase
             .read(HEARING_ADJOURNMENT_WHEN, HearingAdjournmentDay.class)
+            .map(hearingAdjournmentDay -> BEFORE_HEARING_DATE == hearingAdjournmentDay)
             .orElseThrow(() -> new IllegalStateException("'Hearing adjournment when' is not present"));
-    }
-
-    private boolean shouldUpdateHearing(AsylumCase asylumCase) {
-        return relistCaseImmediately(asylumCase)
-               && (getHearingAdjournmentDay(asylumCase) == BEFORE_HEARING_DATE);
-    }
-
-    private boolean shouldDeleteHearing(AsylumCase asylumCase) {
-        return !relistCaseImmediately(asylumCase)
-               && (getHearingAdjournmentDay(asylumCase) == BEFORE_HEARING_DATE);
-    }
-
-    private boolean shouldAutoRequestHearing(AsylumCase asylumCase) {
-        boolean adjournedOnHearingDay = getHearingAdjournmentDay(asylumCase) == ON_HEARING_DATE;
-        boolean autoRequestHearingEnabled =
-            locationBasedFeatureToggler.isAutoHearingRequestEnabled(asylumCase) == YES;
-
-        return autoRequestHearingEnabled
-               && relistCaseImmediately(asylumCase)
-               && adjournedOnHearingDay;
     }
 
     private void deleteHearing(AsylumCase asylumCase, String hearingId) {
