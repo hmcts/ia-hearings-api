@@ -26,6 +26,7 @@ public enum Event {
     DECISION_WITHOUT_HEARING_LISTED("decisionWithoutHearingListed"),
     REVIEW_HEARING_REQUIREMENTS("reviewHearingRequirements"),
     DECISION_AND_REASONS_STARTED("decisionAndReasonsStarted"),
+    RESTORE_STATE_FROM_ADJOURN("restoreStateFromAdjourn"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");

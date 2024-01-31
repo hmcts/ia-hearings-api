@@ -31,10 +31,11 @@ public class EventTest {
         assertEquals("decisionWithoutHearingListed", Event.DECISION_WITHOUT_HEARING_LISTED.toString());
         assertEquals("reviewHearingRequirements", Event.REVIEW_HEARING_REQUIREMENTS.toString());
         assertEquals("decisionAndReasonsStarted", Event.DECISION_AND_REASONS_STARTED.toString());
+        assertEquals("restoreStateFromAdjourn", Event.RESTORE_STATE_FROM_ADJOURN.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(22, Event.values().length);
+        assertEquals(23, Event.values().length);
     }
 }

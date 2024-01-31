@@ -7,6 +7,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingAdjournme
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.DECISION_AND_REASONS_STARTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ADJOURNMENT_DETAILS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RESTORE_STATE_FROM_ADJOURN;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.REVIEW_HEARING_REQUIREMENTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
@@ -38,7 +39,8 @@ public class AutoRequestHearingHandler implements PreSubmitCallbackHandler<Asylu
         List<Event> targetEvents = List.of(
             LIST_CASE_WITHOUT_HEARING_REQUIREMENTS,
             DECISION_AND_REASONS_STARTED,
-            REVIEW_HEARING_REQUIREMENTS);
+            REVIEW_HEARING_REQUIREMENTS,
+            RESTORE_STATE_FROM_ADJOURN);
 
         return callbackStage == PreSubmitCallbackStage.ABOUT_TO_SUBMIT
                && (targetEvents.contains(callback.getEvent()) || autoRequestHearingForRecordAdjournmentEvent(callback));

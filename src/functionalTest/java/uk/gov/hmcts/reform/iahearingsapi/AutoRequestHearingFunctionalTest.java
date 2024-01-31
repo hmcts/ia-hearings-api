@@ -42,10 +42,12 @@ public class AutoRequestHearingFunctionalTest extends CcdCaseCreationTest {
         "DECISION_AND_REASONS_STARTED, PRE_HEARING, true",
         "REVIEW_HEARING_REQUIREMENTS, LISTING, true",
         "RECORD_ADJOURNMENT_DETAILS, PRE_HEARING, true",
+        "RESTORE_STATE_FROM_ADJOURN, ADJOURNED, true",
         "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS, SUBMIT_HEARING_REQUIREMENTS, false",
         "DECISION_AND_REASONS_STARTED, PRE_HEARING, false",
         "REVIEW_HEARING_REQUIREMENTS, LISTING, false",
-        "RECORD_ADJOURNMENT_DETAILS, PRE_HEARING, false"})
+        "RECORD_ADJOURNMENT_DETAILS, PRE_HEARING, false",
+        "RESTORE_STATE_FROM_ADJOURN, ADJOURNED, false"})
     void should_submit_hearing_creation_request_successfully(Event event, State state, boolean isAipJourney) {
         Case result = createAndGetCase(isAipJourney);
 

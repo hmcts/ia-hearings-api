@@ -70,7 +70,8 @@ public class AutoRequestHearingHandlerTest {
         "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS",
         "DECISION_AND_REASONS_STARTED",
         "REVIEW_HEARING_REQUIREMENTS",
-        "RECORD_ADJOURNMENT_DETAILS"})
+        "RECORD_ADJOURNMENT_DETAILS",
+        "RESTORE_STATE_FROM_ADJOURN"})
     void should_handle_successfully(Event event) {
         when(callback.getEvent()).thenReturn(event);
 
@@ -113,7 +114,8 @@ public class AutoRequestHearingHandlerTest {
         "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS",
         "DECISION_AND_REASONS_STARTED",
         "REVIEW_HEARING_REQUIREMENTS",
-        "RECORD_ADJOURNMENT_DETAILS"})
+        "RECORD_ADJOURNMENT_DETAILS",
+        "RESTORE_STATE_FROM_ADJOURN"})
     void should_send_hearing_creation_request_to_hmc(Event event) {
         when(callback.getEvent()).thenReturn(event);
         when(hearingService.createHearingWithPayload(callback)).thenReturn(asylumCase);
