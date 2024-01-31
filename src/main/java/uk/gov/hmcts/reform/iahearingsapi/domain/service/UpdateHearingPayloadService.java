@@ -187,7 +187,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                                                    HearingGetResponse persistedHearing) {
         if (!firstAvailable) {
             if (hearingWindowModel == null) {
-                returnValidHearingWindow(persistedHearing.getHearingDetails().getHearingWindow());
+                return returnValidHearingWindow(persistedHearing.getHearingDetails().getHearingWindow());
             } else {
                 return hearingWindowModel;
             }
