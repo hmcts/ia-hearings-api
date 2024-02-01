@@ -16,6 +16,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PRE_HE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.getHearingDateAndTime;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import java.time.LocalDateTime;
@@ -98,23 +99,34 @@ public class EditListCaseHandler extends ListedHearingService implements Service
             LIST_CASE_HEARING_CENTRE,
             HearingCentre.class
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingCentre can not be null")).getEpimsId();
+
         DynamicList currentHearingChannels = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
             .orElseThrow(() -> new IllegalStateException("hearingChannel can not be null"));
+
         final String currentHearingChannel = currentHearingChannels.getValue().getCode();
+
         final String currentDuration = asylumCase.read(
             LIST_CASE_HEARING_LENGTH,
             String.class
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingLength can not be null"));
+
         final String nextHearingChannel = nextHearingChannelList.get(0).name();
+
         final boolean hearingDateChanged = !(currentHearingDate.truncatedTo(ChronoUnit.DAYS))
             .equals(nextHearingDate.truncatedTo(ChronoUnit.DAYS));
-        final boolean isRemoteHearing = nextHearingChannel.equals(VID.name())
-                                        || nextHearingChannel.equals(TEL.name());
+
+        final boolean isRemoteHearing = nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
+
+        // the venue id as per List Assist (regardless of whether the hearing is remote or not)
+        final String actualNextHearingVenueId = getHearingVenueId(serviceData);
+
+        // venue id shown on frontend and in notifications will show as Remote Hearing if it's remote
         final String nextHearingVenueId = isRemoteHearing
             ? REMOTE_HEARING.getEpimsId()
-            : getHearingVenueId(serviceData);
+            : actualNextHearingVenueId;
+
         final boolean hearingChannelChanged = !currentHearingChannel.equals(nextHearingChannel);
-        final boolean hearingVenueChanged = !currentVenueId.equals(nextHearingVenueId);
+        final boolean hearingVenueChanged = !currentVenueId.equals(actualNextHearingVenueId);
         final boolean hearingCentreChanged = hearingChannelChanged || hearingVenueChanged;
         final int nextDuration = getHearingDuration(serviceData);
         final boolean durationChanged = !currentDuration.equals(String.valueOf(nextDuration));
@@ -123,10 +135,11 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         String hearingId = serviceData.read(HEARING_ID, String.class)
             .orElseThrow(() -> new IllegalStateException("hearing id can not be null"));
 
-        if (hearingDateChanged) {
+        // listCaseHearingDate has to be recalculated based on the hearing venue
+        if (hearingDateChanged || hearingVenueChanged) {
             asylumCase.write(
                 LIST_CASE_HEARING_DATE,
-                HandlerUtils.getHearingDateAndTime(nextHearingDate, nextHearingVenueId)
+                getHearingDateAndTime(nextHearingDate, actualNextHearingVenueId)
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
             );
             sendUpdate = true;
