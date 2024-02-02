@@ -53,7 +53,9 @@ public class AutoRequestHearingHandler implements PreSubmitCallbackHandler<Asylu
             throw new IllegalStateException("Cannot handle callback");
         }
 
-        return new PreSubmitCallbackResponse<>(hearingService.createHearingWithPayload(callback));
+        hearingService.createHearingWithPayload(callback);
+
+        return new PreSubmitCallbackResponse<>(callback.getCaseDetails().getCaseData());
     }
 
     private boolean autoRequestHearingForRecordAdjournmentEvent(Callback<AsylumCase> callback) {

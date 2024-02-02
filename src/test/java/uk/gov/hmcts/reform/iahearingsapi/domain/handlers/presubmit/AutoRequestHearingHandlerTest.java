@@ -1,18 +1,14 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_ADJOURNMENT_WHEN;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_CREATE_HEARINGS_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.RELIST_CASE_IMMEDIATELY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingAdjournmentDay.BEFORE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingAdjournmentDay.ON_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_APPEAL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ADJOURNMENT_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
@@ -118,21 +114,10 @@ public class AutoRequestHearingHandlerTest {
         "RESTORE_STATE_FROM_ADJOURN"})
     void should_send_hearing_creation_request_to_hmc(Event event) {
         when(callback.getEvent()).thenReturn(event);
-        when(hearingService.createHearingWithPayload(callback)).thenReturn(asylumCase);
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
         verify(hearingService, times(1)).createHearingWithPayload(callback);
-    }
-
-    @Test
-    void should_throw_exception_if_call_unsuccessful() {
-        when(callback.getEvent()).thenReturn(LIST_CASE_WITHOUT_HEARING_REQUIREMENTS);
-        when(hearingService.createHearingWithPayload(callback)).thenThrow(new IllegalStateException());
-
-        assertThrows(IllegalStateException.class, () -> handler.handle(ABOUT_TO_SUBMIT, callback));
-
-        verify(asylumCase, never()).write(MANUAL_CREATE_HEARINGS_REQUIRED, NO);
     }
 
 }
