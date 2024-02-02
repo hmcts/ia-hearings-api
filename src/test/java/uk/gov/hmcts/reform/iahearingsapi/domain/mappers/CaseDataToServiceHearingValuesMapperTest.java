@@ -61,7 +61,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
@@ -71,7 +70,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -160,28 +158,16 @@ class CaseDataToServiceHearingValuesMapperTest {
         assertEquals(List.of("ONPPRS"), mapper.getHearingChannels(asylumCase));
     }
 
-    @ParameterizedTest
-    @CsvSource({"RECORD_ADJOURNMENT_DETAILS, NEXT_HEARING_DURATION, 120",
-        "UPDATE_HEARING_REQUEST, REQUEST_HEARING_LENGTH, 60"})
-    void getHearingDuration_should_return_value_greater_than_zero_when_event_is_not_null(Event event,
-         AsylumCaseFieldDefinition readCaseField,
-         String hearingDuration
-    ) {
-        when(asylumCase.read(readCaseField, String.class)).thenReturn(Optional.of(hearingDuration));
-
-        assertEquals(Integer.valueOf(hearingDuration), mapper.getHearingDuration(asylumCase, event));
-    }
-
     @Test
     void getHearingDuration_should_return_null_when_event_is_null() {
 
-        assertEquals(null, mapper.getHearingDuration(asylumCase, null));
+        assertEquals(null, mapper.getHearingDuration(asylumCase));
     }
 
     @Test
     void getHearingDuration_should_return_null_when_listCaseHearingLength_is_not_set() {
 
-        assertNull(mapper.getHearingDuration(asylumCase, null));
+        assertNull(mapper.getHearingDuration(asylumCase));
     }
 
     @ParameterizedTest
@@ -190,7 +176,7 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of(duration));
 
-        assertNull(mapper.getHearingDuration(asylumCase, null));
+        assertNull(mapper.getHearingDuration(asylumCase));
     }
 
     @ParameterizedTest
@@ -199,7 +185,7 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(NEXT_HEARING_DURATION, String.class)).thenReturn(Optional.of(duration));
 
-        assertNull(mapper.getHearingDuration(asylumCase, Event.RECORD_ADJOURNMENT_DETAILS));
+        assertNull(mapper.getHearingDuration(asylumCase));
     }
 
     @Test

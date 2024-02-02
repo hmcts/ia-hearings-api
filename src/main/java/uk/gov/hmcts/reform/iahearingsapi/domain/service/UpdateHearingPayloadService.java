@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_FORMAT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
@@ -178,8 +180,30 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
     private Integer getDuration(AsylumCase asylumCase,
                                 HearingGetResponse persistedHearing,
                                 Event event) {
-        return defaultIfNull(getDuration(asylumCase, event),
+        return defaultIfNull(getHearingDuration(asylumCase, event),
             persistedHearing.getHearingDetails().getDuration());
+    }
+
+    public Integer getHearingDuration(AsylumCase asylumCase, Event event) {
+        if (caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase)) {
+            return null;
+        }
+
+        int hearingDuration = 0;
+        if (event != null) {
+            switch (event) {
+                case RECORD_ADJOURNMENT_DETAILS:
+                    hearingDuration = caseDataMapper
+                        .getIntHearingDurationFromString(asylumCase, NEXT_HEARING_DURATION);
+                    break;
+
+                case UPDATE_HEARING_REQUEST:
+                    hearingDuration = caseDataMapper
+                        .getIntHearingDurationFromString(asylumCase, REQUEST_HEARING_LENGTH);
+                    break;
+            }
+        }
+        return hearingDuration <= 0 ? null : hearingDuration;
     }
 
     private HearingWindowModel updateHearingWindow(boolean firstAvailable,

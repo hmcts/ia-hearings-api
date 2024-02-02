@@ -193,7 +193,7 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_with_new_duration() {
         Integer duration = 240;
-        when(caseDataMapper.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(duration);
+        when(updateHearingPayloadService.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(duration);
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -368,7 +368,8 @@ class UpdateHearingPayloadServiceTest {
         when(asylumCase.read(NEXT_HEARING_LOCATION, String.class))
             .thenReturn(Optional.of(LEEDS_MAGS.getValue()));
         Integer duration = 240;
-        when(caseDataMapper.getHearingDuration(asylumCase, Event.RECORD_ADJOURNMENT_DETAILS)).thenReturn(duration);
+        when(updateHearingPayloadService.getHearingDuration(asylumCase, Event.RECORD_ADJOURNMENT_DETAILS))
+            .thenReturn(duration);
 
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
@@ -420,7 +421,7 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_return_default_hearing_value_when_the_event_is_null() {
-        when(caseDataMapper.getHearingDuration(asylumCase, null)).thenReturn(null);
+        when(caseDataMapper.getHearingDuration(asylumCase)).thenReturn(null);
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -456,7 +457,7 @@ class UpdateHearingPayloadServiceTest {
         when(asylumCase.read(HEARING_LOCATION, DynamicList.class)).thenReturn(
             Optional.of(new DynamicList("783803"))
         );
-        when(caseDataMapper.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(90);
+        when(updateHearingPayloadService.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(90);
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -493,7 +494,8 @@ class UpdateHearingPayloadServiceTest {
         when(asylumCase.read(NEXT_HEARING_LOCATION, String.class)).thenReturn(
             Optional.of(HearingCentre.NEWPORT.getValue())
         );
-        when(caseDataMapper.getHearingDuration(asylumCase, Event.RECORD_ADJOURNMENT_DETAILS)).thenReturn(60);
+        when(updateHearingPayloadService.getHearingDuration(asylumCase, Event.RECORD_ADJOURNMENT_DETAILS))
+            .thenReturn(60);
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
