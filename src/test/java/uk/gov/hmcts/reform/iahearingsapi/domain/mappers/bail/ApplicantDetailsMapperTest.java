@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +59,8 @@ class ApplicantDetailsMapperTest {
         PartyDetailsModel expected = getPartyDetailsModelForApplicant(individualDetails);
         when(languageAndAdjustmentsMapper.processBailPartyCaseFlags(eq(bailCase), any(PartyDetailsModel.class)))
             .thenReturn(expected);
-        when(caseDataMapper.getHearingChannelEmailPhone(bailCase, APPLICANT_MOBILE_NUMBER)).thenReturn(List.of("1234567890"));
+        when(caseDataMapper.getHearingChannelEmailPhone(bailCase, APPLICANT_MOBILE_NUMBER))
+            .thenReturn(List.of("1234567890"));
         expected.getIndividualDetails().setOtherReasonableAdjustmentDetails("");
 
         assertEquals(expected, new ApplicantDetailsMapper(languageAndAdjustmentsMapper)
@@ -79,6 +81,7 @@ class ApplicantDetailsMapperTest {
             .vulnerabilityDetails("vulnerability details")
             .vulnerableFlag(true)
             .preferredHearingChannel("VID")
+            .hearingChannelPhone(Collections.emptyList())
             .build();
         PartyDetailsModel applicantPartyDetailsModel = getPartyDetailsModelForApplicant(individualDetails);
         when(languageAndAdjustmentsMapper.processBailPartyCaseFlags(eq(bailCase), any(PartyDetailsModel.class)))
@@ -110,6 +113,7 @@ class ApplicantDetailsMapperTest {
             .vulnerabilityDetails("vulnerability details")
             .vulnerableFlag(true)
             .preferredHearingChannel("VID")
+            .hearingChannelPhone(Collections.emptyList())
             .build();
         PartyDetailsModel applicantPartyDetailsModel = getPartyDetailsModelForApplicant(individualDetails);
         when(languageAndAdjustmentsMapper.processBailPartyCaseFlags(eq(bailCase), any(PartyDetailsModel.class)))
@@ -141,6 +145,7 @@ class ApplicantDetailsMapperTest {
             .vulnerabilityDetails("vulnerability details")
             .vulnerableFlag(true)
             .preferredHearingChannel("VID")
+            .hearingChannelPhone(Collections.emptyList())
             .build();
         PartyDetailsModel applicantPartyDetailsModel = getPartyDetailsModelForApplicant(individualDetails);
         when(languageAndAdjustmentsMapper.processBailPartyCaseFlags(eq(bailCase), any(PartyDetailsModel.class)))

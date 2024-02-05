@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 public class BailCaseFieldDefinitionTest {
 
     private List<BailCaseFieldDefinition> exceptionalFields = List.of(APPLICANT_MOBILE_NUMBER);
+
     @Test
     void mapped_to_equivalent_field_name() {
         Stream.of(BailCaseFieldDefinition.values())
