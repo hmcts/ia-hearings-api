@@ -142,7 +142,7 @@ public class LanguageAndAdjustmentsMapperTest {
         mapper.processBailPartyCaseFlags(bailCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("bfi");
-        verify(reasonableAdjustments, times(1)).addAll(List.of("RA0042", "RA0018"));
+        verify(reasonableAdjustments, times(1)).addAll(List.of("RA0042", "PF0015", "RA0018"));
         verify(individualDetailsModel, times(1))
             .setOtherReasonableAdjustmentDetails("Interpreter: German; "
                                                      + "Support filling in forms: comment of r.a. flag;");
@@ -272,7 +272,13 @@ public class LanguageAndAdjustmentsMapperTest {
         mapper.processBailPartyCaseFlags(bailCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("ita");
-        verify(reasonableAdjustments, times(1)).addAll(List.of("SM0004", "RA0018"));
+        verify(reasonableAdjustments, times(1)).addAll(List.of(
+            "SM0004",
+            "PF0015",
+            "PF0015",
+            "PF0015",
+            "RA0018")
+        );
         verify(individualDetailsModel, times(1))
             .setOtherReasonableAdjustmentDetails("Interpreter: Portuguese; "
                                                      + "Interpreter: Sardinian; "
