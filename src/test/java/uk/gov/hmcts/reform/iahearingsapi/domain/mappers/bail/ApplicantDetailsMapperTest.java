@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_MOBILE_NUMBER;
 
 @ExtendWith(MockitoExtension.class)
 class ApplicantDetailsMapperTest {
@@ -51,11 +54,13 @@ class ApplicantDetailsMapperTest {
             .vulnerabilityDetails("vulnerability details")
             .vulnerableFlag(true)
             .preferredHearingChannel("VID")
+            .hearingChannelPhone(List.of("1234567890"))
             .build();
         PartyDetailsModel expected = getPartyDetailsModelForApplicant(individualDetails);
         when(languageAndAdjustmentsMapper.processBailPartyCaseFlags(eq(bailCase), any(PartyDetailsModel.class)))
             .thenReturn(expected);
-
+        when(caseDataMapper.getHearingChannelEmailPhone(bailCase, APPLICANT_MOBILE_NUMBER))
+            .thenReturn(List.of("1234567890"));
         expected.getIndividualDetails().setOtherReasonableAdjustmentDetails("");
 
         assertEquals(expected, new ApplicantDetailsMapper(languageAndAdjustmentsMapper)
@@ -76,6 +81,7 @@ class ApplicantDetailsMapperTest {
             .vulnerabilityDetails("vulnerability details")
             .vulnerableFlag(true)
             .preferredHearingChannel("VID")
+            .hearingChannelPhone(Collections.emptyList())
             .build();
         PartyDetailsModel applicantPartyDetailsModel = getPartyDetailsModelForApplicant(individualDetails);
         when(languageAndAdjustmentsMapper.processBailPartyCaseFlags(eq(bailCase), any(PartyDetailsModel.class)))
@@ -107,6 +113,7 @@ class ApplicantDetailsMapperTest {
             .vulnerabilityDetails("vulnerability details")
             .vulnerableFlag(true)
             .preferredHearingChannel("VID")
+            .hearingChannelPhone(Collections.emptyList())
             .build();
         PartyDetailsModel applicantPartyDetailsModel = getPartyDetailsModelForApplicant(individualDetails);
         when(languageAndAdjustmentsMapper.processBailPartyCaseFlags(eq(bailCase), any(PartyDetailsModel.class)))
@@ -138,6 +145,7 @@ class ApplicantDetailsMapperTest {
             .vulnerabilityDetails("vulnerability details")
             .vulnerableFlag(true)
             .preferredHearingChannel("VID")
+            .hearingChannelPhone(Collections.emptyList())
             .build();
         PartyDetailsModel applicantPartyDetailsModel = getPartyDetailsModelForApplicant(individualDetails);
         when(languageAndAdjustmentsMapper.processBailPartyCaseFlags(eq(bailCase), any(PartyDetailsModel.class)))
