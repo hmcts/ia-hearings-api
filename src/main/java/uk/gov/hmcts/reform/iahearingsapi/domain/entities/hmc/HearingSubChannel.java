@@ -6,5 +6,6 @@ public enum HearingSubChannel {
     TELBTM,
     VIDCVP,
     TEL,
-    VID
+    VID,
+    ONPPRS
 }
