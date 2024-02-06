@@ -4,5 +4,7 @@ public enum HearingSubChannel {
     INTER,
     NA,
     TELBTM,
-    VIDCVP
+    VIDCVP,
+    TEL,
+    VID
 }
