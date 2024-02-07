@@ -86,6 +86,7 @@ security:
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
+      - "restoreStateFromAdjourn"
     caseworker-ia-caseworker:
       - "listCase"
     caseworker-ia-caseofficer:
@@ -98,6 +99,7 @@ security:
       - "listCaseWithoutHearingRequirements"
       - "reviewHearingRequirements"
       - "decisionAndReasonsStarted"
+      - "restoreStateFromAdjourn"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
       - "decideAnApplication"

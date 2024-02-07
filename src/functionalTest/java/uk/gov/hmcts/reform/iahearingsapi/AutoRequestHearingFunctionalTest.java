@@ -2,8 +2,12 @@ package uk.gov.hmcts.reform.iahearingsapi;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.REVIEW_HEARING_REQUIREMENTS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_ADJOURNMENT_WHEN;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.RELIST_CASE_IMMEDIATELY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingAdjournmentDay.ON_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.SUBMIT_HEARING_REQUIREMENTS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
 import io.restassured.http.Header;
 import io.restassured.response.Response;
@@ -19,17 +23,14 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
-import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.ReviewHearingRequirementsHandler;
 
-/**
- * This functional test class covers all callback handlers in relation to ReviewHearingRequirementsHandler.
- * This includes {@link ReviewHearingRequirementsHandler}
- */
 @Slf4j
 @ActiveProfiles("functional")
 @Disabled
-public class ReviewHearingRequirementsFunctionalTest extends CcdCaseCreationTest {
+public class AutoRequestHearingFunctionalTest extends CcdCaseCreationTest {
 
     @BeforeEach
     void getAuthentications() {
@@ -37,22 +38,33 @@ public class ReviewHearingRequirementsFunctionalTest extends CcdCaseCreationTest
     }
 
     @ParameterizedTest
-    @CsvSource({ "true", "false" })
-    void should_submit_hearing_creation_request_successfully(boolean isAipJourney) {
+    @CsvSource({"LIST_CASE_WITHOUT_HEARING_REQUIREMENTS, SUBMIT_HEARING_REQUIREMENTS, true",
+        "DECISION_AND_REASONS_STARTED, PRE_HEARING, true",
+        "REVIEW_HEARING_REQUIREMENTS, LISTING, true",
+        "RECORD_ADJOURNMENT_DETAILS, PRE_HEARING, true",
+        "RESTORE_STATE_FROM_ADJOURN, ADJOURNED, true",
+        "LIST_CASE_WITHOUT_HEARING_REQUIREMENTS, SUBMIT_HEARING_REQUIREMENTS, false",
+        "DECISION_AND_REASONS_STARTED, PRE_HEARING, false",
+        "REVIEW_HEARING_REQUIREMENTS, LISTING, false",
+        "RECORD_ADJOURNMENT_DETAILS, PRE_HEARING, false",
+        "RESTORE_STATE_FROM_ADJOURN, ADJOURNED, false"})
+    void should_submit_hearing_creation_request_successfully(Event event, State state, boolean isAipJourney) {
         Case result = createAndGetCase(isAipJourney);
 
         AsylumCase asylumCase = new AsylumCase();
+        asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
+        asylumCase.write(HEARING_ADJOURNMENT_WHEN, ON_HEARING_DATE);
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
             result.getCaseId(),
             "IA",
-            LISTING,
+            state,
             asylumCase,
             LocalDateTime.now(),
             "securityClassification"
         );
 
         Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails),
-                                           REVIEW_HEARING_REQUIREMENTS);
+                                           event);
 
         Response response = given(hearingsSpecification)
             .when()
@@ -74,14 +86,14 @@ public class ReviewHearingRequirementsFunctionalTest extends CcdCaseCreationTest
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
             00000111,
             "IA",
-            LISTING,
+            SUBMIT_HEARING_REQUIREMENTS,
             asylumCase,
             LocalDateTime.now(),
             "securityClassification"
         );
 
         Callback callback = new Callback<>(caseDetails, Optional.of(caseDetails),
-                                           REVIEW_HEARING_REQUIREMENTS);
+                                           LIST_CASE_WITHOUT_HEARING_REQUIREMENTS);
 
         Response response = given(hearingsSpecification)
             .when()
