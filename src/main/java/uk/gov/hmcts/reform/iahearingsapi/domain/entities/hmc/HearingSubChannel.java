@@ -1,11 +1,21 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
 public enum HearingSubChannel {
+
     INTER,
     NA,
-    TELBTM,
-    VIDCVP,
+    ONPPRS,
     TEL,
     VID,
-    ONPPRS
+    TELBTM,
+    TELCVP,
+    TELOTHER,
+    TELSKYP,
+    VIDCVP,
+    VIDOTHER,
+    VIDPVL,
+    VIDSKYPE,
+    VIDTEAMS,
+    VIDVHS
+
 }
