@@ -62,18 +62,24 @@ public class AutoRequestHearingHandler implements PreSubmitCallbackHandler<Asylu
 
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
 
-        boolean isRecordAdjournmentDetailsEvent = callback.getEvent() == RECORD_ADJOURNMENT_DETAILS;
+        return callback.getEvent() == RECORD_ADJOURNMENT_DETAILS
+               && relistImmediately(asylumCase)
+               && adjournOnHearingDay(asylumCase);
 
-        boolean relistImmediately = asylumCase.read(RELIST_CASE_IMMEDIATELY, YesOrNo.class)
+    }
+
+    private boolean relistImmediately(AsylumCase asylumCase) {
+
+        return asylumCase.read(RELIST_CASE_IMMEDIATELY, YesOrNo.class)
             .map(relist -> YES == relist)
             .orElseThrow(() -> new IllegalStateException("Response to relist case immediately is not present"));
+    }
 
-        boolean adjournOnHearingDay = asylumCase
+    private boolean adjournOnHearingDay(AsylumCase asylumCase) {
+
+        return asylumCase
             .read(HEARING_ADJOURNMENT_WHEN, HearingAdjournmentDay.class)
             .map(hearingAdjournmentDay -> ON_HEARING_DATE == hearingAdjournmentDay)
             .orElseThrow(() -> new IllegalStateException("'Hearing adjournment when' is not present"));
-
-        return isRecordAdjournmentDetailsEvent && relistImmediately && adjournOnHearingDay;
-
     }
 }
