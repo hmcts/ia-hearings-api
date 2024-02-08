@@ -133,8 +133,8 @@ public enum AsylumCaseFieldDefinition {
         "changeHearingType", new TypeReference<String>(){}),
     CHANGE_HEARING_TYPE_YES_NO(
         "changeHearingTypeYesNo", new TypeReference<String>(){}),
-    CHANGE_HEARING_LOCATION(
-        "changeHearingLocation", new TypeReference<String>(){}),
+    CHANGE_HEARING_VENUE(
+        "changeHearingVenue", new TypeReference<String>(){}),
     CHANGE_HEARING_LOCATION_YES_NO(
         "changeHearingLocationYesNo", new TypeReference<String>(){}),
     CHANGE_HEARING_DATE(
