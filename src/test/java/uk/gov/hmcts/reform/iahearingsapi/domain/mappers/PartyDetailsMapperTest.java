@@ -92,19 +92,19 @@ class PartyDetailsMapperTest {
     @Test
     void should_map_asylum_correctly() {
 
-        when(appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+        when(appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper, null, null))
             .thenReturn(PartyDetailsModel.builder().build());
-        when(legalRepDetailsMapper.map(asylumCase, caseDataMapper))
+        when(legalRepDetailsMapper.map(asylumCase, caseDataMapper, null, null))
             .thenReturn(PartyDetailsModel.builder().build());
         when(legalRepOrgDetailsMapper.map(asylumCase, caseDataMapper))
             .thenReturn(PartyDetailsModel.builder().build());
-        when(sponsorDetailsMapper.map(asylumCase, caseDataMapper))
+        when(sponsorDetailsMapper.map(asylumCase, caseDataMapper, null, null))
             .thenReturn(PartyDetailsModel.builder().build());
         when(respondentDetailsMapper.map(asylumCase, caseDataMapper))
             .thenReturn(PartyDetailsModel.builder().build());
-        when(witnessDetailsMapper.map(asylumCase, caseDataMapper))
+        when(witnessDetailsMapper.map(asylumCase, caseDataMapper, null, null))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
-        when(interpreterDetailsMapper.map(asylumCase, caseDataMapper))
+        when(interpreterDetailsMapper.map(asylumCase, caseDataMapper, null, null))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
         when(asylumCase.read(AsylumCaseFieldDefinition.HAS_SPONSOR, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
@@ -151,19 +151,19 @@ class PartyDetailsMapperTest {
     void should_skip_mapping_legal_rep_details_accordingly(Optional<String> journeyType,
                                                            Optional<ChangeOrganisationRequest> changeOrgReq) {
 
-        when(appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper))
+        when(appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper, null, null))
             .thenReturn(PartyDetailsModel.builder().build());
-        when(legalRepDetailsMapper.map(asylumCase, caseDataMapper))
+        when(legalRepDetailsMapper.map(asylumCase, caseDataMapper, null, null))
             .thenReturn(PartyDetailsModel.builder().build());
         when(legalRepOrgDetailsMapper.map(asylumCase, caseDataMapper))
             .thenReturn(PartyDetailsModel.builder().build());
-        when(sponsorDetailsMapper.map(asylumCase, caseDataMapper))
+        when(sponsorDetailsMapper.map(asylumCase, caseDataMapper, null, null))
             .thenReturn(PartyDetailsModel.builder().build());
         when(respondentDetailsMapper.map(asylumCase, caseDataMapper))
             .thenReturn(PartyDetailsModel.builder().build());
-        when(witnessDetailsMapper.map(asylumCase, caseDataMapper))
+        when(witnessDetailsMapper.map(asylumCase, caseDataMapper, null, null))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
-        when(interpreterDetailsMapper.map(asylumCase, caseDataMapper))
+        when(interpreterDetailsMapper.map(asylumCase, caseDataMapper, null, null))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
         when(asylumCase.read(AsylumCaseFieldDefinition.HAS_SPONSOR, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));

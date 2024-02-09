@@ -8,9 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_FORMAT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_LOCATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
@@ -68,6 +66,8 @@ class UpdateHearingPayloadServiceTest {
     private AsylumCase asylumCase;
     @Mock
     private PartyDetailsModel partyDetailsModel;
+    @Mock
+    private Event event;
     HearingDetails hearingDetails = new HearingDetails();
     private final String updateHearingsCode = "code 1";
     UpdateHearingPayloadService updateHearingPayloadService;
@@ -96,7 +96,11 @@ class UpdateHearingPayloadServiceTest {
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(persistedHearing);
         when(persistedHearing.getHearingDetails()).thenReturn(hearingDetails);
         when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
-        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
+        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase,
+                                                      caseFlagsMapper,
+                                                      caseDataMapper,
+                                                      persistedHearing.getHearingDetails(),
+                                                      event))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
         updateHearingPayloadService = new UpdateHearingPayloadService(
             caseDataMapper,
@@ -111,6 +115,11 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_create_an_update_hearing_request_with_new_hearing_channels() {
+
+        when(caseDataMapper.getHearingChannels(asylumCase,
+                                               persistedHearing.getHearingDetails(),
+                                               UPDATE_INTERPRETER_DETAILS))
+            .thenReturn(List.of("INTER"));
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -133,8 +142,11 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_with_hearing_channels_set_to_on_the_papers() {
 
-        when(caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase))
-            .thenReturn(true);
+        when(caseDataMapper.getHearingChannels(asylumCase,
+                                               persistedHearing.getHearingDetails(),
+                                               UPDATE_HEARING_REQUEST))
+            .thenReturn(List.of("ONPPRS"));
+
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -320,7 +332,11 @@ class UpdateHearingPayloadServiceTest {
                                                            .partyID("MyPartyId")
                                                            .partyType(PartyType.IND.getPartyType())
                                                            .build());
-        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
+        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase,
+                                                      caseFlagsMapper,
+                                                      caseDataMapper,
+                                                      persistedHearing.getHearingDetails(),
+                                                      UPDATE_HEARING_REQUEST))
             .thenReturn(partyDetails);
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
@@ -333,7 +349,11 @@ class UpdateHearingPayloadServiceTest {
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
-        verify(partyDetailsMapper, times(1)).mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper);
+        verify(partyDetailsMapper, times(1)).mapAsylumPartyDetails(asylumCase,
+                                                                   caseFlagsMapper,
+                                                                   caseDataMapper,
+                                                                   persistedHearing.getHearingDetails(),
+                                                                   UPDATE_HEARING_REQUEST);
 
         assertEquals(partyDetails, updateHearingRequest.getPartyDetails());
         assertEqualsHearingDetails(updateHearingRequest);
@@ -341,7 +361,11 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_create_an_update_hearing_request_with_updated_party_details() {
-        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
+        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase,
+                                                      caseFlagsMapper,
+                                                      caseDataMapper,
+                                                      persistedHearing.getHearingDetails(),
+                                                      UPDATE_HEARING_REQUEST))
             .thenReturn(List.of(partyDetailsModel));
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
@@ -360,10 +384,11 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_for_adjournment_details_cases() {
         String hearingChannel = "TEL";
-        when(asylumCase.read(
-            NEXT_HEARING_FORMAT,
-            DynamicList.class
-        )).thenReturn(Optional.of(new DynamicList(hearingChannel)));
+        when(caseDataMapper.getHearingChannels(asylumCase,
+                                               persistedHearing.getHearingDetails(),
+                                               Event.RECORD_ADJOURNMENT_DETAILS))
+            .thenReturn(List.of(hearingChannel));
+
 
         when(asylumCase.read(NEXT_HEARING_LOCATION, String.class))
             .thenReturn(Optional.of(LEEDS_MAGS.getValue()));
@@ -421,7 +446,8 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_return_default_hearing_value_when_the_event_is_null() {
-        when(caseDataMapper.getHearingDuration(asylumCase)).thenReturn(null);
+        when(caseDataMapper.getHearingChannels(asylumCase, persistedHearing.getHearingDetails(), null))
+            .thenReturn(persistedHearingChannel);
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -451,13 +477,10 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_return_requested_update_hearing_value_when_the_event_is_update_hearing_request() {
-        when(asylumCase.read(REQUEST_HEARING_CHANNEL, DynamicList.class)).thenReturn(
-            Optional.of(new DynamicList("VID"))
-        );
         when(asylumCase.read(HEARING_LOCATION, DynamicList.class)).thenReturn(
-            Optional.of(new DynamicList("783803"))
-        );
+            Optional.of(new DynamicList("783803")));
         when(updateHearingPayloadService.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(90);
+
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -469,10 +492,6 @@ class UpdateHearingPayloadServiceTest {
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
-
-        assertEquals(
-            List.of("VID"),
-            updateHearingRequest.getHearingDetails().getHearingChannels());
 
         assertEquals(
             "783803",
@@ -488,12 +507,8 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_return_next_hearing_value_when_the_event_is_record_adjournment_details() {
 
-        when(asylumCase.read(NEXT_HEARING_FORMAT, DynamicList.class)).thenReturn(
-            Optional.of(new DynamicList("TEL"))
-        );
         when(asylumCase.read(NEXT_HEARING_LOCATION, String.class)).thenReturn(
-            Optional.of(HearingCentre.NEWPORT.getValue())
-        );
+            Optional.of(HearingCentre.NEWPORT.getValue()));
         when(updateHearingPayloadService.getHearingDuration(asylumCase, Event.RECORD_ADJOURNMENT_DETAILS))
             .thenReturn(60);
 
@@ -507,10 +522,6 @@ class UpdateHearingPayloadServiceTest {
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
-
-        assertEquals(
-            List.of("TEL"),
-            updateHearingRequest.getHearingDetails().getHearingChannels());
 
         assertEquals(
             HearingCentre.NEWPORT.getEpimsId(),

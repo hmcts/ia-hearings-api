@@ -20,6 +20,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_FORMAT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
@@ -47,6 +49,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -54,6 +57,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityRangeModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityType;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @Service
 @RequiredArgsConstructor
@@ -80,13 +84,31 @@ public class CaseDataToServiceHearingValuesMapper {
 
     public List<String> getHearingChannels(AsylumCase asylumCase) {
 
+        return getHearingChannels(asylumCase, null, null);
+    }
+
+    public List<String> getHearingChannels(AsylumCase asylumCase, HearingDetails persistedHearingDetails, Event event) {
+
         if (isDecisionWithoutHearingAppeal(asylumCase)) {
             return List.of(HearingChannel.ONPPRS.name());
         }
 
+        Optional<DynamicList> hearingChannelOptional = asylumCase.read(HEARING_CHANNEL, DynamicList.class);
+        if (persistedHearingDetails != null && event != null) {
+            switch (event) {
+                case RECORD_ADJOURNMENT_DETAILS:
+                    hearingChannelOptional = asylumCase.read(NEXT_HEARING_FORMAT, DynamicList.class);
+                    break;
+
+                case UPDATE_HEARING_REQUEST:
+                    hearingChannelOptional = asylumCase.read(REQUEST_HEARING_CHANNEL, DynamicList.class);
+                    break;
+                default:
+                    return persistedHearingDetails.getHearingChannels();
+            }
+        }
+
         List<String> hearingChannels = new ArrayList<>();
-        Optional<DynamicList> hearingChannelOptional = asylumCase
-            .read(HEARING_CHANNEL, DynamicList.class);
         if (hearingChannelOptional.isPresent()) {
             Value value = hearingChannelOptional.get().getValue();
             if (value != null) {
@@ -138,6 +160,10 @@ public class CaseDataToServiceHearingValuesMapper {
 
     public String getHearingChannel(AsylumCase asylumCase) {
         return getHearingChannels(asylumCase).stream().findFirst().orElse(null);
+    }
+
+    public String getHearingChannel(AsylumCase asylumCase, HearingDetails persistedHearingDetails, Event event) {
+        return getHearingChannels(asylumCase, persistedHearingDetails, event).stream().findFirst().orElse(null);
     }
 
     public Integer getHearingDuration(AsylumCase asylumCase) {

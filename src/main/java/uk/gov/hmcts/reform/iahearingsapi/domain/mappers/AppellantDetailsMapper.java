@@ -21,9 +21,11 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @Component
 @AllArgsConstructor
@@ -34,7 +36,9 @@ public class AppellantDetailsMapper {
     public PartyDetailsModel map(
         AsylumCase asylumCase,
         CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
-        CaseDataToServiceHearingValuesMapper caseDataMapper) {
+        CaseDataToServiceHearingValuesMapper caseDataMapper,
+        HearingDetails persistedHearingDetails,
+        Event event) {
 
         AsylumCaseFieldDefinition emailFieldDef = MapperUtils.isAipJourney(asylumCase)
             ? APPELLANT_EMAIL_ADDRESS
@@ -66,7 +70,7 @@ public class AppellantDetailsMapper {
                     caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef))
                 .hearingChannelPhone(
                     caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef))
-                .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
+                .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
                 .build();
 
         if (!singleSexCourtResponse.isEmpty()) {
