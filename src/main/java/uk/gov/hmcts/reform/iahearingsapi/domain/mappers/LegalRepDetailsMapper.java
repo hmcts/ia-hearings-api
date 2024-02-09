@@ -11,15 +11,20 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @Component
 public class LegalRepDetailsMapper {
 
-    public PartyDetailsModel map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
+    public PartyDetailsModel map(AsylumCase asylumCase,
+                                 CaseDataToServiceHearingValuesMapper caseDataMapper,
+                                 HearingDetails persistedHearingDetails,
+                                 Event event) {
 
         return PartyDetailsModel.builder()
             .partyID(caseDataMapper.getLegalRepPartyId(asylumCase))
@@ -29,7 +34,9 @@ public class LegalRepDetailsMapper {
                 IndividualDetailsModel.builder()
                     .firstName(caseDataMapper.getName(asylumCase, LEGAL_REP_NAME))
                     .lastName(caseDataMapper.getName(asylumCase, LEGAL_REP_FAMILY_NAME))
-                    .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
+                    .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase,
+                                                                              persistedHearingDetails,
+                                                                              event))
                     .hearingChannelEmail(
                         caseDataMapper.getHearingChannelEmail(asylumCase, LEGAL_REPRESENTATIVE_EMAIL_ADDRESS))
                     .hearingChannelPhone(

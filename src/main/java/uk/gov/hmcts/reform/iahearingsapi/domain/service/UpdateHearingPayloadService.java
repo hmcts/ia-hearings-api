@@ -2,10 +2,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_FORMAT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.getEpimsIdByValue;
@@ -22,7 +20,6 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -94,7 +91,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
 
         HearingDetails hearingDetails = HearingDetails.builder()
             .autolistFlag(getAutoListFlag(asylumCase, persistedHearing.getHearingDetails()))
-            .hearingChannels(getHearingChannels(asylumCase, persistedHearing, event))
+            .hearingChannels(caseDataMapper.getHearingChannels(asylumCase, persistedHearing.getHearingDetails(), event))
             .hearingLocations(getLocations(asylumCase, persistedHearing, event))
             .duration(getDuration(asylumCase, persistedHearing, event))
             .amendReasonCodes(List.of(reasonCode))
@@ -106,7 +103,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
             .requestDetails(persistedHearing.getRequestDetails())
             .caseDetails(persistedHearing.getCaseDetails())
             .hearingDetails(buildHearingDetails(asylumCase, persistedHearing.getHearingDetails(), hearingDetails))
-            .partyDetails(getPartyDetailsModels(asylumCase))
+            .partyDetails(getPartyDetailsModels(asylumCase, persistedHearing.getHearingDetails(), event))
             .build();
 
         log.info("Updated hearing request to be persisted: {}", updatedHearingRequest.toString());
@@ -115,34 +112,6 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
 
     private boolean getAutoListFlag(AsylumCase asylumCase, HearingDetails persistedHearingDetails) {
         return !caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase) && persistedHearingDetails.isAutolistFlag();
-    }
-
-    private List<String> getHearingChannels(AsylumCase asylumCase,
-                                            HearingGetResponse persistedHearing,
-                                            Event event) {
-
-        if (caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase)) {
-            return List.of(HearingChannel.ONPPRS.name());
-        }
-
-        Optional<String> hearingChannels = Optional.empty();
-        if (event != null) {
-            switch (event) {
-                case RECORD_ADJOURNMENT_DETAILS:
-                    hearingChannels = asylumCase.read(NEXT_HEARING_FORMAT, DynamicList.class)
-                        .map(nextHearingFormat -> nextHearingFormat.getValue().getCode());
-                    break;
-
-                case UPDATE_HEARING_REQUEST:
-                    hearingChannels = asylumCase.read(REQUEST_HEARING_CHANNEL, DynamicList.class)
-                        .map(requestHearingChannel -> requestHearingChannel.getValue().getCode());
-                    break;
-            }
-        }
-
-        return hearingChannels
-            .map(List::of)
-            .orElseGet(() -> persistedHearing.getHearingDetails().getHearingChannels());
     }
 
     private List<HearingLocationModel> getLocations(AsylumCase asylumCase,

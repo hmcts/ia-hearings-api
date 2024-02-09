@@ -14,8 +14,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @ExtendWith(MockitoExtension.class)
 class InterpreterDetailsMapperTest {
@@ -24,6 +26,10 @@ class InterpreterDetailsMapperTest {
     private AsylumCase asylumCase;
     @Mock
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
+    @Mock
+    private HearingDetails persistedHearingDetails;
+    @Mock
+    Event event;
 
     @Test
     void testMapWithInterpreterDetails() {
@@ -37,10 +43,13 @@ class InterpreterDetailsMapperTest {
 
         when(asylumCase.read(INTERPRETER_DETAILS)).thenReturn(Optional.of(interpreterDetailsList));
 
-        when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn("Email");
+        when(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event)).thenReturn("Email");
 
         InterpreterDetailsMapper interpreterDetailsMapper = new InterpreterDetailsMapper();
-        List<PartyDetailsModel> partyDetailsList = interpreterDetailsMapper.map(asylumCase, caseDataMapper);
+        List<PartyDetailsModel> partyDetailsList = interpreterDetailsMapper.map(asylumCase,
+                                                                                caseDataMapper,
+                                                                                persistedHearingDetails,
+                                                                                event);
 
         assertEquals(2, partyDetailsList.size());
 
@@ -70,7 +79,10 @@ class InterpreterDetailsMapperTest {
         when(asylumCase.read(INTERPRETER_DETAILS)).thenReturn(Optional.empty());
 
         InterpreterDetailsMapper interpreterDetailsMapper = new InterpreterDetailsMapper();
-        List<PartyDetailsModel> partyDetailsList = interpreterDetailsMapper.map(asylumCase, caseDataMapper);
+        List<PartyDetailsModel> partyDetailsList = interpreterDetailsMapper.map(asylumCase,
+                                                                                caseDataMapper,
+                                                                                persistedHearingDetails,
+                                                                                event);
 
         assertTrue(partyDetailsList.isEmpty());
     }

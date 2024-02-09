@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.ApplicantDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseFlagsToServ
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailInterpreterDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailMapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.FinancialConditionSupporterDetailsMapper;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
 
 
@@ -47,23 +49,34 @@ public class PartyDetailsMapper {
         CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
         CaseDataToServiceHearingValuesMapper caseDataMapper) {
 
+        return mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper, null, null);
+    }
+
+    public List<PartyDetailsModel> mapAsylumPartyDetails(
+        AsylumCase asylumCase,
+        CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
+        CaseDataToServiceHearingValuesMapper caseDataMapper,
+        HearingDetails persistedHearingDetails,
+        Event event) {
+
         List<PartyDetailsModel> partyDetails = new ArrayList<>(Arrays.asList(
-            appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper),
+            appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event),
             respondentDetailsMapper.map(asylumCase, caseDataMapper)
         ));
         if (MapperUtils.hasSponsor(asylumCase)) {
-            partyDetails.add(sponsorDetailsMapper.map(asylumCase, caseDataMapper));
+            partyDetails.add(sponsorDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
         }
         if (MapperUtils.isRepJourney(asylumCase)
             && !MapperUtils.isChangeOrganisationRequestPresent(asylumCase)) {
 
-            partyDetails.add(legalRepDetailsMapper.map(asylumCase, caseDataMapper));
+            partyDetails.add(legalRepDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
             partyDetails.add(legalRepOrgDetailsMapper.map(asylumCase, caseDataMapper));
         }
-        partyDetails.addAll(witnessDetailsMapper.map(asylumCase, caseDataMapper));
-        partyDetails.addAll(interpreterDetailsMapper.map(asylumCase, caseDataMapper));
+        partyDetails.addAll(witnessDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
+        partyDetails.addAll(interpreterDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
 
         return partyDetails;
+
     }
 
     public List<PartyDetailsModel> mapBailPartyDetails(

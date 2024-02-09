@@ -26,8 +26,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.SingleSexType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @ExtendWith(MockitoExtension.class)
 class AppellantDetailsMapperTest {
@@ -40,6 +42,10 @@ class AppellantDetailsMapperTest {
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
     @Mock
     private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
+    @Mock
+    private HearingDetails persistedHearingDetails;
+    @Mock
+    Event event;
 
     @BeforeEach
     void setup() {
@@ -53,7 +59,7 @@ class AppellantDetailsMapperTest {
         when(caseFlagsMapper.getVulnerableDetails(asylumCase)).thenReturn("vulnerability details");
         when(caseFlagsMapper.getVulnerableFlag(asylumCase)).thenReturn(true);
         when(caseFlagsMapper.getCustodyStatus(asylumCase)).thenReturn("D");
-        when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn("hearingChannel");
+        when(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event)).thenReturn("hearingChannel");
 
         IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()
             .custodyStatus("D")
@@ -70,7 +76,7 @@ class AppellantDetailsMapperTest {
         expected.getIndividualDetails().setOtherReasonableAdjustmentDetails("");
 
         assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
-            .map(asylumCase, caseFlagsMapper, caseDataMapper));
+            .map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event));
     }
 
     @Test
@@ -90,7 +96,7 @@ class AppellantDetailsMapperTest {
         when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
 
         assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
-            .map(asylumCase, caseFlagsMapper, caseDataMapper));
+            .map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event));
     }
 
     @Test
@@ -110,7 +116,7 @@ class AppellantDetailsMapperTest {
         when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(asylumCase, expected)).thenReturn(expected);
 
         assertEquals(expected, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
-            .map(asylumCase, caseFlagsMapper, caseDataMapper));
+            .map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event));
     }
 
     @ParameterizedTest
@@ -146,7 +152,7 @@ class AppellantDetailsMapperTest {
                                  "") + status).trim()));
 
         assertEquals(appellantPartyDetailsModel, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
-            .map(asylumCase, caseFlagsMapper, caseDataMapper));
+            .map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event));
     }
 
     @ParameterizedTest
@@ -182,7 +188,7 @@ class AppellantDetailsMapperTest {
                                  "") + status).trim()));
 
         assertEquals(appellantPartyDetailsModel, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
-            .map(asylumCase, caseFlagsMapper, caseDataMapper));
+            .map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event));
     }
 
     @ParameterizedTest
@@ -221,12 +227,12 @@ class AppellantDetailsMapperTest {
 
         if (!bookingStatus.equals(NOT_REQUESTED)) {
             assertEquals(appellantPartyDetailsModel, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
-                .map(asylumCase, caseFlagsMapper, caseDataMapper));
+                .map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event));
         } else {
             appellantPartyDetailsModel.getIndividualDetails()
                 .setOtherReasonableAdjustmentDetails("Single sex court: Male;");
             assertEquals(appellantPartyDetailsModel, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
-                .map(asylumCase, caseFlagsMapper, caseDataMapper));
+                .map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event));
         }
     }
 

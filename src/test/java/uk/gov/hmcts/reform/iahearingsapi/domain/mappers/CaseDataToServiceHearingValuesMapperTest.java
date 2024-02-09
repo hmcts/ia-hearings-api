@@ -34,6 +34,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_FORMAT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
@@ -70,11 +72,13 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityRangeModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityType;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -92,6 +96,10 @@ class CaseDataToServiceHearingValuesMapperTest {
     private OrganisationPolicy organisationPolicy;
     @Mock
     private Organisation organisation;
+    @Mock
+    private Event event;
+    @Mock
+    private HearingDetails persistedHearingDetails;
 
     @BeforeEach
     void setup() {
@@ -547,6 +555,29 @@ class CaseDataToServiceHearingValuesMapperTest {
             .thenReturn(Optional.empty());
 
         assertEquals(false, mapper.getHearingLinkedFlag(asylumCase));
+    }
+
+    @Test
+    void getHearingChannels_with_null_persistedHearingDetails_event_should_value_from_hearingChannel() {
+        assertEquals(List.of("INTER"), mapper.getHearingChannels(asylumCase, null, null));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "RECORD_ADJOURNMENT_DETAILS, TEL",
+        "UPDATE_HEARING_REQUEST, VID",
+        "UPDATE_INTERPRETER_DETAILS, NA"
+    })
+    void getHearingChannels_with_persistedHearingDetails_event_should_value_from_diff_field(Event event,
+                                                                                            String expectedResult) {
+        when(asylumCase.read(NEXT_HEARING_FORMAT, DynamicList.class))
+            .thenReturn(Optional.of(new DynamicList("TEL")));
+        when(asylumCase.read(REQUEST_HEARING_CHANNEL, DynamicList.class))
+            .thenReturn(Optional.of(new DynamicList("VID")));
+        when(persistedHearingDetails.getHearingChannels()).thenReturn(List.of("NA"));
+
+        assertEquals(List.of(expectedResult),
+                     mapper.getHearingChannels(asylumCase, persistedHearingDetails, event));
     }
 
 }

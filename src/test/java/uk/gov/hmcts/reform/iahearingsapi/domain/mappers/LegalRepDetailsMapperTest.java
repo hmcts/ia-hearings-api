@@ -10,9 +10,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @ExtendWith(MockitoExtension.class)
 class LegalRepDetailsMapperTest {
@@ -25,12 +27,17 @@ class LegalRepDetailsMapperTest {
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
     @Mock
     private BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper;
+    @Mock
+    private HearingDetails persistedHearingDetails;
+    @Mock
+    Event event;
 
     @Test
     void should_map_asylum_correctly() {
 
         when(caseDataMapper.getLegalRepPartyId(asylumCase)).thenReturn("partyId");
-        when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn("hearingChannel");
+        when(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
+            .thenReturn("hearingChannel");
 
         IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()
             .hearingChannelEmail(Collections.emptyList())
@@ -44,7 +51,10 @@ class LegalRepDetailsMapperTest {
             .partyRole("LGRP")
             .build();
 
-        assertEquals(expected, new LegalRepDetailsMapper().map(asylumCase, caseDataMapper));
+        assertEquals(expected, new LegalRepDetailsMapper().map(asylumCase,
+                                                               caseDataMapper,
+                                                               persistedHearingDetails,
+                                                               event));
     }
 
     @Test
