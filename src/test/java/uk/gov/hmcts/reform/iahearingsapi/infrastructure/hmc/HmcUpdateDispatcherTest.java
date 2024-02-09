@@ -67,9 +67,9 @@ class HmcUpdateDispatcherTest {
         InOrder inOrder = inOrder(handler1, handler3, handler2);
 
         inOrder.verify(handler1, times(1)).canHandle(any(ServiceData.class));
-        inOrder.verify(handler1, times(1)).handle(any(ServiceData.class));
-
         inOrder.verify(handler3, times(1)).canHandle(any(ServiceData.class));
+
+        inOrder.verify(handler1, times(1)).handle(any(ServiceData.class));
         inOrder.verify(handler3, times(1)).handle(any(ServiceData.class));
 
         inOrder.verify(handler2, times(1)).canHandle(any(ServiceData.class));
