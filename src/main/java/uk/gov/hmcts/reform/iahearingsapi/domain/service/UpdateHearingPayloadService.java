@@ -4,9 +4,8 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_VENUE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.getEpimsIdByValue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -122,11 +121,8 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         if (event != null) {
             switch (event) {
                 case RECORD_ADJOURNMENT_DETAILS:
-                    locationCodes = Optional.of(
-                        getEpimsIdByValue(
-                            asylumCase.read(NEXT_HEARING_LOCATION, String.class)
-                                .orElseThrow(() -> new IllegalStateException(
-                                 NEXT_HEARING_LOCATION + "  is not present"))));
+                    locationCodes = asylumCase.read(NEXT_HEARING_VENUE, DynamicList.class)
+                        .map(hearingLocation -> hearingLocation.getValue().getCode());
                     break;
 
                 case UPDATE_HEARING_REQUEST:

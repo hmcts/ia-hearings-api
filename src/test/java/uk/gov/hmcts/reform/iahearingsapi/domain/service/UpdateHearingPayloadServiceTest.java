@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_VENUE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
@@ -390,8 +390,8 @@ class UpdateHearingPayloadServiceTest {
             .thenReturn(List.of(hearingChannel));
 
 
-        when(asylumCase.read(NEXT_HEARING_LOCATION, String.class))
-            .thenReturn(Optional.of(LEEDS_MAGS.getValue()));
+        when(asylumCase.read(NEXT_HEARING_VENUE, DynamicList.class))
+            .thenReturn(Optional.of(new DynamicList("569737")));
         Integer duration = 240;
         when(updateHearingPayloadService.getHearingDuration(asylumCase, Event.RECORD_ADJOURNMENT_DETAILS))
             .thenReturn(duration);
@@ -507,8 +507,8 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_return_next_hearing_value_when_the_event_is_record_adjournment_details() {
 
-        when(asylumCase.read(NEXT_HEARING_LOCATION, String.class)).thenReturn(
-            Optional.of(HearingCentre.NEWPORT.getValue()));
+        when(asylumCase.read(NEXT_HEARING_VENUE, DynamicList.class)).thenReturn(
+            Optional.of(new DynamicList("227101")));
         when(updateHearingPayloadService.getHearingDuration(asylumCase, Event.RECORD_ADJOURNMENT_DETAILS))
             .thenReturn(60);
 

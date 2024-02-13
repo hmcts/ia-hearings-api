@@ -260,8 +260,8 @@ public enum AsylumCaseFieldDefinition {
         "nextHearingFormat", new TypeReference<DynamicList>(){}),
     NEXT_HEARING_DURATION(
         "nextHearingDuration", new TypeReference<String>(){}),
-    NEXT_HEARING_LOCATION(
-        "nextHearingLocation", new TypeReference<String>(){}),
+    NEXT_HEARING_VENUE(
+        "nextHearingVenue", new TypeReference<DynamicList>(){}),
 
     IS_APPEAL_SUITABLE_TO_FLOAT(
         "isAppealSuitableToFloat", new TypeReference<YesOrNo>() {}),
