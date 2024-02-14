@@ -21,7 +21,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataServi
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -87,10 +86,10 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
         final List<HearingChannel> nextHearingChannelList = getHearingChannels(serviceData);
 
-        final LocalDateTime nextHearingDate = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
+        final LocalDateTime nextHearingDateTime = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
             .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
 
-        final LocalDateTime currentHearingDate = LocalDateTime.parse(asylumCase.read(
+        final LocalDateTime currentHearingDateTime = LocalDateTime.parse(asylumCase.read(
             LIST_CASE_HEARING_DATE,
             String.class
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingDate can not be null")));
@@ -112,21 +111,22 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
         final String nextHearingChannel = nextHearingChannelList.get(0).name();
 
-        final boolean hearingDateChanged = !(currentHearingDate.truncatedTo(ChronoUnit.DAYS))
-            .equals(nextHearingDate.truncatedTo(ChronoUnit.DAYS));
-
         final boolean isRemoteHearing = nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
 
-        // the venue id as per List Assist (regardless of whether the hearing is remote or not)
-        final String actualNextHearingVenueId = getHearingVenueId(serviceData);
+        // the nextHearingDateTime has to be recalculated according to the actual physical venue (Glasgow / non-Glasgow)
+        final String physicalNextHearingVenueId = getHearingVenueId(serviceData);
+        final LocalDateTime calculatedNextHearingDateTime = getHearingDateAndTime(nextHearingDateTime,
+                                                                                  physicalNextHearingVenueId);
+
+        final boolean hearingDateTimeChanged = !(currentHearingDateTime).equals(calculatedNextHearingDateTime);
 
         // venue id shown on frontend and in notifications will show as Remote Hearing if it's remote
         final String nextHearingVenueId = isRemoteHearing
             ? REMOTE_HEARING.getEpimsId()
-            : actualNextHearingVenueId;
+            : getHearingVenueId(serviceData);
 
         final boolean hearingChannelChanged = !currentHearingChannel.equals(nextHearingChannel);
-        final boolean hearingVenueChanged = !currentVenueId.equals(actualNextHearingVenueId);
+        final boolean hearingVenueChanged = !currentVenueId.equals(nextHearingVenueId);
         final boolean hearingCentreChanged = hearingChannelChanged || hearingVenueChanged;
         final int nextDuration = getHearingDuration(serviceData);
         final boolean durationChanged = !currentDuration.equals(String.valueOf(nextDuration));
@@ -136,11 +136,10 @@ public class EditListCaseHandler extends ListedHearingService implements Service
             .orElseThrow(() -> new IllegalStateException("hearing id can not be null"));
 
         // listCaseHearingDate has to be recalculated based on the hearing venue
-        if (hearingDateChanged || hearingVenueChanged) {
+        if (hearingDateTimeChanged) {
             asylumCase.write(
                 LIST_CASE_HEARING_DATE,
-                getHearingDateAndTime(nextHearingDate, actualNextHearingVenueId)
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
+                calculatedNextHearingDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
             );
             sendUpdate = true;
             log.info("hearing date updated for hearing " + hearingId);
@@ -167,7 +166,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         }
 
         // Only trigger review interpreter task if the hearing location, date or channel are updated.
-        if (hearingChannelChanged || hearingCentreChanged || hearingDateChanged) {
+        if (hearingChannelChanged || hearingCentreChanged || hearingDateTimeChanged) {
             asylumCase.write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
             log.info("Setting trigger review interpreter task flag for hearing " + hearingId);
         } else if (sendUpdate) {
