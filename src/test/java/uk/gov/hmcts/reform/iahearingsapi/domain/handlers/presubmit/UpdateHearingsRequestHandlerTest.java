@@ -34,6 +34,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.MID_EVENT;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
@@ -54,6 +55,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -148,7 +150,9 @@ class UpdateHearingsRequestHandlerTest {
         verify(asylumCase).write(eq(CHANGE_HEARING_TYPE), stringArgumentCaptor.capture());
         verify(asylumCase).write(eq(REQUEST_HEARING_CHANNEL), dynamicListArgumentCaptor.capture());
         assertEquals(hearingChannel.getValue().getLabel(), stringArgumentCaptor.getValue());
-        assertEquals(hearingChannel, dynamicListArgumentCaptor.getValue());
+        assertEquals(hearingChannel.getValue(), dynamicListArgumentCaptor.getValue().getValue());
+        assertTrue(dynamicListArgumentCaptor.getValue().getListItems().stream().map(Value::getLabel).toList()
+                       .containsAll(Arrays.stream(HearingChannel.values()).map(HearingChannel::getLabel).toList()));
     }
 
     @Test
@@ -162,7 +166,9 @@ class UpdateHearingsRequestHandlerTest {
         verify(asylumCase).write(eq(CHANGE_HEARING_TYPE), stringArgumentCaptor.capture());
         verify(asylumCase).write(eq(REQUEST_HEARING_CHANNEL), dynamicListArgumentCaptor.capture());
         assertEquals(hearingChannel.getValue().getLabel(), stringArgumentCaptor.getValue());
-        assertEquals(hearingChannel, dynamicListArgumentCaptor.getValue());
+        assertEquals(hearingChannel.getValue(), dynamicListArgumentCaptor.getValue().getValue());
+        assertTrue(dynamicListArgumentCaptor.getValue().getListItems().stream().map(Value::getLabel).toList()
+                       .containsAll(Arrays.stream(HearingChannel.values()).map(HearingChannel::getLabel).toList()));
     }
 
     @Test
