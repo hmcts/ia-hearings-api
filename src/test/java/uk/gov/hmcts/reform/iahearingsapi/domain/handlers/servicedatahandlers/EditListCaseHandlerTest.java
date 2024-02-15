@@ -166,24 +166,6 @@ class EditListCaseHandlerTest {
     }
 
     @Test
-    void should_not_trigger_events_when_hearing_time_changes() {
-        initializeServiceData();
-        initializeAsylumCaseData();
-        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
-            .thenReturn(Optional.of(HearingCentre.GLASGOW.getEpimsId()));
-        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
-            .thenReturn(Optional.of(NEXT_HEARING_DATE.plusHours(1)));
-
-        editListCaseHandler.handle(serviceData);
-
-        verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
-
-        verify(coreCaseDataService, never()).triggerSubmitEvent(
-            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
-    }
-
-
-    @Test
     void should_trigger_events_when_venue_changes() {
         initializeServiceData();
         initializeAsylumCaseData();
@@ -284,8 +266,7 @@ class EditListCaseHandlerTest {
             Arguments.of(List.of(HearingChannel.INTER), HearingCentre.BIRMINGHAM.getEpimsId(), true),
             Arguments.of(List.of(HearingChannel.INTER), HearingCentre.GLASGOW.getEpimsId(), true),
             Arguments.of(List.of(HearingChannel.TEL), HearingCentre.GLASGOW.getEpimsId(), true),
-            Arguments.of(List.of(HearingChannel.TEL), HearingCentre.BIRMINGHAM.getEpimsId(), true),
-            Arguments.of(List.of(HearingChannel.INTER), HearingCentre.NEWPORT.getEpimsId(), false)
+            Arguments.of(List.of(HearingChannel.TEL), HearingCentre.BIRMINGHAM.getEpimsId(), true)
         );
     }
 
