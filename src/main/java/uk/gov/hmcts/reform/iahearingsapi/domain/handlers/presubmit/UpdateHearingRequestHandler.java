@@ -90,9 +90,16 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
     }
 
     private void setHearingChannelDetails(AsylumCase asylumCase, HearingDetails hearingDetails) {
+        List<Value> allChannelsOptions = Arrays.stream(HearingChannel.values())
+            .map(hearingChannel -> new Value(hearingChannel.name(), hearingChannel.getLabel()))
+            .toList();
+
         asylumCase.read(HEARING_CHANNEL, DynamicList.class).ifPresentOrElse(hearingChannel -> {
             asylumCase.write(CHANGE_HEARING_TYPE, hearingChannel.getValue().getLabel());
-            asylumCase.write(REQUEST_HEARING_CHANNEL, hearingChannel);
+            asylumCase.write(REQUEST_HEARING_CHANNEL, new DynamicList(
+                hearingChannel.getValue(),
+                allChannelsOptions
+            ));
         }, () -> {
             List<String> hearingChannels = hearingDetails.getHearingChannels();
             if (!(hearingChannels == null || hearingChannels.isEmpty())) {
@@ -105,9 +112,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
                         hearingDetails.getHearingChannels().get(0),
                         hearingDetails.getHearingChannelDescription()
                     ),
-                    Arrays.stream(HearingChannel.values())
-                        .map(hearingChannel -> new Value(hearingChannel.name(), hearingChannel.getLabel()))
-                        .toList()
+                    allChannelsOptions
                 ));
             }
         });
