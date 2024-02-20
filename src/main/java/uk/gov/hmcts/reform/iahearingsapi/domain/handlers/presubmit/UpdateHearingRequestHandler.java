@@ -128,8 +128,8 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
             if (!(listCaseHearingCentre == REMOTE_HEARING || listCaseHearingCentre == DECISION_WITHOUT_HEARING)) {
                 Value hearingVenueValue = getHearingVenueValue(hearingLocation, listCaseHearingCentre.getEpimsId());
                 hearingLocation.setValue(hearingVenueValue);
-                asylumCase.write(HEARING_LOCATION, hearingLocation);
             }
+            asylumCase.write(HEARING_LOCATION, hearingLocation);
         } else {
             List<HearingLocationModel> hearingLocations = hearingDetails.getHearingLocations();
             if (hearingLocations == null || hearingLocations.isEmpty()) {
