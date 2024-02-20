@@ -188,7 +188,7 @@ class UpdateHearingsRequestHandlerTest {
         when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class)).thenReturn(Optional.of(REMOTE_HEARING));
         updateHearingsRequestHandler.handle(MID_EVENT, callback);
 
-        verify(asylumCase, never()).write(eq(HEARING_LOCATION), any());
+        verify(asylumCase, times(1)).write(eq(HEARING_LOCATION), any());
         verify(asylumCase).write(eq(CHANGE_HEARING_VENUE), stringArgumentCaptor.capture());
         assertEquals(REMOTE_HEARING.getValue(), stringArgumentCaptor.getValue());
     }
@@ -199,8 +199,9 @@ class UpdateHearingsRequestHandlerTest {
             .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
         updateHearingsRequestHandler.handle(MID_EVENT, callback);
 
-        verify(asylumCase, never()).write(eq(HEARING_LOCATION), any());
         verify(asylumCase).write(eq(CHANGE_HEARING_VENUE), stringArgumentCaptor.capture());
+        verify(asylumCase, times(1)).write(eq(HEARING_LOCATION), any());
+
         assertEquals(DECISION_WITHOUT_HEARING.getValue(), stringArgumentCaptor.getValue());
     }
 
