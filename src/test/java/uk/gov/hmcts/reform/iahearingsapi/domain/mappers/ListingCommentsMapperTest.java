@@ -27,7 +27,7 @@ class ListingCommentsMapperTest {
     void getListingComments_should_return_value_without_overwite() {
         when(caseFlagsMapper.getListingComments(asylumCase))
             .thenReturn(listingCommentsFromCaseFlag);
-        when(caseDataMapper.getListingCommentsFromHearingRequest(asylumCase))
+        when(caseDataMapper.getListingComments(asylumCase))
             .thenReturn(listingCommentsFromCaseData);
 
         ListingCommentsMapper mapper = new ListingCommentsMapper();
