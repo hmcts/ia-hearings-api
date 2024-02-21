@@ -34,8 +34,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 @Component
 public class LanguageAndAdjustmentsMapper {
 
-    public static final String CASE_TYPE_ASYLUM = "Asylum";
-    public static final String CASE_TYPE_BAIL = "Bail";
     public static final Set<String> LANGUAGE_CASE_FLAG_CODES = Stream.of(
         LANGUAGE_INTERPRETER, SIGN_LANGUAGE_INTERPRETER)
         .map(StrategicCaseFlagType::getFlagCode).collect(Collectors.toSet());
@@ -61,7 +59,7 @@ public class LanguageAndAdjustmentsMapper {
                 : Collections.emptyList();
 
             List<CaseFlagDetail> activeCaseFlagDetails = filterForAsylumActiveCaseFlagDetails(caseFlags);
-            processPartyDetailsFlags(activeCaseFlagDetails, individualDetails, CASE_TYPE_ASYLUM);
+            processPartyDetailsFlags(activeCaseFlagDetails, individualDetails);
 
         }
 
@@ -82,23 +80,21 @@ public class LanguageAndAdjustmentsMapper {
                 : Collections.emptyList();
 
             List<CaseFlagDetail> activeCaseFlagDetails = filterForBailActiveCaseFlagDetails(caseFlags);
-            processPartyDetailsFlags(activeCaseFlagDetails, individualDetails, CASE_TYPE_BAIL);
+            processPartyDetailsFlags(activeCaseFlagDetails, individualDetails);
         }
 
         return partyDetails;
     }
 
     private void processPartyDetailsFlags(List<CaseFlagDetail> activeCaseFlagDetails,
-                                          IndividualDetailsModel individualDetails,
-                                          String caseType) {
+                                          IndividualDetailsModel individualDetails) {
 
         List<CaseFlagDetail> languageFlags = new ArrayList<>();
         List<CaseFlagDetail> reasonableAdjustmentsFlags = new ArrayList<>();
 
         separateLanguageAndReasonableAdjustmentFlags(activeCaseFlagDetails,
                                                      languageFlags,
-                                                     reasonableAdjustmentsFlags,
-                                                     caseType);
+                                                     reasonableAdjustmentsFlags);
 
         List<CaseFlagDetail> sortedLanguageFlags = sortLanguageFlagsByCode(languageFlags);
 
@@ -133,16 +129,15 @@ public class LanguageAndAdjustmentsMapper {
     }
 
     private void separateLanguageAndReasonableAdjustmentFlags(List<CaseFlagDetail> activeCaseFlagDetails,
-                                                                    List<CaseFlagDetail> languageFlags,
-                                                                    List<CaseFlagDetail> reasonableAdjustmentsFlags,
-                                                                    String caseType) {
+                                                              List<CaseFlagDetail> languageFlags,
+                                                              List<CaseFlagDetail> reasonableAdjustmentsFlags) {
 
         activeCaseFlagDetails
             .forEach(flagDetail -> {
                 if (isLanguageCaseFlag(flagDetail)) {
                     languageFlags.add(flagDetail);
                 }
-                if (isReasonableAdjustmentFlag(flagDetail, caseType)) {
+                if (isReasonableAdjustmentFlag(flagDetail)) {
                     reasonableAdjustmentsFlags.add(flagDetail);
                 }
             });
@@ -184,31 +179,8 @@ public class LanguageAndAdjustmentsMapper {
         return LANGUAGE_CASE_FLAG_CODES.contains(detail.getCaseFlagValue().getFlagCode());
     }
 
-    private boolean isSpokenLanguageCaseFlag(CaseFlagDetail detail) {
-        return LANGUAGE_INTERPRETER.getFlagCode().equals(detail.getCaseFlagValue().getFlagCode());
-    }
-
-    private boolean isReasonableAdjustmentFlag(CaseFlagDetail detail, String caseType) {
-        return caseType.equals(CASE_TYPE_ASYLUM)
-            ? isReasonableAdjustmentAppealsFlag(detail)
-            : isReasonableAdjustmentBailsFlag(detail);
-    }
-
-    /*
-    Language flags: PF0015, RA0042
-    Reasonable adjustment flags: RAxxxx, SMxxxx
-    */
-    private boolean isReasonableAdjustmentAppealsFlag(CaseFlagDetail detail) {
+    private boolean isReasonableAdjustmentFlag(CaseFlagDetail detail) {
         return REASONABLE_ADJUSTMENT_PREFIXES.contains(detail.getCaseFlagValue().getFlagCode().substring(0,2));
-    }
-
-    /*
-    Language flags: PF0015, RA0042
-    Reasonable adjustment flags: RAxxxx, SMxxxx, PF0015
-    */
-    private boolean isReasonableAdjustmentBailsFlag(CaseFlagDetail detail) {
-        return REASONABLE_ADJUSTMENT_PREFIXES.contains(detail.getCaseFlagValue().getFlagCode().substring(0,2))
-               || isSpokenLanguageCaseFlag(detail);
     }
 
     private List<StrategicCaseFlag> getAppellantCaseFlags(AsylumCase asylumCase) {
