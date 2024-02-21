@@ -146,6 +146,7 @@ public class CreateHearingPayloadServiceTest {
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase)).thenReturn(BaseLocation.BIRMINGHAM.getId());
         when(caseDataMapper.getCaseSlaStartDate()).thenReturn(DATE_START);
         when(caseDataMapper.getAutoListHearingFlag(asylumCase)).thenReturn(true);
+        when(caseFlagsMapper.getDefaultAutoListFlag(asylumCase)).thenReturn(true);
         when(caseDataMapper.getHearingLinkedFlag(asylumCase)).thenReturn(true);
 
         CreateHearingRequest expected = buildTestAsylumCreateHearingRequest();

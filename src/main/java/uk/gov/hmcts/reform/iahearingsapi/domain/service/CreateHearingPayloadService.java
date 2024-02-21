@@ -75,7 +75,7 @@ public class CreateHearingPayloadService {
             .duration(duration)
             .hearingType(HearingType.SUBSTANTIVE.getKey())
             .hearingChannels(getHearingChannels(asylumCase))
-            .autolistFlag(caseDataMapper.getAutoListHearingFlag(asylumCase))
+            .autolistFlag(getAutoListFlag(asylumCase))
             .facilitiesRequired(getFacilitiesRequired(asylumCase))
             .hearingInWelshFlag(false)
             .hearingLocations(getLocations(asylumCase))
@@ -198,5 +198,11 @@ public class CreateHearingPayloadService {
 
     protected boolean getPrivateHearingRequiredFlag(AsylumCase asylumCase) {
         return caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase);
+    }
+
+    protected boolean getAutoListFlag(AsylumCase asylumCase) {
+
+        return caseDataMapper.getAutoListHearingFlag(asylumCase)
+               && caseFlagsMapper.getDefaultAutoListFlag(asylumCase);
     }
 }
