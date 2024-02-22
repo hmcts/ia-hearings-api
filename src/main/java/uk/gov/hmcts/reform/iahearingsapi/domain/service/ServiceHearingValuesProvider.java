@@ -100,7 +100,7 @@ public class ServiceHearingValuesProvider {
                 .getExternalCaseReference(asylumCase))
             .caseManagementLocationCode(caseDataMapper
                 .getCaseManagementLocationCode(asylumCase))
-            .autoListFlag(caseDataMapper.getAutoListHearingFlag(asylumCase))
+            .autoListFlag(caseFlagsMapper.getDefaultAutoListFlag(asylumCase))
             .caseSlaStartDate(caseDataMapper.getCaseSlaStartDate().toString())
             .duration(caseDataMapper.getHearingDuration(asylumCase))
             .hearingWindow(caseDataMapper
