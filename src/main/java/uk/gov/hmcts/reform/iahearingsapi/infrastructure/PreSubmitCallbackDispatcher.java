@@ -1,5 +1,10 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
@@ -8,12 +13,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.CcdEventAuthorizor;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNull;
 
 public class PreSubmitCallbackDispatcher<T extends CaseData> {
 
@@ -89,6 +88,8 @@ public class PreSubmitCallbackDispatcher<T extends CaseData> {
                     callback.getCaseDetailsBefore(),
                     callback.getEvent()
                 );
+
+                callbackForHandler.setPageId(callback.getPageId());
 
                 if (callbackHandler.canHandle(callbackStage, callbackForHandler)) {
 

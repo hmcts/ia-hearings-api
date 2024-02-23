@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -49,6 +50,8 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 @Slf4j
 @RequiredArgsConstructor
 public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<AsylumCase> {
+
+    private static final String UPDATE_HEARING_LIST_PAGE_ID = "updateHearingList";
 
     private final HearingService hearingService;
     private final LocationRefDataService locationRefDataService;
@@ -74,19 +77,25 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
         }
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
 
-        Optional<DynamicList> selectedHearingOptional = asylumCase.read(CHANGE_HEARINGS, DynamicList.class);
-        if (selectedHearingOptional.isPresent()) {
-            DynamicList selectedHearing = selectedHearingOptional.get();
-            String hearingId = selectedHearing.getValue().getCode();
-            HearingDetails hearingDetails = hearingService
-                .getHearing(hearingId).getHearingDetails();
-            setHearingChannelDetails(asylumCase, hearingDetails);
-            setHearingLocationDetails(asylumCase, hearingDetails);
-            setHearingDateDetails(asylumCase, hearingDetails.getHearingWindow());
-            setHearingDurationDetails(asylumCase, hearingDetails);
+        PreSubmitCallbackResponse<AsylumCase> response = new PreSubmitCallbackResponse<>(asylumCase);
+
+        String pageId = callback.getPageId();
+
+        if (StringUtils.equals(pageId, UPDATE_HEARING_LIST_PAGE_ID)) {
+            Optional<DynamicList> selectedHearingOptional = asylumCase.read(CHANGE_HEARINGS, DynamicList.class);
+            if (selectedHearingOptional.isPresent()) {
+                DynamicList selectedHearing = selectedHearingOptional.get();
+                String hearingId = selectedHearing.getValue().getCode();
+                HearingDetails hearingDetails = hearingService
+                    .getHearing(hearingId).getHearingDetails();
+                setHearingChannelDetails(asylumCase, hearingDetails);
+                setHearingLocationDetails(asylumCase, hearingDetails);
+                setHearingDateDetails(asylumCase, hearingDetails.getHearingWindow());
+                setHearingDurationDetails(asylumCase, hearingDetails);
+            }
         }
 
-        return new PreSubmitCallbackResponse<>(asylumCase);
+        return response;
     }
 
     private void setHearingChannelDetails(AsylumCase asylumCase, HearingDetails hearingDetails) {
