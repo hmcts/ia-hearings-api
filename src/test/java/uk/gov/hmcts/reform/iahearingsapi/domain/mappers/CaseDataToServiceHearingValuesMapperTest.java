@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_INSTRUCTIONS_DESCRIPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_EMAIL_ADDRESS;
@@ -100,8 +101,6 @@ class CaseDataToServiceHearingValuesMapperTest {
     private OrganisationPolicy organisationPolicy;
     @Mock
     private Organisation organisation;
-    @Mock
-    private Event event;
     @Mock
     private HearingDetails persistedHearingDetails;
 
@@ -457,7 +456,7 @@ class CaseDataToServiceHearingValuesMapperTest {
     }
 
     @Test
-    void getListingCommentsFromHearingRequest_should_return_vulnerabilities_multimedia_adjustments_with_all_granted() {
+    void getListingComments_should_return_vulnerabilities_multimedia_adjustments_with_all_granted() {
         when(asylumCase.read(IS_VULNERABILITIES_ALLOWED, String.class))
             .thenReturn(Optional.of(GRANTED.getValue()));
         when(asylumCase.read(IS_MULTIMEDIA_ALLOWED, String.class))
@@ -465,7 +464,7 @@ class CaseDataToServiceHearingValuesMapperTest {
         when(asylumCase.read(IS_ADDITIONAL_ADJUSTMENTS_ALLOWED, String.class))
             .thenReturn(Optional.of(GRANTED.getValue()));
 
-        String listingComments = mapper.getListingCommentsFromHearingRequest(asylumCase);
+        String listingComments = mapper.getListingComments(asylumCase);
 
         assertEquals(listingComments, "Adjustments to accommodate vulnerabilities: vulnerabilities;"
             + "Multimedia equipment: multimedia;"
@@ -473,7 +472,7 @@ class CaseDataToServiceHearingValuesMapperTest {
     }
 
     @Test
-    void getListingCommentsFromHearingRequest_should_return_adjustments_with_granted() {
+    void getListingComments_should_return_adjustments_with_granted() {
         when(asylumCase.read(IS_VULNERABILITIES_ALLOWED, String.class))
             .thenReturn(Optional.of(REFUSED.getValue()));
         when(asylumCase.read(IS_MULTIMEDIA_ALLOWED, String.class))
@@ -481,13 +480,13 @@ class CaseDataToServiceHearingValuesMapperTest {
         when(asylumCase.read(IS_ADDITIONAL_ADJUSTMENTS_ALLOWED, String.class))
             .thenReturn(Optional.of(GRANTED.getValue()));
 
-        String listingComments = mapper.getListingCommentsFromHearingRequest(asylumCase);
+        String listingComments = mapper.getListingComments(asylumCase);
 
         assertEquals(listingComments, "Other adjustments: adjustments;");
     }
 
     @Test
-    void getListingCommentsFromHearingRequest_should_return_empty_string_with_all_refused() {
+    void getListingComments_should_return_empty_string_with_all_refused() {
         when(asylumCase.read(IS_VULNERABILITIES_ALLOWED, String.class))
             .thenReturn(Optional.of(REFUSED.getValue()));
         when(asylumCase.read(IS_MULTIMEDIA_ALLOWED, String.class))
@@ -495,9 +494,19 @@ class CaseDataToServiceHearingValuesMapperTest {
         when(asylumCase.read(IS_ADDITIONAL_ADJUSTMENTS_ALLOWED, String.class))
             .thenReturn(Optional.of(REFUSED.getValue()));
 
-        String listingComments = mapper.getListingCommentsFromHearingRequest(asylumCase);
+        String listingComments = mapper.getListingComments(asylumCase);
 
         assertEquals(listingComments, "");
+    }
+
+    @Test
+    void getListingComments_should_return_comment_with_additional_instructions() {
+        when(asylumCase.read(ADDITIONAL_INSTRUCTIONS_DESCRIPTION, String.class))
+            .thenReturn(Optional.of("New instructions"));
+
+        String listingComments = mapper.getListingComments(asylumCase);
+
+        assertEquals(listingComments, "Additional instructions: New instructions;");
     }
 
     @Test

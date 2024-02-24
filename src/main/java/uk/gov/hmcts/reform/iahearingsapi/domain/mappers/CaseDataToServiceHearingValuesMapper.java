@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_INSTRUCTIONS_DESCRIPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PARTY_ID;
@@ -269,8 +270,8 @@ public class CaseDataToServiceHearingValuesMapper {
         }
     }
 
-    public String getListingCommentsFromHearingRequest(AsylumCase asylumCase) {
-        StringBuilder responseFromHearingRequest = new StringBuilder();
+    public String getListingComments(AsylumCase asylumCase) {
+        StringBuilder commentsBuilder = new StringBuilder();
 
         String isVulnerabilitiesAllowed = asylumCase.read(IS_VULNERABILITIES_ALLOWED, String.class)
             .orElse("");
@@ -279,28 +280,32 @@ public class CaseDataToServiceHearingValuesMapper {
         String isAdditionalAdjustmentsAllowed = asylumCase.read(IS_ADDITIONAL_ADJUSTMENTS_ALLOWED, String.class)
             .orElse("");
 
-        responseFromHearingRequest.append(
+        commentsBuilder.append(
             GRANTED.getValue().equals(isVulnerabilitiesAllowed) ? getGrantedHearingResponseFromField(
                 asylumCase,
                 "Adjustments to accommodate vulnerabilities: ",
                 VULNERABILITIES_TRIBUNAL_RESPONSE
             ) : "");
 
-        responseFromHearingRequest.append(
+        commentsBuilder.append(
             GRANTED.getValue().equals(isMultimediaAllowed) ? getGrantedHearingResponseFromField(
                 asylumCase,
                 "Multimedia equipment: ",
                 MULTIMEDIA_TRIBUNAL_RESPONSE
             ) : "");
 
-        responseFromHearingRequest.append(
+        commentsBuilder.append(
             GRANTED.getValue().equals(isAdditionalAdjustmentsAllowed) ? getGrantedHearingResponseFromField(
                 asylumCase,
                 "Other adjustments: ",
                 ADDITIONAL_TRIBUNAL_RESPONSE
             ) : "");
 
-        return responseFromHearingRequest.toString();
+        asylumCase.read(ADDITIONAL_INSTRUCTIONS_DESCRIPTION, String.class).ifPresent(description -> {
+            commentsBuilder.append("Additional instructions: ").append(description).append(";");
+        });
+
+        return commentsBuilder.toString();
 
     }
 
