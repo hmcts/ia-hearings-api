@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DEPORTATION_ORDER_OPTIONS;
@@ -40,13 +41,13 @@ public class PayloadUtilsTest {
     );
 
     @Test
-    void number_of_physical_attendees_should_be_0() {
+    void number_of_physical_attendees_should_be_null() {
 
-        assertEquals(0, PayloadUtils.getNumberOfPhysicalAttendees(partyDetailsModels));
+        assertNull(PayloadUtils.getNumberOfPhysicalAttendees(partyDetailsModels));
     }
 
     @Test
-    void number_of_physical_attendees_should_be_0_when_hearing_channel_is_on_the_papers() {
+    void number_of_physical_attendees_should_be_0_when_hearing_channel_is_not_in_person() {
 
         partyDetailsModels.get(0).setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("ONPPRS").build());
