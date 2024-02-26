@@ -67,6 +67,10 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class UpdateHearingsRequestHandlerTest {
+
+    private static final String UPDATE_HEARING_LIST_PAGE_ID = "updateHearingList";
+    private static final String UPDATE_HEARING_DATE_PAGE_ID = "updateHearingDate";
+
     @Mock
     private Callback<AsylumCase> callback;
     @Mock
@@ -115,6 +119,7 @@ class UpdateHearingsRequestHandlerTest {
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(hearingChannel));
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(hearingGetResponse);
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
+        when(callback.getPageId()).thenReturn(UPDATE_HEARING_LIST_PAGE_ID);
 
         updateHearingsRequestHandler = new UpdateHearingRequestHandler(hearingService, locationRefDataService);
     }
@@ -325,6 +330,16 @@ class UpdateHearingsRequestHandlerTest {
     @Test
     void should_not_initialize_hearing_duration() {
 
+        updateHearingsRequestHandler.handle(MID_EVENT, callback);
+
+        verify(asylumCase, never()).write(eq(CHANGE_HEARING_DURATION), any());
+        verify(asylumCase, never()).write(eq(REQUEST_HEARING_LENGTH), any());
+    }
+
+    @Test
+    void should_not_run_when_not_on_hearing_list_page() {
+
+        when(callback.getPageId()).thenReturn(UPDATE_HEARING_DATE_PAGE_ID);
         updateHearingsRequestHandler.handle(MID_EVENT, callback);
 
         verify(asylumCase, never()).write(eq(CHANGE_HEARING_DURATION), any());
