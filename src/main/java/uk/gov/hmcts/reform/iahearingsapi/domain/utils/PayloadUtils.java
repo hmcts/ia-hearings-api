@@ -74,9 +74,18 @@ public class PayloadUtils {
         };
     }
 
-    public static int getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {
+    public static Integer getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {
 
-        int physicalAttendees = (int) partyDetails.stream()
+        List<PartyDetailsModel> partiesWithChosenChannels = partyDetails.stream()
+            .filter(party -> party.getIndividualDetails() != null
+                             && party.getIndividualDetails().getPreferredHearingChannel() != null)
+            .toList();
+
+        if (partiesWithChosenChannels.isEmpty()) {
+            return null;
+        }
+
+        int physicalAttendees = (int) partiesWithChosenChannels.stream()
             .filter(PayloadUtils::isInPersonAttendee)
             .count();
 

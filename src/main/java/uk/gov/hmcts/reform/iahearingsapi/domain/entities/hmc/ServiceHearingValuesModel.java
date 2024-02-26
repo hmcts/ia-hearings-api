@@ -58,7 +58,7 @@ public class ServiceHearingValuesModel {
     @NonNull
     private PriorityType hearingPriorityType;
 
-    private int numberOfPhysicalAttendees;
+    private Integer numberOfPhysicalAttendees;
 
     private boolean hearingInWelshFlag;
 
