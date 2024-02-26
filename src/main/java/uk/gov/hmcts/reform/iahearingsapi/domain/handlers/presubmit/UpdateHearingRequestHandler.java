@@ -208,7 +208,8 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
         return true;
     }
 
-    private boolean setHearingDateDetailsFromRequestedHearing(AsylumCase asylumCase, HearingWindowModel hearingWindow) {
+    public static boolean setHearingDateDetailsFromRequestedHearing(AsylumCase asylumCase,
+                                                                    HearingWindowModel hearingWindow) {
         boolean hearingDateSet = false;
         final StringBuilder dateRangeBuilder = new StringBuilder("Choose a date range");
 
