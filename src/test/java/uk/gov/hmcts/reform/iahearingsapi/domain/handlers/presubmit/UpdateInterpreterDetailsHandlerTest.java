@@ -1,5 +1,21 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_INTERPRETER_BOOKING_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_INTERPRETER_DETAILS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
+
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,20 +35,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_INTERPRETER_BOOKING_STATUS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_INTERPRETER_DETAILS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -136,7 +139,46 @@ class UpdateInterpreterDetailsHandlerTest {
     }
 
     @Test
-    void should_throw_an_exception_when_no_substantive_hearing_is_created() {
+    void should_throw_an_exception_when_update_hearing_unsuccessful() {
+
+        HearingsGetResponse hearingsGetResponseMock = mock(HearingsGetResponse.class);
+        when(hearingService.getHearings(caseId)).thenReturn(hearingsGetResponseMock);
+        when(hearingsGetResponseMock.getCaseHearings())
+            .thenReturn(List.of(
+                CaseHearing
+                    .builder()
+                    .hearingType(HearingType.BAIL.getKey())
+                    .hearingRequestId("hearing2")
+                    .build(),
+                CaseHearing
+                    .builder()
+                    .hearingType(HearingType.COSTS.getKey())
+                    .hearingRequestId("hearing3")
+                    .build(),
+                CaseHearing
+                    .builder()
+                    .hearingType(HearingType.SUBSTANTIVE.getKey())
+                    .hearingRequestId("hearing1")
+                    .build()
+            ));
+
+        when(updateHearingPayloadService.createUpdateHearingPayload(
+            any(AsylumCase.class), anyString(), anyString(), eq(UPDATE_INTERPRETER_DETAILS)))
+            .thenReturn(updateHearingRequest);
+        when(hearingService.updateHearing(any(), anyString()))
+            .thenThrow(new HmcException(new RuntimeException("Failure")));
+
+        IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> {
+            updateInterpreterDetailsHandler.handle(
+                ABOUT_TO_SUBMIT,
+                callback
+            );
+        });
+        assertEquals("Failed to retrieve data from HMC. Error: Failure", thrown.getMessage());
+    }
+
+    @Test
+    void should_not_try_to_update_any_hearing_if_no_substantive_hearing_requested_yet() {
 
         HearingsGetResponse hearingsGetResponseMock = mock(HearingsGetResponse.class);
         when(hearingService.getHearings(caseId)).thenReturn(hearingsGetResponseMock);
@@ -154,14 +196,7 @@ class UpdateInterpreterDetailsHandlerTest {
                     .build()
             ));
 
-        IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> {
-            updateInterpreterDetailsHandler.handle(
-                ABOUT_TO_SUBMIT,
-                callback
-            );
-        });
-        assertEquals("No Substantive hearing was found.",
-                     thrown.getMessage());
+        verify(hearingService, never()).updateHearing(any(), any());
     }
 
     @Test
