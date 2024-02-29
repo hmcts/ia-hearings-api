@@ -295,29 +295,6 @@ class UpdateHearingsRequestSubmitTest {
     }
 
     @Test
-    void should_throw_an_exception_if_no_fixed_date_is_set() {
-        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
-        asylumCase.write(CHANGE_HEARING_DATE_TYPE, "ChooseADateRange");
-        assertThrows(
-            IllegalStateException.class,
-            () -> updateHearingRequestSubmit.handle(ABOUT_TO_SUBMIT, callback),
-            "CHOOSE_A_DATE_RANGE_EARLIEST type is not present"
-        );
-    }
-
-    @Test
-    void should_throw_an_exception_if_no_latest_date_range_is_set() {
-        asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
-        asylumCase.write(CHANGE_HEARING_DATE_TYPE, "ChooseADateRange");
-        asylumCase.write(CHANGE_HEARING_DATE_RANGE_EARLIEST, "2023-12-02");
-        assertThrows(
-            IllegalStateException.class,
-            () -> updateHearingRequestSubmit.handle(ABOUT_TO_SUBMIT, callback),
-            "CHOOSE_A_DATE_RANGE_LATEST type is not present"
-        );
-    }
-
-    @Test
     void should_send_an_update_of_the_hearing_duration() {
         asylumCase.write(CHANGE_HEARING_DURATION_YES_NO, YES);
         asylumCase.write(REQUEST_HEARING_LENGTH, "240");

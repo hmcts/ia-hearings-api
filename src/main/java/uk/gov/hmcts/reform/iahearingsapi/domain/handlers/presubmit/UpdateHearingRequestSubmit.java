@@ -241,22 +241,14 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                     .firstDateTimeMustBe(HearingsUtils.convertToLocalDateTimeFormat(fixedDate).toString()).build();
             }
             case "ChooseADateRange" -> {
-                String earliestDate = asylumCase.read(
-                    CHANGE_HEARING_DATE_RANGE_EARLIEST,
-                    String.class
-                ).orElseThrow(() -> new IllegalStateException(
-                    CHANGE_HEARING_DATE_RANGE_EARLIEST + " type is not present"));
+                HearingWindowModel window = HearingWindowModel.builder().build();
 
-                String latestDate = asylumCase.read(
-                    CHANGE_HEARING_DATE_RANGE_LATEST,
-                    String.class
-                ).orElseThrow(() -> new IllegalStateException(
-                    CHANGE_HEARING_DATE_RANGE_LATEST + " type is not present"));
-                yield HearingWindowModel.builder()
-                    .dateRangeStart(earliestDate)
-                    .dateRangeEnd(latestDate)
-                    .build();
+                asylumCase.read(CHANGE_HEARING_DATE_RANGE_EARLIEST, String.class)
+                    .ifPresent(window::setDateRangeStart);
+                asylumCase.read(CHANGE_HEARING_DATE_RANGE_LATEST, String.class)
+                    .ifPresent(window::setDateRangeEnd);
 
+                yield window;
             }
             default -> null;
         };
