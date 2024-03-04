@@ -11,7 +11,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_START;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLATION_SUBMITTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_SUBMITTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_REQUESTED;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -88,7 +88,7 @@ public class RecordAdjournmentDetailsPreparerTest {
         when(caseHearing2.getHearingRequestId()).thenReturn(CASE_HEARING_REQUEST_ID_2);
         when(caseHearing3.getHearingRequestId()).thenReturn(CASE_HEARING_REQUEST_ID_3);
         when(caseHearing1.getHmcStatus()).thenReturn(AWAITING_LISTING);
-        when(caseHearing2.getHmcStatus()).thenReturn(UPDATE_SUBMITTED);
+        when(caseHearing2.getHmcStatus()).thenReturn(UPDATE_REQUESTED);
         when(caseHearing3.getHmcStatus()).thenReturn(CANCELLATION_SUBMITTED); // disqualifies hearing for selection
         when(caseHearing1.getHearingType()).thenReturn(HEARING_TYPE);
         when(caseHearing2.getHearingType()).thenReturn(HEARING_TYPE);
