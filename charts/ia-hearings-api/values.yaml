@@ -4,6 +4,10 @@ java:
   readinessPath: '/health/readiness'
   aadIdentityName: ia
   ingressHost: ia-hearings-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+  memoryLimits: '384Mi'
+  memoryRequests: '384Mi'
+  devmemoryLimits: '384Mi'
+  devmemoryRequests: '384Mi'
   environment:
     HEARINGS_API_URL: "https://ia-hearings-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
