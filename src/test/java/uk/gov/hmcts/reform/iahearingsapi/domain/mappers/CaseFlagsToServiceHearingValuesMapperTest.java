@@ -10,11 +10,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_FLAGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.AUDIO_VIDEO_EVIDENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.DETAINED_INDIVIDUAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.FOREIGN_NATIONAL_OFFENDER;
@@ -45,7 +42,6 @@ import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagValue;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.PartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlag;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -133,81 +129,6 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .thenReturn(Optional.of(appellantFlags));
 
         assertFalse(mapper.getCaseAdditionalSecurityFlag(asylumCase));
-    }
-
-    @Test
-    void getAutoListFlag_should_return_false() {
-
-        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
-        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
-            .status("Active")
-            .build()));
-        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
-
-        assertFalse(mapper.getDefaultAutoListFlag(asylumCase));
-
-        caseFlagDetails.addAll(Arrays.asList(new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
-            .status("Active")
-            .build()), new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(FOREIGN_NATIONAL_OFFENDER.getFlagCode())
-            .status("Active")
-            .build()), new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(AUDIO_VIDEO_EVIDENCE.getFlagCode())
-            .status("Active")
-            .build()), new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(LITIGATION_FRIEND.getFlagCode())
-            .status("Active")
-            .build()), new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(LACKING_CAPACITY.getFlagCode())
-            .status("Active")
-            .build())));
-        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
-        when(asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag(
-                List.of(new CaseFlagDetail(
-                    "id1",
-                    CaseFlagValue.builder()
-                        .flagCode(PRESIDENTIAL_PANEL.getFlagCode())
-                        .status("Active")
-                        .build())))));
-
-        assertFalse(mapper.getDefaultAutoListFlag(asylumCase));
-    }
-
-    @Test
-    void getAutoListFlag_should_return_true() {
-
-        assertTrue(mapper.getDefaultAutoListFlag(asylumCase));
-
-        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
-        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
-            .status("Inactive")
-            .build()));
-        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
-
-        assertTrue(mapper.getDefaultAutoListFlag(asylumCase));
-    }
-
-    @Test
-    void getAutoListFlag_should_return_false_for_decision_without_hearing_appeal() {
-
-        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
-        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
-            .status("Inactive")
-            .build()));
-        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
-        when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
-            .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
-
-        assertTrue(mapper.getDefaultAutoListFlag(asylumCase));
     }
 
     @Test

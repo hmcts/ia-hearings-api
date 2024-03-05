@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.AUTO_LIST_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_HEARING_LINKED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType.STANDARD;
 
@@ -114,8 +113,6 @@ public class CreateHearingPayloadServiceTest {
         when(caseDetails.getId()).thenReturn(CASE_REFERENCE_L);
         when(asylumCase.read(AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL, String.class))
             .thenReturn(Optional.of(HMCTS_CASE_NAME_INTERNAL));
-        when(asylumCase.read(AUTO_LIST_HEARING, YesOrNo.class))
-            .thenReturn(Optional.of(YesOrNo.YES));
         when(asylumCase.read(IS_HEARING_LINKED, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
         when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase,
@@ -145,8 +142,6 @@ public class CreateHearingPayloadServiceTest {
         when(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
         when(caseDataMapper.getCaseManagementLocationCode(asylumCase)).thenReturn(BaseLocation.BIRMINGHAM.getId());
         when(caseDataMapper.getCaseSlaStartDate()).thenReturn(DATE_START);
-        when(caseDataMapper.getAutoListHearingFlag(asylumCase)).thenReturn(true);
-        when(caseFlagsMapper.getDefaultAutoListFlag(asylumCase)).thenReturn(true);
         when(caseDataMapper.getHearingLinkedFlag(asylumCase)).thenReturn(true);
 
         CreateHearingRequest expected = buildTestAsylumCreateHearingRequest();
@@ -161,7 +156,7 @@ public class CreateHearingPayloadServiceTest {
             .duration(LIST_CASE_HEARING_LENGTH)
             .hearingType(SUBSTANTIVE_HEARING_TYPE)
             .hearingChannels(HEARING_CHANNELS)
-            .autolistFlag(true)
+            .autolistFlag(false)
             .facilitiesRequired(Collections.emptyList())
             .hearingInWelshFlag(false)
             .hearingLocations(List.of(HearingLocationModel.builder()
@@ -181,7 +176,6 @@ public class CreateHearingPayloadServiceTest {
             .listingComments(LISTING_COMMENTS)
             .numberOfPhysicalAttendees(0)
             .privateHearingRequiredFlag(true)
-            .autolistFlag(true)
             .hearingIsLinkedFlag(true)
             .build();
 

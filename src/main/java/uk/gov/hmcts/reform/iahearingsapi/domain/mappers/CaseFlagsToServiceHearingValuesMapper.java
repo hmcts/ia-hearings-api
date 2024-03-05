@@ -5,14 +5,10 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.AUDIO_VIDEO_EVIDENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.DETAINED_INDIVIDUAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.FOREIGN_NATIONAL_OFFENDER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LACKING_CAPACITY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LITIGATION_FRIEND;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.PRESIDENTIAL_PANEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCOMPANIED_MINOR;
@@ -67,25 +63,6 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
         return hasOneOrMoreActiveFlagsOfType(appellantCaseFlags,
             List.of(UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR, FOREIGN_NATIONAL_OFFENDER));
-    }
-
-    public boolean getDefaultAutoListFlag(AsylumCase asylumCase) {
-        List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
-            .map(List::of).orElse(Collections.emptyList());
-        boolean isDecisionWithoutHearingAppeal = caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase);
-        List<StrategicCaseFlagType> appellantCaseFlagTypes = List.of(
-            SIGN_LANGUAGE_INTERPRETER,
-            FOREIGN_NATIONAL_OFFENDER,
-            AUDIO_VIDEO_EVIDENCE,
-            LITIGATION_FRIEND,
-            LACKING_CAPACITY);
-        boolean hasOneOrMoreActiveAppellantCaseFlags =
-            hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, appellantCaseFlagTypes);
-        List<StrategicCaseFlag> caseFlags = asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
-            .map(List::of).orElse(Collections.emptyList());
-        boolean hasActiveCaseFlag = hasOneOrMoreActiveFlagsOfType(caseFlags, List.of(PRESIDENTIAL_PANEL));
-
-        return !(hasOneOrMoreActiveAppellantCaseFlags || hasActiveCaseFlag || isDecisionWithoutHearingAppeal);
     }
 
     public PriorityType getHearingPriorityType(AsylumCase asylumCase) {
