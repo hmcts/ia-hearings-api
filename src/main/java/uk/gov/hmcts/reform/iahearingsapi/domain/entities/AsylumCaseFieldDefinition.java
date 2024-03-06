@@ -284,8 +284,6 @@ public enum AsylumCaseFieldDefinition {
     DECISION_WITHOUT_HEARING_LISTED(
         "decisionWithoutHearingListed", new TypeReference<YesOrNo>(){}),
 
-    AUTO_LIST_HEARING("autoListHearing", new TypeReference<YesOrNo>(){}),
-
     IS_HEARING_LINKED("isHearingLinked", new TypeReference<YesOrNo>(){}),
 
     REQUEST_HEARING_CHANNEL(
