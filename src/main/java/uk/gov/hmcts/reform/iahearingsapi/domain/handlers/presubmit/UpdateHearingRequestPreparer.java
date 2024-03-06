@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADJOURNMENT_DETAILS_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
 
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -17,10 +17,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandle
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.HearingsToDynamicListMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RecordAdjournmentDetailsPreparer implements PreSubmitCallbackHandler<AsylumCase> {
+public class UpdateHearingRequestPreparer implements PreSubmitCallbackHandler<AsylumCase> {
 
     private final HearingService hearingService;
 
@@ -31,7 +32,7 @@ public class RecordAdjournmentDetailsPreparer implements PreSubmitCallbackHandle
         requireNonNull(callback, "callback must not be null");
 
         return callbackStage == PreSubmitCallbackStage.ABOUT_TO_START && Objects.equals(
-            Event.RECORD_ADJOURNMENT_DETAILS,
+            Event.UPDATE_HEARING_REQUEST,
             callback.getEvent()
         );
     }
@@ -40,7 +41,6 @@ public class RecordAdjournmentDetailsPreparer implements PreSubmitCallbackHandle
     public PreSubmitCallbackResponse<AsylumCase> handle(
         PreSubmitCallbackStage callbackStage,
         Callback<AsylumCase> callback) {
-
         if (!canHandle(callbackStage, callback)) {
             throw new IllegalStateException("Cannot handle callback");
         }
@@ -48,7 +48,8 @@ public class RecordAdjournmentDetailsPreparer implements PreSubmitCallbackHandle
         HearingsGetResponse hearings = hearingService.getHearings(callback.getCaseDetails().getId());
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
 
-        asylumCase.write(ADJOURNMENT_DETAILS_HEARING, HearingsToDynamicListMapper.map(hearings));
+        asylumCase.write(CHANGE_HEARINGS, HearingsToDynamicListMapper.map(hearings));
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
+
 }

@@ -21,12 +21,13 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
+import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestPreparer;
 
 /**
  * This functional test class covers all callback handlers in relation to Update Hearing including.
  * {@link uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestHandler}
  * {@link uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestSubmit}
- * {@link uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.HearingsDynamicListPreparer}
+ * {@link UpdateHearingRequestPreparer}
  */
 @Slf4j
 @ActiveProfiles("functional")

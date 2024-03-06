@@ -1,5 +1,22 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_START;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLATION_SUBMITTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CLOSED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_REQUESTED;
+
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,31 +34,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingDaySchedule;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_START;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_ACTUALS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_LISTING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLATION_SUBMITTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CLOSED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_SUBMITTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.HearingsDynamicListPreparer.AWAITING_HEARING_DETAILS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.HearingsDynamicListPreparer.WAITING_TO_BE_LISTED;
-
-
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class HearingsDynamicListPreparerTest {
+class UpdateHearingRequestPreparerTest {
     @Mock
     private Callback<AsylumCase> callback;
     @Mock
@@ -50,7 +45,7 @@ class HearingsDynamicListPreparerTest {
     @Mock
     private HearingService hearingService;
 
-    private HearingsDynamicListPreparer hearingsDynamicListPreparer;
+    private UpdateHearingRequestPreparer updateHearingRequestPreparer;
     private AsylumCase asylumCase;
     private final Long caseId = 1234L;
 
@@ -63,7 +58,7 @@ class HearingsDynamicListPreparerTest {
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(UPDATE_HEARING_REQUEST);
 
-        hearingsDynamicListPreparer = new HearingsDynamicListPreparer(hearingService);
+        updateHearingRequestPreparer = new UpdateHearingRequestPreparer(hearingService);
     }
 
     @Test
@@ -77,18 +72,10 @@ class HearingsDynamicListPreparerTest {
             CaseHearing.builder()
                 .hearingRequestId("2")
                 .hearingType("BFA1-SUB")
-                .hmcStatus(UPDATE_SUBMITTED)
+                .hmcStatus(UPDATE_REQUESTED)
                 .build(),
             CaseHearing.builder()
                 .hearingRequestId("3")
-                .hearingType("BFA1-SUB")
-                .hearingDaySchedule(List.of(HearingDaySchedule.builder()
-                                                .hearingStartDateTime(LocalDateTime.of(2023, 1, 21, 0, 0))
-                                                .build()))
-                .hmcStatus(AWAITING_ACTUALS)
-                .build(),
-            CaseHearing.builder()
-                .hearingRequestId("4")
                 .hearingType("BFA1-SUB")
                 .hearingDaySchedule(List.of(HearingDaySchedule.builder()
                                                 .hearingStartDateTime(LocalDateTime.of(4023, 1, 21, 0, 0))
@@ -102,7 +89,7 @@ class HearingsDynamicListPreparerTest {
         when(hearingService.getHearings(caseId)).thenReturn(hearingsGetResponseMock);
         when(hearingsGetResponseMock.getCaseHearings()).thenReturn(caseHearingList);
 
-        PreSubmitCallbackResponse<AsylumCase> callbackResponse = hearingsDynamicListPreparer.handle(
+        PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestPreparer.handle(
             ABOUT_TO_START,
             callback
         );
@@ -110,7 +97,7 @@ class HearingsDynamicListPreparerTest {
         assertNotNull(callbackResponse);
         verify(hearingService, times(1)).getHearings(caseId);
         assertEquals(
-            4,
+            3,
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().size()
         );
         assertEquals(
@@ -118,7 +105,7 @@ class HearingsDynamicListPreparerTest {
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(0).getCode()
         );
         assertEquals(
-            "Substantive " + WAITING_TO_BE_LISTED,
+            "Substantive (Waiting to be listed)",
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(0).getLabel()
         );
         assertEquals(
@@ -126,7 +113,7 @@ class HearingsDynamicListPreparerTest {
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(1).getCode()
         );
         assertEquals(
-            "Substantive " + HearingsDynamicListPreparer.UPDATE_REQUESTED,
+            "Substantive (Update requested)",
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(1).getLabel()
         );
         assertEquals(
@@ -134,16 +121,8 @@ class HearingsDynamicListPreparerTest {
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(2).getCode()
         );
         assertEquals(
-            "Substantive " + AWAITING_HEARING_DETAILS + " - 21 January 2023",
+            "Substantive (Listed) - 21 January 4023",
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(2).getLabel()
-        );
-        assertEquals(
-            "4",
-            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(3).getCode()
-        );
-        assertEquals(
-            "Substantive " + HearingsDynamicListPreparer.LISTED + " - 21 January 4023",
-            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(3).getLabel()
         );
         assertEquals(asylumCase, callbackResponse.getData());
     }
@@ -167,14 +146,14 @@ class HearingsDynamicListPreparerTest {
                 .hearingRequestId("3")
                 .hearingType("BFA1-SUB")
                 .hearingRequestDateTime(LocalDateTime.of(2023, 1, 20, 0, 0))
-                .hmcStatus(UPDATE_SUBMITTED)
+                .hmcStatus(UPDATE_REQUESTED)
                 .build()
         );
         HearingsGetResponse hearingsGetResponseMock = mock(HearingsGetResponse.class);
         when(hearingService.getHearings(caseId)).thenReturn(hearingsGetResponseMock);
         when(hearingsGetResponseMock.getCaseHearings()).thenReturn(caseHearingList);
 
-        PreSubmitCallbackResponse<AsylumCase> callbackResponse = hearingsDynamicListPreparer.handle(
+        PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestPreparer.handle(
             ABOUT_TO_START,
             callback
         );
@@ -186,7 +165,7 @@ class HearingsDynamicListPreparerTest {
         assertEquals("3", asylumCase.read(CHANGE_HEARINGS, DynamicList.class)
             .get().getListItems().get(0).getCode());
         assertEquals(
-            "Substantive " + HearingsDynamicListPreparer.UPDATE_REQUESTED,
+            "Substantive (Update requested)",
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class)
                 .get().getListItems().get(0).getLabel()
         );
