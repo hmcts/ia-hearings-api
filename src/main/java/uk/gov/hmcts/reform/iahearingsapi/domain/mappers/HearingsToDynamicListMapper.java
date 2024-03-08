@@ -34,7 +34,7 @@ public class HearingsToDynamicListMapper {
                 + " (Waiting to be listed)";
             case LISTED, AWAITING_ACTUALS ->
                 getListedAndAwaitingHearingDetailsDescription(caseHearing);
-            case UPDATE_SUBMITTED, UPDATE_REQUESTED ->
+            case UPDATE_SUBMITTED ->
                 caseHearing.getHearingTypeDescription()
                 + " (Update requested)";
             default -> null;
