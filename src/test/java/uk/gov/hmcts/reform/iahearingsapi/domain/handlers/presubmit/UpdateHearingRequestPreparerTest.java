@@ -13,7 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AW
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLATION_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CLOSED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_REQUESTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_SUBMITTED;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -72,7 +72,7 @@ class UpdateHearingRequestPreparerTest {
             CaseHearing.builder()
                 .hearingRequestId("2")
                 .hearingType("BFA1-SUB")
-                .hmcStatus(UPDATE_REQUESTED)
+                .hmcStatus(UPDATE_SUBMITTED)
                 .build(),
             CaseHearing.builder()
                 .hearingRequestId("3")
@@ -146,7 +146,7 @@ class UpdateHearingRequestPreparerTest {
                 .hearingRequestId("3")
                 .hearingType("BFA1-SUB")
                 .hearingRequestDateTime(LocalDateTime.of(2023, 1, 20, 0, 0))
-                .hmcStatus(UPDATE_REQUESTED)
+                .hmcStatus(UPDATE_SUBMITTED)
                 .build()
         );
         HearingsGetResponse hearingsGetResponseMock = mock(HearingsGetResponse.class);

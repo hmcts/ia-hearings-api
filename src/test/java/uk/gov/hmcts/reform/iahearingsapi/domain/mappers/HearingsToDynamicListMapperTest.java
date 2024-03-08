@@ -87,7 +87,7 @@ class HearingsToDynamicListMapperTest {
             CaseHearing.builder()
                 .hearingRequestId("3")
                 .hearingType("BFA1-SUB")
-                .hmcStatus(UPDATE_REQUESTED)
+                .hmcStatus(UPDATE_REQUESTED) // will be filtered out
                 .build(),
             CaseHearing.builder()
                 .hearingRequestId("4")
@@ -113,7 +113,7 @@ class HearingsToDynamicListMapperTest {
 
         List<Value> actualHearingValues = actual.getListItems();
         assertNotNull(actualHearingValues);
-        assertEquals(5, actualHearingValues.size());
+        assertEquals(4, actualHearingValues.size());
 
         List<String> hearingDescriptions = actualHearingValues.stream().map(Value::getLabel).toList();
 
