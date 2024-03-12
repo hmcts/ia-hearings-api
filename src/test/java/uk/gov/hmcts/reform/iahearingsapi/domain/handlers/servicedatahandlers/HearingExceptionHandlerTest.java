@@ -11,7 +11,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HANDLE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
-import com.github.dockerjava.api.exception.NotFoundException;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -111,7 +110,7 @@ class HearingExceptionHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class))
             .thenReturn(Optional.of(CASE_REF));
         when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, CASE_TYPE_BAIL))
-            .thenThrow(new NotFoundException("Case not found"));
+            .thenThrow(new IllegalArgumentException("Case not found"));
 
         hearingExceptionHandler.handle(serviceData);
 
