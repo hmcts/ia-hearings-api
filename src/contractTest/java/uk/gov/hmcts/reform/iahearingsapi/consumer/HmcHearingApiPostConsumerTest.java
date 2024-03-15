@@ -5,11 +5,9 @@ import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
-@Disabled
 @PactTestFor(providerName = "hmc_cft_hearings_api", port = "4561")
 public class HmcHearingApiPostConsumerTest extends HmcHearingApiConsumerTestBase {
 
