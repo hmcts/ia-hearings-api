@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Map;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
@@ -82,6 +85,7 @@ public class CoreCaseDataService {
             event,
             true,
             startEventResponse.getToken(),
+            startEventResponse.getCaseDetails().getLastModified(),
             CASE_TYPE_ASYLUM
         );
 
@@ -106,6 +110,7 @@ public class CoreCaseDataService {
             event,
             true,
             startEventResponse.getToken(),
+            startEventResponse.getCaseDetails().getLastModified(),
             CASE_TYPE_BAIL
         );
 
@@ -143,7 +148,16 @@ public class CoreCaseDataService {
                                                                                       Event event,
                                                                                       boolean ignoreWarning,
                                                                                       String eventToken,
+                                                                                      LocalDateTime lastModified,
                                                                                       String caseType) {
+
+        StartEventResponse startEventResponse = startCaseEvent(event, caseId, caseType);
+        // Ensure we are not updating old version of case details
+        if (startEventResponse.getCaseDetails().getLastModified().truncatedTo(ChronoUnit.MILLIS)
+            .isAfter(lastModified)) {
+            throw new ConcurrentModificationException(
+                String.format("Case with ID %s cannot be updated: case details out of date", caseId));
+        }
 
         CaseDataContent request = CaseDataContent.builder()
             .event(uk.gov.hmcts.reform.ccd.client.model.Event.builder()

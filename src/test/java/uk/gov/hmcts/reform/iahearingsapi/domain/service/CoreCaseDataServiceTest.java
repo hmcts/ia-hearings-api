@@ -6,13 +6,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 
-import java.util.Collections;
+import java.time.LocalDateTime;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,9 +30,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
-import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
-import uk.gov.hmcts.reform.ccd.client.model.Classification;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
@@ -54,31 +54,38 @@ public class CoreCaseDataServiceTest {
     @InjectMocks
     private CoreCaseDataService coreCaseDataService;
     @Mock
-    CoreCaseDataApi coreCaseDataApi;
+    private CoreCaseDataApi coreCaseDataApi;
     @Mock
-    IaCcdConvertService iaCcdConvertService;
+    private IaCcdConvertService iaCcdConvertService;
     @Mock
     private AuthTokenGenerator authTokenGenerator;
     @Mock
-    IdamService idamService;
+    private IdamService idamService;
     @Mock
-    StartEventResponse startEventResponse;
+    private StartEventResponse startEventResponse;
     @Mock
-    AsylumCase asylumCase;
+    private AsylumCase asylumCase;
     @Mock
-    BailCase bailCase;
+    private BailCase bailCase;
     @Mock
-    CaseDetails caseDetails;
+    private CaseDetails caseDetails;
     @Mock
-    UserInfo userInfo;
+    private CaseDetails intermediateCaseDetails;
+    @Mock
+    private StartEventResponse intermediateStartEventResponse;
+    @Mock
+    private UserInfo userInfo;
+
+    private final LocalDateTime now = LocalDateTime.now();
 
     @BeforeEach
     void setup() {
-        CaseDetails caseDetails = mock(CaseDetails.class);
-        Map<String, Object> data = new HashMap<>();
-        when(caseDetails.getData()).thenReturn(data);
-        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
+        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
+        when(idamService.getUserInfo()).thenReturn(userInfo);
+        when(userInfo.getUid()).thenReturn(USER_ID);
 
+        Map<String, Object> data = new HashMap<>();
         when(coreCaseDataApi.submitEventForCaseWorker(
             any(),
             any(),
@@ -89,10 +96,10 @@ public class CoreCaseDataServiceTest {
             anyBoolean(),
             any()
         )).thenReturn(caseDetails);
-        when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
-        when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
-        when(idamService.getUserInfo()).thenReturn(userInfo);
-        when(userInfo.getUid()).thenReturn(USER_ID);
+        when(startEventResponse.getToken()).thenReturn(EVENT_TOKEN);
+        when(caseDetails.getData()).thenReturn(data);
+        when(caseDetails.getLastModified()).thenReturn(now);
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
     }
 
     @Test
@@ -179,70 +186,59 @@ public class CoreCaseDataServiceTest {
 
     @Test
     public void should_trigger_event() {
-        when(startEventResponse.getToken()).thenReturn(EVENT_TOKEN);
 
-        CaseDataContent caseDataContent = CaseDataContent.builder()
-            .event(uk.gov.hmcts.reform.ccd.client.model.Event.builder()
-                       .id(LIST_CASE.toString())
-                       .build())
-            .data(asylumCase)
-            .supplementaryDataRequest(Collections.emptyMap())
-            .securityClassification(Classification.PUBLIC)
-            .eventToken(EVENT_TOKEN)
-            .ignoreWarning(true)
-            .caseReference(CASE_ID)
-            .build();
-        when(coreCaseDataApi.submitEventForCaseWorker(
-            eq(AUTH_TOKEN),
-            eq(SERVICE_TOKEN),
-            eq(USER_ID),
-            eq(JURISDICTION),
-            eq(CASE_TYPE_ASYLUM),
-            eq(CASE_ID),
-            eq(true),
-            eq(caseDataContent)
-        )).thenReturn(caseDetails);
+        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
 
-        assertEquals(caseDetails, coreCaseDataService.triggerSubmitEvent(
+        CaseDetails actualCaseDetails = coreCaseDataService.triggerSubmitEvent(
             LIST_CASE,
             CASE_ID,
             startEventResponse,
             asylumCase
-        ));
+        );
+
+        verify(coreCaseDataService, times(2))
+            .startCaseEvent(eq(LIST_CASE), eq(CASE_ID), eq(CASE_TYPE_ASYLUM));
+        verify(coreCaseDataService).triggerSubmitEvent(
+            LIST_CASE, CASE_ID, startEventResponse, asylumCase);
+        assertEquals(caseDetails, actualCaseDetails);
+    }
+
+    @Test
+    public void should_throw_exception_when_case_details_is_old() {
+        when(intermediateStartEventResponse.getToken()).thenReturn(EVENT_TOKEN);
+        when(intermediateStartEventResponse.getCaseDetails()).thenReturn(intermediateCaseDetails);
+        when(intermediateCaseDetails.getLastModified()).thenReturn(now.plusSeconds(10));
+        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_ASYLUM))
+            .thenReturn(intermediateStartEventResponse);
+
+        assertThatThrownBy(() -> coreCaseDataService.triggerSubmitEvent(
+            LIST_CASE,
+            CASE_ID,
+            startEventResponse,
+            asylumCase
+        )).hasMessage("Case with ID 123456789 cannot be updated: case details out of date")
+            .isExactlyInstanceOf(ConcurrentModificationException.class);
     }
 
     @Test
     public void should_trigger_event_bailCase() {
-        when(startEventResponse.getToken()).thenReturn(EVENT_TOKEN);
 
-        CaseDataContent caseDataContent = CaseDataContent.builder()
-            .event(uk.gov.hmcts.reform.ccd.client.model.Event.builder()
-                       .id(LIST_CASE.toString())
-                       .build())
-            .data(bailCase)
-            .supplementaryDataRequest(Collections.emptyMap())
-            .securityClassification(Classification.PUBLIC)
-            .eventToken(EVENT_TOKEN)
-            .ignoreWarning(true)
-            .caseReference(CASE_ID)
-            .build();
-        when(coreCaseDataApi.submitEventForCaseWorker(
-            eq(AUTH_TOKEN),
-            eq(SERVICE_TOKEN),
-            eq(USER_ID),
-            eq(JURISDICTION),
-            eq(CASE_TYPE_BAIL),
-            eq(CASE_ID),
-            eq(true),
-            eq(caseDataContent)
-        )).thenReturn(caseDetails);
+        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_BAIL))
+            .thenReturn(startEventResponse);
 
-        assertEquals(caseDetails, coreCaseDataService.triggerBailSubmitEvent(
+        CaseDetails actualCaseDetails = coreCaseDataService.triggerBailSubmitEvent(
             LIST_CASE,
             CASE_ID,
             startEventResponse,
             bailCase
-        ));
+        );
+
+        verify(coreCaseDataService, times(2))
+            .startCaseEvent(eq(LIST_CASE), eq(CASE_ID), eq(CASE_TYPE_BAIL));
+        verify(coreCaseDataService).triggerBailSubmitEvent(
+            LIST_CASE, CASE_ID, startEventResponse, bailCase);
+        assertEquals(caseDetails, actualCaseDetails);
     }
 
     @Test
@@ -258,22 +254,14 @@ public class CoreCaseDataServiceTest {
     @Test
     public void triggerReviewInterpreterBookingTask() {
 
-        when(coreCaseDataApi.startEventForCaseWorker(
-            AUTH_TOKEN,
-            SERVICE_TOKEN,
-            USER_ID,
-            JURISDICTION,
-            "Asylum",
-            CASE_ID,
-            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK.toString()
-        )).thenReturn(startEventResponse);
-
         when(coreCaseDataService.startCaseEvent(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
 
         coreCaseDataService.triggerReviewInterpreterBookingTask(CASE_ID);
 
+        verify(coreCaseDataService, times(3))
+            .startCaseEvent(eq(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK), eq(CASE_ID), eq(CASE_TYPE_ASYLUM));
         verify(coreCaseDataService).triggerSubmitEvent(
             TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, startEventResponse, asylumCase);
 
