@@ -6,9 +6,14 @@ import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import static java.lang.Long.parseLong;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,6 +38,9 @@ import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.util.IdamAuthProvider;
 import uk.gov.hmcts.reform.iahearingsapi.util.MapValueExpander;
 
@@ -56,6 +64,9 @@ public class CcdCaseCreationTest {
 
     @Autowired
     private MapValueExpander mapValueExpander;
+
+    @Autowired
+    private HmcHearingApi hmcHearingApi;
 
     private static long legalRepCaseId;
     private static long aipCaseId;
@@ -115,6 +126,14 @@ public class CcdCaseCreationTest {
             .build();
 
         log.info("targetInstance: " + targetInstance);
+    }
+
+    protected HearingsGetResponse getHearingForCase(String caseReference) {
+        return hmcHearingApi.getHearingsRequest(
+            systemUserToken,
+            s2sToken,
+            caseReference.toString()
+        );
     }
 
     private void startAppealAsLegalRep() {
@@ -265,6 +284,8 @@ public class CcdCaseCreationTest {
 
         caseData.put("listCaseHearingLength", "120");
         caseData.put("appealType", "protection");
+        caseData.put("hearingChannel", "INTER");
+        caseData.put("hmctsCaseNameInternal", "Talha Awan");
 
         String eventId = "listCaseForFTOnly";
         StartEventResponse startEventDetails =
