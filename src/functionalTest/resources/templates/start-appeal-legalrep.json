@@ -5,7 +5,10 @@
   "appellantGivenNames": "Talha",
   "appellantFamilyName": "Awan",
   "appellantDateOfBirth": "1978-11-11",
-  "appellantHasFixedAddress": "No",
+  "appellantHasFixedAddress": "Yes",
+  "appellantAddress": {
+    "PostCode": "B1 1BA"
+  },
   "legalRepMobilePhoneNumber": "07444445555",
   "legalRepCompany": "Fake company",
   "mobileNumber": "07444445555",
