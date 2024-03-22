@@ -14,12 +14,13 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE_1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -195,15 +196,9 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
             return false;
         }
 
-        LocalDateTime dateTime = LocalDateTime.parse(listCaseHearingDate);
-        asylumCase.write(
-            REQUEST_HEARING_DATE,
-            dateTime
-        );
-        asylumCase.write(
-            CHANGE_HEARING_DATE,
-            HearingsUtils.convertToLocalStringFormat(dateTime)
-        );
+        LocalDateTime dateTime =  LocalDateTime.parse(listCaseHearingDate);
+        asylumCase.write(REQUEST_HEARING_DATE_1, dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        asylumCase.write(CHANGE_HEARING_DATE, HearingsUtils.convertToLocalStringFormat(dateTime));
 
         return true;
     }
@@ -215,7 +210,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
 
         if (hearingWindow.getFirstDateTimeMustBe() != null) {
             LocalDateTime firstDateTime = LocalDateTime.parse(hearingWindow.getFirstDateTimeMustBe());
-            asylumCase.write(REQUEST_HEARING_DATE, firstDateTime);
+            asylumCase.write(REQUEST_HEARING_DATE_1, firstDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             String dateStr = "Date to be fixed: " + HearingsUtils.convertToLocalStringFormat(firstDateTime);
             asylumCase.write(CHANGE_HEARING_DATE, dateStr);
 

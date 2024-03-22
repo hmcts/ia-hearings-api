@@ -294,8 +294,8 @@ public enum AsylumCaseFieldDefinition {
     REQUEST_HEARING_LENGTH(
         "requestHearingLength", new TypeReference<String>() {}),
 
-    REQUEST_HEARING_DATE(
-        "requestHearingDate", new TypeReference<String>(){}),
+    REQUEST_HEARING_DATE_1(
+        "requestHearingDate1", new TypeReference<String>(){}),
 
     ADDITIONAL_INSTRUCTIONS_DESCRIPTION("additionalInstructionsDescription", new TypeReference<String>(){});
 
