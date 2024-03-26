@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_ACTUALS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils.convertFromUTC;
 
 import com.google.common.base.Strings;
 import java.util.Collections;
@@ -46,10 +47,10 @@ public class HearingsToDynamicListMapper {
             && !caseHearing.getHearingDaySchedule().isEmpty()) {
             return caseHearing.getHearingTypeDescription()
                    + (caseHearing.getHmcStatus() == AWAITING_ACTUALS ? " (Awaiting hearing details)" : " (Listed)")
-                   + " - " + HearingsUtils.convertToLocalStringFormat(caseHearing
+                   + " - " + HearingsUtils.convertToLocalStringFormat(convertFromUTC(caseHearing
                                                                                  .getHearingDaySchedule()
                                                                                  .get(0)
-                                                                                 .getHearingStartDateTime());
+                                                                                 .getHearingStartDateTime()));
         } else {
             return null;
         }
