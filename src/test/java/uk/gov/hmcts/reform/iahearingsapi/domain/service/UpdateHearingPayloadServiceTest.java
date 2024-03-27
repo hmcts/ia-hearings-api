@@ -6,6 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_VENUE;
@@ -15,6 +19,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.LEEDS_MAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_INTERPRETER_DETAILS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
 import java.util.List;
 import java.util.Optional;
@@ -142,6 +147,7 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_with_hearing_channels_set_to_on_the_papers() {
 
+        when(asylumCase.read(CHANGE_HEARING_TYPE_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
         when(caseDataMapper.getHearingChannels(asylumCase,
                                                persistedHearing.getHearingDetails(),
                                                UPDATE_HEARING_REQUEST))
@@ -206,6 +212,7 @@ class UpdateHearingPayloadServiceTest {
     void should_create_an_update_hearing_request_with_new_duration() {
         Integer duration = 240;
         when(updateHearingPayloadService.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(duration);
+        when(asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -227,6 +234,8 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_create_an_update_hearing_request_with_first_available_date() {
+        when(asylumCase.read(CHANGE_HEARING_DATE_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
+
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
             updateHearingsCode,
@@ -243,10 +252,13 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_create_an_update_hearing_request_with_date_fixed() {
+        when(asylumCase.read(CHANGE_HEARING_DATE_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
+
         HearingWindowModel hearingWindow = HearingWindowModel
             .builder()
             .dateRangeStart("2023-12-02T00:00")
             .build();
+
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
             updateHearingsCode,
@@ -263,11 +275,14 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_create_an_update_hearing_request_with_date_range() {
+        when(asylumCase.read(CHANGE_HEARING_DATE_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
+
         HearingWindowModel hearingWindow = HearingWindowModel
             .builder()
             .dateRangeStart("2023-03-10")
             .dateRangeEnd("2023-03-30")
             .build();
+
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
             updateHearingsCode,
@@ -479,6 +494,8 @@ class UpdateHearingPayloadServiceTest {
     void should_return_requested_update_hearing_value_when_the_event_is_update_hearing_request() {
         when(asylumCase.read(HEARING_LOCATION, DynamicList.class)).thenReturn(
             Optional.of(new DynamicList("783803")));
+        when(asylumCase.read(CHANGE_HEARING_LOCATION_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
+        when(asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
         when(updateHearingPayloadService.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(90);
 
 
