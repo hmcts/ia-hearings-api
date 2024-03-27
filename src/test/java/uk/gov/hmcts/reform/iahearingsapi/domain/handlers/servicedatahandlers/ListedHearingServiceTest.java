@@ -13,7 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.GLASGOW_TRIBUNALS_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.HATTON_CROSS;
@@ -141,7 +141,7 @@ class ListedHearingServiceTest {
         listedHearingService.updateInitialBailCaseListing(serviceData, bailCase);
 
         assertEquals(Optional.of(hearingDate), bailCase.read(LISTING_HEARING_DATE));
-        assertEquals(Optional.of("60"), bailCase.read(LISTING_HEARING_LENGTH));
+        assertEquals(Optional.of("60"), bailCase.read(LISTING_HEARING_DURATION));
         assertEquals(Optional.of(expectedHearingCentre.getValue()), bailCase.read(LISTING_LOCATION));
 
     }
@@ -174,7 +174,7 @@ class ListedHearingServiceTest {
 
         verify(bailCase).write(LISTING_HEARING_DATE, "2023-12-02T09:45:00.000");
         verify(bailCase).write(LISTING_LOCATION, "remoteHearing");
-        verify(bailCase).write(LISTING_HEARING_LENGTH, "60");
+        verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_EVENT, ListingEvent.RELISTING.toString());
     }
 }
