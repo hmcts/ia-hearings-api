@@ -133,29 +133,19 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
             .orElseGet(locationRefDataService::getHearingLocationsDynamicList);
         HearingCentre listCaseHearingCentre = asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class)
             .orElse(null);
-        if (listCaseHearingCentre != null) {
-            asylumCase.write(CHANGE_HEARING_VENUE, listCaseHearingCentre.getValue());
-            if (!(listCaseHearingCentre == REMOTE_HEARING || listCaseHearingCentre == DECISION_WITHOUT_HEARING)) {
-                Value hearingVenueValue = getHearingVenueValue(hearingLocation, listCaseHearingCentre.getEpimsId());
-                hearingLocation.setValue(hearingVenueValue);
-            }
-            asylumCase.write(HEARING_LOCATION, hearingLocation);
+        if (isPhysicalHearingCentre(listCaseHearingCentre)) {
+            initializeWithListCaseHearingCentre(asylumCase, listCaseHearingCentre, hearingLocation);
         } else {
             List<HearingLocationModel> hearingLocations = hearingDetails.getHearingLocations();
-            if (hearingLocations == null || hearingLocations.isEmpty()) {
+            if (!(hearingLocations == null || hearingLocations.isEmpty())) {
+                initializeWithHmcHearingLocation(asylumCase, hearingLocation, hearingLocations);
+            } else if (!hearingLocation.getValue().getCode().isBlank()) {
                 asylumCase.write(
                     CHANGE_HEARING_VENUE,
                     HearingCentre.getHearingCentreByEpimsId(hearingLocation.getValue().getCode()).getValue());
-            } else {
-                Value hearingVenueValue = getHearingVenueValue(
-                    hearingLocation, hearingLocations.get(0).getLocationId());
-                asylumCase.write(
-                    CHANGE_HEARING_VENUE,
-                    HearingCentre.getHearingCentreByEpimsId(hearingVenueValue.getCode()).getValue());
-                hearingLocation.setValue(hearingVenueValue);
-                asylumCase.write(HEARING_LOCATION, hearingLocation);
             }
         }
+        asylumCase.write(HEARING_LOCATION, hearingLocation);
     }
 
     private Value getHearingVenueValue(DynamicList hearingLocation, String hearingVenueId) {
@@ -234,5 +224,30 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
         }
 
         return hearingDateSet;
+    }
+
+    private boolean isPhysicalHearingCentre(HearingCentre listCaseHearingCentre) {
+        return listCaseHearingCentre != null
+               && listCaseHearingCentre != REMOTE_HEARING
+               && listCaseHearingCentre != DECISION_WITHOUT_HEARING;
+    }
+
+    private void initializeWithListCaseHearingCentre(
+        AsylumCase asylumCase, HearingCentre hearingCentre, DynamicList hearingLocation) {
+
+        asylumCase.write(CHANGE_HEARING_VENUE, hearingCentre.getValue());
+        Value hearingVenueValue = getHearingVenueValue(hearingLocation, hearingCentre.getEpimsId());
+        hearingLocation.setValue(hearingVenueValue);
+    }
+
+    private void initializeWithHmcHearingLocation(
+        AsylumCase asylumCase, DynamicList hearingLocation, List<HearingLocationModel> hmcHearinglocation) {
+
+        Value hearingVenueValue = getHearingVenueValue(
+            hearingLocation, hmcHearinglocation.get(0).getLocationId());
+        asylumCase.write(
+            CHANGE_HEARING_VENUE,
+            HearingCentre.getHearingCentreByEpimsId(hearingVenueValue.getCode()).getValue());
+        hearingLocation.setValue(hearingVenueValue);
     }
 }

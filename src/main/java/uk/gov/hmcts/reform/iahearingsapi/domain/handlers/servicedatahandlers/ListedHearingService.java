@@ -7,7 +7,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
@@ -170,7 +170,7 @@ public class ListedHearingService {
 
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
         bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
-        bailCase.write(LISTING_HEARING_LENGTH, String.valueOf(getHearingDuration(serviceData)));
+        bailCase.write(LISTING_HEARING_DURATION, String.valueOf(getHearingDuration(serviceData)));
         bailCase.write(LISTING_LOCATION, newHearingCentre.getValue());
     }
 
@@ -195,7 +195,7 @@ public class ListedHearingService {
         }
 
         if (fieldsToUpdate.contains(DURATION)) {
-            bailCase.write(LISTING_HEARING_LENGTH, String.valueOf(getHearingDuration(serviceData)));
+            bailCase.write(LISTING_HEARING_DURATION, String.valueOf(getHearingDuration(serviceData)));
         }
 
         bailCase.write(LISTING_EVENT, ListingEvent.RELISTING.toString());

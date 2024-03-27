@@ -28,6 +28,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.BIRMINGHAM;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.GLASGOW;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.GLASGOW_TRIBUNALS_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_APPEAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
@@ -105,7 +106,7 @@ class UpdateHearingsRequestHandlerTest {
         hearingChannel = new DynamicList(channelValue, List.of(channelValue));
         birminghamValue = new Value("231596", "Birmingham Civil and Family Justice Centre");
         glasgowValue = new Value("366559", "Glasgow Tribunals Centre");
-        hearingLocation = new DynamicList(birminghamValue, List.of(birminghamValue, glasgowValue));
+        hearingLocation = new DynamicList(glasgowValue, List.of(birminghamValue, glasgowValue));
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(caseDetails.getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(UPDATE_HEARING_REQUEST);
@@ -186,25 +187,39 @@ class UpdateHearingsRequestHandlerTest {
     }
 
     @Test
-    void should_initialize_hearing_location_for_remote_hearing() {
-        when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class)).thenReturn(Optional.of(REMOTE_HEARING));
+    void should_initialize_hearing_location_from_hearing_request_for_remote_hearing() {
+        when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
+            .thenReturn(Optional.of(REMOTE_HEARING));
+        HearingLocationModel hearingLocationModel = HearingLocationModel.builder()
+            .locationId(birminghamValue.getCode()).locationType("locationType").build();
+        when(hearingDetails.getHearingLocations()).thenReturn(List.of(hearingLocationModel));
+
         updateHearingsRequestHandler.handle(MID_EVENT, callback);
 
-        verify(asylumCase, times(1)).write(eq(HEARING_LOCATION), any());
         verify(asylumCase).write(eq(CHANGE_HEARING_VENUE), stringArgumentCaptor.capture());
-        assertEquals(REMOTE_HEARING.getValue(), stringArgumentCaptor.getValue());
+        verify(asylumCase).write(eq(HEARING_LOCATION), dynamicListArgumentCaptor.capture());
+        assertEquals(BIRMINGHAM.getValue(), stringArgumentCaptor.getValue());
+        Value actualLocationValue = dynamicListArgumentCaptor.getValue().getValue();
+        assertEquals(birminghamValue.getCode(), actualLocationValue.getCode());
+        assertEquals(birminghamValue.getLabel(), actualLocationValue.getLabel());
     }
 
     @Test
-    void should_initialize_hearing_location_for_decision_without_hearing() {
+    void should_initialize_hearing_location_from_hearing_request_for_decision_without_hearing() {
         when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
             .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
+        HearingLocationModel hearingLocationModel = HearingLocationModel.builder()
+            .locationId(birminghamValue.getCode()).locationType("locationType").build();
+        when(hearingDetails.getHearingLocations()).thenReturn(List.of(hearingLocationModel));
+
         updateHearingsRequestHandler.handle(MID_EVENT, callback);
 
         verify(asylumCase).write(eq(CHANGE_HEARING_VENUE), stringArgumentCaptor.capture());
-        verify(asylumCase, times(1)).write(eq(HEARING_LOCATION), any());
-
-        assertEquals(DECISION_WITHOUT_HEARING.getValue(), stringArgumentCaptor.getValue());
+        verify(asylumCase).write(eq(HEARING_LOCATION), dynamicListArgumentCaptor.capture());
+        assertEquals(BIRMINGHAM.getValue(), stringArgumentCaptor.getValue());
+        Value actualLocationValue = dynamicListArgumentCaptor.getValue().getValue();
+        assertEquals(birminghamValue.getCode(), actualLocationValue.getCode());
+        assertEquals(birminghamValue.getLabel(), actualLocationValue.getLabel());
     }
 
     @Test
@@ -213,13 +228,15 @@ class UpdateHearingsRequestHandlerTest {
             .thenReturn(Optional.empty());
         when(asylumCase.read(HEARING_LOCATION, DynamicList.class)).thenReturn(Optional.empty());
         when(hearingDetails.getHearingLocations()).thenReturn(null);
-        when(locationRefDataService.getHearingLocationsDynamicList()).thenReturn(hearingLocation);
+        when(locationRefDataService.getHearingLocationsDynamicList())
+            .thenReturn(new DynamicList(new Value("", ""), List.of(glasgowValue, birminghamValue)));
 
         updateHearingsRequestHandler.handle(MID_EVENT, callback);
 
         verify(locationRefDataService, times(1)).getHearingLocationsDynamicList();
-        verify(asylumCase).write(eq(CHANGE_HEARING_VENUE), stringArgumentCaptor.capture());
-        assertEquals(BIRMINGHAM.getValue(), stringArgumentCaptor.getValue());
+        verify(asylumCase, never()).write(eq(CHANGE_HEARING_VENUE), any());
+        verify(asylumCase).write(eq(HEARING_LOCATION), dynamicListArgumentCaptor.capture());
+        assertFalse(dynamicListArgumentCaptor.getValue().getListItems().isEmpty());
     }
 
     @Test
@@ -238,6 +255,22 @@ class UpdateHearingsRequestHandlerTest {
         Value actualLocationValue = dynamicListArgumentCaptor.getValue().getValue();
         assertEquals(birminghamValue.getCode(), actualLocationValue.getCode());
         assertEquals(birminghamValue.getLabel(), actualLocationValue.getLabel());
+    }
+
+    @Test
+    void should_initialize_hearing_location_from_existing_hearing_location_data() {
+        when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
+            .thenReturn(Optional.empty());
+        when(hearingDetails.getHearingLocations()).thenReturn(null);
+
+        updateHearingsRequestHandler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(eq(CHANGE_HEARING_VENUE), stringArgumentCaptor.capture());
+        verify(asylumCase).write(eq(HEARING_LOCATION), dynamicListArgumentCaptor.capture());
+        assertEquals(GLASGOW_TRIBUNALS_CENTRE.getValue(), stringArgumentCaptor.getValue());
+        Value actualLocationValue = dynamicListArgumentCaptor.getValue().getValue();
+        assertEquals(glasgowValue.getCode(), actualLocationValue.getCode());
+        assertEquals(glasgowValue.getLabel(), actualLocationValue.getLabel());
     }
 
     @Test
