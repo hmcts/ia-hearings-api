@@ -5,7 +5,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
@@ -244,7 +244,7 @@ class BailListCaseUpdateHandlerTest {
 
         verify(bailCase).write(LISTING_EVENT, RELISTING.toString());
         verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
-        verify(bailCase).write(LISTING_HEARING_LENGTH, "60");
+        verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_HEARING_DATE, "formattedDate");
 
         verify(coreCaseDataService).triggerBailSubmitEvent(CASE_LISTING, CASE_REF,
@@ -283,7 +283,7 @@ class BailListCaseUpdateHandlerTest {
 
         verify(bailCase).write(LISTING_EVENT, RELISTING.toString());
         verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
-        verify(bailCase).write(LISTING_HEARING_LENGTH, "60");
+        verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_HEARING_DATE, "formattedDate");
 
         verify(coreCaseDataService).triggerBailSubmitEvent(CASE_LISTING, CASE_REF,
