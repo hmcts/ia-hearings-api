@@ -27,7 +27,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE_1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.NEWCASTLE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
@@ -193,7 +193,7 @@ class UpdateHearingsRequestSubmitTest {
     void should_send_an_update_of_the_hearing_window_date_to_be_fixed() {
         asylumCase.write(CHANGE_HEARING_DATE_YES_NO, YES);
         asylumCase.write(CHANGE_HEARING_DATE_TYPE, "DateToBeFixed");
-        asylumCase.write(REQUEST_HEARING_DATE, "2023-12-02T00:00:00.000");
+        asylumCase.write(REQUEST_HEARING_DATE_1, "2023-12-02T00:00:00.000");
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(

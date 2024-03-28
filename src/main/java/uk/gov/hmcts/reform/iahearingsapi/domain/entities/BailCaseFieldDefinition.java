@@ -145,8 +145,8 @@ public enum BailCaseFieldDefinition {
         "listingEvent", new TypeReference<String>(){}),
     LISTING_HEARING_DATE(
         "listingHearingDate", new TypeReference<String>(){}),
-    LISTING_HEARING_LENGTH(
-        "listingHearingLength", new TypeReference<String>() {}),
+    LISTING_HEARING_DURATION(
+        "listingHearingDuration", new TypeReference<String>() {}),
     LISTING_LOCATION(
         "listingLocation", new TypeReference<String>() {}),
     APPLICANT_HAS_MOBILE(

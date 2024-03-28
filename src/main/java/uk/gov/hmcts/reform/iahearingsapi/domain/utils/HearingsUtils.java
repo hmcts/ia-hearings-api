@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.utils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 public final class HearingsUtils {
@@ -28,5 +30,11 @@ public final class HearingsUtils {
     public static LocalDateTime convertToLocalDateTimeFormat(String date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(YYYY_MM_DD_HH_mm_ss_sss);
         return LocalDateTime.parse(date, formatter);
+    }
+
+    public static LocalDateTime convertFromUTC(LocalDateTime utcDate) {
+        ZonedDateTime utcZonedDateTime = utcDate.atZone(ZoneId.of("UTC"));
+        ZonedDateTime ukZonedDateTime = utcZonedDateTime.withZoneSameInstant(ZoneId.of("Europe/London"));
+        return ukZonedDateTime.toLocalDateTime();
     }
 }
