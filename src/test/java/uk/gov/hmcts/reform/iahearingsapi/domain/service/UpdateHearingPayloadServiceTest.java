@@ -147,7 +147,7 @@ class UpdateHearingPayloadServiceTest {
     @Test
     void should_create_an_update_hearing_request_with_hearing_channels_set_to_on_the_papers() {
 
-        when(asylumCase.read(CHANGE_HEARING_TYPE_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
+        when(asylumCase.read(CHANGE_HEARING_TYPE_YES_NO, String.class)).thenReturn(Optional.of(YES.toString()));
         when(caseDataMapper.getHearingChannels(asylumCase,
                                                persistedHearing.getHearingDetails(),
                                                UPDATE_HEARING_REQUEST))
@@ -212,7 +212,7 @@ class UpdateHearingPayloadServiceTest {
     void should_create_an_update_hearing_request_with_new_duration() {
         Integer duration = 240;
         when(updateHearingPayloadService.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(duration);
-        when(asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
+        when(asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, String.class)).thenReturn(Optional.of(YES.toString()));
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -234,7 +234,7 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_create_an_update_hearing_request_with_first_available_date() {
-        when(asylumCase.read(CHANGE_HEARING_DATE_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
+        when(asylumCase.read(CHANGE_HEARING_DATE_YES_NO, String.class)).thenReturn(Optional.of(YES.toString()));
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -252,7 +252,7 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_create_an_update_hearing_request_with_date_fixed() {
-        when(asylumCase.read(CHANGE_HEARING_DATE_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
+        when(asylumCase.read(CHANGE_HEARING_DATE_YES_NO, String.class)).thenReturn(Optional.of(YES.toString()));
 
         HearingWindowModel hearingWindow = HearingWindowModel
             .builder()
@@ -275,7 +275,7 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_create_an_update_hearing_request_with_date_range() {
-        when(asylumCase.read(CHANGE_HEARING_DATE_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
+        when(asylumCase.read(CHANGE_HEARING_DATE_YES_NO, String.class)).thenReturn(Optional.of(YES.toString()));
 
         HearingWindowModel hearingWindow = HearingWindowModel
             .builder()
@@ -494,8 +494,8 @@ class UpdateHearingPayloadServiceTest {
     void should_return_requested_update_hearing_value_when_the_event_is_update_hearing_request() {
         when(asylumCase.read(HEARING_LOCATION, DynamicList.class)).thenReturn(
             Optional.of(new DynamicList("783803")));
-        when(asylumCase.read(CHANGE_HEARING_LOCATION_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
-        when(asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, YesOrNo.class)).thenReturn(Optional.of(YES));
+        when(asylumCase.read(CHANGE_HEARING_LOCATION_YES_NO, String.class)).thenReturn(Optional.of(YES.toString()));
+        when(asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, String.class)).thenReturn(Optional.of(YES.toString()));
         when(updateHearingPayloadService.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(90);
 
 
