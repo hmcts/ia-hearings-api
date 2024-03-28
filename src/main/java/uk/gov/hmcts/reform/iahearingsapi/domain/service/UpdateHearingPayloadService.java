@@ -1,24 +1,29 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_VENUE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -34,7 +39,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 @Slf4j
 public class UpdateHearingPayloadService extends CreateHearingPayloadService {
 
-    private HearingService hearingService;
+    private final HearingService hearingService;
 
     public UpdateHearingPayloadService(CaseDataToServiceHearingValuesMapper caseDataMapper,
                                        CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
@@ -101,7 +106,8 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         UpdateHearingRequest updatedHearingRequest = UpdateHearingRequest.builder()
             .requestDetails(persistedHearing.getRequestDetails())
             .caseDetails(persistedHearing.getCaseDetails())
-            .hearingDetails(buildHearingDetails(asylumCase, persistedHearing.getHearingDetails(), hearingDetails))
+            .hearingDetails(buildHearingDetails(
+                asylumCase, persistedHearing.getHearingDetails(), hearingDetails, event))
             .partyDetails(getPartyDetailsModels(asylumCase, persistedHearing.getHearingDetails(), event))
             .build();
 
@@ -120,15 +126,12 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         Optional<String> locationCodes = Optional.empty();
         if (event != null) {
             switch (event) {
-                case RECORD_ADJOURNMENT_DETAILS:
-                    locationCodes = asylumCase.read(NEXT_HEARING_VENUE, DynamicList.class)
-                        .map(hearingLocation -> hearingLocation.getValue().getCode());
-                    break;
-
-                case UPDATE_HEARING_REQUEST:
-                    locationCodes = asylumCase.read(HEARING_LOCATION, DynamicList.class)
-                        .map(hearingLocation -> hearingLocation.getValue().getCode());
-                    break;
+                case RECORD_ADJOURNMENT_DETAILS -> locationCodes = asylumCase
+                    .read(NEXT_HEARING_VENUE, DynamicList.class)
+                    .map(hearingLocation -> hearingLocation.getValue().getCode());
+                case UPDATE_HEARING_REQUEST -> locationCodes = asylumCase
+                    .read(HEARING_LOCATION, DynamicList.class)
+                    .map(hearingLocation -> hearingLocation.getValue().getCode());
             }
         }
 
@@ -194,12 +197,36 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
     }
 
     private HearingDetails buildHearingDetails(AsylumCase asylumCase, HearingDetails hearingDetails,
-                                               HearingDetails updatedHearingsDetails) {
-        hearingDetails.setHearingChannels(updatedHearingsDetails.getHearingChannels());
-        hearingDetails.setHearingLocations(updatedHearingsDetails.getHearingLocations());
-        hearingDetails.setDuration(updatedHearingsDetails.getDuration());
-        hearingDetails.setAmendReasonCodes(updatedHearingsDetails.getAmendReasonCodes());
-        hearingDetails.setHearingWindow(updatedHearingsDetails.getHearingWindow());
+                                               HearingDetails hearingsDetailsUpdate, Event event) {
+        if (event == Event.UPDATE_HEARING_REQUEST) {
+            boolean updateHearingChannel = asylumCase.read(CHANGE_HEARING_TYPE_YES_NO, YesOrNo.class)
+                .map(changeType -> YES == changeType).orElse(false);
+            if (updateHearingChannel) {
+                hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
+            }
+            boolean updateHearingLocation = asylumCase.read(CHANGE_HEARING_LOCATION_YES_NO, YesOrNo.class)
+                .map(changeLocation -> YES == changeLocation).orElse(false);
+            if (updateHearingLocation) {
+                hearingDetails.setHearingLocations(hearingsDetailsUpdate.getHearingLocations());
+            }
+            boolean updateHearingDuration = asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, YesOrNo.class)
+                .map(changeDuratrion -> YES == changeDuratrion).orElse(false);
+            if (updateHearingDuration) {
+                hearingDetails.setDuration(hearingsDetailsUpdate.getDuration());
+            }
+            boolean updateHearingDate = asylumCase.read(CHANGE_HEARING_DATE_YES_NO, YesOrNo.class)
+                .map(changeDate -> YES == changeDate).orElse(false);
+            if (updateHearingDate) {
+                hearingDetails.setHearingWindow(hearingsDetailsUpdate.getHearingWindow());
+            }
+        } else {
+            hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
+            hearingDetails.setHearingLocations(hearingsDetailsUpdate.getHearingLocations());
+            hearingDetails.setDuration(hearingsDetailsUpdate.getDuration());
+            hearingDetails.setHearingWindow(hearingsDetailsUpdate.getHearingWindow());
+        }
+
+        hearingDetails.setAmendReasonCodes(hearingsDetailsUpdate.getAmendReasonCodes());
         hearingDetails.setFacilitiesRequired(getFacilitiesRequired(
             asylumCase,
             hearingDetails.getFacilitiesRequired() != null

@@ -23,7 +23,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE_1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.BIRMINGHAM;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
@@ -34,7 +34,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_AP
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.MID_EVENT;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -91,8 +90,6 @@ class UpdateHearingsRequestHandlerTest {
     private ArgumentCaptor<DynamicList> dynamicListArgumentCaptor;
     @Captor
     private ArgumentCaptor<String> stringArgumentCaptor;
-    @Captor
-    private ArgumentCaptor<LocalDateTime> localDateTimeArgumentCaptor;
 
     private DynamicList hearingLocation;
     private DynamicList hearingChannel;
@@ -146,7 +143,7 @@ class UpdateHearingsRequestHandlerTest {
         verify(asylumCase, never()).write(eq(CHANGE_HEARING_DURATION), any());
         verify(asylumCase, never()).write(eq(REQUEST_HEARING_LENGTH), any());
         verify(asylumCase, never()).write(eq(CHANGE_HEARING_DATE), any());
-        verify(asylumCase, never()).write(eq(REQUEST_HEARING_DATE), any());
+        verify(asylumCase, never()).write(eq(REQUEST_HEARING_DATE_1), any());
     }
 
     @Test
@@ -283,9 +280,9 @@ class UpdateHearingsRequestHandlerTest {
         updateHearingsRequestHandler.handle(MID_EVENT, callback);
 
         verify(asylumCase).write(eq(CHANGE_HEARING_DATE), stringArgumentCaptor.capture());
-        verify(asylumCase).write(eq(REQUEST_HEARING_DATE), localDateTimeArgumentCaptor.capture());
-        assertEquals("20 January 2023", stringArgumentCaptor.getValue());
-        assertEquals("2023-01-20T10:30", localDateTimeArgumentCaptor.getValue().toString());
+        verify(asylumCase).write(eq(REQUEST_HEARING_DATE_1), stringArgumentCaptor.capture());
+        assertEquals("20 January 2023", stringArgumentCaptor.getAllValues().get(0));
+        assertEquals("2023-01-20", stringArgumentCaptor.getAllValues().get(1));
     }
 
     @Test
@@ -308,9 +305,9 @@ class UpdateHearingsRequestHandlerTest {
         updateHearingsRequestHandler.handle(MID_EVENT, callback);
 
         verify(asylumCase).write(eq(CHANGE_HEARING_DATE), stringArgumentCaptor.capture());
-        verify(asylumCase).write(eq(REQUEST_HEARING_DATE), localDateTimeArgumentCaptor.capture());
-        assertEquals("Date to be fixed: 20 January 2023", stringArgumentCaptor.getValue());
-        assertEquals("2023-01-20T10:30", localDateTimeArgumentCaptor.getValue().toString());
+        verify(asylumCase).write(eq(REQUEST_HEARING_DATE_1), stringArgumentCaptor.capture());
+        assertEquals("Date to be fixed: 20 January 2023", stringArgumentCaptor.getAllValues().get(0));
+        assertEquals("2023-01-20", stringArgumentCaptor.getAllValues().get(1));
     }
 
     @Test

@@ -19,7 +19,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE_1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.getValueByEpimsId;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus.AWAITING_LISTING;
@@ -233,9 +233,9 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
         return switch (hearingDateChangeType) {
             case "DateToBeFixed" -> {
                 String fixedDate = asylumCase.read(
-                    REQUEST_HEARING_DATE,
+                    REQUEST_HEARING_DATE_1,
                     String.class
-                ).orElseThrow(() -> new IllegalStateException(REQUEST_HEARING_DATE + " type is not present"));
+                ).orElseThrow(() -> new IllegalStateException(REQUEST_HEARING_DATE_1 + " type is not present"));
 
                 yield HearingWindowModel.builder()
                     .firstDateTimeMustBe(HearingsUtils.convertToLocalDateTimeFormat(fixedDate).toString()).build();
