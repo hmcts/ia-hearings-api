@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import static java.lang.Long.parseLong;
 import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,6 +34,8 @@ import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.util.IdamAuthProvider;
 import uk.gov.hmcts.reform.iahearingsapi.util.MapValueExpander;
 
@@ -57,13 +60,15 @@ public class CcdCaseCreationTest {
     @Autowired
     private MapValueExpander mapValueExpander;
 
+    @Autowired
+    private HmcHearingApi hmcHearingApi;
+
     private static long legalRepCaseId;
     private static long aipCaseId;
     private static long caseId;
     private static Map<String, JsonNode> legalRepAppealCaseData;
     private static Map<String, JsonNode> aipAppealCaseData;
     protected static RequestSpecification hearingsSpecification;
-    protected static RequestSpecification hmcApiSpecification;
     protected Map<String, Object> caseData;
     protected static String s2sToken;
     protected static String legalRepToken;
@@ -117,6 +122,14 @@ public class CcdCaseCreationTest {
         log.info("targetInstance: " + targetInstance);
     }
 
+    protected HearingsGetResponse getHearingForCase(String caseReference) {
+        return hmcHearingApi.getHearingsRequest(
+            systemUserToken,
+            s2sToken,
+            caseReference
+        );
+    }
+
     private void startAppealAsLegalRep() {
         Map<String, Object> data = getStartAppealData(startLegalRepAppeal);
         data.put("paAppealTypePaymentOption", "payNow");
@@ -155,7 +168,6 @@ public class CcdCaseCreationTest {
     private void submitAppealAsLegalRep() {
         caseData = new HashMap<>();
         caseData.put("decisionHearingFeeOption", "decisionWithHearing");
-        caseData.put("hmctsCaseNameInternal", "testCase");
 
         mapValueExpander.expandValues(caseData);
 
@@ -225,6 +237,8 @@ public class CcdCaseCreationTest {
     private void submitAppealAsCitizen() {
         caseData = new HashMap<>();
         caseData.put("decisionHearingFeeOption", "decisionWithHearing");
+        caseData.put("appellantPhoneNumber", "07444445555");
+        caseData.put("sponsorMobileNumber", "07444445555");
 
         String eventId = "submitAppeal";
         StartEventResponse startEventDetails =
@@ -264,6 +278,8 @@ public class CcdCaseCreationTest {
 
         caseData.put("listCaseHearingLength", "120");
         caseData.put("appealType", "protection");
+        caseData.put("hearingChannel", "INTER");
+        caseData.put("hmctsCaseNameInternal", "Talha Awan");
 
         String eventId = "listCaseForFTOnly";
         StartEventResponse startEventDetails =
@@ -314,9 +330,7 @@ public class CcdCaseCreationTest {
     private AsylumCase getLegalRepCase() {
         AsylumCase asylumCase = new AsylumCase();
 
-        for (Map.Entry<String, JsonNode> entry : legalRepAppealCaseData.entrySet()) {
-            asylumCase.put(entry.getKey(), entry.getValue());
-        }
+        asylumCase.putAll(legalRepAppealCaseData);
 
         return asylumCase;
     }
@@ -324,9 +338,7 @@ public class CcdCaseCreationTest {
     private AsylumCase getAipCase() {
         AsylumCase asylumCase = new AsylumCase();
 
-        for (Map.Entry<String, JsonNode> entry : aipAppealCaseData.entrySet()) {
-            asylumCase.put(entry.getKey(), entry.getValue());
-        }
+        asylumCase.putAll(aipAppealCaseData);
 
         return asylumCase;
     }
@@ -354,8 +366,6 @@ public class CcdCaseCreationTest {
             caseId = parseLong(getLegalRepCaseId());
         }
 
-        Case result = new Case(caseId, caseData);
-
-        return result;
+        return new Case(caseId, caseData);
     }
 }

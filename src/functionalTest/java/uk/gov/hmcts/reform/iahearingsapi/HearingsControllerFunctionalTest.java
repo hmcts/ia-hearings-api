@@ -8,7 +8,6 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -21,7 +20,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ActiveProfiles("functional")
-@Disabled
 class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
     void getAuthentications() {
@@ -108,7 +106,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .assertThat().body("leadJudgeContractType", notNullValue())
             .assertThat().body("judiciary", notNullValue())
             .assertThat().body("parties", notNullValue())
-            .assertThat().body("caseflags", notNullValue())
+            .assertThat().body("caseFlags", notNullValue())
             .assertThat().body("vocabulary", notNullValue())
             .assertThat().body("hearingChannels", notNullValue())
             .assertThat().body("hearingLevelParticipantAttendance", notNullValue());
