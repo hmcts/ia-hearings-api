@@ -2,9 +2,9 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
@@ -31,6 +31,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
@@ -104,10 +105,8 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
         final String currentHearingChannel = currentHearingChannels.getValue().getCode();
 
-        final String currentDuration = asylumCase.read(
-            LIST_CASE_HEARING_LENGTH,
-            String.class
-        ).orElseThrow(() -> new IllegalStateException("listCaseHearingLength can not be null"));
+        final HoursMinutes currentDuration = asylumCase.read(LISTING_LENGTH, HoursMinutes.class)
+            .orElseThrow(() -> new IllegalStateException("listingLength can not be null"));
 
         final String nextHearingChannel = nextHearingChannelList.get(0).name();
 
@@ -129,7 +128,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         final boolean hearingVenueChanged = !currentVenueId.equals(nextHearingVenueId);
         final boolean hearingCentreChanged = hearingChannelChanged || hearingVenueChanged;
         final int nextDuration = getHearingDuration(serviceData);
-        final boolean durationChanged = !currentDuration.equals(String.valueOf(nextDuration));
+        final boolean durationChanged = currentDuration.convertToIntegerMinutes() != nextDuration;
         boolean sendUpdate = false;
 
         String hearingId = serviceData.read(HEARING_ID, String.class)
@@ -145,7 +144,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
             log.info("hearing date updated for hearing " + hearingId);
         }
         if (durationChanged) {
-            asylumCase.write(LIST_CASE_HEARING_LENGTH, String.valueOf(nextDuration));
+            asylumCase.write(LISTING_LENGTH, new HoursMinutes(nextDuration));
             sendUpdate = true;
             log.info("hearing length updated for hearing " + hearingId);
         }
