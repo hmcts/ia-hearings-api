@@ -3,6 +3,9 @@ package uk.gov.hmcts.reform.iahearingsapi;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_ADJOURNMENT_WHEN;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.RELIST_CASE_IMMEDIATELY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingAdjournmentDay.ON_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS;
@@ -21,6 +24,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
@@ -28,8 +32,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
 @Slf4j
-@ActiveProfiles("functional")
 @Disabled
+@ActiveProfiles("functional")
 public class AutoRequestHearingFunctionalTest extends CcdCaseCreationTest {
 
     @BeforeEach
@@ -51,14 +55,11 @@ public class AutoRequestHearingFunctionalTest extends CcdCaseCreationTest {
     void should_submit_hearing_creation_request_successfully(Event event, State state, boolean isAipJourney) {
         Case result = createAndGetCase(isAipJourney);
 
-        AsylumCase asylumCase = new AsylumCase();
-        asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
-        asylumCase.write(HEARING_ADJOURNMENT_WHEN, ON_HEARING_DATE);
         CaseDetails<CaseData> caseDetails = new CaseDetails<>(
             result.getCaseId(),
             "IA",
             state,
-            asylumCase,
+            buildAsylumCase(result, event, isAipJourney),
             LocalDateTime.now(),
             "securityClassification"
         );
@@ -107,5 +108,20 @@ public class AutoRequestHearingFunctionalTest extends CcdCaseCreationTest {
             .extract().response();
 
         assertEquals(401, response.getStatusCode());
+    }
+
+    private AsylumCase buildAsylumCase(Case result, Event event, boolean isAipJourney) {
+
+        AsylumCase asylumCase = result.getCaseData();
+        asylumCase.write(HEARING_CHANNEL, new DynamicList("INTER"));
+        asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
+        asylumCase.write(HEARING_ADJOURNMENT_WHEN, ON_HEARING_DATE);
+        asylumCase.write(LIST_CASE_HEARING_LENGTH, "120");
+
+        if (isAipJourney) {
+            asylumCase.write(HMCTS_CASE_NAME_INTERNAL, "Talha Awan");
+        }
+
+        return asylumCase;
     }
 }

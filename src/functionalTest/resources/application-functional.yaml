@@ -43,3 +43,6 @@ spring:
         jwt:
           jwk-set-uri: ${OPEN_ID_IDAM_URL:http://sidam-simulator:5000}/o/jwks
 
+flags:
+  hmc-to-hearings-api:
+    enabled: false

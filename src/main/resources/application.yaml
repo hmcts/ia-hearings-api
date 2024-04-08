@@ -201,8 +201,8 @@ azure:
     connection-postfix: ${HMC_RESPONSE_TOPIC_CONNECTION_POSTFIX:.servicebus.windows.net}
     hmc-to-hearings-api:
       namespace: ${HMC_HEARINGS_TOPIC_NAMESPACE:hmc-servicebus-demo}
-      topicName: ${HMC_HEARINGS_TOPIC_NAME:}
-      subscriptionName: ${HMC_HEARINGS_TOPIC_SUBSCRIPTION_NAME:}
+      topicName: ${HMC_HEARINGS_TOPIC_NAME:hmc-to-cft-demo}
+      subscriptionName: ${HMC_HEARINGS_TOPIC_SUBSCRIPTION_NAME:hmc-ia-subs-to-cft-demo}
       receiveTimeout: ${HMC_HEARINGS_TOPIC_RECEIVE_TIMEOUT:1}
       idleTimeout: ${HMC_HEARINGS_TOPIC_IDLE_TIMEOUT:3600000}
       username: ${HMC_HEARINGS_TOPIC_POLICY_NAME:}
