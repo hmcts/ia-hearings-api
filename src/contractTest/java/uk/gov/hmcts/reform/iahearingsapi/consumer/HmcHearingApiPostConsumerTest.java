@@ -7,6 +7,8 @@ import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +28,9 @@ public class HmcHearingApiPostConsumerTest extends HmcHearingApiConsumerTestBase
 
     @Pact(provider = "hmc_cft_hearings_api", consumer = "ia_hearingsApi")
     RequestResponsePact createHearingRequest(PactDslWithProvider builder) throws JsonProcessingException {
+        Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
+            .put("Connection", "close")
+            .build();
         return builder.given("hmc_cft_hearings_api successfully creates a hearing request ")
             .uponReceiving("Request to create hearing request to save details")
             .method("POST")
@@ -37,6 +42,7 @@ public class HmcHearingApiPostConsumerTest extends HmcHearingApiConsumerTestBase
                 AUTHORIZATION_HEADER,
                 AUTHORIZATION_TOKEN)
             .willRespondWith()
+            .headers(responseHeaders)
             .status(HttpStatus.OK.value())
             .toPact();
     }

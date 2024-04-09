@@ -23,7 +23,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @TestPropertySource(properties = {"hmc.baseUrl=localhost:4561"})
 @ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
 @PactTestFor(providerName = "hmc_cft_hearings_api", port = "4561")
-public class HmcHearingApiAPutConsumerTest extends HmcHearingApiConsumerTestBase {
+public class HmcHearingApiAmendConsumerTest extends HmcHearingApiConsumerTestBase {
 
     @Pact(provider = "hmc_cft_hearings_api", consumer = "ia_hearingsApi")
     public RequestResponsePact generatePactFragmentForUpdatePartiesNotified(
