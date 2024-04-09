@@ -5,15 +5,28 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
+import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
+import au.com.dius.pact.core.model.annotations.PactFolder;
 import io.pactfoundation.consumer.dsl.LambdaDsl;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 
+@ExtendWith(SpringExtension.class)
+@ExtendWith(PactConsumerTestExt.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@PactFolder("pacts")
+@TestPropertySource(properties = {"hmc.baseUrl=localhost:4561"})
+@ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
 @PactTestFor(providerName = "hmc_cft_hearings_api", port = "4561")
 public class HmcHearingApiConsumerTest extends HmcHearingApiConsumerTestBase {
 
