@@ -11,6 +11,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.AIP;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -64,5 +66,10 @@ public class MapperUtils {
 
     public static boolean hasSponsor(AsylumCase asylumCase) {
         return asylumCase.read(HAS_SPONSOR, YesOrNo.class).map(sponsor -> YesOrNo.YES == sponsor).orElse(false);
+    }
+
+    public static String parseDateTimeStringWithoutNanos(String dateTimeString) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+        return LocalDateTime.parse(dateTimeString, formatter).withNano(0).toString();
     }
 }

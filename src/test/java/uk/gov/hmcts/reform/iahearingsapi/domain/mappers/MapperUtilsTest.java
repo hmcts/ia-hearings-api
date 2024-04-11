@@ -163,4 +163,12 @@ class MapperUtilsTest {
 
         assertFalse(MapperUtils.isChangeOrganisationRequestPresent(asylumCase));
     }
+
+    @Test
+    public void parseDateTimeStringWithoutNanos() {
+        String inputDateTimeString = "2024-04-11T10:15:30.123Z";
+        String expected = "2024-04-11T10:15:30";
+
+        assertEquals(expected, MapperUtils.parseDateTimeStringWithoutNanos(inputDateTimeString));
+    }
 }
