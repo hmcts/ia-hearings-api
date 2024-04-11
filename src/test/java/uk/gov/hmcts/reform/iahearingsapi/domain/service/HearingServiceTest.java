@@ -51,6 +51,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLinkData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ReasonForLink;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.CaseLinkDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.CaseLinkInfo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.GetLinkedCasesResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.Reason;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
@@ -58,7 +63,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHear
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HearingRequestGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
@@ -71,11 +75,14 @@ class HearingServiceTest {
     private static final long VERSION = 1;
     private static final String CASE_ID = "1625080769409918";
     private static final String CASE_ID_2 = "1625080769409919";
+    private static final String CASE_ID_3 = "1712743743000000";
     private static final long HEARING_REQUEST_ID = 12345;
     private static final String HEARING_ID = "12345";
     private static final String SERVICE_ID = "BFA1";
-    private static final String REASON_FOR_LINK = "Reason for case to be linked";
+    private static final String REASON_FOR_LINK_A = "Reason for case to be linked";
+    private static final String REASON_FOR_LINK_B = "Another reason for case to be linked";
     private static final String APPELLANT_2 = "Name LastName";
+    private static final String APPELLANT_3 = "LinkedName LinkedLastName";
 
     @Mock
     private FeatureToggler featureToggler;
@@ -104,6 +111,8 @@ class HearingServiceTest {
     @Mock
     private AsylumCase asylumCase2;
     @Mock
+    private AsylumCase asylumCase3;
+    @Mock
     private CaseLink caseLink;
     @Mock
     private ReasonForLink reasonForLink;
@@ -119,6 +128,14 @@ class HearingServiceTest {
     private CreateHearingRequest createHearingRequest;
     @Mock
     private CaseDetailsHearing caseDetailsHearing;
+    @Mock
+    private GetLinkedCasesResponse getLinkedCasesResponse;
+    @Mock
+    private CaseLinkInfo caseLinkInfo;
+    @Mock
+    private CaseLinkDetails caseLinkDetails;
+    @Mock
+    private Reason reason;
     @Spy
     @InjectMocks
     private HearingService hearingService;
@@ -296,10 +313,19 @@ class HearingServiceTest {
     void testGetHearingLinkValues() {
         when(asylumCase.read(CASE_LINKS)).thenReturn(Optional.of(List.of(new IdValue<>("1", caseLink))));
         when(caseLink.getReasonsForLink()).thenReturn(List.of(new IdValue<>("1", reasonForLink)));
-        when(reasonForLink.getReason()).thenReturn(REASON_FOR_LINK);
+        when(reasonForLink.getReason()).thenReturn(REASON_FOR_LINK_A);
         when(caseLink.getCaseReference()).thenReturn(CASE_ID_2);
         when(coreCaseDataService.getCase(CASE_ID_2)).thenReturn(asylumCase2);
+        when(coreCaseDataService.getLinkedCases(CASE_ID)).thenReturn(getLinkedCasesResponse);
+        when(getLinkedCasesResponse.getLinkedCases()).thenReturn(List.of(caseLinkInfo));
+        when(caseLinkInfo.getLinkDetails()).thenReturn(List.of(caseLinkDetails));
+        when(caseLinkDetails.getReasons()).thenReturn(List.of(reason));
+        when(reason.getReasonCode()).thenReturn(REASON_FOR_LINK_B);
+        when(caseLinkInfo.getCaseReference()).thenReturn(CASE_ID_3);
+        when(coreCaseDataService.getCase(CASE_ID_3)).thenReturn(asylumCase3);
+
         when(asylumCase2.read(APPELLANT_NAME_FOR_DISPLAY, String.class)).thenReturn(Optional.of(APPELLANT_2));
+        when(asylumCase3.read(APPELLANT_NAME_FOR_DISPLAY, String.class)).thenReturn(Optional.of(APPELLANT_3));
 
         List<HearingLinkData> result = hearingService
             .getHearingLinkData(new HearingRequestPayload(CASE_ID, null));
@@ -307,9 +333,14 @@ class HearingServiceTest {
         List<HearingLinkData> expected = List.of(
             HearingLinkData.hearingLinkDataWith()
             .caseReference(CASE_ID_2)
-            .reasonsForLink(List.of(REASON_FOR_LINK))
+            .reasonsForLink(List.of(REASON_FOR_LINK_A))
             .caseName(APPELLANT_2)
-            .build()
+            .build(),
+            HearingLinkData.hearingLinkDataWith()
+                .caseReference(CASE_ID_3)
+                .reasonsForLink(List.of(REASON_FOR_LINK_B))
+                .caseName(APPELLANT_3)
+                .build()
         );
 
         assertThat(result).isNotNull();
