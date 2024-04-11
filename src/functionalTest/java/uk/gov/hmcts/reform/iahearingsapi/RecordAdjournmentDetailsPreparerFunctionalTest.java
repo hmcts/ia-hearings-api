@@ -21,8 +21,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
 @Slf4j
-@ActiveProfiles("functional")
 @Disabled
+@ActiveProfiles("functional")
 public class RecordAdjournmentDetailsPreparerFunctionalTest extends CcdCaseCreationTest {
 
     @BeforeEach

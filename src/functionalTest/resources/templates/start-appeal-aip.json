@@ -4,7 +4,12 @@
   "appellantGivenNames": "Talha",
   "appellantFamilyName": "Awan",
   "appellantDateOfBirth": "1978-11-11",
-  "appellantHasFixedAddress": "No",
+  "appellantPhoneNumber": "07444445555",
+  "sponsorMobileNumber": "07444445555",
+  "appellantHasFixedAddress": "Yes",
+  "appellantAddress": {
+    "PostCode": "B1 1BA"
+  },
   "appealType": "protection",
   "appellantNationalities": [
     {

@@ -108,7 +108,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .assertThat().body("leadJudgeContractType", notNullValue())
             .assertThat().body("judiciary", notNullValue())
             .assertThat().body("parties", notNullValue())
-            .assertThat().body("caseflags", notNullValue())
+            .assertThat().body("caseFlags", notNullValue())
             .assertThat().body("vocabulary", notNullValue())
             .assertThat().body("hearingChannels", notNullValue())
             .assertThat().body("hearingLevelParticipantAttendance", notNullValue());
