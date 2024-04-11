@@ -29,7 +29,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.refdata.Location
 @ExtendWith(PactConsumerTestExt.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @PactFolder("pacts")
-@TestPropertySource(locations = {"classpath:application.properties"}, properties = {"location.ref.data.url=http://localhost:8991"})
+@TestPropertySource(properties = {"location.ref.data.url=http://localhost:8991"})
 @PactTestFor(providerName = "referenceData_court_venues", port = "8991")
 @ContextConfiguration(classes = {RefDataConsumerApplication.class})
 public class LocationRefDataConsumerTest {

@@ -30,8 +30,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearing
  * {@link UpdateHearingRequestPreparer}
  */
 @Slf4j
-@ActiveProfiles("functional")
 @Disabled
+@ActiveProfiles("functional")
 public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
     void getAuthentications() {
