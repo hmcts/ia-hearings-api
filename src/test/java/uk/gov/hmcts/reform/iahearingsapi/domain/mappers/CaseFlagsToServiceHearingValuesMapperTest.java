@@ -55,6 +55,10 @@ class CaseFlagsToServiceHearingValuesMapperTest {
 
     private static final String caseLevelFlags = "Case level flags";
     private static final String caseLevelFlagsPartyID = "Caselevelflags";
+    public static final String DATE_TIME_CREATED = "2024-04-11T13:43:15.044Z";
+    public static final String DATE_TIME_MODIFIED = "2024-04-15T16:23:10.044Z";
+    public static final String DATE_TIME_CREATED_NO_NANOS = "2024-04-11T13:43:15";
+    public static final String DATE_TIME_MODIFIED_NO_NANOS = "2024-04-15T16:23:10";
     private final String caseReference = "caseReference";
     private final String flagAmendUrl = "/cases/case-details/" + caseReference + "#Case%20flags";
     private CaseFlagsToServiceHearingValuesMapper mapper;
@@ -345,6 +349,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .status("Active")
                     .hearingRelevant(YesOrNo.YES)
                     .flagComment("test comment")
+                    .dateTimeCreated(DATE_TIME_CREATED)
+                    .dateTimeModified(DATE_TIME_MODIFIED)
                     .build())))));
 
 
@@ -357,6 +363,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .flagId(ANONYMITY.getFlagCode())
                     .flagStatus("Active")
                     .flagDescription("test comment")
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
                     .build()
             )).build();
 
@@ -377,18 +385,24 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                 .status("Active")
                 .hearingRelevant(YesOrNo.YES)
                 .flagComment("test comment")
+                .dateTimeCreated(DATE_TIME_CREATED)
+                .dateTimeModified(DATE_TIME_MODIFIED)
                 .build()),
             new CaseFlagDetail("id5", CaseFlagValue.builder()
                 .flagCode(HEARING_LOOP.getFlagCode())
                 .name(HEARING_LOOP.getName())
                 .status("Inactive")
                 .hearingRelevant(YesOrNo.YES)
+                .dateTimeCreated(DATE_TIME_CREATED)
+                .dateTimeModified(DATE_TIME_MODIFIED)
                 .build()),
             new CaseFlagDetail("id6", CaseFlagValue.builder()
                 .flagCode(LACKING_CAPACITY.getFlagCode())
                 .name(LACKING_CAPACITY.getName())
                 .status("Active")
                 .hearingRelevant(YesOrNo.NO)
+                .dateTimeCreated(DATE_TIME_CREATED)
+                .dateTimeModified(DATE_TIME_MODIFIED)
                 .build()),
             new CaseFlagDetail("id7", CaseFlagValue.builder()
                 .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
@@ -396,6 +410,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                 .status("Active")
                 .hearingRelevant(YesOrNo.YES)
                 .subTypeValue("French")
+                .dateTimeCreated(DATE_TIME_CREATED)
+                .dateTimeModified(DATE_TIME_MODIFIED)
                 .build()),
             new CaseFlagDetail("id8", CaseFlagValue.builder()
                 .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
@@ -403,6 +419,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                 .status("Active")
                 .hearingRelevant(YesOrNo.YES)
                 .subTypeValue("International Sign (IS)")
+                .dateTimeCreated(DATE_TIME_CREATED)
+                .dateTimeModified(DATE_TIME_MODIFIED)
                 .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(
@@ -418,6 +436,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                                       .flagCode(HEARING_LOOP.getFlagCode())
                                       .name(HEARING_LOOP.getName())
                                       .status("Active")
+                                      .dateTimeCreated(DATE_TIME_CREATED)
+                                      .dateTimeModified(DATE_TIME_MODIFIED)
                                       .hearingRelevant(YesOrNo.YES).build())))));
         when(asylumCase.read(WITNESS_LEVEL_FLAGS))
             .thenReturn(Optional.of(witnessCaseFlag));
@@ -431,12 +451,16 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .flagId(LITIGATION_FRIEND.getFlagCode())
                     .flagStatus("Active")
                     .flagDescription("test comment")
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
                     .build(),
                 PartyFlagsModel.builder()
                     .partyId("appellantPartyId")
                     .partyName("appellant1")
                     .flagId(LACKING_CAPACITY.getFlagCode())
                     .flagStatus("Active")
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
                     .build(),
                 PartyFlagsModel.builder()
                     .partyId("appellantPartyId")
@@ -444,6 +468,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .flagId(LANGUAGE_INTERPRETER.getFlagCode())
                     .flagStatus("Active")
                     .flagDescription("French")
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
                     .build(),
                 PartyFlagsModel.builder()
                     .partyId("appellantPartyId")
@@ -451,12 +477,16 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .flagId(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
                     .flagStatus("Active")
                     .flagDescription("International Sign (IS)")
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
                     .build(),
                 PartyFlagsModel.builder()
                     .partyId("witnessPartyId")
                     .partyName("witness3")
                     .flagId(HEARING_LOOP.getFlagCode())
                     .flagStatus("Active")
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
                     .build()
             )).build();
 
