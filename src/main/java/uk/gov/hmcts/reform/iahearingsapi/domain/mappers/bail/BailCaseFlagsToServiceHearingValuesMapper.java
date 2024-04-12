@@ -9,9 +9,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFla
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.URGENT_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.VULNERABLE_USER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils.parseDateTimeStringWithoutNanos;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -193,11 +192,6 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
                 .dateTimeCreated(parseDateTimeStringWithoutNanos(detail.getCaseFlagValue().getDateTimeCreated()))
                 .dateTimeModified(parseDateTimeStringWithoutNanos(detail.getCaseFlagValue().getDateTimeModified()))
                 .build()).collect(Collectors.toList());
-    }
-
-    private String parseDateTimeStringWithoutNanos(String dateTimeString) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
-        return LocalDateTime.parse(dateTimeString, formatter).withNano(0).toString();
     }
 
     private static String getFlagDescription(CaseFlagDetail detail) {

@@ -69,6 +69,10 @@ public class MapperUtils {
     }
 
     public static String parseDateTimeStringWithoutNanos(String dateTimeString) {
+        if (dateTimeString == null) {
+            return null;
+        }
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
         return LocalDateTime.parse(dateTimeString, formatter).withNano(0).toString();
     }

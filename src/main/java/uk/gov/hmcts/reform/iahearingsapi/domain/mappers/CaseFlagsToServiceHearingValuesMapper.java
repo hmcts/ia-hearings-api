@@ -14,6 +14,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFla
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCOMPANIED_MINOR;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.URGENT_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.VULNERABLE_USER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils.parseDateTimeStringWithoutNanos;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -237,6 +238,8 @@ public class CaseFlagsToServiceHearingValuesMapper {
                 .flagId(detail.getCaseFlagValue().getFlagCode())
                 .flagStatus(detail.getCaseFlagValue().getStatus())
                 .flagDescription(getFlagDescription(detail))
+                .dateTimeCreated(parseDateTimeStringWithoutNanos(detail.getCaseFlagValue().getDateTimeCreated()))
+                .dateTimeModified(parseDateTimeStringWithoutNanos(detail.getCaseFlagValue().getDateTimeModified()))
                 .build()).collect(Collectors.toList());
     }
 
