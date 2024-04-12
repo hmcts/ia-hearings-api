@@ -1,10 +1,9 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.utils;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 public class HearingsUtilsTest {
 
@@ -28,10 +27,10 @@ public class HearingsUtilsTest {
 
     @Test
     void testConvertToLocalDateTimeFormat() {
-        String dateTimeStr = "2023-10-06T12:00:00.000";
+        String dateStr = "2023-10-06";
 
-        LocalDateTime localDateTime = HearingsUtils.convertToLocalDateTimeFormat(dateTimeStr);
+        LocalDateTime localDateTime = HearingsUtils.convertToLocalDateTimeFormat(dateStr);
 
-        assertEquals(LocalDateTime.of(2023, 10, 6, 12, 0, 0), localDateTime);
+        assertEquals(LocalDateTime.of(2023, 10, 6, 0, 0, 0), localDateTime);
     }
 }
