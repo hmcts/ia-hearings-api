@@ -193,7 +193,7 @@ class UpdateHearingsRequestSubmitTest {
     void should_send_an_update_of_the_hearing_window_date_to_be_fixed() {
         asylumCase.write(CHANGE_HEARING_DATE_YES_NO, YES);
         asylumCase.write(CHANGE_HEARING_DATE_TYPE, "DateToBeFixed");
-        asylumCase.write(REQUEST_HEARING_DATE_1, "2023-12-02T00:00:00.000");
+        asylumCase.write(REQUEST_HEARING_DATE_1, "2023-12-02");
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = updateHearingRequestSubmit.handle(
@@ -204,7 +204,7 @@ class UpdateHearingsRequestSubmitTest {
         verify(hearingService, times(1)).updateHearing(any(), any());
         HearingWindowModel newHearingWindow = HearingWindowModel
             .builder()
-            .firstDateTimeMustBe("2023-12-02T00:00")
+            .firstDateTimeMustBe("2023-12-02T16:00")
             .build();
 
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
