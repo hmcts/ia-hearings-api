@@ -171,4 +171,9 @@ class MapperUtilsTest {
 
         assertEquals(expected, MapperUtils.parseDateTimeStringWithoutNanos(inputDateTimeString));
     }
+
+    @Test
+    public void parseDateTimeStringWithoutNanos_NullInput() {
+        assertNull(MapperUtils.parseDateTimeStringWithoutNanos(null));
+    }
 }
