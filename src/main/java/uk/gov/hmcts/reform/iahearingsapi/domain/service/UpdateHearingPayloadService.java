@@ -1,21 +1,21 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import static com.microsoft.applicationinsights.web.dependencies.apachecommons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_VENUE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -200,22 +200,22 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                                                HearingDetails hearingsDetailsUpdate, Event event) {
         if (event == Event.UPDATE_HEARING_REQUEST) {
             boolean updateHearingChannel = asylumCase.read(CHANGE_HEARING_TYPE_YES_NO, String.class)
-                .map(changeType -> Objects.equals(YES.toString(), changeType)).orElse(false);
+                .map(changeType -> equalsIgnoreCase(YES.toString(), changeType)).orElse(false);
             if (updateHearingChannel) {
                 hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
             }
             boolean updateHearingLocation = asylumCase.read(CHANGE_HEARING_LOCATION_YES_NO, String.class)
-                .map(changeLocation -> Objects.equals(YES.toString(), changeLocation)).orElse(false);
+                .map(changeLocation -> equalsIgnoreCase(YES.toString(), changeLocation)).orElse(false);
             if (updateHearingLocation) {
                 hearingDetails.setHearingLocations(hearingsDetailsUpdate.getHearingLocations());
             }
             boolean updateHearingDuration = asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, String.class)
-                .map(changeDuratrion -> Objects.equals(YES.toString(), changeDuratrion)).orElse(false);
+                .map(changeDuration -> equalsIgnoreCase(YES.toString(), changeDuration)).orElse(false);
             if (updateHearingDuration) {
                 hearingDetails.setDuration(hearingsDetailsUpdate.getDuration());
             }
             boolean updateHearingDate = asylumCase.read(CHANGE_HEARING_DATE_YES_NO, String.class)
-                .map(changeDate -> Objects.equals(YES.toString(), changeDate)).orElse(false);
+                .map(changeDate -> equalsIgnoreCase(YES.toString(), changeDate)).orElse(false);
             if (updateHearingDate) {
                 hearingDetails.setHearingWindow(hearingsDetailsUpdate.getHearingWindow());
             }
