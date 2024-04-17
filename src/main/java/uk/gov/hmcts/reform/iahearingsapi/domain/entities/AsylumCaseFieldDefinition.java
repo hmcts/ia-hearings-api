@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
@@ -23,6 +24,8 @@ public enum AsylumCaseFieldDefinition {
         "hmctsCaseNameInternal", new TypeReference<String>() {}),
     LIST_CASE_HEARING_LENGTH(
         "listCaseHearingLength", new TypeReference<String>() {}),
+    LISTING_LENGTH(
+        "listingLength", new TypeReference<HoursMinutes>() {}),
     LIST_CASE_HEARING_CENTRE(
         "listCaseHearingCentre", new TypeReference<HearingCentre>(){}),
     APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {

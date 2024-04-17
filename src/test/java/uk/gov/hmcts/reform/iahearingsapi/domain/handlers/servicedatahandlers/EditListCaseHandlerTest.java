@@ -9,9 +9,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
@@ -48,6 +48,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
@@ -195,9 +196,7 @@ class EditListCaseHandlerTest {
 
         editListCaseHandler.handle(serviceData);
 
-        verify(asylumCase).write(
-            LIST_CASE_HEARING_LENGTH, "100"
-        );
+        verify(asylumCase).write(LISTING_LENGTH, new HoursMinutes(100));
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
@@ -330,10 +329,7 @@ class EditListCaseHandlerTest {
         )).thenReturn(Optional.of(HearingCentre.GLASGOW));
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(
             new DynamicList(HearingChannel.INTER.name())));
-        when(asylumCase.read(
-            LIST_CASE_HEARING_LENGTH,
-            String.class
-        )).thenReturn(Optional.of("150"));
+        when(asylumCase.read(LISTING_LENGTH, HoursMinutes.class)).thenReturn(Optional.of(new HoursMinutes(150)));
     }
 
     @NotNull
@@ -345,7 +341,7 @@ class EditListCaseHandlerTest {
             LocalDateTime.of(2023, 9, 29, 12, 0)
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
         );
-        caseData.put(LIST_CASE_HEARING_LENGTH.value(), "150");
+        caseData.put(LISTING_LENGTH.value(), new HoursMinutes(150));
         caseData.put(LIST_CASE_HEARING_CENTRE.value(), HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
         return caseData;
     }
