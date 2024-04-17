@@ -13,6 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_NAME_HMCTS_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CURRENT_CASE_STATE_VISIBLE_TO_ADMIN_OFFICER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HEARING_CENTRE_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType.RP;
@@ -28,6 +29,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,6 +46,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -71,6 +75,7 @@ class ServiceHearingValuesProviderTest {
 
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_TEST = "classpath:screenFlowTest.json";
     private static final String TRIBUNAL_JUDGE = "84";
+    private static final String BAILS_LOCATION_REF_DATA_FEATURE = "bails-location-reference-data";
     private final String hmctsCaseNameInternal = "Eke Uke";
     private final String caseNameHmctsInternal = "John Doe";
     private final String listCaseHearingLength = "120";
@@ -130,6 +135,8 @@ class ServiceHearingValuesProviderTest {
     private ListingCommentsMapper listingCommentsMapper;
     @Mock
     private ResourceLoader resourceLoader;
+    @Mock
+    private FeatureToggler featureToggler;
     private final MockedStatic<PayloadUtils> payloadUtils = mockStatic(PayloadUtils.class);
     private final String baseUrl = "http://localhost:3002";
     private String caseCategoriesValue = "BFA1-TST";
@@ -231,7 +238,8 @@ class ServiceHearingValuesProviderTest {
             bailCaseFlagsMapper,
             partyDetailsMapper,
             listingCommentsMapper,
-            resourceLoader
+            resourceLoader,
+            featureToggler
         );
 
         serviceHearingValuesProvider.setBaseUrl(baseUrl);
@@ -258,10 +266,30 @@ class ServiceHearingValuesProviderTest {
         assertEquals(expected, actual);
     }
 
-    @Test
-    void should_get_bail_service_hearing_values() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void should_get_bail_service_hearing_values(boolean bailsLocationRefDataServiceEnabled) {
+
+        when(featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false))
+            .thenReturn(bailsLocationRefDataServiceEnabled);
 
         ServiceHearingValuesModel expected = buildTestBailServiceHearingValuesModel();
+
+        if (bailsLocationRefDataServiceEnabled) {
+            final String glasgow = "366559";
+            when(bailCase.read(HEARING_CENTRE_REF_DATA, DynamicList.class))
+                .thenReturn(
+                    Optional.of(
+                        new DynamicList(
+                            new Value(glasgow, glasgow),
+                            List.of(new Value(glasgow, glasgow))
+                        )
+                    )
+                );
+
+            expected.setCaseManagementLocationCode(glasgow);
+        }
+
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
             .provideBailServiceHearingValues(bailCase, caseReference);
 

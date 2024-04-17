@@ -1,11 +1,15 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.utils;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HEARING_CENTRE_REF_DATA;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 
 public final class HearingsUtils {
 
@@ -37,5 +41,11 @@ public final class HearingsUtils {
         ZonedDateTime utcZonedDateTime = utcDate.atZone(ZoneId.of("UTC"));
         ZonedDateTime ukZonedDateTime = utcZonedDateTime.withZoneSameInstant(ZoneId.of("Europe/London"));
         return ukZonedDateTime.toLocalDateTime();
+    }
+
+    public static String getEpimsId(BailCase bailCase) {
+        return bailCase.read(HEARING_CENTRE_REF_DATA, DynamicList.class)
+            .map(dynamicList -> dynamicList.getValue().getCode())
+            .orElse("");
     }
 }
