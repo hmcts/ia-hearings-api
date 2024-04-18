@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -17,6 +18,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LocationRefDataService {
 
+    private static final String OPEN = "Open";
+    private static final String Y = "Y";
+
     private final AuthTokenGenerator authTokenGenerator;
     private final UserDetails userDetails;
     private final LocationRefDataApi locationRefDataApi;
@@ -26,6 +30,7 @@ public class LocationRefDataService {
     public DynamicList getHearingLocationsDynamicList() {
 
         return new DynamicList(new Value("", ""), getCourtVenues().stream()
+            .filter(this::isOpenHearingLocation)
             .map(courtVenue -> new Value(courtVenue.getEpimmsId(), courtVenue.getCourtName()))
             .toList());
     }
@@ -42,5 +47,11 @@ public class LocationRefDataService {
 
     public void setServiceId(String serviceId) {
         this.serviceId = serviceId;
+    }
+
+
+    private boolean isOpenHearingLocation(CourtVenue courtVenue) {
+        return StringUtils.equals(courtVenue.getCourtStatus(), OPEN)
+               && StringUtils.equals(courtVenue.getIsHearingLocation(), Y);
     }
 }
