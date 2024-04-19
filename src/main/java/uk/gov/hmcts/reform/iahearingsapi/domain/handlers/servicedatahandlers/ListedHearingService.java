@@ -5,17 +5,19 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.IS_REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
@@ -81,7 +83,7 @@ public class ListedHearingService {
         String hearingVenueId = getHearingVenueId(serviceData);
 
         String newHearingDateTime = formatHearingDateTime(getHearingDatetime(serviceData, hearingVenueId));
-        HearingCentre newHearingCentre = getHearingCenter(hearingChannels, hearingVenueId);
+        HearingCentre newHearingCentre = HandlerUtils.getLocation(hearingChannels, hearingVenueId);
         DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
 
         asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
@@ -137,10 +139,6 @@ public class ListedHearingService {
         return "LAI";
     }
 
-    public HearingCentre getHearingCenter(List<HearingChannel> hearingChannels, String hearingVenueId) {
-        return HandlerUtils.getLocation(hearingChannels, hearingVenueId);
-    }
-
     public DynamicList buildHearingChannelDynmicList(List<HearingChannel> hearingChannels) {
         return new DynamicList(new Value(
             hearingChannels.get(0).name(),
@@ -160,18 +158,13 @@ public class ListedHearingService {
     }
 
     public void updateInitialBailCaseListing(ServiceData serviceData, BailCase bailCase) {
-        List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
-        final String nextHearingChannel = hearingChannels.get(0).name();
-        final boolean isRemoteHearing = nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
-        final String nextHearingVenueId = isRemoteHearing
-            ? REMOTE_HEARING.getEpimsId() : getHearingVenueId(serviceData);
         LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
-        HearingCentre newHearingCentre = getHearingCenter(hearingChannels, nextHearingVenueId);
 
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
         bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
         bailCase.write(LISTING_HEARING_DURATION, String.valueOf(getHearingDuration(serviceData)));
-        bailCase.write(LISTING_LOCATION, newHearingCentre.getValue());
+        bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
+        bailCase.write(LISTING_LOCATION, HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData)).getValue());
     }
 
     public void updateRelistingBailCaseListing(ServiceData serviceData, BailCase bailCase,
@@ -182,16 +175,13 @@ public class ListedHearingService {
             bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
         }
 
-        if (fieldsToUpdate.contains(HEARING_CHANNELS) || fieldsToUpdate.contains(HEARING_VENUE_ID)) {
-            List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
-            final String nextHearingChannel = hearingChannels.get(0).name();
-            final boolean isRemoteHearing = nextHearingChannel.equals(VID.name())
-                                            || nextHearingChannel.equals(TEL.name());
-            final String nextHearingVenueId = isRemoteHearing
-                ? REMOTE_HEARING.getEpimsId() : getHearingVenueId(serviceData);
-            HearingCentre newHearingCentre = getHearingCenter(hearingChannels, nextHearingVenueId);
-
+        if (fieldsToUpdate.contains(HEARING_VENUE_ID)) {
+            HearingCentre newHearingCentre = HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData));
             bailCase.write(LISTING_LOCATION, newHearingCentre.getValue());
+        }
+
+        if (fieldsToUpdate.contains(HEARING_CHANNELS)) {
+            bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
         }
 
         if (fieldsToUpdate.contains(DURATION)) {
@@ -199,6 +189,11 @@ public class ListedHearingService {
         }
 
         bailCase.write(LISTING_EVENT, ListingEvent.RELISTING.toString());
+    }
+
+    private boolean isRemoteHearing(ServiceData serviceData) {
+        final String nextHearingChannel = getHearingChannels(serviceData).get(0).name();
+        return nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
     }
 
 }
