@@ -31,6 +31,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.ListingEvent.INITIAL_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
@@ -121,6 +122,8 @@ class BailListCaseHandlerTest {
             .thenReturn(Optional.of(NEXT_HEARING_DATE));
         when(serviceData.read(DURATION, Integer.class))
             .thenReturn(Optional.of(60));
+        when(serviceData.read(HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of("231596"));
 
         bailListCaseHandler.handle(serviceData);
 
@@ -129,7 +132,7 @@ class BailListCaseHandlerTest {
         verify(bailCase).write(LISTING_HEARING_DATE,
                                LocalDateTime.of(2023, 9, 29, 12, 0)
                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
-        verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
+        verify(bailCase).write(LISTING_LOCATION, HearingCentre.BIRMINGHAM.getValue());
 
         verify(coreCaseDataService).triggerBailSubmitEvent(CASE_LISTING, CASE_REF,
                                                            startEventResponse, bailCase);
