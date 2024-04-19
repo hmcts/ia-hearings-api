@@ -164,7 +164,8 @@ public class ListedHearingService {
         bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
         bailCase.write(LISTING_HEARING_DURATION, String.valueOf(getHearingDuration(serviceData)));
         bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
-        bailCase.write(LISTING_LOCATION, HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData)).getValue());
+        bailCase.write(LISTING_LOCATION,
+            HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData)).getValue());
     }
 
     public void updateRelistingBailCaseListing(ServiceData serviceData, BailCase bailCase,
