@@ -239,11 +239,13 @@ class BailListCaseUpdateHandlerTest {
         when(previousServiceData.read(HEARING_VENUE_ID)).thenReturn(Optional.of(VENUE_TWO));
 
         when(timeOne.format(any())).thenReturn("formattedDate");
+        when(serviceData.read(HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of("231596"));
 
         bailListCaseUpdateHandler.handle(serviceData);
 
         verify(bailCase).write(LISTING_EVENT, RELISTING.toString());
-        verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
+        verify(bailCase).write(LISTING_LOCATION, HearingCentre.BIRMINGHAM.getValue());
         verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_HEARING_DATE, "formattedDate");
 
@@ -276,13 +278,15 @@ class BailListCaseUpdateHandlerTest {
         when(serviceData.read(DURATION, Integer.class)).thenReturn(Optional.of(60));
 
         when(serviceData.read(HEARING_VENUE_ID)).thenReturn(Optional.of(VENUE_ONE));
+        when(serviceData.read(HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of("231596"));
 
         when(timeOne.format(any())).thenReturn("formattedDate");
 
         bailListCaseUpdateHandler.handle(serviceData);
 
         verify(bailCase).write(LISTING_EVENT, RELISTING.toString());
-        verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
+        verify(bailCase).write(LISTING_LOCATION, HearingCentre.BIRMINGHAM.getValue());
         verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_HEARING_DATE, "formattedDate");
 
