@@ -7,7 +7,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
@@ -20,14 +19,22 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ListCmrHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
+
+    public ListCmrHandler(LocationRefDataService locationRefDataService,
+                          CoreCaseDataService coreCaseDataService,
+                          HearingService hearingService) {
+        super(locationRefDataService);
+        this.coreCaseDataService = coreCaseDataService;
+        this.hearingService = hearingService;
+    }
 
     @Override
     public DispatchPriority getDispatchPriority() {

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.config;
 
+import feign.Logger;
 import feign.codec.Encoder;
 import feign.form.spring.SpringFormEncoder;
 import org.springframework.beans.factory.ObjectFactory;
@@ -18,5 +19,10 @@ public class FeignConfiguration {
         ObjectFactory<HttpMessageConverters> messageConverters
     ) {
         return new SpringFormEncoder(new SpringEncoder(messageConverters));
+    }
+
+    @Bean
+    Logger.Level feignLoggerLevel() {
+        return Logger.Level.FULL;
     }
 }

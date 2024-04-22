@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
-import lombok.RequiredArgsConstructor;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
@@ -9,14 +9,20 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPr
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class CancelledHearingHandler extends ListedHearingService
     implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
+
+    public CancelledHearingHandler(LocationRefDataService locationRefDataService,
+                                   CoreCaseDataService coreCaseDataService) {
+        super(locationRefDataService);
+        this.coreCaseDataService = coreCaseDataService;
+    }
 
     @Override
     public DispatchPriority getDispatchPriority() {

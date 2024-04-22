@@ -6,7 +6,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTIN
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
@@ -18,13 +17,18 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDat
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class ListCaseHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
+
+    public ListCaseHandler(LocationRefDataService locationRefDataService, CoreCaseDataService coreCaseDataService) {
+        super(locationRefDataService);
+        this.coreCaseDataService = coreCaseDataService;
+    }
 
     @Override
     public DispatchPriority getDispatchPriority() {

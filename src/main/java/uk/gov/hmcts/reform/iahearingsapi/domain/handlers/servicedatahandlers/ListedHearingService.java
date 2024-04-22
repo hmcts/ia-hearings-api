@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
@@ -34,7 +36,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -47,9 +51,14 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 @Slf4j
+@RequiredArgsConstructor
 public class ListedHearingService {
+
+    private final LocationRefDataService locationRefDataService;
 
     public boolean isSubstantiveListedHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)
@@ -83,15 +92,18 @@ public class ListedHearingService {
 
         String newHearingDateTime = formatHearingDateTime(getHearingDatetime(serviceData, hearingVenueId));
         HearingCentre newHearingCentre = getHearingCenter(hearingChannels, hearingVenueId);
-        DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
 
         asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
         asylumCase.write(LIST_CASE_HEARING_DATE, newHearingDateTime);
         asylumCase.write(LISTING_LENGTH, new HoursMinutes(getHearingDuration(serviceData)));
         asylumCase.write(LIST_CASE_HEARING_CENTRE,
                          newHearingCentre);
-        asylumCase.write(HEARING_CHANNEL, newHearingChannel);
-
+        if (!newHearingCentre.getEpimsId().isEmpty()) {
+            asylumCase.write(LIST_CASE_HEARING_CENTRE_ADDRESS, getHearingCenterAddress(newHearingCentre));
+        } else {
+            asylumCase.write(LIST_CASE_HEARING_CENTRE_ADDRESS, "Remote hearing");
+        }
+        asylumCase.write(HEARING_CHANNEL, buildHearingChannelDynmicList(hearingChannels));
     }
 
     public List<HearingChannel> getHearingChannels(ServiceData serviceData) {
@@ -199,6 +211,21 @@ public class ListedHearingService {
         }
 
         bailCase.write(LISTING_EVENT, ListingEvent.RELISTING.toString());
+    }
+
+    public String getHearingCenterAddress(HearingCentre hearingCentre) {
+        return locationRefDataService.getCourtVenues()
+            .stream()
+            .filter(courtVenue -> StringUtils.equals(courtVenue.getEpimmsId(), hearingCentre.getEpimsId()))
+            .findFirst()
+            .map(this::assembleCourtVenueAddress)
+            .orElse("");
+    }
+
+    private String assembleCourtVenueAddress(CourtVenue courtVenue) {
+        return defaultIfNull(courtVenue.getCourtName(), "") + ", "
+               + defaultIfNull(courtVenue.getCourtAddress(), "") + ", "
+               + defaultIfNull(courtVenue.getPostcode(), "");
     }
 
 }

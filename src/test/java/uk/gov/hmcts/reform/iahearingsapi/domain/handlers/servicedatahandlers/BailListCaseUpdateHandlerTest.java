@@ -52,6 +52,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -84,6 +85,8 @@ class BailListCaseUpdateHandlerTest {
     static LocalDateTime timeOne;
     @Mock
     static LocalDateTime timeTwo;
+    @Mock
+    LocationRefDataService locationRefDataService;
 
     private BailListCaseUpdateHandler bailListCaseUpdateHandler;
 
@@ -91,7 +94,7 @@ class BailListCaseUpdateHandlerTest {
     public void setUp() {
 
         bailListCaseUpdateHandler =
-            new BailListCaseUpdateHandler(coreCaseDataService, hearingService);
+            new BailListCaseUpdateHandler(locationRefDataService, coreCaseDataService, hearingService);
 
         when(serviceData.read(HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));

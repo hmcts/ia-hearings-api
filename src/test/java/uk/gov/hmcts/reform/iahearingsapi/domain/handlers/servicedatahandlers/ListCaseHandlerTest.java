@@ -10,6 +10,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
@@ -23,6 +24,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -42,6 +45,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -53,6 +58,9 @@ class ListCaseHandlerTest {
     private static final String CASE_REF = "1111";
     private static final LocalDateTime NEXT_HEARING_DATE = LocalDateTime.of(2023, 9, 29, 12, 0);
     private static final String HEARING_VENUE_ID = GLASGOW_EPIMMS_ID;
+    private static final String COURT_NAME = "Atlantic Quay - Glasgow";
+    private static final String COURT_ADDRESS = "20 York Street, Glasgow";
+    private static final String COURT_POSTCODE = "G2 8GT";
     @Mock
     CoreCaseDataService coreCaseDataService;
     @Mock
@@ -61,6 +69,10 @@ class ListCaseHandlerTest {
     StartEventResponse startEventResponse;
     @Mock
     AsylumCase asylumCase;
+    @Mock
+    LocationRefDataService locationRefDataService;
+    @Mock
+    CourtVenue glasgowCourtVenue;
 
     private ListCaseHandler listCaseHandler;
 
@@ -68,7 +80,7 @@ class ListCaseHandlerTest {
     public void setUp() {
 
         listCaseHandler =
-            new ListCaseHandler(coreCaseDataService);
+            new ListCaseHandler(locationRefDataService, coreCaseDataService);
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -137,19 +149,25 @@ class ListCaseHandlerTest {
         assertThrows(IllegalStateException.class, () -> listCaseHandler.handle(serviceData));
     }
 
-    @Test
-    void should_trigger_case_listing() {
+    @ParameterizedTest
+    @EnumSource(value = HearingChannel.class, names = { "INTER", "VID" })
+    void should_trigger_case_listing(HearingChannel hearingChannel) {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REF, "Asylum")).thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
-            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+            .thenReturn(Optional.of(List.of(hearingChannel)));
         when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
             .thenReturn(Optional.of(NEXT_HEARING_DATE));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
             .thenReturn(Optional.of(HEARING_VENUE_ID));
         when(serviceData.read(DURATION, Integer.class))
             .thenReturn(Optional.of(150));
+        when(locationRefDataService.getCourtVenues()).thenReturn(List.of(glasgowCourtVenue));
+        when(glasgowCourtVenue.getEpimmsId()).thenReturn(HearingCentre.GLASGOW_TRIBUNALS_CENTRE.getEpimsId());
+        when(glasgowCourtVenue.getCourtName()).thenReturn(COURT_NAME);
+        when(glasgowCourtVenue.getCourtAddress()).thenReturn(COURT_ADDRESS);
+        when(glasgowCourtVenue.getPostcode()).thenReturn(COURT_POSTCODE);
 
         listCaseHandler.handle(serviceData);
 
@@ -158,11 +176,18 @@ class ListCaseHandlerTest {
                                  LocalDateTime.of(2023, 9, 29, 9, 45)
                                      .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
         verify(asylumCase).write(LISTING_LENGTH, new HoursMinutes(150));
-        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
-        verify(asylumCase).write(HEARING_CHANNEL, new DynamicList(new Value(HearingChannel.INTER.name(),
-                                                                            HearingChannel.INTER.getLabel()),
-                                                                  List.of(new Value(HearingChannel.INTER.name(),
-                                                                                    HearingChannel.INTER.getLabel()))));
+        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, hearingChannel == HearingChannel.INTER
+            ? HearingCentre.GLASGOW_TRIBUNALS_CENTRE : HearingCentre.REMOTE_HEARING);
+
+        String expectedAddress = COURT_NAME + ", " + COURT_ADDRESS + ", " + COURT_POSTCODE;
+        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE_ADDRESS,
+                                 hearingChannel == HearingChannel.INTER
+                                     ? expectedAddress : "Remote hearing");
+
+        verify(asylumCase).write(HEARING_CHANNEL, new DynamicList(new Value(hearingChannel.name(),
+                                                                            hearingChannel.getLabel()),
+                                                                  List.of(new Value(hearingChannel.name(),
+                                                                                    hearingChannel.getLabel()))));
 
         verify(coreCaseDataService).triggerSubmitEvent(LIST_CASE, CASE_REF,startEventResponse, asylumCase);
     }

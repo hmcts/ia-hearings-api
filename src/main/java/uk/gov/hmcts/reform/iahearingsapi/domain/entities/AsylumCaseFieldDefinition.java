@@ -28,6 +28,8 @@ public enum AsylumCaseFieldDefinition {
         "listingLength", new TypeReference<HoursMinutes>() {}),
     LIST_CASE_HEARING_CENTRE(
         "listCaseHearingCentre", new TypeReference<HearingCentre>(){}),
+    LIST_CASE_HEARING_CENTRE_ADDRESS(
+        "listCaseHearingCentreAddress", new TypeReference<String>(){}),
     APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {
     }),
     WITNESS_LEVEL_FLAGS(

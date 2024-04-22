@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
@@ -23,7 +24,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
@@ -38,14 +38,18 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDat
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class EditListCaseHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
 
+    public EditListCaseHandler(LocationRefDataService locationRefDataService, CoreCaseDataService coreCaseDataService) {
+        super(locationRefDataService);
+        this.coreCaseDataService = coreCaseDataService;
+    }
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -156,10 +160,13 @@ public class EditListCaseHandler extends ListedHearingService implements Service
             log.info("hearing channel updated for hearing " + hearingId);
         }
         if (hearingCentreChanged) {
-            asylumCase.write(
-                LIST_CASE_HEARING_CENTRE,
-                HandlerUtils.getLocation(nextHearingChannelList, nextHearingVenueId)
-            );
+            HearingCentre newHearingCentre = HandlerUtils.getLocation(nextHearingChannelList, nextHearingVenueId);
+            asylumCase.write(LIST_CASE_HEARING_CENTRE, newHearingCentre);
+            if (!newHearingCentre.getEpimsId().isBlank()) {
+                asylumCase.write(LIST_CASE_HEARING_CENTRE_ADDRESS, getHearingCenterAddress(newHearingCentre));
+            } else {
+                asylumCase.write(LIST_CASE_HEARING_CENTRE_ADDRESS, "Remote hearing");
+            }
             sendUpdate = true;
             log.info("hearing centre updated for hearing " + hearingId);
         }

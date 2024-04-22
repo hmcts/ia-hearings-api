@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.UserDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtLocationCategory;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
@@ -24,7 +23,7 @@ public class LocationRefDataServiceTest {
     private AuthTokenGenerator authTokenGenerator;
 
     @Mock
-    private UserDetails userDetails;
+    private IdamService idamService;
 
     @Mock
     private LocationRefDataApi locationRefDataApi;
@@ -55,7 +54,7 @@ public class LocationRefDataServiceTest {
     void setup() {
         locationRefDataService = new LocationRefDataService(
             authTokenGenerator,
-            userDetails,
+            idamService,
             locationRefDataApi
         );
         locationRefDataService.setServiceId(serviceId);
@@ -64,7 +63,7 @@ public class LocationRefDataServiceTest {
     @Test
     void should_return_dynamicList_when_getHearingLocationsDynamicList() {
         String token = "token";
-        when(userDetails.getAccessToken()).thenReturn(token);
+        when(idamService.getServiceUserToken()).thenReturn(token);
         String authToken = "authToken";
         when(authTokenGenerator.generate()).thenReturn(authToken);
         when(locationRefDataApi.getCourtVenues(
@@ -77,25 +76,33 @@ public class LocationRefDataServiceTest {
                                                "Manchester Magistrates Court",
                                                "783803",
                                                "Y",
-                                               "Open");
+                                               "Open",
+                                               "The Court House, Minshull Street",
+                                               "M1 3FS");
 
         closedHearingCourtVenue = new CourtVenue("Manchester Magistrates",
-                                               "Manchester Magistrates Court",
-                                               "783803",
-                                               "Y",
-                                               "Closed");
-
-        openNonHearingCourtVenue = new CourtVenue("Manchester Magistrates",
-                                               "Manchester Magistrates Court",
-                                               "783803",
-                                               "N",
-                                               "Open");
-
-        closedNonHearingCourtVenue = new CourtVenue("Manchester Magistrates",
                                                  "Manchester Magistrates Court",
                                                  "783803",
-                                                 "N",
-                                                 "Closed");
+                                                 "Y",
+                                                 "Closed",
+                                                 "The Court House, Minshull Street",
+                                                 "M1 3FS");
+
+        openNonHearingCourtVenue = new CourtVenue("Manchester Magistrates",
+                                                  "Manchester Magistrates Court",
+                                                  "783803",
+                                                  "N",
+                                                  "Open",
+                                                  "The Court House, Minshull Street",
+                                                  "M1 3FS");
+
+        closedNonHearingCourtVenue = new CourtVenue("Manchester Magistrates",
+                                                    "Manchester Magistrates Court",
+                                                    "783803",
+                                                    "N",
+                                                    "Closed",
+                                                    "The Court House, Minshull Street",
+                                                    "M1 3FS");
 
         when(locationCategory.getCourtVenues()).thenReturn(List.of(
             openHearingCourtVenue,

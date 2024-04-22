@@ -5,7 +5,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CASE_L
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPLICATION_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
@@ -16,14 +15,19 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPr
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class BailListCaseHandler
     extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
+
+    public BailListCaseHandler(LocationRefDataService locationRefDataService, CoreCaseDataService coreCaseDataService) {
+        super(locationRefDataService);
+        this.coreCaseDataService = coreCaseDataService;
+    }
 
     @Override
     public DispatchPriority getDispatchPriority() {

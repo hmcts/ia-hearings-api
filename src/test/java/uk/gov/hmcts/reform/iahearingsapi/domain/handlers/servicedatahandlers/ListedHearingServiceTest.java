@@ -33,10 +33,12 @@ import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -48,11 +50,16 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.ListingEvent;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
+@ExtendWith(MockitoExtension.class)
 class ListedHearingServiceTest {
 
     private static final String GLASGOW_EPIMMS_ID = "366559";
     public static final String LISTING_REF = "LAI";
+
+    @Mock
+    LocationRefDataService locationRefDataService;
 
     @Mock
     private LocalDateTime nextHearingDate;
@@ -67,7 +74,7 @@ class ListedHearingServiceTest {
         asylumCase = new AsylumCase();
         bailCase = new BailCase();
         serviceData = new ServiceData();
-        listedHearingService = new ListedHearingService();
+        listedHearingService = new ListedHearingService(locationRefDataService);
     }
 
     @Test

@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,6 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
@@ -54,6 +57,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -67,6 +72,13 @@ class EditListCaseHandlerTest {
     private static final String HEARING_ID = "12345";
     private static final LocalDateTime NEXT_HEARING_DATE = LocalDateTime.of(2023, 9, 29, 12, 0);
     private static final String HEARING_VENUE_ID = GLASGOW_EPIMMS_ID;
+    private static final String GLASGOW_COURT_NAME = "Atlantic Quay - Glasgow";
+    private static final String GLASGOW_COURT_ADDRESS = "20 York Street, Glasgow";
+    private static final String GLASGOW_COURT_POSTCODE = "G2 8GT";
+    private static final String BIRMINGHAM_COURT_NAME = "Birmingham Civil and Family Justice Centre";
+    private static final String BIRMINGHAM_COURT_ADDRESS = "Priory Courts, 33 Bull Street";
+    private static final String BIRMINGHAM_COURT_POSTCODE = "B4 6DS";
+
     @Mock
     CoreCaseDataService coreCaseDataService;
     @Mock
@@ -75,12 +87,19 @@ class EditListCaseHandlerTest {
     ServiceData serviceData;
     @Mock
     AsylumCase asylumCase;
+    @Mock
+    LocationRefDataService locationRefDataService;
+    @Mock
+    CourtVenue glasgowCourtVenue;
+    @Mock
+    CourtVenue birminghamCourtVenue;
+
     private EditListCaseHandler editListCaseHandler;
 
     @BeforeEach
     public void setUp() {
 
-        editListCaseHandler = new EditListCaseHandler(coreCaseDataService);
+        editListCaseHandler = new EditListCaseHandler(locationRefDataService, coreCaseDataService);
         when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERENCE));
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -216,6 +235,15 @@ class EditListCaseHandlerTest {
             .thenReturn(Optional.of(hearingLocation));
         when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
             .thenReturn(Optional.of(HearingCentre.NEWPORT));
+        when(locationRefDataService.getCourtVenues()).thenReturn(List.of(glasgowCourtVenue, birminghamCourtVenue));
+        when(glasgowCourtVenue.getEpimmsId()).thenReturn(HearingCentre.GLASGOW_TRIBUNALS_CENTRE.getEpimsId());
+        when(glasgowCourtVenue.getCourtName()).thenReturn(GLASGOW_COURT_NAME);
+        when(glasgowCourtVenue.getCourtAddress()).thenReturn(GLASGOW_COURT_ADDRESS);
+        when(glasgowCourtVenue.getPostcode()).thenReturn(GLASGOW_COURT_POSTCODE);
+        when(birminghamCourtVenue.getEpimmsId()).thenReturn(HearingCentre.BIRMINGHAM.getEpimsId());
+        when(birminghamCourtVenue.getCourtName()).thenReturn(BIRMINGHAM_COURT_NAME);
+        when(birminghamCourtVenue.getCourtAddress()).thenReturn(BIRMINGHAM_COURT_ADDRESS);
+        when(birminghamCourtVenue.getPostcode()).thenReturn(BIRMINGHAM_COURT_POSTCODE);
 
         editListCaseHandler.handle(serviceData);
 
@@ -229,6 +257,10 @@ class EditListCaseHandlerTest {
                 && hearingLocation.equals(HearingCentre.BIRMINGHAM.getEpimsId())) {
 
                 verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
+                String birminghamAddress = BIRMINGHAM_COURT_NAME + ", "
+                                         + BIRMINGHAM_COURT_ADDRESS + ", "
+                                         + BIRMINGHAM_COURT_POSTCODE;
+                verify(asylumCase).write(LIST_CASE_HEARING_CENTRE_ADDRESS, birminghamAddress);
                 verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtTen);
                 verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
@@ -236,6 +268,10 @@ class EditListCaseHandlerTest {
                        && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
 
                 verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
+                String glasgowAddress = GLASGOW_COURT_NAME + ", "
+                                           + GLASGOW_COURT_ADDRESS + ", "
+                                           + GLASGOW_COURT_POSTCODE;
+                verify(asylumCase).write(LIST_CASE_HEARING_CENTRE_ADDRESS, glasgowAddress);
                 verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtNineFortyFive);
                 verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
@@ -243,6 +279,7 @@ class EditListCaseHandlerTest {
                        && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
 
                 verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
+                verify(asylumCase).write(LIST_CASE_HEARING_CENTRE_ADDRESS, "Remote hearing");
                 verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtNineFortyFive);
                 verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
@@ -250,12 +287,14 @@ class EditListCaseHandlerTest {
                        && hearingLocation.equals(HearingCentre.BIRMINGHAM.getEpimsId())) {
 
                 verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
+                verify(asylumCase).write(LIST_CASE_HEARING_CENTRE_ADDRESS, "Remote hearing");
                 verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtTen);
                 verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
             }
         } else {
             verify(asylumCase, never()).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
             verify(asylumCase, never()).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
+            verify(asylumCase, never()).write(eq(LIST_CASE_HEARING_CENTRE_ADDRESS), anyString());
             verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
         }
     }
