@@ -67,8 +67,8 @@ public class IdamAuthProvider {
     public String getLegalRepToken() {
 
         return getUserToken(
-            System.getenv("TEST_LAW_FIRM_A_USERNAME"),
-            System.getenv("TEST_LAW_FIRM_A_USERNAME")
+            System.getenv("TEST_LAW_FIRM_ORG_SUCCESS_USERNAME"),
+            System.getenv("TEST_LAW_FIRM_ORG_SUCCESS_USERNAME")
         );
     }
 
