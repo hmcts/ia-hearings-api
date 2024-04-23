@@ -1,7 +1,9 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,10 +16,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtLocationCategory;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.refdata.LocationRefDataApi;
-
-import java.util.List;
-
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class LocationRefDataServiceTest {
@@ -35,7 +33,16 @@ public class LocationRefDataServiceTest {
     CourtLocationCategory locationCategory;
 
     @Mock
-    CourtVenue courtVenue;
+    CourtVenue openHearingCourtVenue;
+
+    @Mock
+    CourtVenue closedHearingCourtVenue;
+
+    @Mock
+    CourtVenue openNonHearingCourtVenue;
+
+    @Mock
+    CourtVenue closedNonHearingCourtVenue;
 
     @Mock
     DynamicList dynamicList;
@@ -66,14 +73,40 @@ public class LocationRefDataServiceTest {
             serviceId
         )).thenReturn(locationCategory);
 
-        courtVenue = new CourtVenue("Manchester Magistrates",
-                                    "Manchester Magistrates Court",
-                                    "783803");
-        when(locationCategory.getCourtVenues()).thenReturn(List.of(courtVenue));
-        dynamicList = new DynamicList(new Value("", ""),
-                                      List.of(new Value(courtVenue.getEpimmsId(), courtVenue.getCourtName())));
+        openHearingCourtVenue = new CourtVenue("Manchester Magistrates",
+                                               "Manchester Magistrates Court",
+                                               "783803",
+                                               "Y",
+                                               "Open");
 
-        assertEquals(dynamicList,
-                     locationRefDataService.getHearingLocationsDynamicList());
+        closedHearingCourtVenue = new CourtVenue("Manchester Magistrates",
+                                               "Manchester Magistrates Court",
+                                               "783803",
+                                               "Y",
+                                               "Closed");
+
+        openNonHearingCourtVenue = new CourtVenue("Manchester Magistrates",
+                                               "Manchester Magistrates Court",
+                                               "783803",
+                                               "N",
+                                               "Open");
+
+        closedNonHearingCourtVenue = new CourtVenue("Manchester Magistrates",
+                                                 "Manchester Magistrates Court",
+                                                 "783803",
+                                                 "N",
+                                                 "Closed");
+
+        when(locationCategory.getCourtVenues()).thenReturn(List.of(
+            openHearingCourtVenue,
+            openNonHearingCourtVenue,
+            closedHearingCourtVenue,
+            closedNonHearingCourtVenue)
+        );
+        dynamicList = new DynamicList(new Value("", ""),
+                                      List.of(new Value(openHearingCourtVenue.getEpimmsId(),
+                                                        openHearingCourtVenue.getCourtName())));
+
+        assertEquals(dynamicList, locationRefDataService.getHearingLocationsDynamicList());
     }
 }
