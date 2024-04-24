@@ -21,6 +21,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChann
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.BAILS_LOCATION_REF_DATA_FEATURE;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -51,6 +52,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -84,6 +86,8 @@ class BailListCaseUpdateHandlerTest {
     static LocalDateTime timeOne;
     @Mock
     static LocalDateTime timeTwo;
+    @Mock
+    FeatureToggler featureToggler;
 
     private BailListCaseUpdateHandler bailListCaseUpdateHandler;
 
@@ -91,7 +95,7 @@ class BailListCaseUpdateHandlerTest {
     public void setUp() {
 
         bailListCaseUpdateHandler =
-            new BailListCaseUpdateHandler(coreCaseDataService, hearingService);
+            new BailListCaseUpdateHandler(coreCaseDataService, hearingService, featureToggler);
 
         when(serviceData.read(HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -101,6 +105,7 @@ class BailListCaseUpdateHandlerTest {
             .thenReturn(Optional.of(BAIL.getKey()));
         when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.BAIL_SUMMARY_UPLOADED);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(true);
     }
 
     @Test
@@ -239,11 +244,13 @@ class BailListCaseUpdateHandlerTest {
         when(previousServiceData.read(HEARING_VENUE_ID)).thenReturn(Optional.of(VENUE_TWO));
 
         when(timeOne.format(any())).thenReturn("formattedDate");
+        when(serviceData.read(HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of("231596"));
 
         bailListCaseUpdateHandler.handle(serviceData);
 
         verify(bailCase).write(LISTING_EVENT, RELISTING.toString());
-        verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
+        verify(bailCase).write(LISTING_LOCATION, HearingCentre.BIRMINGHAM.getValue());
         verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_HEARING_DATE, "formattedDate");
 
@@ -276,13 +283,15 @@ class BailListCaseUpdateHandlerTest {
         when(serviceData.read(DURATION, Integer.class)).thenReturn(Optional.of(60));
 
         when(serviceData.read(HEARING_VENUE_ID)).thenReturn(Optional.of(VENUE_ONE));
+        when(serviceData.read(HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of("231596"));
 
         when(timeOne.format(any())).thenReturn("formattedDate");
 
         bailListCaseUpdateHandler.handle(serviceData);
 
         verify(bailCase).write(LISTING_EVENT, RELISTING.toString());
-        verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
+        verify(bailCase).write(LISTING_LOCATION, HearingCentre.BIRMINGHAM.getValue());
         verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_HEARING_DATE, "formattedDate");
 

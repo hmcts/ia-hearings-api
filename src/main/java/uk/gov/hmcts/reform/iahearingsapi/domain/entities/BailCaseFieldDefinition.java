@@ -154,7 +154,9 @@ public enum BailCaseFieldDefinition {
     APPLICANT_MOBILE_NUMBER(
         "applicantMobileNumber1", new TypeReference<String>(){}),
     HEARING_CENTRE_REF_DATA(
-        "hearingCentreRefData", new TypeReference<DynamicList>(){});
+        "hearingCentreRefData", new TypeReference<DynamicList>(){}),
+    IS_REMOTE_HEARING(
+        "isRemoteHearing", new TypeReference<YesOrNo>(){});
 
     private final String value;
     private final TypeReference typeReference;
