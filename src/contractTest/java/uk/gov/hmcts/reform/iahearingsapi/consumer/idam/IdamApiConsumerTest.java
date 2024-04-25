@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.iahearingsapi.consumer;
+package uk.gov.hmcts.reform.iahearingsapi.consumer.idam;
 
 import static org.apache.http.HttpHeaders.AUTHORIZATION;
 

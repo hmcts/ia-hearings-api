@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.iahearingsapi.consumer;
+package uk.gov.hmcts.reform.iahearingsapi.consumer.hmc;
 
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
@@ -7,8 +7,7 @@ import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.ImmutableMap;
-import java.util.Map;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,34 +23,35 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @TestPropertySource(properties = {"hmc.baseUrl=localhost:4561"})
 @ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
 @PactTestFor(providerName = "hmc_cft_hearings_api", port = "4561")
-public class HmcHearingApiPostConsumerTest extends HmcHearingApiConsumerTestBase {
+public class HmcHearingApiAmendConsumerTest extends HmcHearingApiConsumerTestBase {
 
     @Pact(provider = "hmc_cft_hearings_api", consumer = "ia_hearingsApi")
-    RequestResponsePact createHearingRequest(PactDslWithProvider builder) throws JsonProcessingException {
-        Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
-            .put("Connection", "close")
-            .build();
-        return builder.given("hmc_cft_hearings_api successfully creates a hearing request ")
-            .uponReceiving("Request to create hearing request to save details")
-            .method("POST")
-            .path("/hearing")
-            .body(objectMapper.writeValueAsString(hearingRequestPayload))
+    public RequestResponsePact generatePactFragmentForUpdatePartiesNotified(
+        PactDslWithProvider builder) throws JsonProcessingException {
+        return builder.given("Hearings exist")
+            .uponReceiving("A Request to update parties notified")
+            .method("PUT")
             .headers(
                 SERVICE_AUTHORIZATION_HEADER,
                 SERVICE_AUTH_TOKEN,
                 AUTHORIZATION_HEADER,
                 AUTHORIZATION_TOKEN)
+            .path("/partiesNotified/2000000057")
+            .body(objectMapper.writeValueAsString(partiesNotified))
+            .query("version=1&received=2024-09-20T10:09:19")
             .willRespondWith()
-            .headers(responseHeaders)
             .status(HttpStatus.OK.value())
             .toPact();
     }
 
     @Test
-    @PactTestFor(pactMethod = "createHearingRequest")
+    @PactTestFor(pactMethod = "generatePactFragmentForUpdatePartiesNotified")
     public void verifyUpdatePartiesNotified() {
-        hmcHearingApi.createHearingRequest(AUTHORIZATION_TOKEN,
-                                           SERVICE_AUTH_TOKEN,
-                                           hearingRequestPayload);
+        hmcHearingApi.updatePartiesNotifiedRequest(AUTHORIZATION_TOKEN,
+                                                   SERVICE_AUTH_TOKEN,
+                                                   partiesNotified,
+                                                   "2000000057",
+                                                   1,
+                                                   LocalDateTime.parse("2024-09-20T10:09:19"));
     }
 }

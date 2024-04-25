@@ -1,14 +1,14 @@
-package uk.gov.hmcts.reform.iahearingsapi.consumer;
+package uk.gov.hmcts.reform.iahearingsapi.consumer.ccd;
 
+import static org.apache.http.HttpHeaders.AUTHORIZATION;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.iahearingsapi.consumer.HmcHearingApiConsumerTestBase.AUTHORIZATION_HEADER;
-import static uk.gov.hmcts.reform.iahearingsapi.consumer.HmcHearingApiConsumerTestBase.AUTHORIZATION_TOKEN;
-import static uk.gov.hmcts.reform.iahearingsapi.consumer.HmcHearingApiConsumerTestBase.SERVICE_AUTHORIZATION_HEADER;
-import static uk.gov.hmcts.reform.iahearingsapi.consumer.HmcHearingApiConsumerTestBase.SERVICE_AUTH_TOKEN;
+import static uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.CcdConsumerTestBase.AUTHORIZATION_TOKEN;
+import static uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.CcdConsumerTestBase.SERVICE_AUTHORIZATION_HEADER;
+import static uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.CcdConsumerTestBase.SERVICE_AUTH_TOKEN;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
@@ -41,7 +41,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.LinkedCasesApi;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @PactFolder("pacts")
 @TestPropertySource(properties = {"core_case_data.api.url=http://localhost:4452", "idam.api.url=http://localhost:5000"})
-@ContextConfiguration(classes = { LinkedCasesApiConsumerApplication.class })
+@ContextConfiguration(classes = { CoreCaseDataConsumerApplication.class })
 @PactTestFor(providerName = "linked-cases-api", port = "4452")
 public class LinkedCasesApiConsumerTest {
 
@@ -54,7 +54,7 @@ public class LinkedCasesApiConsumerTest {
 
         // @formatter:off
         Map<String, String> headers = Map.of(CONTENT_TYPE, APPLICATION_JSON_VALUE,
-                                             AUTHORIZATION_HEADER, AUTHORIZATION_TOKEN,
+                                             AUTHORIZATION, AUTHORIZATION_TOKEN,
                                              SERVICE_AUTHORIZATION_HEADER, SERVICE_AUTH_TOKEN);
         return builder
             .given("a case initiated a link to this case")
