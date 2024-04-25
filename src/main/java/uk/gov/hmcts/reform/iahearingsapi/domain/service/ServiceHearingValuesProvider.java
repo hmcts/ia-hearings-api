@@ -54,7 +54,7 @@ public class ServiceHearingValuesProvider {
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_APPEALS = "classpath:appealsScreenFlow.json";
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_BAILS = "classpath:bailsScreenFlow.json";
     private static final String TRIBUNAL_JUDGE = "84";
-    private static final String BAILS_LOCATION_REF_DATA_FEATURE = "bails-location-reference-data";
+    public static final String BAILS_LOCATION_REF_DATA_FEATURE = "bails-location-reference-data";
 
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
     private final BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper;

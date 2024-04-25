@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,11 +32,13 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.ListingEvent.INITIAL_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.BAILS_LOCATION_REF_DATA_FEATURE;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -52,6 +55,8 @@ class BailListCaseHandlerTest {
     StartEventResponse startEventResponse;
     @Mock
     BailCase bailCase;
+    @Mock
+    FeatureToggler featureToggler;
 
     private BailListCaseHandler bailListCaseHandler;
 
@@ -59,7 +64,7 @@ class BailListCaseHandlerTest {
     public void setUp() {
 
         bailListCaseHandler =
-            new BailListCaseHandler(coreCaseDataService);
+            new BailListCaseHandler(coreCaseDataService, featureToggler);
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -69,6 +74,7 @@ class BailListCaseHandlerTest {
             .thenReturn(Optional.of(BAIL.getKey()));
         when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.APPLICATION_SUBMITTED);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(true);
     }
 
     @Test
@@ -121,6 +127,8 @@ class BailListCaseHandlerTest {
             .thenReturn(Optional.of(NEXT_HEARING_DATE));
         when(serviceData.read(DURATION, Integer.class))
             .thenReturn(Optional.of(60));
+        when(serviceData.read(HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of("231596"));
 
         bailListCaseHandler.handle(serviceData);
 
@@ -129,7 +137,7 @@ class BailListCaseHandlerTest {
         verify(bailCase).write(LISTING_HEARING_DATE,
                                LocalDateTime.of(2023, 9, 29, 12, 0)
                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
-        verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
+        verify(bailCase).write(LISTING_LOCATION, HearingCentre.BIRMINGHAM.getValue());
 
         verify(coreCaseDataService).triggerBailSubmitEvent(CASE_LISTING, CASE_REF,
                                                            startEventResponse, bailCase);

@@ -5,6 +5,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.IS_REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DURATION;
@@ -16,6 +17,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
@@ -50,7 +53,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 
 @Slf4j
 public class ListedHearingService {
-
     public boolean isSubstantiveListedHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)
             && isHearingListingStatus(serviceData, ListingStatus.FIXED)
@@ -82,7 +84,7 @@ public class ListedHearingService {
         String hearingVenueId = getHearingVenueId(serviceData);
 
         String newHearingDateTime = formatHearingDateTime(getHearingDatetime(serviceData, hearingVenueId));
-        HearingCentre newHearingCentre = getHearingCenter(hearingChannels, hearingVenueId);
+        HearingCentre newHearingCentre = HandlerUtils.getLocation(hearingChannels, hearingVenueId);
         DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
 
         asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
@@ -137,10 +139,6 @@ public class ListedHearingService {
         return "LAI";
     }
 
-    public HearingCentre getHearingCenter(List<HearingChannel> hearingChannels, String hearingVenueId) {
-        return HandlerUtils.getLocation(hearingChannels, hearingVenueId);
-    }
-
     public DynamicList buildHearingChannelDynmicList(List<HearingChannel> hearingChannels) {
         return new DynamicList(new Value(
             hearingChannels.get(0).name(),
@@ -159,39 +157,47 @@ public class ListedHearingService {
             .orElse(false);
     }
 
-    public void updateInitialBailCaseListing(ServiceData serviceData, BailCase bailCase) {
-        List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
-        final String nextHearingChannel = hearingChannels.get(0).name();
-        final boolean isRemoteHearing = nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
-        final String nextHearingVenueId = isRemoteHearing
-            ? REMOTE_HEARING.getEpimsId() : getHearingVenueId(serviceData);
+    public void updateInitialBailCaseListing(ServiceData serviceData, BailCase bailCase,
+                                             boolean isRefDataLocationEnabled) {
         LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
-        HearingCentre newHearingCentre = getHearingCenter(hearingChannels, nextHearingVenueId);
 
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
         bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
         bailCase.write(LISTING_HEARING_DURATION, String.valueOf(getHearingDuration(serviceData)));
-        bailCase.write(LISTING_LOCATION, newHearingCentre.getValue());
+
+        if (isRefDataLocationEnabled) {
+            bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
+            bailCase.write(LISTING_LOCATION,
+                HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData)).getValue());
+        } else {
+            bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
+        }
+
     }
 
     public void updateRelistingBailCaseListing(ServiceData serviceData, BailCase bailCase,
-                                               Set<ServiceDataFieldDefinition> fieldsToUpdate) {
+                                               Set<ServiceDataFieldDefinition> fieldsToUpdate,
+                                               boolean isRefDataLocationEnabled) {
 
         if (fieldsToUpdate.contains(NEXT_HEARING_DATE)) {
             LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
             bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
         }
 
-        if (fieldsToUpdate.contains(HEARING_CHANNELS) || fieldsToUpdate.contains(HEARING_VENUE_ID)) {
-            List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
-            final String nextHearingChannel = hearingChannels.get(0).name();
-            final boolean isRemoteHearing = nextHearingChannel.equals(VID.name())
-                                            || nextHearingChannel.equals(TEL.name());
-            final String nextHearingVenueId = isRemoteHearing
-                ? REMOTE_HEARING.getEpimsId() : getHearingVenueId(serviceData);
-            HearingCentre newHearingCentre = getHearingCenter(hearingChannels, nextHearingVenueId);
+        if (isRefDataLocationEnabled) {
+            if (fieldsToUpdate.contains(HEARING_VENUE_ID)) {
+                HearingCentre newHearingCentre =
+                    HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData));
+                bailCase.write(LISTING_LOCATION, newHearingCentre.getValue());
+            }
 
-            bailCase.write(LISTING_LOCATION, newHearingCentre.getValue());
+            if (fieldsToUpdate.contains(HEARING_CHANNELS)) {
+                bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
+            }
+        } else {
+            if (fieldsToUpdate.contains(HEARING_CHANNELS) || fieldsToUpdate.contains(HEARING_VENUE_ID)) {
+                bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
+            }
         }
 
         if (fieldsToUpdate.contains(DURATION)) {
@@ -201,5 +207,17 @@ public class ListedHearingService {
         bailCase.write(LISTING_EVENT, ListingEvent.RELISTING.toString());
     }
 
+    private HearingCentre getHearingCentre(ServiceData serviceData) {
+        HearingCentre hearingCentre = isRemoteHearing(serviceData)
+            ? REMOTE_HEARING
+            : HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData));
+
+        return hearingCentre;
+    }
+
+    private boolean isRemoteHearing(ServiceData serviceData) {
+        final String nextHearingChannel = getHearingChannels(serviceData).get(0).name();
+        return nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
+    }
 }
 
