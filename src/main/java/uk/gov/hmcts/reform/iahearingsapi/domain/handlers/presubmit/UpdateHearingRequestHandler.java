@@ -157,14 +157,24 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
     }
 
     private void setHearingDurationDetails(AsylumCase asylumCase, HearingDetails hearingDetails) {
-        HoursMinutes hoursMinutes = asylumCase.read(LISTING_LENGTH, HoursMinutes.class).orElse(null);
+        Optional<HoursMinutes> optionalHoursMinutes = asylumCase.read(LISTING_LENGTH, HoursMinutes.class);
 
-        Optional<HearingLength> hearingLengthOptional = hoursMinutes != null
-            ?  HearingLength.from(hoursMinutes.convertToIntegerMinutes())
-            : HearingLength.from(hearingDetails.getDuration());
+        Optional<HearingLength> optionalHearingLength;
 
-        hearingLengthOptional.ifPresent(hearingLength -> {
-            asylumCase.write(CHANGE_HEARING_DURATION, hearingLength.convertToHourMinuteString());
+        if (optionalHoursMinutes.isPresent()) {
+
+            HoursMinutes hoursMinutes = optionalHoursMinutes.get();
+            asylumCase.write(CHANGE_HEARING_DURATION, hoursMinutes.convertToPhrasalValue());
+            optionalHearingLength = HearingLength.from(hoursMinutes.convertToIntegerMinutes());
+
+        } else {
+            optionalHearingLength = HearingLength.from(hearingDetails.getDuration());
+            optionalHearingLength.ifPresent(
+                hearingLength -> asylumCase.write(CHANGE_HEARING_DURATION, hearingLength.convertToHourMinuteString())
+            );
+        }
+
+        optionalHearingLength.ifPresent(hearingLength -> {
             asylumCase.write(REQUEST_HEARING_LENGTH, String.valueOf(hearingLength.getValue()));
         });
     }

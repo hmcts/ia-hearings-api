@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.iahearingsapi.consumer;
+package uk.gov.hmcts.reform.iahearingsapi.consumer.hmc;
 
 import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

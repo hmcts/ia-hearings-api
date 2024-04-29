@@ -148,7 +148,7 @@ class ListedHearingServiceTest {
 
         listedHearingService.updateInitialBailCaseListing(serviceData, bailCase,
             isRefDataLocationEnabled, "caseId");
-
+      
         assertEquals(Optional.of(hearingDate), bailCase.read(LISTING_HEARING_DATE));
         assertEquals(Optional.of("60"), bailCase.read(LISTING_HEARING_DURATION));
         assertEquals(Optional.of(expectedHearingCentre.getValue()), bailCase.read(LISTING_LOCATION));

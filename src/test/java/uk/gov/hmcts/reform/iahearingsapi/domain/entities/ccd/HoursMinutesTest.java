@@ -44,5 +44,29 @@ public class HoursMinutesTest {
         HoursMinutes object = new HoursMinutes(3, 10);
         assertEquals(190, object.convertToIntegerMinutes());
     }
+
+    @Test
+    void should_convert_to_phrasal_expression_of_time() {
+        HoursMinutes object1 = new HoursMinutes(3, 10);
+        assertEquals("3 hours 10 minutes", object1.convertToPhrasalValue());
+
+        HoursMinutes object2 = new HoursMinutes(2, 0);
+        assertEquals("2 hours", object2.convertToPhrasalValue());
+
+        HoursMinutes object3 = new HoursMinutes(0, 25);
+        assertEquals("25 minutes", object3.convertToPhrasalValue());
+
+        HoursMinutes object4 = new HoursMinutes(2, 1);
+        assertEquals("2 hours 1 minute", object4.convertToPhrasalValue());
+
+        HoursMinutes object5 = new HoursMinutes(1, 34);
+        assertEquals("1 hour 34 minutes", object5.convertToPhrasalValue());
+
+        HoursMinutes object6 = new HoursMinutes(0, 0);
+        assertEquals("", object6.convertToPhrasalValue());
+
+        HoursMinutes object7 = new HoursMinutes(0, 65); // 1h 5m
+        assertEquals("1 hour 5 minutes", object7.convertToPhrasalValue());
+    }
 }
 

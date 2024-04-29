@@ -36,4 +36,18 @@ public class HoursMinutes {
     public int convertToIntegerMinutes() {
         return (hours * 60) + minutes;
     }
+
+    public String convertToPhrasalValue() {
+        String stringHours = "";
+        if (hours > 0) {
+            stringHours = hours + " hour" + ((hours > 1) ? "s " : " ");
+        }
+
+        String stringMinutes = "";
+        if (minutes > 0) {
+            stringMinutes = minutes + " minute" + ((minutes > 1) ? "s " : " ");
+        }
+
+        return (stringHours + stringMinutes).trim();
+    }
 }

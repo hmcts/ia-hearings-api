@@ -58,6 +58,7 @@ public class BailListCaseHandler
 
         updateInitialBailCaseListing(serviceData, bailCase,
             featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false), caseId);
+      
         log.info("Sending `{}` event for  Case ID `{}`", CASE_LISTING, caseId);
         coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId,
                                                    startEventResponse, bailCase);
