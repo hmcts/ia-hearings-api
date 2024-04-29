@@ -7,7 +7,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.EXCEPTION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
@@ -70,19 +69,4 @@ class HmcHearingsEventTopicListenerTest {
 
         verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
     }
-
-    // Disable this test if using live-processing instead of batch-processing of messages
-    @Test
-    public void should_not_process_messages_with_hmc_status_different_than_exception() throws Exception {
-        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE);
-        hmcMessage.setHearingUpdate(HearingUpdate.builder().hmcStatus(LISTED).build());
-        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
-        byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
-
-        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        hmcHearingsEventTopicListener.onMessage(message);
-
-        verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
-    }
-
 }
