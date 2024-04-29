@@ -59,7 +59,7 @@ public class BailListCaseHandler
         boolean isBailsLocationRefDataEnabled = false;
         try {
             isBailsLocationRefDataEnabled = featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             log.info("Error occurred during isBailsLocationRefDataEnabled : " + ex);
         }
 
@@ -67,7 +67,7 @@ public class BailListCaseHandler
 
         try {
             updateInitialBailCaseListing(serviceData, bailCase, isBailsLocationRefDataEnabled, caseId);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             log.info("Error occurred during updateInitialBailCaseListing : " + ex);
         }
         log.info("Sending `{}` event for  Case ID `{}`", CASE_LISTING, caseId);
