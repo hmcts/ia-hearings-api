@@ -146,8 +146,9 @@ class ListedHearingServiceTest {
         bailCase.write(LISTING_HEARING_DATE, hearingDate);
         bailCase.write(LISTING_LOCATION, REMOTE_HEARING.getValue());
 
-        listedHearingService.updateInitialBailCaseListing(serviceData, bailCase, isRefDataLocationEnabled);
-
+        listedHearingService.updateInitialBailCaseListing(serviceData, bailCase,
+            isRefDataLocationEnabled, "caseId");
+      
         assertEquals(Optional.of(hearingDate), bailCase.read(LISTING_HEARING_DATE));
         assertEquals(Optional.of("60"), bailCase.read(LISTING_HEARING_DURATION));
         assertEquals(Optional.of(expectedHearingCentre.getValue()), bailCase.read(LISTING_LOCATION));

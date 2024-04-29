@@ -49,16 +49,20 @@ public class BailListCaseHandler
         }
 
         String caseId = getCaseReference(serviceData);
+        log.info("BailListCaseHandler called for  Case ID `{}`", caseId);
 
         StartEventResponse startEventResponse =
             coreCaseDataService.startCaseEvent(CASE_LISTING, caseId, CASE_TYPE_BAIL);
         BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
+        log.info("bailCase for  Case ID `{}` contains '{}'", caseId, bailCase.toString());
+
         updateInitialBailCaseListing(serviceData, bailCase,
-            featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false));
+            featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false), caseId);
+      
         log.info("Sending `{}` event for  Case ID `{}`", CASE_LISTING, caseId);
         coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId,
                                                    startEventResponse, bailCase);
-
+        log.info("Completed `{}` event for  Case ID `{}`", CASE_LISTING, caseId);
         return new ServiceDataResponse<>(serviceData);
     }
 }
