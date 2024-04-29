@@ -56,9 +56,20 @@ public class BailListCaseHandler
         BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
         log.info("bailCase for  Case ID `{}` contains '{}'", caseId, bailCase.toString());
 
-        updateInitialBailCaseListing(serviceData, bailCase,
-            featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false), caseId);
-      
+        boolean isBailsLocationRefDataEnabled = false;
+        try {
+            isBailsLocationRefDataEnabled = featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false);
+        } catch (Exception ex) {
+            log.info("Error occurred during isBailsLocationRefDataEnabled : " + ex);
+        }
+
+        log.info("isBailsLocationRefDataEnabled value is " + isBailsLocationRefDataEnabled);
+
+        try {
+            updateInitialBailCaseListing(serviceData, bailCase, isBailsLocationRefDataEnabled, caseId);
+        } catch (Exception ex) {
+            log.info("Error occurred during updateInitialBailCaseListing : " + ex);
+        }
         log.info("Sending `{}` event for  Case ID `{}`", CASE_LISTING, caseId);
         coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId,
                                                    startEventResponse, bailCase);
