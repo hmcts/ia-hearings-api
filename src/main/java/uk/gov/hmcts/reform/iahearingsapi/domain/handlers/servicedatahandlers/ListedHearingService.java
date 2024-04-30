@@ -159,8 +159,6 @@ public class ListedHearingService {
 
     public void updateInitialBailCaseListing(ServiceData serviceData, BailCase bailCase,
                                              boolean isRefDataLocationEnabled, String caseId) {
-        log.info("updateInitialBailCaseListing for  Case ID `{}` is called", caseId);
-
         LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
 
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
@@ -169,12 +167,13 @@ public class ListedHearingService {
 
         if (isRefDataLocationEnabled) {
             bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
+            log.info("updateInitialBailCaseListing for Case ID `{}` serviceData contains", caseId, serviceData);
             bailCase.write(LISTING_LOCATION,
                 HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData)).getValue());
-            log.info("updateInitialBailCaseListing for  Case ID `{}` is complete (refDataEnabled)", caseId);
+            log.info("updateInitialBailCaseListing for Case ID `{}` listingLocation contains", caseId,
+                bailCase.read(LISTING_LOCATION).toString());
         } else {
             bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
-            log.info("updateInitialBailCaseListing for  Case ID `{}` is complete", caseId);
         }
 
     }
