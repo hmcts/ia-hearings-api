@@ -74,7 +74,7 @@ class BailListCaseHandlerTest {
             .thenReturn(Optional.of(BAIL.getKey()));
         when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.APPLICATION_SUBMITTED);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(true);
+        when(featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(true);
     }
 
     @Test
