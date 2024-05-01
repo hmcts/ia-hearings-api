@@ -17,6 +17,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.REF_DATA_LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.GLASGOW_TRIBUNALS_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.HATTON_CROSS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
@@ -31,6 +32,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -151,12 +153,18 @@ class ListedHearingServiceTest {
       
         assertEquals(Optional.of(hearingDate), bailCase.read(LISTING_HEARING_DATE));
         assertEquals(Optional.of("60"), bailCase.read(LISTING_HEARING_DURATION));
-        assertEquals(Optional.of(expectedHearingCentre.getValue()), bailCase.read(LISTING_LOCATION));
+
+        DynamicList expectedRefDataListingLocation = new DynamicList(
+            new Value(expectedHearingCentre.getEpimsId(),
+                expectedHearingCentre.getValue()),
+            Collections.emptyList());
+
         if (isRefDataLocationEnabled) {
             assertEquals(Optional.of(expectedIsRemoteHearing), bailCase.read(IS_REMOTE_HEARING));
+            assertEquals(Optional.of(expectedRefDataListingLocation), bailCase.read(REF_DATA_LISTING_LOCATION));
         } else {
             assertEquals(Optional.empty(), bailCase.read(IS_REMOTE_HEARING));
-
+            assertEquals(Optional.of(expectedHearingCentre.getValue()), bailCase.read(LISTING_LOCATION));
         }
 
     }
@@ -201,13 +209,19 @@ class ListedHearingServiceTest {
         listedHearingService.updateRelistingBailCaseListing(serviceData, bailCase,
             fieldsToUpdate, isRefDataLocationEnabled);
 
+        DynamicList expectedRefDataListingLocation = new DynamicList(
+            new Value(expectedHearingCentre.getEpimsId(),
+                expectedHearingCentre.getValue()),
+            Collections.emptyList());
+
         verify(bailCase).write(LISTING_HEARING_DATE, hearingDate);
-        verify(bailCase).write(LISTING_LOCATION, expectedHearingCentre.getValue());
         verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_EVENT, ListingEvent.RELISTING.toString());
         if (isRefDataLocationEnabled) {
             verify(bailCase).write(IS_REMOTE_HEARING, expectedIsRemoteHearing);
+            verify(bailCase).write(REF_DATA_LISTING_LOCATION, expectedRefDataListingLocation);
         } else {
+            verify(bailCase).write(LISTING_LOCATION, expectedHearingCentre.getValue());
             verify(bailCase, never()).write(IS_REMOTE_HEARING, expectedIsRemoteHearing);
         }
 

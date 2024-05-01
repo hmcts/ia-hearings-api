@@ -105,7 +105,7 @@ class BailListCaseUpdateHandlerTest {
             .thenReturn(Optional.of(BAIL.getKey()));
         when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.BAIL_SUMMARY_UPLOADED);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(true);
+        when(featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(false);
     }
 
     @Test
@@ -250,7 +250,7 @@ class BailListCaseUpdateHandlerTest {
         bailListCaseUpdateHandler.handle(serviceData);
 
         verify(bailCase).write(LISTING_EVENT, RELISTING.toString());
-        verify(bailCase).write(LISTING_LOCATION, HearingCentre.BIRMINGHAM.getValue());
+        verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
         verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_HEARING_DATE, "formattedDate");
 
@@ -291,7 +291,7 @@ class BailListCaseUpdateHandlerTest {
         bailListCaseUpdateHandler.handle(serviceData);
 
         verify(bailCase).write(LISTING_EVENT, RELISTING.toString());
-        verify(bailCase).write(LISTING_LOCATION, HearingCentre.BIRMINGHAM.getValue());
+        verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
         verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_HEARING_DATE, "formattedDate");
 
