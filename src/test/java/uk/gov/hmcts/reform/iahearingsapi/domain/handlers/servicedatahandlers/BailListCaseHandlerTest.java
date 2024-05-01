@@ -74,7 +74,7 @@ class BailListCaseHandlerTest {
             .thenReturn(Optional.of(BAIL.getKey()));
         when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.APPLICATION_SUBMITTED);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(true);
+        when(featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(false);
     }
 
     @Test
@@ -137,7 +137,7 @@ class BailListCaseHandlerTest {
         verify(bailCase).write(LISTING_HEARING_DATE,
                                LocalDateTime.of(2023, 9, 29, 12, 0)
                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
-        verify(bailCase).write(LISTING_LOCATION, HearingCentre.BIRMINGHAM.getValue());
+        verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
 
         verify(coreCaseDataService).triggerBailSubmitEvent(CASE_LISTING, CASE_REF,
                                                            startEventResponse, bailCase);
