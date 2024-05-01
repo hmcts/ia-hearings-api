@@ -170,7 +170,6 @@ public class ListedHearingService {
         if (isRefDataLocationEnabled) {
             bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
             log.info("updateInitialBailCaseListing for Case ID `{}` serviceData contains '{}", caseId, serviceData);
-
             bailCase.write(REF_DATA_LISTING_LOCATION,
                 new DynamicList(
                     new Value(getHearingVenueId(serviceData),
