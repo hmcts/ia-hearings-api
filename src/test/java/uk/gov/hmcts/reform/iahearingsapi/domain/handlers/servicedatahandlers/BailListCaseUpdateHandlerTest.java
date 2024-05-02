@@ -54,6 +54,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -88,6 +90,8 @@ class BailListCaseUpdateHandlerTest {
     static LocalDateTime timeTwo;
     @Mock
     FeatureToggler featureToggler;
+    @Mock
+    LocationRefDataService locationRefDataService;
 
     private BailListCaseUpdateHandler bailListCaseUpdateHandler;
 
@@ -95,7 +99,7 @@ class BailListCaseUpdateHandlerTest {
     public void setUp() {
 
         bailListCaseUpdateHandler =
-            new BailListCaseUpdateHandler(coreCaseDataService, hearingService, featureToggler);
+            new BailListCaseUpdateHandler(coreCaseDataService, hearingService, featureToggler, locationRefDataService);
 
         when(serviceData.read(HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -106,6 +110,14 @@ class BailListCaseUpdateHandlerTest {
         when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.BAIL_SUMMARY_UPLOADED);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(false);
+
+        List<CourtVenue> courtVenueList = List.of(
+            new CourtVenue("Glasgow Tribunals Centre",
+                "Glasgow Tribunals Centre",
+                "231596",
+                "Y",
+                "Open"));
+        when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(courtVenueList);
     }
 
     @Test

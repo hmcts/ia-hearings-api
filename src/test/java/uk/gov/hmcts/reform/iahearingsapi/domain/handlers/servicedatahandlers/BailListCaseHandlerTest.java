@@ -24,6 +24,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,6 +59,8 @@ class BailListCaseHandlerTest {
     BailCase bailCase;
     @Mock
     FeatureToggler featureToggler;
+    @Mock
+    LocationRefDataService locationRefDataService;
 
     private BailListCaseHandler bailListCaseHandler;
 
@@ -64,7 +68,7 @@ class BailListCaseHandlerTest {
     public void setUp() {
 
         bailListCaseHandler =
-            new BailListCaseHandler(coreCaseDataService, featureToggler);
+            new BailListCaseHandler(coreCaseDataService, featureToggler, locationRefDataService);
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -75,6 +79,13 @@ class BailListCaseHandlerTest {
         when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.APPLICATION_SUBMITTED);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(false);
+
+        List<CourtVenue> courtVenueList = List.of(new CourtVenue("Manchester Magistrates",
+            "Manchester Magistrates Court",
+            "231596",
+            "Y",
+            "Open"));
+        when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(courtVenueList);
     }
 
     @Test

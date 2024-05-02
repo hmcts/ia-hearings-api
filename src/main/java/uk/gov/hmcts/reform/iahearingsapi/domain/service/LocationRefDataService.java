@@ -24,6 +24,7 @@ public class LocationRefDataService {
     private final AuthTokenGenerator authTokenGenerator;
     private final UserDetails userDetails;
     private final LocationRefDataApi locationRefDataApi;
+    private final IdamService idamService;
     @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}")
     private String serviceId;
 
@@ -39,6 +40,16 @@ public class LocationRefDataService {
 
         CourtLocationCategory locationCategory = locationRefDataApi
             .getCourtVenues(userDetails.getAccessToken(), authTokenGenerator.generate(), serviceId);
+
+        return locationCategory == null
+            ? Collections.emptyList()
+            : locationCategory.getCourtVenues();
+    }
+
+    public List<CourtVenue> getCourtVenuesAsServiceUser() {
+
+        CourtLocationCategory locationCategory = locationRefDataApi
+            .getCourtVenues(idamService.getServiceUserToken(), authTokenGenerator.generate(), serviceId);
 
         return locationCategory == null
             ? Collections.emptyList()

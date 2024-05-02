@@ -30,6 +30,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
 @Component
@@ -39,6 +40,7 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
     private final FeatureToggler featureToggler;
+    private final LocationRefDataService locationRefDataService;
 
     public boolean canHandle(ServiceData serviceData
     ) {
@@ -96,7 +98,8 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
 
             BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
             updateRelistingBailCaseListing(serviceData, bailCase, serviceDataFieldsWithUpdates,
-                featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false));
+                featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false),
+                locationRefDataService.getCourtVenuesAsServiceUser());
 
             log.info("Sending `{}` event for Case ID `{}`", CASE_LISTING, caseId);
             coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId, startEventResponse, bailCase);

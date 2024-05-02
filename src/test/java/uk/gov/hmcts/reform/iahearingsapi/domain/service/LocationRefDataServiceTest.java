@@ -47,16 +47,22 @@ public class LocationRefDataServiceTest {
     @Mock
     DynamicList dynamicList;
 
+    @Mock
+    IdamService idamService;
+
     private LocationRefDataService locationRefDataService;
 
     private final String serviceId = "BFA1";
+    private String authToken = "authToken";
+    private String serviceUserToken = "serviceUserToken";
 
     @BeforeEach
     void setup() {
         locationRefDataService = new LocationRefDataService(
             authTokenGenerator,
             userDetails,
-            locationRefDataApi
+            locationRefDataApi,
+            idamService
         );
         locationRefDataService.setServiceId(serviceId);
     }
@@ -65,7 +71,6 @@ public class LocationRefDataServiceTest {
     void should_return_dynamicList_when_getHearingLocationsDynamicList() {
         String token = "token";
         when(userDetails.getAccessToken()).thenReturn(token);
-        String authToken = "authToken";
         when(authTokenGenerator.generate()).thenReturn(authToken);
         when(locationRefDataApi.getCourtVenues(
             token,
@@ -108,5 +113,26 @@ public class LocationRefDataServiceTest {
                                                         openHearingCourtVenue.getCourtName())));
 
         assertEquals(dynamicList, locationRefDataService.getHearingLocationsDynamicList());
+    }
+
+    @Test
+    void getCourtVenuesAsServiceUser() {
+        when(idamService.getServiceUserToken()).thenReturn(serviceUserToken);
+        when(authTokenGenerator.generate()).thenReturn(authToken);
+        when(locationRefDataApi.getCourtVenues(
+            serviceUserToken,
+            authToken,
+            serviceId
+        )).thenReturn(locationCategory);
+
+        List<CourtVenue> courtVenueList = List.of(new CourtVenue("Manchester Magistrates",
+            "Manchester Magistrates Court",
+            "783803",
+            "Y",
+            "Open"));
+
+        when(locationCategory.getCourtVenues()).thenReturn(courtVenueList);
+
+        assertEquals(courtVenueList, locationRefDataService.getCourtVenuesAsServiceUser());
     }
 }
