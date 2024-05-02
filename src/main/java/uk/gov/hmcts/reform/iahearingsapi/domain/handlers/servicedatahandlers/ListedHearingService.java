@@ -36,6 +36,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -236,7 +237,10 @@ public class ListedHearingService {
     private String getHearingCourtName(ServiceData serviceData, List<CourtVenue> courtVenues) {
         return courtVenues.stream()
             .filter(c -> c.getEpimmsId().equals(getHearingVenueId(serviceData)))
-            .map(CourtVenue::getCourtName).findFirst().get();
+            .map(CourtVenue::getCourtName)
+            .findFirst()
+            .orElseThrow(() -> new NoSuchElementException("No matching ref data court venue found for epims id "
+                + getHearingVenueId(serviceData)));
     }
 }
 
