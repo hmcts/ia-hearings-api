@@ -166,8 +166,8 @@ class ListedHearingServiceTest {
         assertEquals(Optional.of(hearingDate), bailCase.read(LISTING_HEARING_DATE));
         assertEquals(Optional.of("60"), bailCase.read(LISTING_HEARING_DURATION));
 
-        String refDataCourt = isRefDataLocationEnabled ?
-            courtVenueList.stream().filter(c -> c.getEpimmsId().equals(expectedHearingCentre.getEpimsId()))
+        String refDataCourt = isRefDataLocationEnabled
+            ? courtVenueList.stream().filter(c -> c.getEpimmsId().equals(expectedHearingCentre.getEpimsId()))
                 .map(CourtVenue::getCourtName).findFirst().get()
             : expectedHearingCentre.getValue();
 
@@ -225,8 +225,8 @@ class ListedHearingServiceTest {
         listedHearingService.updateRelistingBailCaseListing(serviceData, bailCase,
             fieldsToUpdate, isRefDataLocationEnabled, courtVenueList);
 
-        String refDataCourt = isRefDataLocationEnabled ?
-            courtVenueList.stream().filter(c -> c.getEpimmsId().equals(expectedHearingCentre.getEpimsId()))
+        String refDataCourt = isRefDataLocationEnabled
+            ? courtVenueList.stream().filter(c -> c.getEpimmsId().equals(expectedHearingCentre.getEpimsId()))
                 .map(CourtVenue::getCourtName).findFirst().get()
             : expectedHearingCentre.getValue();
 
