@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDat
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
 @Component
@@ -27,6 +28,7 @@ public class BailListCaseHandler
 
     private final CoreCaseDataService coreCaseDataService;
     private final FeatureToggler featureToggler;
+    private final LocationRefDataService locationRefDataService;
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -66,7 +68,8 @@ public class BailListCaseHandler
 
         log.info("isBailsLocationRefDataEnabled value is " + isBailsLocationRefDataEnabled);
 
-        updateInitialBailCaseListing(serviceData, bailCase, isBailsLocationRefDataEnabled, caseId);
+        updateInitialBailCaseListing(serviceData, bailCase, isBailsLocationRefDataEnabled, caseId,
+            locationRefDataService.getCourtVenuesAsServiceUser());
 
         log.info("Sending `{}` event for  Case ID `{}`", CASE_LISTING, caseId);
         coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId,
