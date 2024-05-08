@@ -99,7 +99,8 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
             BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
             updateRelistingBailCaseListing(serviceData, bailCase, serviceDataFieldsWithUpdates,
                 featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false),
-                locationRefDataService.getCourtVenuesAsServiceUser());
+                locationRefDataService.getCourtVenuesAsServiceUser(),
+                locationRefDataService.getHearingLocationsDynamicList(true));
 
             log.info("Sending `{}` event for Case ID `{}`", CASE_LISTING, caseId);
             coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId, startEventResponse, bailCase);
