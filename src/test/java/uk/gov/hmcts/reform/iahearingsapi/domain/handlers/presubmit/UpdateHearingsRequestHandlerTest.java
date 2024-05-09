@@ -229,12 +229,12 @@ class UpdateHearingsRequestHandlerTest {
             .thenReturn(Optional.empty());
         when(asylumCase.read(HEARING_LOCATION, DynamicList.class)).thenReturn(Optional.empty());
         when(hearingDetails.getHearingLocations()).thenReturn(null);
-        when(locationRefDataService.getHearingLocationsDynamicList())
+        when(locationRefDataService.getHearingLocationsDynamicList(false))
             .thenReturn(new DynamicList(new Value("", ""), List.of(glasgowValue, birminghamValue)));
 
         updateHearingsRequestHandler.handle(MID_EVENT, callback);
 
-        verify(locationRefDataService, times(1)).getHearingLocationsDynamicList();
+        verify(locationRefDataService, times(1)).getHearingLocationsDynamicList(false);
         verify(asylumCase, never()).write(eq(CHANGE_HEARING_VENUE), any());
         verify(asylumCase).write(eq(HEARING_LOCATION), dynamicListArgumentCaptor.capture());
         assertFalse(dynamicListArgumentCaptor.getValue().getListItems().isEmpty());

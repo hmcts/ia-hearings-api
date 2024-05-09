@@ -41,9 +41,11 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
@@ -95,6 +97,10 @@ class BailListCaseUpdateHandlerTest {
 
     private BailListCaseUpdateHandler bailListCaseUpdateHandler;
 
+    private DynamicList hearingLocationList = new DynamicList(
+        new Value("745389", "Hendon Magistrates Court"),
+        List.of(new Value("745389", "Hendon Magistrates Court")));
+
     @BeforeEach
     public void setUp() {
 
@@ -118,6 +124,8 @@ class BailListCaseUpdateHandlerTest {
                 "Y",
                 "Open"));
         when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(courtVenueList);
+        when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(hearingLocationList);
+
     }
 
     @Test

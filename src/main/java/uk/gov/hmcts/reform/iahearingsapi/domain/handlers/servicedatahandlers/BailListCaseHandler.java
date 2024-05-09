@@ -69,7 +69,8 @@ public class BailListCaseHandler
         log.info("isBailsLocationRefDataEnabled value is " + isBailsLocationRefDataEnabled);
 
         updateInitialBailCaseListing(serviceData, bailCase, isBailsLocationRefDataEnabled, caseId,
-            locationRefDataService.getCourtVenuesAsServiceUser());
+            locationRefDataService.getCourtVenuesAsServiceUser(),
+            locationRefDataService.getHearingLocationsDynamicList(true));
 
         log.info("Sending `{}` event for  Case ID `{}`", CASE_LISTING, caseId);
         coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId,

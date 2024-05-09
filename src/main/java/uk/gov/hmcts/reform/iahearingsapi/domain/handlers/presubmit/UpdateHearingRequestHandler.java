@@ -131,7 +131,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
 
     private void setHearingLocationDetails(AsylumCase asylumCase, HearingDetails hearingDetails) {
         DynamicList hearingLocation = asylumCase.read(HEARING_LOCATION, DynamicList.class)
-            .orElseGet(locationRefDataService::getHearingLocationsDynamicList);
+            .orElseGet(() -> locationRefDataService.getHearingLocationsDynamicList(false));
         HearingCentre listCaseHearingCentre = asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class)
             .orElse(null);
         if (isPhysicalHearingCentre(listCaseHearingCentre)) {

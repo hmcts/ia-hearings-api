@@ -32,7 +32,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -80,6 +79,10 @@ class ListedHearingServiceTest {
             "386417",
             "Y",
             "Open"));
+
+    private DynamicList hearingLocationList = new DynamicList(
+        new Value("745389", "Hendon Magistrates Court"),
+        List.of(new Value("745389", "Hendon Magistrates Court")));
 
     @BeforeEach
     public void setUp() {
@@ -161,7 +164,7 @@ class ListedHearingServiceTest {
         bailCase.write(LISTING_LOCATION, REMOTE_HEARING.getValue());
 
         listedHearingService.updateInitialBailCaseListing(serviceData, bailCase,
-            isRefDataLocationEnabled, "caseId", courtVenueList);
+            isRefDataLocationEnabled, "caseId", courtVenueList, hearingLocationList);
 
         assertEquals(Optional.of(hearingDate), bailCase.read(LISTING_HEARING_DATE));
         assertEquals(Optional.of("60"), bailCase.read(LISTING_HEARING_DURATION));
@@ -173,7 +176,7 @@ class ListedHearingServiceTest {
 
         DynamicList expectedRefDataListingLocation = new DynamicList(
             new Value(expectedHearingCentre.getEpimsId(), refDataCourt),
-            Collections.emptyList());
+            hearingLocationList.getListItems());
 
         if (isRefDataLocationEnabled) {
             assertEquals(Optional.of(expectedIsRemoteHearing), bailCase.read(IS_REMOTE_HEARING));
@@ -222,8 +225,9 @@ class ListedHearingServiceTest {
         BailCase bailCase = mock(BailCase.class);
         Set<ServiceDataFieldDefinition> fieldsToUpdate =
             Set.of(NEXT_HEARING_DATE, HEARING_CHANNELS, HEARING_VENUE_ID, DURATION);
+
         listedHearingService.updateRelistingBailCaseListing(serviceData, bailCase,
-            fieldsToUpdate, isRefDataLocationEnabled, courtVenueList);
+            fieldsToUpdate, isRefDataLocationEnabled, courtVenueList, hearingLocationList);
 
         String refDataCourt = isRefDataLocationEnabled
             ? courtVenueList.stream().filter(c -> c.getEpimmsId().equals(expectedHearingCentre.getEpimsId()))
@@ -232,7 +236,7 @@ class ListedHearingServiceTest {
 
         DynamicList expectedRefDataListingLocation = new DynamicList(
             new Value(expectedHearingCentre.getEpimsId(), refDataCourt),
-            Collections.emptyList());
+            hearingLocationList.getListItems());
 
         verify(bailCase).write(LISTING_HEARING_DATE, hearingDate);
         verify(bailCase).write(LISTING_HEARING_DURATION, "60");

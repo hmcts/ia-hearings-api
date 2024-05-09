@@ -112,7 +112,7 @@ public class LocationRefDataServiceTest {
                                       List.of(new Value(openHearingCourtVenue.getEpimmsId(),
                                                         openHearingCourtVenue.getCourtName())));
 
-        assertEquals(dynamicList, locationRefDataService.getHearingLocationsDynamicList());
+        assertEquals(dynamicList, locationRefDataService.getHearingLocationsDynamicList(false));
     }
 
     @Test

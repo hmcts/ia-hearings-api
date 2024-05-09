@@ -34,7 +34,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandl
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -163,7 +162,7 @@ public class ListedHearingService {
 
     public void updateInitialBailCaseListing(ServiceData serviceData, BailCase bailCase,
                                              boolean isRefDataLocationEnabled, String caseId,
-                                             List<CourtVenue> courtVenues) {
+                                             List<CourtVenue> courtVenues, DynamicList hearingLocationList) {
         LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
 
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
@@ -177,7 +176,7 @@ public class ListedHearingService {
             bailCase.write(REF_DATA_LISTING_LOCATION,
                 new DynamicList(
                     new Value(getHearingVenueId(serviceData), getHearingCourtName(serviceData, courtVenues)),
-                    Collections.emptyList()));
+                    hearingLocationList.getListItems()));
 
             log.info("updateInitialBailCaseListing for Case ID `{}` listingLocation contains '{}'", caseId,
                 bailCase.read(REF_DATA_LISTING_LOCATION).toString());
@@ -189,7 +188,8 @@ public class ListedHearingService {
 
     public void updateRelistingBailCaseListing(ServiceData serviceData, BailCase bailCase,
                                                Set<ServiceDataFieldDefinition> fieldsToUpdate,
-                                               boolean isRefDataLocationEnabled, List<CourtVenue> courtVenues) {
+                                               boolean isRefDataLocationEnabled, List<CourtVenue> courtVenues,
+                                               DynamicList hearingLocationList) {
 
         if (fieldsToUpdate.contains(NEXT_HEARING_DATE)) {
             LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
@@ -202,7 +202,7 @@ public class ListedHearingService {
                     new DynamicList(
                         new Value(getHearingVenueId(serviceData),
                             getHearingCourtName(serviceData, courtVenues)),
-                        Collections.emptyList()));
+                        hearingLocationList.getListItems()));
             }
 
             if (fieldsToUpdate.contains(HEARING_CHANNELS)) {

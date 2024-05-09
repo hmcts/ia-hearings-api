@@ -28,9 +28,11 @@ public class LocationRefDataService {
     @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}")
     private String serviceId;
 
-    public DynamicList getHearingLocationsDynamicList() {
+    public DynamicList getHearingLocationsDynamicList(boolean isServiceUser) {
 
-        return new DynamicList(new Value("", ""), getCourtVenues().stream()
+        List<CourtVenue> courtVenues = isServiceUser ? getCourtVenuesAsServiceUser() : getCourtVenues();
+
+        return new DynamicList(new Value("", ""), courtVenues.stream()
             .filter(this::isOpenHearingLocation)
             .map(courtVenue -> new Value(courtVenue.getEpimmsId(), courtVenue.getCourtName()))
             .toList());
