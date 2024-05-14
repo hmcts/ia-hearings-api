@@ -70,6 +70,6 @@ public class HmcHearingsEventTopicListener {
     }
 
     private boolean isMessageRelevantForService(HmcMessage hmcMessage) {
-        return true;
+        return hmctsServiceId.equals(hmcMessage.getHmctsServiceCode());
     }
 }
