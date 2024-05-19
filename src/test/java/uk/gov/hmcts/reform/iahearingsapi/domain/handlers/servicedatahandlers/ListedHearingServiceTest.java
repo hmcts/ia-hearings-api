@@ -54,6 +54,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 class ListedHearingServiceTest {
@@ -249,5 +250,50 @@ class ListedHearingServiceTest {
             verify(bailCase, never()).write(IS_REMOTE_HEARING, expectedIsRemoteHearing);
         }
 
+    }
+
+    private static Stream<Arguments> findUpdatedServiceDataFieldsSource() {
+
+        return Stream.of(
+            Arguments.of(HATTON_CROSS.getEpimsId(), VID, "2023-12-02T10:00:00.000", 120, true),
+            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER, "2024-12-06T10:00:00.000", 60, false),
+            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER, "2024-12-06T10:00:00.000", 90, true),
+            Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER, "2023-12-02T09:45:00.000", 30, true),
+            Arguments.of(HATTON_CROSS.getEpimsId(), VID, "2024-12-02T10:00:00.000", 150, true),
+            Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.TEL, "2023-12-02T09:45:00.000", 60, true)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("findUpdatedServiceDataFieldsSource")
+    void test_findUpdatedServiceDataFields(String venueId, HearingChannel hearingChannel, String hearingDate,
+                                           int duration, boolean expected) {
+        serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS, List.of(HearingChannel.INTER));
+        serviceData.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, "2024-12-06T10:00:00.000");
+        serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, GLASGOW_EPIMMS_ID);
+        serviceData.write(DURATION, 60);
+
+        ServiceData previousServiceData1 = new ServiceData();
+        previousServiceData1.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
+                          List.of(hearingChannel));
+        previousServiceData1.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, hearingDate);
+        previousServiceData1.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, venueId);
+        previousServiceData1.write(DURATION, duration);
+
+        List<PartiesNotifiedResponse> partiesNotifiedResponses = List.of(
+            PartiesNotifiedResponse.builder().serviceData(previousServiceData1)
+                .responseReceivedDateTime(LocalDateTime.parse(hearingDate)).build(),
+            PartiesNotifiedResponse.builder()
+                .responseReceivedDateTime(LocalDateTime.parse("2023-08-02T10:00:00.000")).build()
+        );
+
+        Set<ServiceDataFieldDefinition> targetFields = Set.of(NEXT_HEARING_DATE,
+                                                              HEARING_CHANNELS,
+                                                              DURATION,
+                                                              HEARING_VENUE_ID);
+        boolean actual = listedHearingService.findUpdatedServiceDataFields(
+            serviceData, partiesNotifiedResponses, targetFields).size() > 0;
+
+        assertEquals(expected, actual);
     }
 }

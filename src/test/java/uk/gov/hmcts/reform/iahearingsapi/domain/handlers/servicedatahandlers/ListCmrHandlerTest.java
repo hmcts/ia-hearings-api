@@ -7,6 +7,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_CMR_LISTED;
@@ -163,6 +164,40 @@ class ListCmrHandlerTest {
         listCmrHandler.handle(serviceData);
 
         verify(coreCaseDataService).triggerSubmitEvent(
+            TRIGGER_CMR_UPDATED, CASE_REF, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_not_trigger_cmr_updated_notification() {
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(coreCaseDataService.startCaseEvent(TRIGGER_CMR_UPDATED, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
+            .thenReturn(Optional.of(HEARING_ID));
+
+        ServiceData previousServiceData = new ServiceData();
+        previousServiceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS, List.of(HearingChannel.INTER));
+        PartiesNotifiedResponse response =
+            PartiesNotifiedResponse.builder()
+                .responseReceivedDateTime(LocalDateTime.parse("2024-09-20T10:09:19"))
+                .partiesNotified(LocalDateTime.parse("2024-09-20T10:09:19"))
+                .serviceData(previousServiceData)
+                .requestVersion(1)
+                .build();
+
+        PartiesNotifiedResponses partiesNotifiedResponses =
+            PartiesNotifiedResponses.builder()
+                .responses(List.of(response))
+                .hearingID(HEARING_ID).build();
+        when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
+
+        listCmrHandler.handle(serviceData);
+
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
             TRIGGER_CMR_UPDATED, CASE_REF, startEventResponse, asylumCase);
     }
 
