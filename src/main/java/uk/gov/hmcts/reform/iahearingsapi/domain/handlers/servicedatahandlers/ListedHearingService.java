@@ -34,11 +34,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandl
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
@@ -52,6 +55,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 @Slf4j
@@ -221,12 +225,43 @@ public class ListedHearingService {
         bailCase.write(LISTING_EVENT, ListingEvent.RELISTING.toString());
     }
 
+    public Set<ServiceDataFieldDefinition> findUpdatedServiceDataFields(
+        ServiceData serviceData,
+        List<PartiesNotifiedResponse> partiesNotifiedResponses,
+        Set<ServiceDataFieldDefinition> targetFields) {
+
+        ServiceData previousServiceData = partiesNotifiedResponses.stream()
+            .max(Comparator.comparing(response -> response.getResponseReceivedDateTime().getNano()))
+            .map(PartiesNotifiedResponse::getServiceData)
+            .orElseGet(ServiceData::new);
+
+        return targetFields.stream()
+            .filter(field -> fieldUpdated(previousServiceData, serviceData, field))
+            .collect(Collectors.toSet());
+    }
+
+    private boolean fieldUpdated(ServiceData previous, ServiceData latest, ServiceDataFieldDefinition field) {
+
+        if (field == HEARING_CHANNELS) {
+            Optional<List<HearingChannel>> previousOptionalHearingChannels = previous.read(HEARING_CHANNELS);
+            Optional<List<HearingChannel>> latestOptionalHearingChannels = latest.read(HEARING_CHANNELS);
+            List<HearingChannel> previousHearingChannels = previousOptionalHearingChannels
+                .orElse(Collections.emptyList());
+            List<HearingChannel> latestHearingChannels = latestOptionalHearingChannels
+                .orElse(Collections.emptyList());
+
+            return !((previousHearingChannels.size() == latestHearingChannels.size())
+                     && previousHearingChannels.containsAll(latestHearingChannels));
+        }
+
+        return !Objects.equals(previous.read(field).orElse(null), latest.read(field).orElse(null));
+    }
+
     private HearingCentre getHearingCentre(ServiceData serviceData) {
-        HearingCentre hearingCentre = isRemoteHearing(serviceData)
+
+        return isRemoteHearing(serviceData)
             ? REMOTE_HEARING
             : HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData));
-
-        return hearingCentre;
     }
 
     private boolean isRemoteHearing(ServiceData serviceData) {
