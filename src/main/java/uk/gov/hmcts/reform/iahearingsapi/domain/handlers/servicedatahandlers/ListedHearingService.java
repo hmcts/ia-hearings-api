@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
@@ -81,7 +82,9 @@ public class ListedHearingService {
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
     }
 
-    public void updateListCaseHearingDetails(ServiceData serviceData, AsylumCase asylumCase) {
+    public void updateListCaseHearingDetails(ServiceData serviceData, AsylumCase asylumCase,
+                                             boolean isAppealsLocationRefDataEnabled, String caseId,
+                                             List<CourtVenue> courtVenues, DynamicList hearingLocationList) {
 
         List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
         String hearingVenueId = getHearingVenueId(serviceData);
@@ -97,6 +100,18 @@ public class ListedHearingService {
                          newHearingCentre);
         asylumCase.write(HEARING_CHANNEL, newHearingChannel);
 
+        if (isAppealsLocationRefDataEnabled) {
+            asylumCase.write(AsylumCaseFieldDefinition.IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
+            log.info("updateListCaseHearingDetails for Case ID `{}` serviceData contains '{}", caseId, serviceData);
+
+            asylumCase.write(AsylumCaseFieldDefinition.LISTING_LOCATION,
+                new DynamicList(
+                    new Value(getHearingVenueId(serviceData), getHearingCourtName(serviceData, courtVenues)),
+                    hearingLocationList.getListItems()));
+
+            log.info("updateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
+                asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
+        }
     }
 
     public List<HearingChannel> getHearingChannels(ServiceData serviceData) {
@@ -168,6 +183,7 @@ public class ListedHearingService {
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
         bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
         bailCase.write(LISTING_HEARING_DURATION, String.valueOf(getHearingDuration(serviceData)));
+        bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
 
         if (isRefDataLocationEnabled) {
             bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
@@ -180,10 +196,7 @@ public class ListedHearingService {
 
             log.info("updateInitialBailCaseListing for Case ID `{}` listingLocation contains '{}'", caseId,
                 bailCase.read(REF_DATA_LISTING_LOCATION).toString());
-        } else {
-            bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
         }
-
     }
 
     public void updateRelistingBailCaseListing(ServiceData serviceData, BailCase bailCase,
@@ -194,6 +207,10 @@ public class ListedHearingService {
         if (fieldsToUpdate.contains(NEXT_HEARING_DATE)) {
             LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
             bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
+        }
+
+        if (fieldsToUpdate.contains(HEARING_CHANNELS) || fieldsToUpdate.contains(HEARING_VENUE_ID)) {
+            bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
         }
 
         if (isRefDataLocationEnabled) {
@@ -207,10 +224,6 @@ public class ListedHearingService {
 
             if (fieldsToUpdate.contains(HEARING_CHANNELS)) {
                 bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
-            }
-        } else {
-            if (fieldsToUpdate.contains(HEARING_CHANNELS) || fieldsToUpdate.contains(HEARING_VENUE_ID)) {
-                bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
             }
         }
 

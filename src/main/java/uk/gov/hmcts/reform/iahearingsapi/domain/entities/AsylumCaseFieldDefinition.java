@@ -300,7 +300,13 @@ public enum AsylumCaseFieldDefinition {
     REQUEST_HEARING_DATE_1(
         "requestHearingDate1", new TypeReference<String>(){}),
 
-    ADDITIONAL_INSTRUCTIONS_DESCRIPTION("additionalInstructionsDescription", new TypeReference<String>(){});
+    ADDITIONAL_INSTRUCTIONS_DESCRIPTION("additionalInstructionsDescription", new TypeReference<String>(){}),
+
+    LISTING_LOCATION(
+        "listingLocation", new TypeReference<DynamicList>(){}),
+
+    IS_REMOTE_HEARING(
+        "isRemoteHearing", new TypeReference<YesOrNo>(){});
 
 
     private final String value;

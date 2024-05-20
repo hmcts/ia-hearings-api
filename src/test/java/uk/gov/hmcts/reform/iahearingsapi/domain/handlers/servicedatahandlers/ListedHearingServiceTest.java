@@ -43,6 +43,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
@@ -103,7 +104,8 @@ class ListedHearingServiceTest {
     @ParameterizedTest
     @MethodSource("updateListCaseHearingDetailsSource")
     void updateListCaseHearingDetails(String venueId, HearingChannel channel,
-                                      String hearingDate, HearingCentre expectedHearingCentre) {
+                                      String hearingDate, HearingCentre expectedHearingCentre,
+                                      YesOrNo expectedIsRemoteHearing, boolean isRefDataLocationEnabled) {
         serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
             List.of(channel));
         serviceData.write(ServiceDataFieldDefinition.HEARING_TYPE, SUBSTANTIVE.getKey());
@@ -117,16 +119,37 @@ class ListedHearingServiceTest {
             new Value(HearingChannel.INTER.name(), HearingChannel.INTER.getLabel()),
             List.of(new Value(HearingChannel.INTER.name(), HearingChannel.INTER.getLabel()))));
 
-        listedHearingService.updateListCaseHearingDetails(serviceData, asylumCase);
+        listedHearingService.updateListCaseHearingDetails(serviceData, asylumCase,
+            isRefDataLocationEnabled, "caseId", courtVenueList, hearingLocationList);
+
+        String refDataCourt = isRefDataLocationEnabled
+            ? courtVenueList.stream().filter(c -> c.getEpimmsId().equals(venueId))
+            .map(CourtVenue::getCourtName).findFirst().get()
+            : expectedHearingCentre.getValue();
+
+        DynamicList expectedRefDataListingLocation = new DynamicList(
+            new Value(venueId, refDataCourt),
+            hearingLocationList.getListItems());
+
+        if (isRefDataLocationEnabled) {
+            assertEquals(Optional.of(expectedIsRemoteHearing), asylumCase.read(
+                AsylumCaseFieldDefinition.IS_REMOTE_HEARING));
+            assertEquals(Optional.of(expectedRefDataListingLocation), asylumCase.read(
+                AsylumCaseFieldDefinition.LISTING_LOCATION));
+        } else {
+            assertEquals(Optional.empty(), asylumCase.read(
+                AsylumCaseFieldDefinition.IS_REMOTE_HEARING));
+        }
 
         assertEquals(Optional.of(LISTING_REF), asylumCase.read(ARIA_LISTING_REFERENCE));
         assertEquals(Optional.of(hearingDate), asylumCase.read(LIST_CASE_HEARING_DATE));
         assertEquals(Optional.of(new HoursMinutes(200)), asylumCase.read(LISTING_LENGTH));
         assertEquals(Optional.of(expectedHearingCentre), asylumCase.read(LIST_CASE_HEARING_CENTRE));
         DynamicList newHearingChannel = new DynamicList(
-            new Value(HearingChannel.INTER.name(), HearingChannel.INTER.getLabel()),
-            List.of(new Value(HearingChannel.INTER.name(), HearingChannel.INTER.getLabel())));
+            new Value(channel.name(), channel.getLabel()),
+            List.of(new Value(channel.name(), channel.getLabel())));
         assertEquals(Optional.of(newHearingChannel), asylumCase.read(HEARING_CHANNEL));
+
 
     }
 
@@ -134,9 +157,13 @@ class ListedHearingServiceTest {
 
         return Stream.of(
             Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER,
-                "2023-12-02T10:00:00.000", HATTON_CROSS),
+                "2023-12-02T10:00:00.000", HATTON_CROSS, NO, false),
+            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.TEL,
+                "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true),
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
-                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE)
+                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, NO, true),
+            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
+                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false)
         );
     }
 
@@ -169,13 +196,19 @@ class ListedHearingServiceTest {
         assertEquals(Optional.of(hearingDate), bailCase.read(LISTING_HEARING_DATE));
         assertEquals(Optional.of("60"), bailCase.read(LISTING_HEARING_DURATION));
 
+        if (bailCase.read(IS_REMOTE_HEARING).equals(Optional.of(YES))) {
+            assertEquals(Optional.of(REMOTE_HEARING.getValue()), bailCase.read(LISTING_LOCATION));
+        } else {
+            assertEquals(Optional.of(expectedHearingCentre.getValue()), bailCase.read(LISTING_LOCATION));
+        }
+
         String refDataCourt = isRefDataLocationEnabled
-            ? courtVenueList.stream().filter(c -> c.getEpimmsId().equals(expectedHearingCentre.getEpimsId()))
+            ? courtVenueList.stream().filter(c -> c.getEpimmsId().equals(venueId))
                 .map(CourtVenue::getCourtName).findFirst().get()
             : expectedHearingCentre.getValue();
 
         DynamicList expectedRefDataListingLocation = new DynamicList(
-            new Value(expectedHearingCentre.getEpimsId(), refDataCourt),
+            new Value(venueId, refDataCourt),
             hearingLocationList.getListItems());
 
         if (isRefDataLocationEnabled) {
@@ -183,7 +216,6 @@ class ListedHearingServiceTest {
             assertEquals(Optional.of(expectedRefDataListingLocation), bailCase.read(REF_DATA_LISTING_LOCATION));
         } else {
             assertEquals(Optional.empty(), bailCase.read(IS_REMOTE_HEARING));
-            assertEquals(Optional.of(expectedHearingCentre.getValue()), bailCase.read(LISTING_LOCATION));
         }
 
     }
@@ -194,9 +226,9 @@ class ListedHearingServiceTest {
             Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER,
                          "2023-12-02T10:00:00.000", HATTON_CROSS, NO, true),
             Arguments.of(GLASGOW_EPIMMS_ID, VID,
-                         "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, YES, true),
+                         "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true),
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.TEL,
-                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, YES, true),
+                "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true),
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.TEL,
                 "2023-12-02T09:45:00.000", REMOTE_HEARING, null, false),
             Arguments.of(GLASGOW_EPIMMS_ID, VID,
@@ -230,22 +262,22 @@ class ListedHearingServiceTest {
             fieldsToUpdate, isRefDataLocationEnabled, courtVenueList, hearingLocationList);
 
         String refDataCourt = isRefDataLocationEnabled
-            ? courtVenueList.stream().filter(c -> c.getEpimmsId().equals(expectedHearingCentre.getEpimsId()))
+            ? courtVenueList.stream().filter(c -> c.getEpimmsId().equals(venueId))
                 .map(CourtVenue::getCourtName).findFirst().get()
-            : expectedHearingCentre.getValue();
+            : venueId;
 
         DynamicList expectedRefDataListingLocation = new DynamicList(
-            new Value(expectedHearingCentre.getEpimsId(), refDataCourt),
+            new Value(venueId, refDataCourt),
             hearingLocationList.getListItems());
 
         verify(bailCase).write(LISTING_HEARING_DATE, hearingDate);
         verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_EVENT, ListingEvent.RELISTING.toString());
+        verify(bailCase).write(LISTING_LOCATION, expectedHearingCentre.getValue());
         if (isRefDataLocationEnabled) {
             verify(bailCase).write(IS_REMOTE_HEARING, expectedIsRemoteHearing);
             verify(bailCase).write(REF_DATA_LISTING_LOCATION, expectedRefDataListingLocation);
         } else {
-            verify(bailCase).write(LISTING_LOCATION, expectedHearingCentre.getValue());
             verify(bailCase, never()).write(IS_REMOTE_HEARING, expectedIsRemoteHearing);
         }
 
