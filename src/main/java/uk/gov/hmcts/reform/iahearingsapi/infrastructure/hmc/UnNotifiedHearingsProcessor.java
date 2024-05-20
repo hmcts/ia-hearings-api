@@ -14,10 +14,13 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_CATEGORY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils.convertFromUTC;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
@@ -31,7 +34,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 @Component
 public class UnNotifiedHearingsProcessor implements Runnable {
 
-    private HmcUpdateDispatcher<ServiceData> dispatcher;
+    private final HmcUpdateDispatcher<ServiceData> dispatcher;
     private final HearingService hearingService;
 
     public UnNotifiedHearingsProcessor(HmcUpdateDispatcher<ServiceData> dispatcher,
@@ -49,7 +52,7 @@ public class UnNotifiedHearingsProcessor implements Runnable {
     public void processUnNotifiedHearings() {
 
         UnNotifiedHearingsResponse unNotifiedHearings = hearingService.getUnNotifiedHearings(
-            LocalDateTime.now().minusDays(3));
+            LocalDateTime.now().minusDays(3), List.of(LISTED, CANCELLED));
 
         unNotifiedHearings.getHearingIds().forEach(unNotifiedHearingId -> {
             try {

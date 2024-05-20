@@ -15,6 +15,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_LINKS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
@@ -424,11 +426,12 @@ class HearingServiceTest {
     void testGetUnNotifiedHearings() {
         hearingService.setServiceId(SERVICE_ID);
         LocalDateTime now = LocalDateTime.now();
-        when(hmcHearingApi.getUnNotifiedHearings(eq(IDAM_OAUTH2_TOKEN), eq(SERVICE_AUTHORIZATION),
-                                         eq(now), eq(null), anyString()))
+        when(hmcHearingApi.getUnNotifiedHearings(
+            eq(IDAM_OAUTH2_TOKEN), eq(SERVICE_AUTHORIZATION),
+            eq(now), eq(null), eq(List.of(LISTED.name(), CANCELLED.name())), anyString()))
             .thenReturn(unNotifiedHearingsResponse);
 
-        UnNotifiedHearingsResponse result = hearingService.getUnNotifiedHearings(now);
+        UnNotifiedHearingsResponse result = hearingService.getUnNotifiedHearings(now, List.of(LISTED, CANCELLED));
 
         assertEquals(unNotifiedHearingsResponse, result);
     }
@@ -438,13 +441,13 @@ class HearingServiceTest {
         hearingService.setServiceId(SERVICE_ID);
         LocalDateTime now = LocalDateTime.now();
         when(hmcHearingApi.getUnNotifiedHearings(eq(IDAM_OAUTH2_TOKEN), eq(SERVICE_AUTHORIZATION),
-                                                 eq(now), eq(null), anyString()))
+                                                 eq(now), eq(null), any(), anyString()))
             .thenThrow(new FeignException.BadRequest("Bad request",
                                                      request,
                                                      new byte[]{},
                                                      Collections.emptyMap()));
 
-        assertThrows(HmcException.class, () -> hearingService.getUnNotifiedHearings(now));
+        assertThrows(HmcException.class, () -> hearingService.getUnNotifiedHearings(now, Collections.emptyList()));
     }
 
     @Test
