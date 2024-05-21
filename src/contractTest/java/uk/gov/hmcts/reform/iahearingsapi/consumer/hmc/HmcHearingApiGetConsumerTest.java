@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.consumer.hmc;
 
 import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
@@ -11,6 +12,9 @@ import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
 import io.pactfoundation.consumer.dsl.LambdaDsl;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -20,6 +24,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
 
 @ExtendWith(SpringExtension.class)
 @ExtendWith(PactConsumerTestExt.class)
@@ -213,6 +218,58 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
                             });
                         });
                     });
+                });
+        }).build();
+    }
+
+    @Pact(provider = "hmc_cft_hearings_api", consumer = "ia_hearingsApi")
+    public RequestResponsePact generatePactFragmentForGetUnNotifiedHearings(
+        PactDslWithProvider builder) {
+        // @formatter:off
+        return builder.given("Hearings exist")
+            .uponReceiving("A Request to get unnotified hearings")
+            .method("GET")
+            .headers(
+                SERVICE_AUTHORIZATION_HEADER,
+                SERVICE_AUTH_TOKEN,
+                AUTHORIZATION_HEADER,
+                AUTHORIZATION_TOKEN)
+            .path("/unNotifiedHearings/BFA1")
+            .query("hearing_start_date_from=2024-09-20 00:00:00"
+                   + "&hearing_start_date_to=2024-10-20 00:00:00&hearingStatus=LISTED&hearingStatus=CANCELLED")
+            .willRespondWith()
+            .body(buildGetUnNotifiedHearingsResponseDsl())
+            .status(HttpStatus.SC_OK)
+            .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "generatePactFragmentForGetUnNotifiedHearings")
+    public void verifyGetUnNotifiedHearings() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime fromDate = LocalDateTime.parse("2024-09-20 00:00:00", formatter);
+        LocalDateTime toDate = LocalDateTime.parse("2024-10-20 00:00:00", formatter);
+        UnNotifiedHearingsResponse unNotifiedHearingsResponse =
+            hmcHearingApi.getUnNotifiedHearings(
+                AUTHORIZATION_TOKEN,
+                SERVICE_AUTH_TOKEN,
+                fromDate,
+                toDate,
+                List.of("LISTED", "CANCELLED"),
+                "BFA1");
+
+        System.out.println(unNotifiedHearingsResponse);
+        assertNotNull(unNotifiedHearingsResponse);
+        assertEquals(3, unNotifiedHearingsResponse.getHearingIds().size());
+    }
+
+    protected DslPart buildGetUnNotifiedHearingsResponseDsl() {
+        return newJsonBody((body) -> {
+            body.numberType("totalFound", "3")
+                .array("hearingIds", ids -> {
+                    ids.stringValue("hearingId1");
+                    ids.stringValue("hearingId2");
+                    ids.stringValue("hearingId3");
                 });
         }).build();
     }

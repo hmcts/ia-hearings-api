@@ -30,6 +30,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLinkData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.CaseLinkDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.CaseLinkInfo;
@@ -297,7 +298,8 @@ public class HearingService {
         }
     }
 
-    public UnNotifiedHearingsResponse getUnNotifiedHearings(LocalDateTime hearingStartDateFrom) {
+    public UnNotifiedHearingsResponse getUnNotifiedHearings(
+        LocalDateTime hearingStartDateFrom, List<HmcStatus> hearingStatus) {
         log.debug("Retrieving UnNotified hearings");
         try {
             String serviceUserToken = idamService.getServiceUserToken();
@@ -307,6 +309,7 @@ public class HearingService {
                                                        serviceAuthToken,
                                                        hearingStartDateFrom,
                                                        null,
+                                                       hearingStatus.stream().map(HmcStatus::name).toList(),
                                                        serviceId);
         } catch (FeignException e) {
             log.error("Failed to retrieve unNotified hearings");
