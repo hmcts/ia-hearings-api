@@ -15,6 +15,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.BAILS_LOCATION_REF_DATA_FEATURE;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -42,6 +43,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -56,6 +60,10 @@ class ListCaseHandlerTest {
     @Mock
     CoreCaseDataService coreCaseDataService;
     @Mock
+    FeatureToggler featureToggler;
+    @Mock
+    LocationRefDataService locationRefDataService;
+    @Mock
     ServiceData serviceData;
     @Mock
     StartEventResponse startEventResponse;
@@ -64,11 +72,15 @@ class ListCaseHandlerTest {
 
     private ListCaseHandler listCaseHandler;
 
+    private DynamicList hearingLocationList = new DynamicList(
+        new Value("745389", "Hendon Magistrates Court"),
+        List.of(new Value("745389", "Hendon Magistrates Court")));
+
     @BeforeEach
     public void setUp() {
 
         listCaseHandler =
-            new ListCaseHandler(coreCaseDataService);
+            new ListCaseHandler(coreCaseDataService, featureToggler, locationRefDataService);
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -82,6 +94,15 @@ class ListCaseHandlerTest {
             .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
         when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.LISTING);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(false);
+
+        List<CourtVenue> courtVenueList = List.of(new CourtVenue("Manchester Magistrates",
+            "Manchester Magistrates Court",
+            "231596",
+            "Y",
+            "Open"));
+        when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(courtVenueList);
+        when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(hearingLocationList);
     }
 
     @Test
