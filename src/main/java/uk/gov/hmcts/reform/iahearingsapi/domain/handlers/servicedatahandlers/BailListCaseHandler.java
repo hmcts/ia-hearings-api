@@ -59,12 +59,9 @@ public class BailListCaseHandler
         log.info("bailCase for  Case ID `{}` contains '{}'", caseId, bailCase.toString());
 
         boolean isBailsLocationRefDataEnabled = false;
-        try {
-            isBailsLocationRefDataEnabled = featureToggler.getValueAsServiceUser(
-                BAILS_LOCATION_REF_DATA_FEATURE, false);
-        } catch (Exception ex) {
-            log.info("Error occurred during isBailsLocationRefDataEnabled : " + ex);
-        }
+
+        isBailsLocationRefDataEnabled = featureToggler.getValueAsServiceUser(
+            BAILS_LOCATION_REF_DATA_FEATURE, false);
 
         log.info("isBailsLocationRefDataEnabled value is " + isBailsLocationRefDataEnabled);
 

@@ -61,12 +61,9 @@ public class ListCaseHandler extends ListedHearingService implements ServiceData
         log.info("asylumCase for  Case ID `{}` contains '{}'", caseId, asylumCase.toString());
 
         boolean isAppealsLocationRefDataEnabled = false;
-        try {
-            isAppealsLocationRefDataEnabled = featureToggler.getValueAsServiceUser(
-                APPEALS_LOCATION_REF_DATA_FEATURE, false);
-        } catch (Exception ex) {
-            log.info("Error occurred during isBailsLocationRefDataEnabled : " + ex);
-        }
+
+        isAppealsLocationRefDataEnabled = featureToggler.getValueAsServiceUser(
+            APPEALS_LOCATION_REF_DATA_FEATURE, false);
 
         updateListCaseHearingDetails(serviceData, asylumCase, isAppealsLocationRefDataEnabled, caseId,
             locationRefDataService.getCourtVenuesAsServiceUser(),
