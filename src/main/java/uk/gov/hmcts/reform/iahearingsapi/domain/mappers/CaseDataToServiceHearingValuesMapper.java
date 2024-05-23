@@ -106,9 +106,11 @@ public class CaseDataToServiceHearingValuesMapper {
                 case RECORD_ADJOURNMENT_DETAILS:
                     hearingChannelOptional = asylumCase.read(NEXT_HEARING_FORMAT, DynamicList.class);
                     break;
-
                 case UPDATE_HEARING_REQUEST:
                     hearingChannelOptional = asylumCase.read(REQUEST_HEARING_CHANNEL, DynamicList.class);
+                    if (hearingChannelOptional.isEmpty()) {
+                        return persistedHearingDetails.getHearingChannels();
+                    }
                     break;
                 default:
                     return persistedHearingDetails.getHearingChannels();
