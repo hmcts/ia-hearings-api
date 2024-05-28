@@ -336,7 +336,7 @@ class EditListCaseHandlerTest {
         initializeServiceData();
         initializeAsylumCaseData();
 
-        when(featureToggler.getValueAsServiceUser(APPEALS_LOCATION_REF_DATA_FEATURE , false))
+        when(featureToggler.getValueAsServiceUser(APPEALS_LOCATION_REF_DATA_FEATURE, false))
             .thenReturn(isRefDataEnabled);
 
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
