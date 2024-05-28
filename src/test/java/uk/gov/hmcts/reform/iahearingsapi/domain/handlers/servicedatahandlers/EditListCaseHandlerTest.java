@@ -9,7 +9,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
@@ -18,9 +20,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPEAL_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.INTER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.EditListCaseHandler.APPEALS_LOCATION_REF_DATA_FEATURE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import java.time.LocalDateTime;
@@ -36,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,10 +58,14 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinit
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -67,6 +79,7 @@ class EditListCaseHandlerTest {
     private static final String HEARING_ID = "12345";
     private static final LocalDateTime NEXT_HEARING_DATE = LocalDateTime.of(2023, 9, 29, 12, 0);
     private static final String HEARING_VENUE_ID = GLASGOW_EPIMMS_ID;
+    public static final String COURT_NAME = "Manchester Magistrates Court";
     @Mock
     CoreCaseDataService coreCaseDataService;
     @Mock
@@ -75,12 +88,20 @@ class EditListCaseHandlerTest {
     ServiceData serviceData;
     @Mock
     AsylumCase asylumCase;
+    @Mock
+    LocationRefDataService locationRefDataService;
+    @Mock
+    FeatureToggler featureToggler;
     private EditListCaseHandler editListCaseHandler;
+
+    private DynamicList hearingLocationList = new DynamicList(
+        new Value("231596", "Hendon Magistrates Court"),
+        List.of(new Value("231596", "Hendon Magistrates Court")));
 
     @BeforeEach
     public void setUp() {
 
-        editListCaseHandler = new EditListCaseHandler(coreCaseDataService);
+        editListCaseHandler = new EditListCaseHandler(coreCaseDataService, locationRefDataService, featureToggler);
         when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERENCE));
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -89,9 +110,19 @@ class EditListCaseHandlerTest {
         when(coreCaseDataService.getCaseState(CASE_REFERENCE))
             .thenReturn(PREPARE_FOR_HEARING);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
-            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+            .thenReturn(Optional.of(List.of(INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
+
+        List<CourtVenue> courtVenueList = List.of(new CourtVenue("Manchester Magistrates",
+            COURT_NAME,
+            "231596",
+            "Y",
+            "Open"));
+
+
+        when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(courtVenueList);
+        when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(hearingLocationList);
     }
 
     @Test
@@ -225,28 +256,28 @@ class EditListCaseHandlerTest {
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
 
         if (hasUpdated) {
-            if (hearingChannel.equals(List.of(HearingChannel.INTER))
+            if (hearingChannel.equals(List.of(INTER))
                 && hearingLocation.equals(HearingCentre.BIRMINGHAM.getEpimsId())) {
 
                 verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
                 verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtTen);
                 verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
-            } else if (hearingChannel.equals(List.of(HearingChannel.INTER))
+            } else if (hearingChannel.equals(List.of(INTER))
                        && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
 
                 verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
                 verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtNineFortyFive);
                 verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
-            } else if (hearingChannel.equals(List.of(HearingChannel.TEL))
+            } else if (hearingChannel.equals(List.of(TEL))
                        && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
 
                 verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
                 verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtNineFortyFive);
                 verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
-            } else if (hearingChannel.equals(List.of(HearingChannel.TEL))
+            } else if (hearingChannel.equals(List.of(TEL))
                        && hearingLocation.equals(HearingCentre.BIRMINGHAM.getEpimsId())) {
 
                 verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
@@ -262,10 +293,10 @@ class EditListCaseHandlerTest {
 
     private static Stream<Arguments> updateHearingCentreSource() {
         return Stream.of(
-            Arguments.of(List.of(HearingChannel.INTER), HearingCentre.BIRMINGHAM.getEpimsId(), true),
-            Arguments.of(List.of(HearingChannel.INTER), HearingCentre.GLASGOW.getEpimsId(), true),
-            Arguments.of(List.of(HearingChannel.TEL), HearingCentre.GLASGOW.getEpimsId(), true),
-            Arguments.of(List.of(HearingChannel.TEL), HearingCentre.BIRMINGHAM.getEpimsId(), true)
+            Arguments.of(List.of(INTER), HearingCentre.BIRMINGHAM.getEpimsId(), true),
+            Arguments.of(List.of(INTER), HearingCentre.GLASGOW.getEpimsId(), true),
+            Arguments.of(List.of(TEL), HearingCentre.GLASGOW.getEpimsId(), true),
+            Arguments.of(List.of(TEL), HearingCentre.BIRMINGHAM.getEpimsId(), true)
         );
     }
 
@@ -299,6 +330,50 @@ class EditListCaseHandlerTest {
 
     }
 
+    @ParameterizedTest
+    @MethodSource("assignRefDataFieldsSource")
+    void should_assign_ref_data_fields(HearingChannel hearingChannel, boolean isRefDataEnabled,
+                                       YesOrNo expectedIsRemoteHearing) {
+        initializeServiceData();
+        initializeAsylumCaseData();
+
+        when(featureToggler.getValueAsServiceUser(APPEALS_LOCATION_REF_DATA_FEATURE , false))
+            .thenReturn(isRefDataEnabled);
+
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(hearingChannel)));
+        when(serviceData.read(ServiceDataFieldDefinition.DURATION, Integer.class))
+            .thenReturn(Optional.of(100));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of("231596"));
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(NEXT_HEARING_DATE.plusDays(1)));
+
+        editListCaseHandler.handle(serviceData);
+
+        DynamicList expectedRefDataListingLocation = new DynamicList(
+            new Value("231596", COURT_NAME),
+            hearingLocationList.getListItems());
+
+        if (isRefDataEnabled) {
+            verify(asylumCase).write(IS_REMOTE_HEARING, expectedIsRemoteHearing);
+            verify(asylumCase).write(LISTING_LOCATION, expectedRefDataListingLocation);
+        } else {
+            verify(asylumCase, never()).write(IS_REMOTE_HEARING, expectedIsRemoteHearing);
+            verify(asylumCase, never()).write(LISTING_LOCATION, expectedRefDataListingLocation);
+        }
+    }
+
+    private static Stream<Arguments> assignRefDataFieldsSource() {
+
+        return Stream.of(
+            Arguments.of(INTER, true, NO),
+            Arguments.of(TEL, true, YES),
+            Arguments.of(VID, true, YES),
+            Arguments.of(INTER, false, NO)
+        );
+    }
+
     private void initializeServiceData() {
         when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REFERENCE, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
@@ -309,7 +384,7 @@ class EditListCaseHandlerTest {
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse))
             .thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
-            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+            .thenReturn(Optional.of(List.of(INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
             .thenReturn(Optional.of(NEXT_HEARING_DATE));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
@@ -328,7 +403,7 @@ class EditListCaseHandlerTest {
             HearingCentre.class
         )).thenReturn(Optional.of(HearingCentre.GLASGOW));
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(
-            new DynamicList(HearingChannel.INTER.name())));
+            new DynamicList(INTER.name())));
         when(asylumCase.read(LISTING_LENGTH, HoursMinutes.class)).thenReturn(Optional.of(new HoursMinutes(150)));
     }
 
