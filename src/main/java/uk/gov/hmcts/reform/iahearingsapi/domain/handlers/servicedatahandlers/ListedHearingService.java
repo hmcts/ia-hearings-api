@@ -244,7 +244,7 @@ public class ListedHearingService {
         Set<ServiceDataFieldDefinition> targetFields) {
 
         ServiceData previousServiceData = partiesNotifiedResponses.stream()
-            .max(Comparator.comparing(response -> response.getResponseReceivedDateTime().getNano()))
+            .max(Comparator.comparing(PartiesNotifiedResponse::getResponseReceivedDateTime, LocalDateTime::compareTo))
             .map(PartiesNotifiedResponse::getServiceData)
             .orElseGet(ServiceData::new);
 

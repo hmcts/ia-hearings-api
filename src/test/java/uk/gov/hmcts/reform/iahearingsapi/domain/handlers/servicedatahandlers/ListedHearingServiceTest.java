@@ -316,7 +316,8 @@ class ListedHearingServiceTest {
             PartiesNotifiedResponse.builder().serviceData(previousServiceData1)
                 .responseReceivedDateTime(LocalDateTime.parse(hearingDate)).build(),
             PartiesNotifiedResponse.builder()
-                .responseReceivedDateTime(LocalDateTime.parse("2023-08-02T10:00:00.000")).build()
+                .serviceData(serviceData)
+                .responseReceivedDateTime(LocalDateTime.parse("2023-05-09T12:20:15.100")).build()
         );
 
         Set<ServiceDataFieldDefinition> targetFields = Set.of(NEXT_HEARING_DATE,
