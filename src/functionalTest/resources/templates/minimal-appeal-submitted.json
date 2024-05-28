@@ -27,5 +27,6 @@
   "sendDirectionActionAvailable": "Yes",
   "legalRepresentativeName": "A Legal Rep",
   "legalRepresentativeEmailAddress": "{$TEST_LAW_FIRM_A_USERNAME}",
-  "hearingCentre": "taylorHouse"
+  "hearingCentre": "taylorHouse",
+  "appellantInUk": "Yes"
 }
