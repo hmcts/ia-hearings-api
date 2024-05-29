@@ -13,6 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_C
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.FINAL_BUNDLING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PRE_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
@@ -28,9 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
@@ -38,13 +41,18 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDat
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class EditListCaseHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
+    public static final String APPEALS_LOCATION_REF_DATA_FEATURE = "appeals-location-reference-data";
     private final CoreCaseDataService coreCaseDataService;
+    private final LocationRefDataService locationRefDataService;
+    private final FeatureToggler featureToggler;
 
 
     @Override
@@ -75,7 +83,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
             coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, caseId, CASE_TYPE_ASYLUM);
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
-        if (tryUpdateListCaseHearingDetails(asylumCase, serviceData)) {
+        if (tryUpdateListCaseHearingDetails(asylumCase, serviceData, caseId)) {
             log.info("Sending `{}` event for case ID `{}`", EDIT_CASE_LISTING, caseId);
             coreCaseDataService.triggerSubmitEvent(EDIT_CASE_LISTING, caseId, startEventResponse, asylumCase);
         }
@@ -83,7 +91,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         return new ServiceDataResponse<>(serviceData);
     }
 
-    private boolean tryUpdateListCaseHearingDetails(AsylumCase asylumCase, ServiceData serviceData) {
+    private boolean tryUpdateListCaseHearingDetails(AsylumCase asylumCase, ServiceData serviceData, String caseId) {
 
         final List<HearingChannel> nextHearingChannelList = getHearingChannels(serviceData);
 
@@ -172,7 +180,30 @@ public class EditListCaseHandler extends ListedHearingService implements Service
             asylumCase.clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
         }
 
+        assignRefDataFields(asylumCase, serviceData, caseId);
+
         return sendUpdate;
+    }
+
+    private void assignRefDataFields(AsylumCase asylumCase, ServiceData serviceData, String caseId) {
+        boolean isAppealsLocationRefDataEnabled = featureToggler.getValueAsServiceUser(
+            APPEALS_LOCATION_REF_DATA_FEATURE, false);
+
+        if (!isAppealsLocationRefDataEnabled) {
+            return;
+        }
+
+        asylumCase.write(AsylumCaseFieldDefinition.IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
+        log.info("tryUpdateListCaseHearingDetails for Case ID `{}` serviceData contains '{}", caseId, serviceData);
+
+        asylumCase.write(AsylumCaseFieldDefinition.LISTING_LOCATION,
+            new DynamicList(
+                new Value(getHearingVenueId(serviceData),
+                    getHearingCourtName(serviceData, locationRefDataService.getCourtVenuesAsServiceUser())),
+                locationRefDataService.getHearingLocationsDynamicList(true).getListItems()));
+
+        log.info("tryUpdateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
+            asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
     }
 }
 

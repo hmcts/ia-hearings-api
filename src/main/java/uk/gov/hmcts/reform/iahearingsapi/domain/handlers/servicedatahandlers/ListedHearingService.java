@@ -277,12 +277,12 @@ public class ListedHearingService {
             : HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData));
     }
 
-    private boolean isRemoteHearing(ServiceData serviceData) {
+    public boolean isRemoteHearing(ServiceData serviceData) {
         final String nextHearingChannel = getHearingChannels(serviceData).get(0).name();
         return nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
     }
 
-    private String getHearingCourtName(ServiceData serviceData, List<CourtVenue> courtVenues) {
+    public String getHearingCourtName(ServiceData serviceData, List<CourtVenue> courtVenues) {
         return courtVenues.stream()
             .filter(c -> c.getEpimmsId().equals(getHearingVenueId(serviceData)))
             .map(CourtVenue::getCourtName)

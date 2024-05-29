@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -27,12 +29,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -40,6 +44,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -159,7 +164,7 @@ class ListedHearingServiceTest {
         return Stream.of(
             Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER,
                 "2023-12-02T10:00:00.000", HATTON_CROSS, NO, false),
-            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.TEL,
+            Arguments.of(GLASGOW_EPIMMS_ID, TEL,
                 "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true),
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
                 "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, NO, true),
@@ -170,7 +175,7 @@ class ListedHearingServiceTest {
 
     private void setUpForNonPaperSubstantiveHearing() {
         serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
-            List.of(HearingChannel.INTER, HearingChannel.TEL, VID, HearingChannel.NA));
+            List.of(HearingChannel.INTER, TEL, VID, HearingChannel.NA));
         serviceData.write(ServiceDataFieldDefinition.HEARING_TYPE, SUBSTANTIVE.getKey());
     }
 
@@ -228,9 +233,9 @@ class ListedHearingServiceTest {
                          "2023-12-02T10:00:00.000", HATTON_CROSS, NO, true),
             Arguments.of(GLASGOW_EPIMMS_ID, VID,
                          "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true),
-            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.TEL,
+            Arguments.of(GLASGOW_EPIMMS_ID, TEL,
                 "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true),
-            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.TEL,
+            Arguments.of(GLASGOW_EPIMMS_ID, TEL,
                 "2023-12-02T09:45:00.000", REMOTE_HEARING, null, false),
             Arguments.of(GLASGOW_EPIMMS_ID, VID,
                 "2023-12-02T09:45:00.000", REMOTE_HEARING, null, false),
@@ -292,7 +297,7 @@ class ListedHearingServiceTest {
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER, "2024-12-06T10:00:00.000", 90, true),
             Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER, "2023-12-02T09:45:00.000", 30, true),
             Arguments.of(HATTON_CROSS.getEpimsId(), VID, "2024-12-02T10:00:00.000", 150, true),
-            Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.TEL, "2023-12-02T09:45:00.000", 60, true)
+            Arguments.of(HATTON_CROSS.getEpimsId(), TEL, "2023-12-02T09:45:00.000", 60, true)
         );
     }
 
@@ -328,5 +333,55 @@ class ListedHearingServiceTest {
             serviceData, partiesNotifiedResponses, targetFields).size() > 0;
 
         assertEquals(expected, actual);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"Telephone", "Video"})
+    void isRemoteHearing_true(String hearingChannel) {
+        serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
+            List.of(HearingChannel.from(hearingChannel).get()));
+
+        assertTrue(listedHearingService.isRemoteHearing(serviceData));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"In Person", "Not in Attendance", "On the Papers"})
+    void isRemoteHearing_false(String hearingChannel) {
+        serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
+            List.of(HearingChannel.from(hearingChannel).get()));
+
+        assertFalse(listedHearingService.isRemoteHearing(serviceData));
+    }
+
+    @Test
+    void getHearingCourtName() {
+        List<CourtVenue> courtVenueList = List.of(new CourtVenue("Manchester Magistrates",
+            "Manchester Magistrates Court",
+            "231596",
+            "Y",
+            "Open"));
+
+        serviceData.write(HEARING_VENUE_ID, "231596");
+
+        assertEquals("Manchester Magistrates Court",
+            listedHearingService.getHearingCourtName(serviceData, courtVenueList));
+    }
+
+    @Test
+    void getHearingCourtName_exception() {
+        List<CourtVenue> courtVenueList = List.of(new CourtVenue("Manchester Magistrates",
+            "Manchester Magistrates Court",
+            "231596",
+            "Y",
+            "Open"));
+
+        serviceData.write(HEARING_VENUE_ID, "unmatchedId");
+
+        NoSuchElementException thrown = assertThrows(
+            NoSuchElementException.class,
+            () -> listedHearingService.getHearingCourtName(serviceData, courtVenueList)
+        );
+
+        assertEquals("No matching ref data court venue found for epims id unmatchedId", thrown.getMessage());
     }
 }
