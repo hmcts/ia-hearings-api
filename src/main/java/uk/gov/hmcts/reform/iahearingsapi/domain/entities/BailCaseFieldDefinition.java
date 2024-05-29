@@ -155,9 +155,9 @@ public enum BailCaseFieldDefinition {
         "applicantMobileNumber1", new TypeReference<String>(){}),;
 
     private final String value;
-    private final TypeReference typeReference;
+    private final TypeReference<?> typeReference;
 
-    BailCaseFieldDefinition(String value, TypeReference typeReference) {
+    BailCaseFieldDefinition(String value, TypeReference<?> typeReference) {
         this.value = value;
         this.typeReference = typeReference;
     }
@@ -166,7 +166,7 @@ public enum BailCaseFieldDefinition {
         return value;
     }
 
-    public TypeReference getTypeReference() {
+    public TypeReference<?> getTypeReference() {
         return typeReference;
     }
 }

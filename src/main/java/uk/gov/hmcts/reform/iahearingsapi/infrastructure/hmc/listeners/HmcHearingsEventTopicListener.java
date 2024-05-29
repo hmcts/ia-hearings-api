@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -41,7 +42,6 @@ public class HmcHearingsEventTopicListener {
     )
 
     public void onMessage(byte[] message) throws HmcEventProcessingException {
-
         String stringMessage = new String(message, StandardCharsets.UTF_8);
         log.info("Message received: {}", stringMessage);
 
@@ -69,7 +69,7 @@ public class HmcHearingsEventTopicListener {
             }
         }  catch (JsonProcessingException ex) {
             throw new HmcEventProcessingException(String.format("Unable to successfully receive HMC message: %s",
-                                                                message), ex);
+                                                                stringMessage), ex);
         }
     }
 

@@ -34,7 +34,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 @Component
 public class LanguageAndAdjustmentsMapper {
 
-    public static final Set<String> LANGUAGE_CASE_FLAG_CODES = Stream.of(
+    private static final Set<String> LANGUAGE_CASE_FLAG_CODES = Stream.of(
         LANGUAGE_INTERPRETER, SIGN_LANGUAGE_INTERPRETER)
         .map(StrategicCaseFlagType::getFlagCode).collect(Collectors.toSet());
     public static final Set<String> REASONABLE_ADJUSTMENT_PREFIXES = Set.of("RA", "SM");
@@ -54,9 +54,7 @@ public class LanguageAndAdjustmentsMapper {
 
             List<StrategicCaseFlag> caseFlags = StringUtils.equals(partyRole, PARTY_ROLE_APPELLANT)
                 ? getAppellantCaseFlags(asylumCase)
-                : StringUtils.equals(partyRole, PARTY_ROLE_WITNESS)
-                ? getWitnessCaseFlags(asylumCase, partyDetails.getPartyID())
-                : Collections.emptyList();
+                : getRelevantWitnessCaseFlags(asylumCase, partyDetails, partyRole);
 
             List<CaseFlagDetail> activeCaseFlagDetails = filterForAsylumActiveCaseFlagDetails(caseFlags);
             processPartyDetailsFlags(activeCaseFlagDetails, individualDetails);
@@ -64,6 +62,14 @@ public class LanguageAndAdjustmentsMapper {
         }
 
         return partyDetails;
+    }
+
+    private List<StrategicCaseFlag> getRelevantWitnessCaseFlags(AsylumCase asylumCase,
+                                                                PartyDetailsModel partyDetails,
+                                                                String partyRole) {
+        return StringUtils.equals(partyRole, PARTY_ROLE_WITNESS)
+            ? getWitnessCaseFlags(asylumCase, partyDetails.getPartyID())
+            : Collections.emptyList();
     }
 
     public PartyDetailsModel processBailPartyCaseFlags(BailCase bailCase, PartyDetailsModel partyDetails) {
@@ -75,15 +81,21 @@ public class LanguageAndAdjustmentsMapper {
 
             List<BailStrategicCaseFlag> caseFlags = StringUtils.equals(partyRole, PARTY_ROLE_APPLICANT)
                 ? getApplicantCaseFlags(bailCase)
-                : StringUtils.equals(partyRole, PARTY_ROLE_FCS)
-                ? getFcsCaseFlags(bailCase, partyDetails.getPartyID())
-                : Collections.emptyList();
+                : getRelevantFcsCaseFlags(bailCase, partyDetails, partyRole);
 
             List<CaseFlagDetail> activeCaseFlagDetails = filterForBailActiveCaseFlagDetails(caseFlags);
             processPartyDetailsFlags(activeCaseFlagDetails, individualDetails);
         }
 
         return partyDetails;
+    }
+
+    private List<BailStrategicCaseFlag> getRelevantFcsCaseFlags(BailCase bailCase,
+                                                                PartyDetailsModel partyDetails,
+                                                                String partyRole) {
+        return StringUtils.equals(partyRole, PARTY_ROLE_FCS)
+            ? getFcsCaseFlags(bailCase, partyDetails.getPartyID())
+            : Collections.emptyList();
     }
 
     private void processPartyDetailsFlags(List<CaseFlagDetail> activeCaseFlagDetails,
@@ -159,7 +171,7 @@ public class LanguageAndAdjustmentsMapper {
     private List<String> buildOtherLanguagesField(List<CaseFlagDetail> otherLanguagesFlags) {
         return otherLanguagesFlags.stream()
             .map(flag -> INTERPRETER + flag.getCaseFlagValue().getSubTypeValue())
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -172,7 +184,7 @@ public class LanguageAndAdjustmentsMapper {
         return reasonableAdjustmentFlags.stream()
             .filter(flag -> flag.getCaseFlagValue().getFlagComment() != null)
             .map(flag -> flag.getCaseFlagValue().getName() + ": " + flag.getCaseFlagValue().getFlagComment())
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private boolean isLanguageCaseFlag(CaseFlagDetail detail) {

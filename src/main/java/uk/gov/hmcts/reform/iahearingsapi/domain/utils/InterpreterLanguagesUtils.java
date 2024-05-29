@@ -35,6 +35,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition
 
 public class InterpreterLanguagesUtils {
 
+    private InterpreterLanguagesUtils() {
+    }
+
     public static final List<AsylumCaseFieldDefinition> WITNESS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUSES = List.of(
         WITNESS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS_1,
         WITNESS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS_2,

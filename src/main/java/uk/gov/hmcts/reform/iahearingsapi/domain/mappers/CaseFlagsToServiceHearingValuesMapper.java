@@ -42,8 +42,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 public class CaseFlagsToServiceHearingValuesMapper {
 
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
-    private static final String caseLevelFlags = "Case level flags";
-    private static final String caseLevelFlagsPartyID = "Caselevelflags";
+    private static final String CASE_LEVEL_FLAGS = "Case level flags";
+    private static final String CASE_LEVEL_FLAGS_PARTY_ID = "Caselevelflags";
+    private static final String ACTIVE_LABEL = "Active";
 
     public String getPublicCaseName(AsylumCase asylumCase, String caseReference) {
 
@@ -72,7 +73,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
         Optional<List<PartyFlagIdValue>> witnessCaseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
         List<StrategicCaseFlag> witnessCaseFlags = witnessCaseFlagsOptional
-            .map(list -> list.stream().map(PartyFlagIdValue::getValue).collect(Collectors.toList()))
+            .map(list -> list.stream().map(PartyFlagIdValue::getValue).toList())
             .orElse(Collections.emptyList());
 
         List<StrategicCaseFlag> caseFlags = asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
@@ -106,7 +107,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
                         return Objects.equals(
                             UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR.getFlagCode(),
                             value.getFlagCode())
-                            && Objects.equals("Active", value.getStatus())
+                            && Objects.equals(ACTIVE_LABEL, value.getStatus())
                             && value.getFlagComment() != null
                             && !value.getFlagComment().isBlank();
                     })
@@ -193,7 +194,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
             .map(StrategicCaseFlag::getDetails)
             .orElse(Collections.emptyList()).stream().filter(detail ->
                 targetCaseFlagCodes.contains(detail.getCaseFlagValue().getFlagCode())
-                    && Objects.equals("Active", detail.getCaseFlagValue().getStatus()))
+                    && Objects.equals(ACTIVE_LABEL, detail.getCaseFlagValue().getStatus()))
             .map(details -> details.getCaseFlagValue().getFlagComment())
             .filter(flagComment -> flagComment != null && !flagComment.isBlank()).toList();
 
@@ -202,7 +203,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
     public List<PartyFlagsModel> getCaseLevelFlags(AsylumCase asylumCase) {
         return asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
-            .map(flag -> buildCaseFlags(flag.getDetails(), caseLevelFlagsPartyID, caseLevelFlags))
+            .map(flag -> buildCaseFlags(flag.getDetails(), CASE_LEVEL_FLAGS_PARTY_ID, CASE_LEVEL_FLAGS))
             .orElse(Collections.emptyList());
     }
 
@@ -231,7 +232,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
         List<CaseFlagDetail> caseFlagDetails, String partyId, String partyName) {
 
         return caseFlagDetails.stream()
-            .filter(detail -> Objects.equals(detail.getCaseFlagValue().getStatus(), "Active"))
+            .filter(detail -> Objects.equals(detail.getCaseFlagValue().getStatus(), ACTIVE_LABEL))
             .map(detail -> PartyFlagsModel.builder()
                 .partyId(partyId)
                 .partyName(partyName)
@@ -266,7 +267,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
                 return details.stream()
                     .map(detail ->
                          flagCodes.contains(detail.getCaseFlagValue().getFlagCode())
-                             && Objects.equals(detail.getCaseFlagValue().getStatus(), "Active"))
+                             && Objects.equals(detail.getCaseFlagValue().getStatus(), ACTIVE_LABEL))
                     .reduce(false, (accumulator, hasActiveFlag) -> accumulator || hasActiveFlag);
             }
         }

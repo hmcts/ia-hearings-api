@@ -22,8 +22,7 @@ class ConfigValidatorAppListenerTest {
 
     @BeforeEach
     public void setup() {
-        configValidatorAppListener = new ConfigValidatorAppListener();
-        configValidatorAppListener.setEnvironment(env);
+        configValidatorAppListener = new ConfigValidatorAppListener(env);
     }
 
     @Test

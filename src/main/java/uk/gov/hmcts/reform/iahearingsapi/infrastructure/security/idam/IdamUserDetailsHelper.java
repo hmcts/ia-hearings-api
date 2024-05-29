@@ -24,24 +24,15 @@ public class IdamUserDetailsHelper implements UserDetailsHelper {
 
     @Override
     public UserRoleLabel getLoggedInUserRoleLabel(UserDetails userDetails) {
-        switch (getLoggedInUserRole(userDetails)) {
-            case HOME_OFFICE_GENERIC:
-                return UserRoleLabel.HOME_OFFICE_GENERIC;
-            case LEGAL_REPRESENTATIVE:
-                return UserRoleLabel.LEGAL_REPRESENTATIVE;
-            case CASE_OFFICER:
-                return UserRoleLabel.TRIBUNAL_CASEWORKER;
-            case ADMIN_OFFICER:
-                return UserRoleLabel.ADMIN_OFFICER;
-            case JUDICIARY:
-            case JUDGE:
-                return UserRoleLabel.JUDGE;
-            case SYSTEM:
-                return UserRoleLabel.SYSTEM;
-
-            default:
-                throw new IllegalStateException("Unauthorized role to make an application");
-        }
+        return switch (getLoggedInUserRole(userDetails)) {
+            case HOME_OFFICE_GENERIC -> UserRoleLabel.HOME_OFFICE_GENERIC;
+            case LEGAL_REPRESENTATIVE -> UserRoleLabel.LEGAL_REPRESENTATIVE;
+            case CASE_OFFICER -> UserRoleLabel.TRIBUNAL_CASEWORKER;
+            case ADMIN_OFFICER -> UserRoleLabel.ADMIN_OFFICER;
+            case JUDICIARY, JUDGE -> UserRoleLabel.JUDGE;
+            case SYSTEM -> UserRoleLabel.SYSTEM;
+            default -> throw new IllegalStateException("Unauthorized role to make an application");
+        };
     }
 
     @Override

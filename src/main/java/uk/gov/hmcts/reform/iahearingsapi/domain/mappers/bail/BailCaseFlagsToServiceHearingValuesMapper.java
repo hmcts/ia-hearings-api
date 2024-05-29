@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,8 +34,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 @RequiredArgsConstructor
 public class BailCaseFlagsToServiceHearingValuesMapper {
 
-    private static final String caseLevelFlags = "Case level flags";
-    private static final String caseLevelFlagsPartyID = "Caselevelflags";
+    private static final String CASE_LEVEL_FLAGS = "Case level flags";
+    private static final String CASE_LEVEL_FLAGS_PARTY_ID = "Caselevelflags";
+    private static final String ACTIVE_STATUS = "Active";
+
     private final BailCaseDataToServiceHearingValuesMapper caseDataMapper;
 
     public String getPublicCaseName(BailCase bailCase, String caseReference) {
@@ -123,7 +124,7 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
             .map(BailStrategicCaseFlag::getDetails)
             .orElse(Collections.emptyList()).stream().filter(detail ->
                 targetCaseFlagCodes.contains(detail.getCaseFlagValue().getFlagCode())
-                    && Objects.equals("Active", detail.getCaseFlagValue().getStatus()))
+                    && Objects.equals(ACTIVE_STATUS, detail.getCaseFlagValue().getStatus()))
             .map(details -> details.getCaseFlagValue().getFlagComment())
             .filter(flagComment -> flagComment != null && !flagComment.isBlank()).toList();
 
@@ -143,7 +144,7 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
                 return details.stream()
                     .map(detail ->
                          flagCodes.contains(detail.getCaseFlagValue().getFlagCode())
-                             && Objects.equals(detail.getCaseFlagValue().getStatus(), "Active"))
+                             && Objects.equals(detail.getCaseFlagValue().getStatus(), ACTIVE_STATUS))
                     .reduce(false, (accumulator, hasActiveFlag) -> accumulator || hasActiveFlag);
             }
         }
@@ -153,7 +154,7 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
 
     private List<PartyFlagsModel> getCaseLevelFlags(BailCase bailCase) {
         return bailCase.read(BailCaseFieldDefinition.CASE_FLAGS, BailStrategicCaseFlag.class)
-            .map(flag -> buildCaseFlags(flag.getDetails(), caseLevelFlagsPartyID, caseLevelFlags))
+            .map(flag -> buildCaseFlags(flag.getDetails(), CASE_LEVEL_FLAGS_PARTY_ID, CASE_LEVEL_FLAGS))
             .orElse(Collections.emptyList());
     }
 
@@ -182,7 +183,7 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
         List<CaseFlagDetail> caseFlagDetails, String partyId, String partyName) {
 
         return caseFlagDetails.stream()
-            .filter(detail -> Objects.equals(detail.getCaseFlagValue().getStatus(), "Active"))
+            .filter(detail -> Objects.equals(detail.getCaseFlagValue().getStatus(), ACTIVE_STATUS))
             .map(detail -> PartyFlagsModel.builder()
                 .partyId(partyId)
                 .partyName(partyName)
@@ -191,7 +192,7 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
                 .flagDescription(getFlagDescription(detail))
                 .dateTimeCreated(parseDateTimeStringWithoutNanos(detail.getCaseFlagValue().getDateTimeCreated()))
                 .dateTimeModified(parseDateTimeStringWithoutNanos(detail.getCaseFlagValue().getDateTimeModified()))
-                .build()).collect(Collectors.toList());
+                .build()).toList();
     }
 
     private static String getFlagDescription(CaseFlagDetail detail) {

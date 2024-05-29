@@ -65,11 +65,11 @@ public class DecideAnApplicationHandler  implements PreSubmitCallbackHandler<Asy
                 .stream()
                 .filter(DecideAnApplicationHandler::canBeCanceled)
                 .forEach(
-                    hearing -> {
+                    hearing ->
                         hearingService
                             .deleteHearing(Long.valueOf(hearing.getHearingRequestId()), cancellationReason)
-                            .getStatusCode();
-                    });
+                            .getStatusCode()
+                );
             asylumCase.write(MANUAL_CANCEL_HEARINGS_REQUIRED, NO);
         } catch (HmcException e) {
             asylumCase.write(MANUAL_CANCEL_HEARINGS_REQUIRED, YES);

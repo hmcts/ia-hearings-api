@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
@@ -40,7 +39,7 @@ public class HmcUpdateDispatcher<T extends ServiceData> {
         List<ServiceDataHandler<T>> handlersInScope =  handlers.stream()
             .filter(h -> h.getDispatchPriority() == dispatchPriority && h.canHandle(update))
             .sorted(Comparator.comparing(h -> h.getClass().getSimpleName()))
-            .collect(Collectors.toList());
+            .toList();
 
         handlersInScope.forEach(h -> h.handle(update));
 

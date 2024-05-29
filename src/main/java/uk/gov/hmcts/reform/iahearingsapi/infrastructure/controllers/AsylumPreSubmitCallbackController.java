@@ -70,6 +70,7 @@ public class AsylumPreSubmitCallbackController extends PreSubmitCallbackControll
             }
 
     )
+    @Override
     @PostMapping(path = "/ccdAboutToStart")
     public ResponseEntity<PreSubmitCallbackResponse<AsylumCase>> ccdAboutToStart(
         @Parameter(name = "Asylum case data", required = true) @NotNull @RequestBody Callback<AsylumCase> callback
@@ -121,6 +122,7 @@ public class AsylumPreSubmitCallbackController extends PreSubmitCallbackControll
                     content = @Content(schema = @Schema(implementation = PreSubmitCallbackResponse.class)))
             }
     )
+    @Override
     @PostMapping(path = "/ccdAboutToSubmit")
     public ResponseEntity<PreSubmitCallbackResponse<AsylumCase>> ccdAboutToSubmit(
         @Parameter(name = "Asylum case data", required = true) @NotNull @RequestBody Callback<AsylumCase> callback

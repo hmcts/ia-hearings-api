@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -108,7 +107,7 @@ public class HearingService {
                     List<String> reasonList =
                         caseLink.getReasonsForLink().stream()
                             .map(idValue -> idValue.getValue().getReason())
-                            .collect(Collectors.toList());
+                            .toList();
 
                     AsylumCase linkedCase = coreCaseDataService.getCase(caseLink.getCaseReference());
                     String caseName = linkedCase.read(APPELLANT_NAME_FOR_DISPLAY, String.class).orElse("");

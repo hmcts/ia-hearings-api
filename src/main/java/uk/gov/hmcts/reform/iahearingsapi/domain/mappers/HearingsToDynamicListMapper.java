@@ -6,7 +6,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils.conve
 import com.google.common.base.Strings;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseHearing;
@@ -16,6 +15,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
 public class HearingsToDynamicListMapper {
 
+    private HearingsToDynamicListMapper() {
+    }
+
     public static DynamicList map(HearingsGetResponse hearings) {
 
         List<Value> hearingValues = hearings == null ? Collections.emptyList() : hearings.getCaseHearings()
@@ -23,7 +25,7 @@ public class HearingsToDynamicListMapper {
             .filter(hearing -> hearing.getHearingType().equals(HearingType.SUBSTANTIVE.getKey()))
             .map(hearing -> new Value(hearing.getHearingRequestId(), mapHearingLabel(hearing)))
             .filter(value -> !Strings.isNullOrEmpty(value.getLabel()))
-            .collect(Collectors.toList());
+            .toList();
 
         return new DynamicList(new Value("", ""), hearingValues);
     }

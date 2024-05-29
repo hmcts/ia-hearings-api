@@ -36,6 +36,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 
 public class PayloadUtils {
 
+    private PayloadUtils() {
+    }
+
     public static List<CaseCategoryModel> getCaseCategoriesValue(AsylumCase asylumCase) {
         CaseTypeValue caseTypeValue = getCaseTypeValue(asylumCase);
 
@@ -64,14 +67,80 @@ public class PayloadUtils {
         AppealType appealType = asylumCase.read(APPEAL_TYPE, AppealType.class)
             .orElseThrow(() -> new RequiredFieldMissingException("Appeal Type is a required field"));
 
+        return getCaseTypeValueByAppealType(appealType, hasDeportationOrder, isSuitableToFloat);
+    }
+
+    private static CaseTypeValue getCaseTypeValueByAppealType(AppealType appealType,
+                                                              boolean hasDeportationOrder,
+                                                              boolean isSuitableToFloat) {
         return switch (appealType) {
-            case HU -> hasDeportationOrder ? HUD : isSuitableToFloat ? HUF : HUX;
-            case EA -> hasDeportationOrder ? EAD : isSuitableToFloat ? EAF : EAX;
-            case EU -> hasDeportationOrder ? EUD : isSuitableToFloat ? EUF : EUX;
-            case DC -> hasDeportationOrder ? DCD : isSuitableToFloat ? DCF : DCX;
-            case PA -> hasDeportationOrder ? PAD : isSuitableToFloat ? PAF : PAX;
-            case RP -> hasDeportationOrder ? RPD : isSuitableToFloat ? RPF : RPX;
+            case HU -> getHuCaseTypeValue(hasDeportationOrder, isSuitableToFloat);
+            case EA -> getEaCaseTypeValue(hasDeportationOrder, isSuitableToFloat);
+            case EU -> getEuCaseTypeValue(hasDeportationOrder, isSuitableToFloat);
+            case DC -> getDcCaseTypeValue(hasDeportationOrder, isSuitableToFloat);
+            case PA -> getPaCaseTypeValue(hasDeportationOrder, isSuitableToFloat);
+            case RP -> getRpCaseTypeValue(hasDeportationOrder, isSuitableToFloat);
         };
+    }
+
+    private static CaseTypeValue getHuCaseTypeValue(boolean hasDeportationOrder, boolean isSuitableToFloat) {
+        if (hasDeportationOrder) {
+            return HUD;
+        } else if (isSuitableToFloat) {
+            return HUF;
+        } else {
+            return HUX;
+        }
+    }
+
+    private static CaseTypeValue getEaCaseTypeValue(boolean hasDeportationOrder, boolean isSuitableToFloat) {
+        if (hasDeportationOrder) {
+            return EAD;
+        } else if (isSuitableToFloat) {
+            return EAF;
+        } else {
+            return EAX;
+        }
+    }
+
+    private static CaseTypeValue getEuCaseTypeValue(boolean hasDeportationOrder, boolean isSuitableToFloat) {
+        if (hasDeportationOrder) {
+            return EUD;
+        } else if (isSuitableToFloat) {
+            return EUF;
+        } else {
+            return EUX;
+        }
+    }
+
+    private static CaseTypeValue getDcCaseTypeValue(boolean hasDeportationOrder, boolean isSuitableToFloat) {
+        if (hasDeportationOrder) {
+            return DCD;
+        } else if (isSuitableToFloat) {
+            return DCF;
+        } else {
+            return DCX;
+        }
+    }
+
+    private static CaseTypeValue getPaCaseTypeValue(boolean hasDeportationOrder, boolean isSuitableToFloat) {
+        if (hasDeportationOrder) {
+            return PAD;
+        } else if (isSuitableToFloat) {
+            return PAF;
+        } else {
+            return PAX;
+        }
+    }
+
+    private static CaseTypeValue getRpCaseTypeValue(boolean hasDeportationOrder, boolean isSuitableToFloat) {
+        if (hasDeportationOrder) {
+            return RPD;
+        } else if (isSuitableToFloat) {
+            return RPF;
+        } else {
+            return RPX;
+        }
     }
 
     public static Integer getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {

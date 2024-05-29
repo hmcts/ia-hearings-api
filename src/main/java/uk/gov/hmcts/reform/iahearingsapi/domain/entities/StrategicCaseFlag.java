@@ -12,8 +12,8 @@ import lombok.Value;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StrategicCaseFlag {
 
-    public static String ROLE_ON_CASE_APPELLANT = "Appellant";
-    public static String ROLE_ON_CASE_WITNESS = "Witness";
+    public static final String ROLE_ON_CASE_APPELLANT = "Appellant";
+    public static final String ROLE_ON_CASE_WITNESS = "Witness";
 
     String partyName;
     String roleOnCase;

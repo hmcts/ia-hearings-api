@@ -102,8 +102,6 @@ public class PartyDetailsMapper {
     public static PartyDetailsModel appendBookingStatus(Optional<InterpreterBookingStatus> spokenBookingStatus,
                                                  Optional<InterpreterBookingStatus> signBookingStatus,
                                                  PartyDetailsModel partyDetailsModel) {
-
-        //String status;
         StringBuilder status = new StringBuilder();
 
         if (spokenBookingStatus.isPresent()

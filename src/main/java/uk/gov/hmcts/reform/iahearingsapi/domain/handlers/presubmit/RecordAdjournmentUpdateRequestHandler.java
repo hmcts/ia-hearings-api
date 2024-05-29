@@ -37,6 +37,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
     public static final String NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE = "FirstAvailableDate";
     public static final String NEXT_HEARING_DATE_DATE_TO_BE_FIXED = "DateToBeFixed";
     public static final String NEXT_HEARING_DATE_CHOOSE_DATE_RANGE = "ChooseADateRange";
+    private static final String NOT_PRESENT_TEXT = " is not present";
 
     private final HearingService hearingService;
     private final UpdateHearingPayloadService updateHearingPayloadService;
@@ -72,7 +73,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
 
     private String getHearingId(AsylumCase asylumCase) {
         DynamicList hearingList = asylumCase.read(ADJOURNMENT_DETAILS_HEARING, DynamicList.class)
-            .orElseThrow(() -> new IllegalStateException("Adjournment details hearing is not present"));
+            .orElseThrow(() -> new IllegalStateException("Adjournment details hearing" + NOT_PRESENT_TEXT));
 
         return hearingList.getValue().getCode();
     }
@@ -81,7 +82,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
 
         return asylumCase.read(RELIST_CASE_IMMEDIATELY, YesOrNo.class)
             .map(relist -> YES == relist)
-            .orElseThrow(() -> new IllegalStateException("Response to relist case immediately is not present"));
+            .orElseThrow(() -> new IllegalStateException("Response to relist case immediately"  + NOT_PRESENT_TEXT));
     }
 
     private boolean adjournedBeforeHearingDay(AsylumCase asylumCase) {
@@ -89,21 +90,19 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
         return asylumCase
             .read(HEARING_ADJOURNMENT_WHEN, HearingAdjournmentDay.class)
             .map(hearingAdjournmentDay -> BEFORE_HEARING_DATE == hearingAdjournmentDay)
-            .orElseThrow(() -> new IllegalStateException("'Hearing adjournment when' is not present"));
+            .orElseThrow(() -> new IllegalStateException("'Hearing adjournment when'"  + NOT_PRESENT_TEXT));
     }
 
     private void deleteHearing(AsylumCase asylumCase, String hearingId) {
         DynamicList cancellationReason = asylumCase.read(HEARING_REASON_TO_CANCEL, DynamicList.class)
-            .orElseThrow(() -> new IllegalStateException("Hearing cancellation reason is not present"));
+            .orElseThrow(() -> new IllegalStateException("Hearing cancellation reason" + NOT_PRESENT_TEXT));
 
-        hearingService.deleteHearing(Long.valueOf(hearingId), cancellationReason.getValue().getCode());;
+        hearingService.deleteHearing(Long.valueOf(hearingId), cancellationReason.getValue().getCode());
     }
 
     private void updateHearing(AsylumCase asylumCase, String hearingId) {
-        DynamicList cancellationReason = asylumCase.read(HEARING_REASON_TO_UPDATE, DynamicList.class)
-            .orElseThrow(() -> new IllegalStateException("Hearing relisted cancellation reason is not present"));
-        String nextHearingDate = asylumCase.read(NEXT_HEARING_DATE, String.class)
-            .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE + "  is not present"));
+        DynamicList cancellationReason = getCancellationReason(asylumCase);
+        String nextHearingDate = getNextHearingDate(asylumCase);
 
         hearingService.updateHearing(
             updateHearingPayloadService.createUpdateHearingPayload(
@@ -111,40 +110,51 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
                 hearingId,
                 cancellationReason.getValue().getCode(),
                 nextHearingDate.equals(NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE),
-                updateHearingWindow(asylumCase),
+                updateHearingWindow(asylumCase, nextHearingDate),
                 RECORD_ADJOURNMENT_DETAILS
             ),
             hearingId
         );
     }
 
-
-    private HearingWindowModel updateHearingWindow(AsylumCase asylumCase) {
-        String nextHearingDate = asylumCase.read(NEXT_HEARING_DATE, String.class)
-            .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE + "  is not present"));
+    private HearingWindowModel updateHearingWindow(AsylumCase asylumCase, String nextHearingDate) {
         return switch (nextHearingDate) {
-            case NEXT_HEARING_DATE_DATE_TO_BE_FIXED -> {
-                String dateFixed = asylumCase.read(NEXT_HEARING_DATE_FIXED, String.class)
-                    .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE_FIXED + "  is not present"));
-                yield HearingWindowModel.builder()
-                    .firstDateTimeMustBe(HearingsUtils.convertToLocalDateFormat(dateFixed).toString())
-                    .build();
-            }
-            case NEXT_HEARING_DATE_CHOOSE_DATE_RANGE -> {
-                HearingWindowModel hearingWindowModel = HearingWindowModel.builder().build();
-                asylumCase.read(NEXT_HEARING_DATE_RANGE_EARLIEST, String.class)
-                    .ifPresent(date ->
-                                   hearingWindowModel.setDateRangeStart(
-                                       HearingsUtils.convertToLocalDateFormat(date).toString()));
-
-                asylumCase.read(NEXT_HEARING_DATE_RANGE_LATEST, String.class)
-                    .ifPresent(date ->
-                                   hearingWindowModel.setDateRangeEnd(
-                                       HearingsUtils.convertToLocalDateFormat(date).toString()));
-                yield  hearingWindowModel;
-            }
+            case NEXT_HEARING_DATE_DATE_TO_BE_FIXED -> createFixedDateHearingWindow(asylumCase);
+            case NEXT_HEARING_DATE_CHOOSE_DATE_RANGE -> createDateRangeHearingWindow(asylumCase);
             default -> null;
         };
+    }
+
+    private String getNextHearingDate(AsylumCase asylumCase) {
+        return asylumCase.read(NEXT_HEARING_DATE, String.class)
+            .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE + NOT_PRESENT_TEXT));
+    }
+
+    private DynamicList getCancellationReason(AsylumCase asylumCase) {
+        return asylumCase.read(HEARING_REASON_TO_UPDATE, DynamicList.class)
+            .orElseThrow(() -> new IllegalStateException(HEARING_REASON_TO_UPDATE + NOT_PRESENT_TEXT));
+    }
+
+    private HearingWindowModel createFixedDateHearingWindow(AsylumCase asylumCase) {
+        String dateFixed = asylumCase.read(NEXT_HEARING_DATE_FIXED, String.class)
+            .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE_FIXED + NOT_PRESENT_TEXT));
+        return HearingWindowModel.builder()
+            .firstDateTimeMustBe(HearingsUtils.convertToLocalDateFormat(dateFixed).toString())
+            .build();
+    }
+
+    private HearingWindowModel createDateRangeHearingWindow(AsylumCase asylumCase) {
+        HearingWindowModel hearingWindowModel = HearingWindowModel.builder().build();
+        asylumCase.read(NEXT_HEARING_DATE_RANGE_EARLIEST, String.class)
+            .ifPresent(date ->
+                           hearingWindowModel.setDateRangeStart(
+                               HearingsUtils.convertToLocalDateFormat(date).toString()));
+
+        asylumCase.read(NEXT_HEARING_DATE_RANGE_LATEST, String.class)
+            .ifPresent(date ->
+                           hearingWindowModel.setDateRangeEnd(
+                               HearingsUtils.convertToLocalDateFormat(date).toString()));
+        return hearingWindowModel;
     }
 
 }
