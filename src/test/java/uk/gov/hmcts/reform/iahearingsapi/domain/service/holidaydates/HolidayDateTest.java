@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
-public class HolidayDateTest {
+class HolidayDateTest {
 
     private final LocalDate date = LocalDate.now();
     private final HolidayDate holidayDate = new HolidayDate(date);

@@ -22,7 +22,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
-public class LocationBasedFeatureTogglerTest {
+class LocationBasedFeatureTogglerTest {
 
     private static final String AUTO_HEARING_REQUEST_LOCATIONS_LIST = "auto-hearing-request-locations-list";
     private static final LDValue DEFAULT_VALUE = LDValue.parse("{\"epimsIds\":[]}");

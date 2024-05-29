@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 
-public class HearingWindowModelTest {
+class HearingWindowModelTest {
 
     private static final String DATE_START = "dateStart";
 

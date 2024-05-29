@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class EventTest {
+class EventTest {
 
     @Test
     void has_correct_values() {

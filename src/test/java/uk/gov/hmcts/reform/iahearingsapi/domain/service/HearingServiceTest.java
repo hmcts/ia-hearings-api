@@ -76,6 +76,8 @@ class HearingServiceTest {
     private static final String SERVICE_ID = "BFA1";
     private static final String REASON_FOR_LINK = "Reason for case to be linked";
     private static final String APPELLANT_2 = "Name LastName";
+    private static final String SERVICE_USER_TOKEN = "serviceUserToken";
+    private static final String SERVICE_AUTH_TOKEN = "serviceAuthToken";
 
     @Mock
     private FeatureToggler featureToggler;
@@ -160,9 +162,9 @@ class HearingServiceTest {
 
         when(idamService.getServiceUserToken()).thenThrow(new RuntimeException("Token generation failed"));
 
-        assertThrows(IllegalStateException.class, () -> {
-            hearingService.createHearing(payload);
-        });
+        assertThrows(IllegalStateException.class, () ->
+            hearingService.createHearing(payload)
+        );
     }
 
     @Test
@@ -170,9 +172,10 @@ class HearingServiceTest {
         CaseDetails caseDetails = mock(CaseDetails.class);
         when(coreCaseDataService.getCaseDetails(CASE_ID)).thenReturn(caseDetails);
         when(caseDetails.getCaseTypeId()).thenReturn("Test");
+        HearingRequestPayload payload = new HearingRequestPayload(CASE_ID, null);
 
         assertThatThrownBy(() -> hearingService.getServiceHearingValues(
-            new HearingRequestPayload(CASE_ID, null)))
+            payload))
             .hasMessage("Service could not handle case type: Test")
             .isExactlyInstanceOf(IllegalStateException.class);
     }
@@ -228,14 +231,14 @@ class HearingServiceTest {
 
     @Test
     void testGetHearingException() {
-        when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
-        when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
+        when(idamService.getServiceUserToken()).thenReturn(SERVICE_USER_TOKEN);
+        when(serviceAuthTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
         when(hmcHearingApi.getHearingRequest(anyString(), anyString(), anyString(), any()))
             .thenThrow(FeignException.class);
 
-        assertThrows(HmcException.class, () -> {
-            hearingService.getHearing(HEARING_ID);
-        });
+        assertThrows(HmcException.class, () ->
+            hearingService.getHearing(HEARING_ID)
+        );
     }
 
     @Test
@@ -250,14 +253,15 @@ class HearingServiceTest {
 
     @Test
     void testGetHearingsException() {
-        when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
-        when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
+        when(idamService.getServiceUserToken()).thenReturn(SERVICE_USER_TOKEN);
+        when(serviceAuthTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
         when(hmcHearingApi.getHearingsRequest(anyString(), anyString(), anyString()))
             .thenThrow(FeignException.class);
+        Long hearingId = Long.parseLong(HEARING_ID);
 
-        assertThrows(HmcException.class, () -> {
-            hearingService.getHearings(Long.parseLong(HEARING_ID));
-        });
+        assertThrows(HmcException.class, () ->
+            hearingService.getHearings(hearingId)
+        );
     }
 
     @Test
@@ -279,8 +283,8 @@ class HearingServiceTest {
 
     @Test
     void testUpdateHearingException() {
-        when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
-        when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
+        when(idamService.getServiceUserToken()).thenReturn(SERVICE_USER_TOKEN);
+        when(serviceAuthTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
         when(hmcHearingApi.updateHearingRequest(anyString(), anyString(), any(UpdateHearingRequest.class), anyString()))
             .thenThrow(FeignException.class);
         CaseDetailsHearing caseDetailsHearing = mock(CaseDetailsHearing.class);
@@ -329,8 +333,8 @@ class HearingServiceTest {
 
     @Test
     void testGetPartiesNotifiedException() {
-        when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
-        when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
+        when(idamService.getServiceUserToken()).thenReturn(SERVICE_USER_TOKEN);
+        when(serviceAuthTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
         when(hmcHearingApi.getPartiesNotifiedRequest(anyString(), anyString(), anyString()))
             .thenThrow(FeignException.class);
 
@@ -341,7 +345,6 @@ class HearingServiceTest {
 
     @Test
     void testUpdatePartiesNotified() {
-
         hearingService.updatePartiesNotified(HEARING_ID, 1, receivedDateTime, payload);
 
         verify(hmcHearingApi, times(1)).updatePartiesNotifiedRequest(
@@ -356,9 +359,8 @@ class HearingServiceTest {
 
     @Test
     void testUpdatePartiesNotifiedException() {
-
-        when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
-        when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
+        when(idamService.getServiceUserToken()).thenReturn(SERVICE_USER_TOKEN);
+        when(serviceAuthTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
         doThrow(FeignException.class)
             .when(hmcHearingApi)
             .updatePartiesNotifiedRequest(

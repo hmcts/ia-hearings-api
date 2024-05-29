@@ -128,7 +128,7 @@ class UpdateHearingRequestPreparerTest {
     }
 
     @Test
-    public void should_write_update_hearings_list_skipping_hmc_unused_statuses() {
+    void should_write_update_hearings_list_skipping_hmc_unused_statuses() {
         List<CaseHearing> caseHearingList = List.of(
             CaseHearing.builder()
                 .hearingRequestId("1")

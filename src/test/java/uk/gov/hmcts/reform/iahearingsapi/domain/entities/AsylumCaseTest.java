@@ -6,6 +6,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import java.io.IOException;
 import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("OperatorWrap")
@@ -21,7 +22,7 @@ class AsylumCaseTest {
 
         Optional<String> maybeAppealReferenceNumber = asylumCase.read(HMCTS_CASE_NAME_INTERNAL);
 
-        assertThat(maybeAppealReferenceNumber.get()).isEqualTo("hmctsCaseNameInternal");
+        Assertions.assertEquals(maybeAppealReferenceNumber.get(), "hmctsCaseNameInternal");
     }
 
     @Test
@@ -31,8 +32,8 @@ class AsylumCaseTest {
 
         asylumCase.write(HMCTS_CASE_NAME_INTERNAL, "hmctsCaseNameInternal");
 
-        assertThat(asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class).get())
-            .isEqualTo("hmctsCaseNameInternal");
+        Assertions.assertEquals((asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class).get()),
+                                "hmctsCaseNameInternal");
     }
 
     @Test

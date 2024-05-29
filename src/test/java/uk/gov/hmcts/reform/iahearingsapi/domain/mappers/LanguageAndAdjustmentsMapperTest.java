@@ -37,7 +37,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class LanguageAndAdjustmentsMapperTest {
+class LanguageAndAdjustmentsMapperTest {
 
     private static final String APPELLANT_PARTY_ID = "APEL";
     private static final String APPLICANT_PARTY_ROLE = "APPL";

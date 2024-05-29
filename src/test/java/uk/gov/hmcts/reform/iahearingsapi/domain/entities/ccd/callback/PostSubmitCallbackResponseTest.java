@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-public class PostSubmitCallbackResponseTest {
+class PostSubmitCallbackResponseTest {
 
     PostSubmitCallbackResponse respose = new PostSubmitCallbackResponse();
 

@@ -12,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 
 @ExtendWith(MockitoExtension.class)
-public class ScheduledTaskRunnerTest {
+class ScheduledTaskRunnerTest {
 
     @Mock
     private ApplicationContext context;

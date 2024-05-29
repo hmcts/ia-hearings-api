@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -22,7 +23,7 @@ class BailCaseTest {
 
         Optional<String> maybeAppealReferenceNumber = bailCase.read(CASE_NAME_HMCTS_INTERNAL);
 
-        assertThat(maybeAppealReferenceNumber.get()).isEqualTo("caseNameHmctsInternal");
+        Assertions.assertEquals(maybeAppealReferenceNumber.get(), "caseNameHmctsInternal");
     }
 
     @Test
@@ -32,8 +33,8 @@ class BailCaseTest {
 
         bailCase.write(CASE_NAME_HMCTS_INTERNAL, "caseNameHmctsInternal");
 
-        assertThat(bailCase.read(CASE_NAME_HMCTS_INTERNAL, String.class).get())
-            .isEqualTo("caseNameHmctsInternal");
+        Assertions.assertEquals(bailCase.read(CASE_NAME_HMCTS_INTERNAL, String.class).get(),
+            ("caseNameHmctsInternal"));
     }
 
     @Test

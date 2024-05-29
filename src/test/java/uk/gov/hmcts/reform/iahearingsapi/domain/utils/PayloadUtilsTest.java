@@ -27,7 +27,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsMo
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 
 @ExtendWith(MockitoExtension.class)
-public class PayloadUtilsTest {
+class PayloadUtilsTest {
 
     @Mock
     private AsylumCase asylumCase;

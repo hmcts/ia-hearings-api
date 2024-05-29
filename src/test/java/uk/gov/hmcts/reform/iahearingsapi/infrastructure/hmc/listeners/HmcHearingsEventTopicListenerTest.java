@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.EXCEPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,13 +21,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.iahearingsapi.TestUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HearingUpdate;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcEventProcessingException;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
 
 @ExtendWith(MockitoExtension.class)
 class HmcHearingsEventTopicListenerTest {
 
     private static final String SERVICE_CODE = "BFA1";
-
     private HmcHearingsEventTopicListener hmcHearingsEventTopicListener;
 
     @Mock
@@ -36,53 +37,45 @@ class HmcHearingsEventTopicListenerTest {
     private ObjectMapper mockObjectMapper;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private HmcMessage hmcMessage;
+    private byte[] message;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
         hmcHearingsEventTopicListener = new HmcHearingsEventTopicListener(SERVICE_CODE, hmcMessageProcessor);
         ReflectionTestUtils.setField(hmcHearingsEventTopicListener, "objectMapper", mockObjectMapper);
         ReflectionTestUtils.setField(hmcHearingsEventTopicListener, "hmctsServiceId", SERVICE_CODE);
+
+        hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE);
+        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        message = StandardCharsets.UTF_8.encode(stringMessage).array();
     }
 
     @Test
-    public void testOnMessageWithRelevantMessage() throws Exception {
-        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE);
+    void testOnMessageWithRelevantMessage() throws Exception {
         hmcMessage.setHearingUpdate(HearingUpdate.builder().hmcStatus(EXCEPTION).build());
-
-        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
-        byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
-
-        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-
-        hmcHearingsEventTopicListener.onMessage(message);
-
+        processMessage();
         verify(hmcMessageProcessor, times(1)).processMessage(any(HmcMessage.class));
     }
 
     @Test
-    public void testOnMessageWithIrrelevantMessage() throws Exception {
-        HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode");
-        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
-        byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
-
-        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        hmcHearingsEventTopicListener.onMessage(message);
-
+    void testOnMessageWithIrrelevantMessage() throws Exception {
+        hmcMessage.setHmctsServiceCode("irrelevantServiceCode");
+        processMessage();
         verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
     }
 
     // Disable this test if using live-processing instead of batch-processing of messages
     @Test
-    public void should_not_process_messages_with_hmc_status_different_than_exception() throws Exception {
-        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE);
+    void should_not_process_messages_with_hmc_status_different_than_exception() throws Exception {
         hmcMessage.setHearingUpdate(HearingUpdate.builder().hmcStatus(LISTED).build());
-        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
-        byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
+        processMessage();
+        verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
+    }
 
+    private void processMessage() throws JsonProcessingException, HmcEventProcessingException {
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
         hmcHearingsEventTopicListener.onMessage(message);
-
-        verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
     }
 
 }

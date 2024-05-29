@@ -36,7 +36,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class AutoRequestHearingHandlerTest {
+class AutoRequestHearingHandlerTest {
 
     @Mock
     private Callback<AsylumCase> callback;

@@ -5,7 +5,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -87,7 +86,7 @@ class EndAppealRequestSubmitHandlerTest {
 
         endAppealRequestSubmitHandler.handle(ABOUT_TO_SUBMIT, callback);
 
-        verify(hearingService, times(2)).deleteHearing(eq(Long.valueOf(HEARING_ID)), eq("withdraw"));
+        verify(hearingService, times(2)).deleteHearing(Long.valueOf(HEARING_ID), "withdraw");
     }
 
     @ParameterizedTest

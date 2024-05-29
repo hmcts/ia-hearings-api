@@ -35,7 +35,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class RecordAdjournmentDetailsPreparerTest {
+class RecordAdjournmentDetailsPreparerTest {
 
     private static final String CASE_HEARING_REQUEST_ID_1 = "1";
     private static final String CASE_HEARING_REQUEST_ID_2 = "2";

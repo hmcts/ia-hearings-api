@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-public class HearingLengthTest {
+class HearingLengthTest {
 
     @Test
     void test_from_valid_value() {

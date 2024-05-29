@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
-public class HearingChannelTypeChangingRadioButtonTest {
+class HearingChannelTypeChangingRadioButtonTest {
 
     @Test
     void test_from_valid_value() {

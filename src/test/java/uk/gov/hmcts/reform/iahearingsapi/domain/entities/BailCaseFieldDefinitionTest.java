@@ -9,7 +9,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_MOBILE_NUMBER;
 
-public class BailCaseFieldDefinitionTest {
+class BailCaseFieldDefinitionTest {
 
     private List<BailCaseFieldDefinition> exceptionalFields = List.of(APPLICANT_MOBILE_NUMBER);
 

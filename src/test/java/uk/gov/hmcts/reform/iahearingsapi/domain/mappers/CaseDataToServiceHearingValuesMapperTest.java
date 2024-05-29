@@ -156,7 +156,7 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.empty());
 
-        assertEquals(mapper.getHearingChannels(asylumCase), Collections.emptyList());
+        assertEquals(Collections.emptyList(), mapper.getHearingChannels(asylumCase));
     }
 
     @Test
@@ -225,7 +225,7 @@ class CaseDataToServiceHearingValuesMapperTest {
         when(asylumCase.read(GWF_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(GWF_REFERENCE));
         when(asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.empty());
 
-        assertEquals(mapper.getExternalCaseReference(asylumCase), GWF_REFERENCE);
+        assertEquals(GWF_REFERENCE, mapper.getExternalCaseReference(asylumCase));
     }
 
     @Test
@@ -278,7 +278,7 @@ class CaseDataToServiceHearingValuesMapperTest {
     void getCaseDeepLink_should_return_valid_case_link() {
 
         String caseDeepLink = mapper.getCaseDeepLink("1234567891234567");
-        assertEquals(caseDeepLink, "/cases/case-details/1234567891234567#Overview");
+        assertEquals("/cases/case-details/1234567891234567#Overview", caseDeepLink);
     }
 
     @Test
@@ -481,7 +481,7 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         String listingComments = mapper.getListingComments(asylumCase);
 
-        assertEquals(listingComments, "Other adjustments: adjustments;");
+        assertEquals("Other adjustments: adjustments;", listingComments);
     }
 
     @Test
@@ -495,7 +495,7 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         String listingComments = mapper.getListingComments(asylumCase);
 
-        assertEquals(listingComments, "");
+        assertEquals("", listingComments);
     }
 
     @Test
@@ -505,7 +505,7 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         String listingComments = mapper.getListingComments(asylumCase);
 
-        assertEquals(listingComments, "Additional instructions: New instructions;");
+        assertEquals("Additional instructions: New instructions;", listingComments);
     }
 
     @Test

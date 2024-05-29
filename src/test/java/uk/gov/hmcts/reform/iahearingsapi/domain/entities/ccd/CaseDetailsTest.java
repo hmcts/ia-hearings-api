@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 
-public class CaseDetailsTest {
+class CaseDetailsTest {
 
     private final long id = 123L;
     private final String jurisdiction = "IA";

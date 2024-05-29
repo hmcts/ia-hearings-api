@@ -43,7 +43,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @ExtendWith(MockitoExtension.class)
-public class DecisionWithoutHearingListedTest {
+class DecisionWithoutHearingListedTest {
 
     private static final String CASE_REFERNECE = "1111222233334444";
     private static final String HEARING_REQ_ID = "2000000001";

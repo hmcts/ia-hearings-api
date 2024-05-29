@@ -6,7 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class CountryHolidayDatesTest {
+class CountryHolidayDatesTest {
 
     private final LocalDate date = LocalDate.now();
     private final List<HolidayDate> events = List.of(new HolidayDate(date));

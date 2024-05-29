@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,7 +24,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @ExtendWith(MockitoExtension.class)
-public class SendServiceDataToHmcHandlerTest {
+class SendServiceDataToHmcHandlerTest {
 
     private static final long VERSION_NUMBER = 1L;
     private static final String HEARING_ID = "2000000050";
@@ -73,10 +72,10 @@ public class SendServiceDataToHmcHandlerTest {
 
         sendServiceDataToHmcHandler.handle(serviceData);
 
-        verify(hearingService).updatePartiesNotified(eq(HEARING_ID),
-                                                     eq(VERSION_NUMBER),
-                                                     eq(HEARING_RESPONSE_RECEIVED_DATE_TIME),
-                                                     eq(partiesNotified));
+        verify(hearingService).updatePartiesNotified(HEARING_ID,
+                                                     VERSION_NUMBER,
+                                                     HEARING_RESPONSE_RECEIVED_DATE_TIME,
+                                                     partiesNotified);
     }
 
     @Test
@@ -93,10 +92,10 @@ public class SendServiceDataToHmcHandlerTest {
 
         sendServiceDataToHmcHandler.handle(serviceData);
 
-        verify(hearingService, never()).updatePartiesNotified(eq(HEARING_ID),
-                                                     eq(VERSION_NUMBER),
-                                                     eq(HEARING_RESPONSE_RECEIVED_DATE_TIME),
-                                                     eq(partiesNotified));
+        verify(hearingService, never()).updatePartiesNotified(HEARING_ID,
+                                                     VERSION_NUMBER,
+                                                     HEARING_RESPONSE_RECEIVED_DATE_TIME,
+                                                     partiesNotified);
     }
 
     @Test
@@ -113,10 +112,10 @@ public class SendServiceDataToHmcHandlerTest {
 
         sendServiceDataToHmcHandler.handle(serviceData);
 
-        verify(hearingService, never()).updatePartiesNotified(eq(HEARING_ID),
-                                                              eq(VERSION_NUMBER),
-                                                              eq(HEARING_RESPONSE_RECEIVED_DATE_TIME),
-                                                              eq(partiesNotified));
+        verify(hearingService, never()).updatePartiesNotified(HEARING_ID,
+                                                              VERSION_NUMBER,
+                                                              HEARING_RESPONSE_RECEIVED_DATE_TIME,
+                                                              partiesNotified);
     }
 
     @Test
@@ -133,9 +132,9 @@ public class SendServiceDataToHmcHandlerTest {
 
         sendServiceDataToHmcHandler.handle(serviceData);
 
-        verify(hearingService, never()).updatePartiesNotified(eq(HEARING_ID),
-                                                              eq(VERSION_NUMBER),
-                                                              eq(HEARING_RESPONSE_RECEIVED_DATE_TIME),
-                                                              eq(partiesNotified));
+        verify(hearingService, never()).updatePartiesNotified(HEARING_ID,
+                                                              VERSION_NUMBER,
+                                                              HEARING_RESPONSE_RECEIVED_DATE_TIME,
+                                                              partiesNotified);
     }
 }
