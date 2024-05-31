@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
@@ -38,10 +39,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
@@ -49,11 +50,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 @RequiredArgsConstructor
 public class EditListCaseHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
-    public static final String APPEALS_LOCATION_REF_DATA_FEATURE = "appeals-location-reference-data";
     private final CoreCaseDataService coreCaseDataService;
     private final LocationRefDataService locationRefDataService;
-    private final FeatureToggler featureToggler;
-
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -186,8 +184,9 @@ public class EditListCaseHandler extends ListedHearingService implements Service
     }
 
     private void assignRefDataFields(AsylumCase asylumCase, ServiceData serviceData, String caseId) {
-        boolean isAppealsLocationRefDataEnabled = featureToggler.getValueAsServiceUser(
-            APPEALS_LOCATION_REF_DATA_FEATURE, false);
+        boolean isAppealsLocationRefDataEnabled = asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class)
+            .map(yesOrNo -> yesOrNo.equals(YES))
+            .orElse(false);
 
         if (!isAppealsLocationRefDataEnabled) {
             return;
