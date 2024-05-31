@@ -54,6 +54,7 @@ public class HearingService {
     private final IaCcdConvertService iaCcdConvertService;
     @Value("${hearingValues.hmctsServiceId}") String serviceId;
     private final CreateHearingPayloadService createHearingPayloadService;
+    @Value("${hmc.deployment-id}") String hmctsDeploymentId;
 
     public HmcHearingResponse createHearing(CreateHearingRequest hearingPayload) {
         try {
@@ -65,7 +66,7 @@ public class HearingService {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
-            return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken, hearingPayload);
+            return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken, hmctsDeploymentId, hearingPayload);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new IllegalStateException("Service could not complete request to create hearing", e);
@@ -136,6 +137,7 @@ public class HearingService {
             return hmcHearingApi.getHearingRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
                 hearingId,
                 null
             );
@@ -156,6 +158,7 @@ public class HearingService {
             return hmcHearingApi.getHearingsRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
                 caseReference.toString()
             );
         } catch (FeignException ex) {
@@ -181,6 +184,7 @@ public class HearingService {
             return hmcHearingApi.updateHearingRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
                 updateHearingRequest,
                 hearingId
             );
@@ -199,6 +203,7 @@ public class HearingService {
             return hmcHearingApi.getPartiesNotifiedRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
                 hearingId
             );
         } catch (FeignException e) {
@@ -216,6 +221,7 @@ public class HearingService {
             hmcHearingApi.updatePartiesNotifiedRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
                 payload,
                 hearingId,
                 requestVersion,
@@ -236,6 +242,7 @@ public class HearingService {
             return hmcHearingApi.deleteHearing(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
                 hearingId,
                 new DeleteHearingRequest(Arrays.asList(cancellationReason))
             );
@@ -253,6 +260,7 @@ public class HearingService {
 
             return hmcHearingApi.getUnNotifiedHearings(serviceUserToken,
                                                        serviceAuthToken,
+                                                       hmctsDeploymentId,
                                                        hearingStartDateFrom,
                                                        null,
                                                        serviceId);

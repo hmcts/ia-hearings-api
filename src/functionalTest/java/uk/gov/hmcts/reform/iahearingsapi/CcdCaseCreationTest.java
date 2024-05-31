@@ -126,6 +126,7 @@ public class CcdCaseCreationTest {
         return hmcHearingApi.getHearingsRequest(
             systemUserToken,
             s2sToken,
+            null,
             caseReference
         );
     }
