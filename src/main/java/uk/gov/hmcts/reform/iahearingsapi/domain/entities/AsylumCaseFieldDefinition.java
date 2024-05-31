@@ -306,7 +306,10 @@ public enum AsylumCaseFieldDefinition {
         "listingLocation", new TypeReference<DynamicList>(){}),
 
     IS_REMOTE_HEARING(
-        "isRemoteHearing", new TypeReference<YesOrNo>(){});
+        "isRemoteHearing", new TypeReference<YesOrNo>(){}),
+
+    IS_CASE_USING_LOCATION_REF_DATA(
+        "isCaseUsingLocationRefData", new TypeReference<YesOrNo>(){});
 
 
     private final String value;
