@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
@@ -15,10 +17,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
@@ -26,9 +28,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 @RequiredArgsConstructor
 public class ListCaseHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
-    public static final String APPEALS_LOCATION_REF_DATA_FEATURE = "appeals-location-reference-data";
     private final CoreCaseDataService coreCaseDataService;
-    private final FeatureToggler featureToggler;
     private final LocationRefDataService locationRefDataService;
 
     @Override
@@ -60,10 +60,9 @@ public class ListCaseHandler extends ListedHearingService implements ServiceData
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
         log.info("asylumCase for  Case ID `{}` contains '{}'", caseId, asylumCase.toString());
 
-        boolean isAppealsLocationRefDataEnabled = false;
-
-        isAppealsLocationRefDataEnabled = featureToggler.getValueAsServiceUser(
-            APPEALS_LOCATION_REF_DATA_FEATURE, false);
+        boolean isAppealsLocationRefDataEnabled = asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class)
+            .map(yesOrNo -> yesOrNo.equals(YES))
+            .orElse(false);
 
         updateListCaseHearingDetails(serviceData, asylumCase, isAppealsLocationRefDataEnabled, caseId,
             locationRefDataService.getCourtVenuesAsServiceUser(),

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LOCATION;
@@ -27,7 +28,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChann
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.EditListCaseHandler.APPEALS_LOCATION_REF_DATA_FEATURE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import java.time.LocalDateTime;
@@ -62,7 +62,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
@@ -89,8 +88,7 @@ class EditListCaseHandlerTest {
     AsylumCase asylumCase;
     @Mock
     LocationRefDataService locationRefDataService;
-    @Mock
-    FeatureToggler featureToggler;
+
     private EditListCaseHandler editListCaseHandler;
 
     private DynamicList hearingLocationList = new DynamicList(
@@ -100,7 +98,7 @@ class EditListCaseHandlerTest {
     @BeforeEach
     public void setUp() {
 
-        editListCaseHandler = new EditListCaseHandler(coreCaseDataService, locationRefDataService, featureToggler);
+        editListCaseHandler = new EditListCaseHandler(coreCaseDataService, locationRefDataService);
         when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERENCE));
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -331,13 +329,13 @@ class EditListCaseHandlerTest {
 
     @ParameterizedTest
     @MethodSource("assignRefDataFieldsSource")
-    void should_assign_ref_data_fields(HearingChannel hearingChannel, boolean isRefDataEnabled,
+    void should_assign_ref_data_fields(HearingChannel hearingChannel, YesOrNo isRefDataEnabled,
                                        YesOrNo expectedIsRemoteHearing) {
         initializeServiceData();
         initializeAsylumCaseData();
 
-        when(featureToggler.getValueAsServiceUser(APPEALS_LOCATION_REF_DATA_FEATURE, false))
-            .thenReturn(isRefDataEnabled);
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(isRefDataEnabled));
 
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(hearingChannel)));
@@ -354,7 +352,7 @@ class EditListCaseHandlerTest {
             new Value("231596", COURT_NAME),
             hearingLocationList.getListItems());
 
-        if (isRefDataEnabled) {
+        if (isRefDataEnabled.equals(YES)) {
             verify(asylumCase).write(IS_REMOTE_HEARING, expectedIsRemoteHearing);
             verify(asylumCase).write(LISTING_LOCATION, expectedRefDataListingLocation);
         } else {
@@ -366,10 +364,10 @@ class EditListCaseHandlerTest {
     private static Stream<Arguments> assignRefDataFieldsSource() {
 
         return Stream.of(
-            Arguments.of(INTER, true, NO),
-            Arguments.of(TEL, true, YES),
-            Arguments.of(VID, true, YES),
-            Arguments.of(INTER, false, NO)
+            Arguments.of(INTER, YES, NO),
+            Arguments.of(TEL, YES, YES),
+            Arguments.of(VID, YES, YES),
+            Arguments.of(INTER, NO, NO)
         );
     }
 
