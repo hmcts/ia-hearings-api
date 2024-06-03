@@ -163,7 +163,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
         }).build();
     }
 
-    @Pact(provider = "hmc_cft_hearings_api", consumer = "ia_hearingsApi")
+    @Pact(provider = "hmc_cftHearingService", consumer = "ia_hearingsApi")
     public RequestResponsePact generatePactFragmentForGetPartiesNotified(
         PactDslWithProvider builder) {
         // @formatter:off
