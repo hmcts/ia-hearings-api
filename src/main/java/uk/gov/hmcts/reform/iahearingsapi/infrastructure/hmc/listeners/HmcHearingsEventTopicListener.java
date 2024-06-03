@@ -55,8 +55,7 @@ public class HmcHearingsEventTopicListener {
             log.info("Received message from HMC hearings topic for Case ID {}, and Hearing ID {}.",
                      caseId, hearingId);
 
-            if (isMessageRelevantForService(hmcMessage)
-                && Objects.equals(hmcMessage.getHearingUpdate().getHmcStatus(), EXCEPTION)) {
+            if (isMessageRelevantForService(hmcMessage)) {
 
                 log.info("Attempting to process message from HMC hearings topic for"
                              + " Case ID {}, and Hearing ID {} with status EXCEPTION", caseId, hearingId);
