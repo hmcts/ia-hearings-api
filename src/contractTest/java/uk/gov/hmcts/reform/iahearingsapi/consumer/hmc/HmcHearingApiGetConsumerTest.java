@@ -32,10 +32,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotified
 @PactFolder("pacts")
 @TestPropertySource(properties = {"hmc.baseUrl=localhost:4561"})
 @ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
-@PactTestFor(providerName = "hmc_cft_hearings_api", port = "4561")
+@PactTestFor(providerName = "hmc_cftHearingService", port = "4561")
 public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase {
 
-    @Pact(provider = "hmc_cft_hearings_api", consumer = "ia_hearingsApi")
+    @Pact(provider = "hmc_cftHearingService", consumer = "ia_hearingsApi")
     public RequestResponsePact generatePactFragmentForGetHearingRequest(
         PactDslWithProvider builder) {
         // @formatter:off
@@ -168,7 +168,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
         }).build();
     }
 
-    @Pact(provider = "hmc_cft_hearings_api", consumer = "ia_hearingsApi")
+    @Pact(provider = "hmc_cftHearingService", consumer = "ia_hearingsApi")
     public RequestResponsePact generatePactFragmentForGetPartiesNotified(
         PactDslWithProvider builder) {
         // @formatter:off

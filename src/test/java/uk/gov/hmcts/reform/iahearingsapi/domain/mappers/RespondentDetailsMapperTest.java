@@ -61,7 +61,7 @@ class RespondentDetailsMapperTest {
             .organisationDetails(
                 OrganisationDetailsModel.builder()
                     .organisationType(ORG)
-                    .name("Home Office Presenting Officer")
+                    .name("Secretary of State")
                     .cftOrganisationID(null)
                     .build())
             .build();
