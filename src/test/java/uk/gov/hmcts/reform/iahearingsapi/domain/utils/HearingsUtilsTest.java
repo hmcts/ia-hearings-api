@@ -1,8 +1,14 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.utils;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_DECISION_WITHOUT_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HEARING_CENTRE_REF_DATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,15 +17,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class HearingsUtilsTest {
 
     @Mock
     BailCase bailCase;
+    @Mock
+    AsylumCase asylumCase;
 
     @Test
     void testConvertToLocalStringFormat() {
@@ -62,5 +76,37 @@ public class HearingsUtilsTest {
             );
 
         assertEquals(glasgow, HearingsUtils.getEpimsId(bailCase));
+    }
+
+    @Test
+    void isDecisionWithoutHearingAppeal_should_return_true() {
+        when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
+            .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
+
+        assertTrue(HearingsUtils.isDecisionWithoutHearingAppeal(asylumCase));
+    }
+
+    @Test
+    void isDecisionWithoutHearingAppeal_should_return_true_when_ref_data_enabled() {
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(IS_DECISION_WITHOUT_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+
+        assertTrue(HearingsUtils.isDecisionWithoutHearingAppeal(asylumCase));
+    }
+
+    @Test
+    void isDecisionWithoutHearingAppeal_should_return_false() {
+
+        assertFalse(HearingsUtils.isDecisionWithoutHearingAppeal(asylumCase));
+    }
+
+    @Test
+    void isDecisionWithoutHearingAppeal_should_return_false_when_ref_data_enabled() {
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+
+        assertFalse(HearingsUtils.isDecisionWithoutHearingAppeal(asylumCase));
     }
 }

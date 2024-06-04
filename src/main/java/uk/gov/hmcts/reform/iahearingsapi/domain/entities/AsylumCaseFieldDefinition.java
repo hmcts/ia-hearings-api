@@ -309,7 +309,9 @@ public enum AsylumCaseFieldDefinition {
         "isRemoteHearing", new TypeReference<YesOrNo>(){}),
 
     IS_CASE_USING_LOCATION_REF_DATA(
-        "isCaseUsingLocationRefData", new TypeReference<YesOrNo>(){});
+        "isCaseUsingLocationRefData", new TypeReference<YesOrNo>(){}),
+
+    IS_DECISION_WITHOUT_HEARING("isDecisionWithoutHearing", new TypeReference<YesOrNo>(){});
 
 
     private final String value;

@@ -2,10 +2,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_INSTRUCTIONS_DESCRIPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
@@ -21,6 +19,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_ADDITIONAL_ADJUSTMENTS_ALLOWED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_DECISION_WITHOUT_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_HEARING_LINKED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_MULTIMEDIA_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VULNERABILITIES_ALLOWED;
@@ -171,6 +171,17 @@ class CaseDataToServiceHearingValuesMapperTest {
     }
 
     @Test
+    void getHearingChannels_should_return_on_the_papers_when_ref_data_is_enabled() {
+
+        when(asylumCase.read(IS_DECISION_WITHOUT_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+
+        assertEquals(List.of("ONPPRS"), mapper.getHearingChannels(asylumCase));
+    }
+
+    @Test
     void getHearingDuration_should_return_null_when_event_is_null() {
 
         assertEquals(null, mapper.getHearingDuration(asylumCase));
@@ -216,6 +227,23 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
             .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
+        when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.ofNullable(appealType));
+
+        switch (Objects.requireNonNull(appealType)) {
+            case EA, HU, EU -> assertEquals(60, mapper.getHearingDuration(asylumCase));
+            case PA, RP, DC -> assertEquals(90, mapper.getHearingDuration(asylumCase));
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = AppealType.class, names = {"EA","EU","HU","PA","DC","RP"})
+    void getHearingDuration_should_return_appropriate_value_for_decision_without_hearing_and_ref_data_enabled(
+        AppealType appealType) {
+
+        when(asylumCase.read(IS_DECISION_WITHOUT_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.ofNullable(appealType));
 
         switch (Objects.requireNonNull(appealType)) {
@@ -518,20 +546,6 @@ class CaseDataToServiceHearingValuesMapperTest {
         String listingComments = mapper.getListingComments(asylumCase);
 
         assertEquals(listingComments, "Additional instructions: New instructions;");
-    }
-
-    @Test
-    void isDecisionWithoutHearingAppeal_should_return_true() {
-        when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
-            .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
-
-        assertTrue(mapper.isDecisionWithoutHearingAppeal(asylumCase));
-    }
-
-    @Test
-    void isDecisionWithoutHearingAppeal_should_return_false() {
-
-        assertFalse(mapper.isDecisionWithoutHearingAppeal(asylumCase));
     }
 
     @Test

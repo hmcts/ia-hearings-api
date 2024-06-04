@@ -11,6 +11,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_DECISION_WITHOUT_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_VENUE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
@@ -174,6 +176,26 @@ class UpdateHearingPayloadServiceTest {
 
         when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
             .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
+
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            false,
+            null,
+            UPDATE_HEARING_REQUEST
+        );
+
+        assertFalse(updateHearingRequest.getHearingDetails().isAutolistFlag());
+    }
+
+    @Test
+    void should_create_an_update_hearing_request_with_auto_list_flag_set_to_false_when_ref_data_enabled() {
+
+        when(asylumCase.read(IS_DECISION_WITHOUT_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
 
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
