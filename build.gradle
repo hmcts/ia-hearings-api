@@ -447,6 +447,19 @@ task runAndPublishConsumerPactTests(type: Test) {
   classpath = sourceSets.contractTest.runtimeClasspath
 }
 
+runAndPublishConsumerPactTests.finalizedBy pactPublish
+
+pact {
+    broker {
+        pactBrokerUrl = System.getenv("PACT_BROKER_FULL_URL") ?: 'http://localhost:80'
+    }
+    publish {
+        pactDirectory = 'pacts'
+        tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
+        version = project.pacticipantVersion
+    }
+}
+
 tasks.withType(Copy).all { duplicatesStrategy 'exclude' }
 
 gradle.startParameter.continueOnFailure = true
