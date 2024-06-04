@@ -19,5 +19,6 @@
       }
     }
   ],
-  "journeyType": "aip"
+  "journeyType": "aip",
+  "appellantInUk": "Yes"
 }
