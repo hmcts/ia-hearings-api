@@ -21,7 +21,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ActiveProfiles("functional")
-@Disabled
 class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
     void getAuthentications() {
