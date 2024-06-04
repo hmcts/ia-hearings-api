@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import io.restassured.http.Header;
 import io.restassured.response.Response;
+import jdk.jfr.Enabled;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +22,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ActiveProfiles("functional")
-@Disabled
 class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
     void getAuthentications() {
