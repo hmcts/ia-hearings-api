@@ -33,6 +33,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearin
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @Component
@@ -116,7 +117,8 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
     }
 
     private boolean getAutoListFlag(AsylumCase asylumCase, HearingDetails persistedHearingDetails) {
-        return !caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase) && persistedHearingDetails.isAutolistFlag();
+        return !HearingsUtils.isDecisionWithoutHearingAppeal(asylumCase)
+               && persistedHearingDetails.isAutolistFlag();
     }
 
     private List<HearingLocationModel> getLocations(AsylumCase asylumCase,
@@ -153,7 +155,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
     }
 
     public Integer getHearingDuration(AsylumCase asylumCase, Event event) {
-        if (caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase)) {
+        if (HearingsUtils.isDecisionWithoutHearingAppeal(asylumCase)) {
             return null;
         }
 
