@@ -112,6 +112,7 @@ class UpdateHearingsRequestSubmitTest {
         asylumCase.write(CHANGE_HEARINGS, dynamicListOfHearings);
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
+        when(callback.getCaseDetails().getId()).thenReturn(caseReference);
         when(callback.getEvent()).thenReturn(UPDATE_HEARING_REQUEST);
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(hearingGetResponse);
         when(hearingService.getHearing(anyString())).thenReturn(updatedHearing);
@@ -155,7 +156,7 @@ class UpdateHearingsRequestSubmitTest {
             false,
             null,
             UPDATE_HEARING_REQUEST,
-            any()
+            caseReference
         );
 
         assertEquals(TEL.getLabel(), asylumCase.read(CHANGE_HEARING_TYPE, String.class).orElse(""));
