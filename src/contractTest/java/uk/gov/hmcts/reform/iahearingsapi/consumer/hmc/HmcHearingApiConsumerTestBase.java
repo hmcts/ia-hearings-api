@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.consumer.hmc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
@@ -10,6 +11,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HearingRequestGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 
 @Component
 public class HmcHearingApiConsumerTestBase {
@@ -34,4 +36,12 @@ public class HmcHearingApiConsumerTestBase {
     static final String AUTHORIZATION_TOKEN = "Bearer some-access-token";
     static final String SERVICE_AUTHORIZATION_HEADER = "ServiceAuthorization";
     static final String SERVICE_AUTH_TOKEN = "someServiceAuthToken";
+
+    protected DeleteHearingRequest getDeleteHearingRequest() {
+
+        DeleteHearingRequest deleteHearingRequest = new DeleteHearingRequest();
+        deleteHearingRequest.setCancellationReasonCodes(List.of("cancellationCode1", "cancellationCode2"));
+
+        return deleteHearingRequest;
+    }
 }

@@ -22,13 +22,34 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @PactFolder("pacts")
 @TestPropertySource(properties = {"hmc.baseUrl=localhost:4561"})
 @ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
-@PactTestFor(providerName = "hmc_cftHearingService", port = "4561")
+@PactTestFor(providerName = "hmcHearingServiceProvider", port = "4561")
 public class HmcHearingApiAmendConsumerTest extends HmcHearingApiConsumerTestBase {
 
     @Pact(provider = "hmc_cftHearingService", consumer = "ia_hearingsApi")
     public RequestResponsePact generatePactFragmentForUpdatePartiesNotified(
         PactDslWithProvider builder) throws JsonProcessingException {
-        return builder.given("Hearings exist")
+        return builder
+            .given("hmc_cft_hearings_api successfully updates parties notified")
+            .uponReceiving("A Request to update parties notified")
+            .method("PUT")
+            .headers(
+                SERVICE_AUTHORIZATION_HEADER,
+                SERVICE_AUTH_TOKEN,
+                AUTHORIZATION_HEADER,
+                AUTHORIZATION_TOKEN)
+            .path("/partiesNotified/2000000057")
+            .body(objectMapper.writeValueAsString(partiesNotified))
+            .query("version=1&received=2024-09-20T10:09:19")
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .toPact();
+    }
+
+    @Pact(provider = "hmc_cftHearingService", consumer = "ia_hearingsApi")
+    public RequestResponsePact generatePactFragmentForUpdateHearing(
+        PactDslWithProvider builder) throws JsonProcessingException {
+        return builder
+            .given("hmc_cft_hearings_api successfully updates parties notified")
             .uponReceiving("A Request to update parties notified")
             .method("PUT")
             .headers(

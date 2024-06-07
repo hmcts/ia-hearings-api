@@ -26,12 +26,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @PactTestFor(providerName = "hmc_cftHearingService", port = "4561")
 public class HmcHearingApiPostConsumerTest extends HmcHearingApiConsumerTestBase {
 
-    @Pact(provider = "hmc_cftHearingService", consumer = "ia_hearingsApi")
+    @Pact(provider = "hmcHearingServiceProvider", consumer = "ia_hearingsApi")
     RequestResponsePact createHearingRequest(PactDslWithProvider builder) throws JsonProcessingException {
         Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
             .put("Connection", "close")
             .build();
-        return builder.given("hmc_cft_hearings_api successfully creates a hearing request ")
+        return builder
+            .given("hmc_cft_hearings_api successfully creates a hearing request")
             .uponReceiving("Request to create hearing request to save details")
             .method("POST")
             .path("/hearing")

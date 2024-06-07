@@ -39,7 +39,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     public RequestResponsePact generatePactFragmentForGetHearingRequest(
         PactDslWithProvider builder) {
         // @formatter:off
-        return builder.given("Hearings exist")
+        return builder.given("hmc cftHearingService successfully returns hearing for valid case ref")
             .uponReceiving("A Request to get hearing response")
             .method("GET")
             .headers(
@@ -172,7 +172,8 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     public RequestResponsePact generatePactFragmentForGetPartiesNotified(
         PactDslWithProvider builder) {
         // @formatter:off
-        return builder.given("Hearings exist")
+        return builder
+            .given("hmc cftHearingService successfully returns parties notified entry for valid case ref")
             .uponReceiving("A Request to get parties notified")
             .method("GET")
             .headers(
@@ -226,7 +227,8 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     public RequestResponsePact generatePactFragmentForGetUnNotifiedHearings(
         PactDslWithProvider builder) {
         // @formatter:off
-        return builder.given("Hearings exist")
+        return builder
+            .given("hmc cftHearingService successfully returns unnotified hearings")
             .uponReceiving("A Request to get unnotified hearings")
             .method("GET")
             .headers(

@@ -30,7 +30,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.refdata.Location
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @PactFolder("pacts")
 @TestPropertySource(properties = {"location.ref.data.url=http://localhost:8991"})
-@PactTestFor(providerName = "referenceData_court_venues", port = "8991")
+@PactTestFor(providerName = "referenceData_location", port = "8991")
 @ContextConfiguration(classes = {RefDataConsumerApplication.class})
 public class LocationRefDataConsumerTest {
 
@@ -45,7 +45,7 @@ public class LocationRefDataConsumerTest {
     @Autowired
     LocationRefDataApi locationRefDataApi;
 
-    @Pact(provider = "referenceData_court_venues", consumer = "ia_hearingsApi")
+    @Pact(provider = "referenceData_location", consumer = "ia_hearingsApi")
     public RequestResponsePact generatePactFragment(PactDslWithProvider builder)
         throws JSONException, JsonProcessingException {
 
