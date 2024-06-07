@@ -103,6 +103,7 @@ class UpdateHearingsRequestSubmitTest {
             .toList());
 
     private AsylumCase asylumCase;
+    private Long caseReference = Long.parseLong("1717667659221764");
 
     @BeforeEach
     void setUp() {
@@ -118,6 +119,7 @@ class UpdateHearingsRequestSubmitTest {
         when(updatedHearingResponse.getLaCaseStatus()).thenReturn(CASE_CREATED);
         when(updateHearingRequest.getHearingDetails()).thenReturn(hearingDetails);
         when(updateHearingPayloadService.createUpdateHearingPayload(
+            any(),
             any(),
             any(),
             any(),
@@ -152,7 +154,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            any()
         );
 
         assertEquals(TEL.getLabel(), asylumCase.read(CHANGE_HEARING_TYPE, String.class).orElse(""));
@@ -182,7 +185,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals(NEWCASTLE.getValue(), asylumCase.read(CHANGE_HEARING_VENUE, String.class).orElse(""));
@@ -214,7 +218,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             newHearingWindow,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals("Date to be fixed: 02 December 2023",
@@ -248,7 +253,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             newHearingWindow,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals("Choose a date range: Earliest 02 December 2023: Latest 26 December 2023",
@@ -276,7 +282,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             true,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals("First available date", asylumCase.read(CHANGE_HEARING_DATE, String.class).orElse(""));
@@ -313,7 +320,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals("240", asylumCase.read(CHANGE_HEARING_DURATION, String.class).orElse(""));
@@ -371,7 +379,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         // Still INTER, not changed to TEL

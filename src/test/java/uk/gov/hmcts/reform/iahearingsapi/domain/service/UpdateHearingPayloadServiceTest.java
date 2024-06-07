@@ -3,13 +3,16 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DEPORTATION_ORDER_OPTIONS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_DECISION_WITHOUT_HEARING;
@@ -22,6 +25,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.LE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_INTERPRETER_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType.HU;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils.getCaseCategoriesValue;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +43,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ReasonCodes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
@@ -76,6 +86,7 @@ class UpdateHearingPayloadServiceTest {
     @Mock
     private Event event;
     HearingDetails hearingDetails = new HearingDetails();
+    CaseDetailsHearing caseDetails = new CaseDetailsHearing();
     private final String updateHearingsCode = "code 1";
     UpdateHearingPayloadService updateHearingPayloadService;
 
@@ -84,6 +95,7 @@ class UpdateHearingPayloadServiceTest {
     private final List<String> persistedHearingChannel = List.of("INTER");
     private final Integer persistedHearingDuration = 120;
     private final String reasonCode = ReasonCodes.OTHER.toString();
+    private final Long caseReference = Long.parseLong("1717667659221764");
     private final List<HearingLocationModel> hearingLocations = List.of(HearingLocationModel
                                                                             .builder()
                                                                             .locationId(
@@ -100,9 +112,12 @@ class UpdateHearingPayloadServiceTest {
     @BeforeEach
     void setUp() {
         setDefaultHearingDetails();
+        setDefaultCaseDetails();
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(persistedHearing);
         when(persistedHearing.getHearingDetails()).thenReturn(hearingDetails);
+        when(persistedHearing.getCaseDetails()).thenReturn(caseDetails);
         when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
+        when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(HU));
         when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase,
                                                       caseFlagsMapper,
                                                       caseDataMapper,
@@ -134,7 +149,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            UPDATE_INTERPRETER_DETAILS
+            UPDATE_INTERPRETER_DETAILS,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -162,7 +178,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals(
@@ -183,7 +200,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertFalse(updateHearingRequest.getHearingDetails().isAutolistFlag());
@@ -203,7 +221,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertFalse(updateHearingRequest.getHearingDetails().isAutolistFlag());
@@ -218,7 +237,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            UPDATE_INTERPRETER_DETAILS
+            UPDATE_INTERPRETER_DETAILS,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -242,7 +262,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -264,7 +285,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             true,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -287,7 +309,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             hearingWindow,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -311,7 +334,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             hearingWindow,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -328,7 +352,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -350,7 +375,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -382,7 +408,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -411,7 +438,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             true,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals(List.of(partyDetailsModel), updateHearingRequest.getPartyDetails());
@@ -440,7 +468,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            Event.RECORD_ADJOURNMENT_DETAILS
+            Event.RECORD_ADJOURNMENT_DETAILS,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -492,7 +521,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            null
+            null,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -527,7 +557,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -557,7 +588,8 @@ class UpdateHearingPayloadServiceTest {
             reasonCode,
             false,
             null,
-            Event.RECORD_ADJOURNMENT_DETAILS
+            Event.RECORD_ADJOURNMENT_DETAILS,
+            caseReference
         );
 
         verify(hearingService, times(1)).getHearing(updateHearingsCode);
@@ -573,11 +605,55 @@ class UpdateHearingPayloadServiceTest {
         assertEqualsHearingDetails(updateHearingRequest);
     }
 
+    @Test
+    void should_set_case_details_with_latest_values() {
+        when(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference.toString()))
+            .thenReturn(caseReference.toString());
+
+        when(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase)).thenReturn(true);
+        when(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);
+        when(caseDataMapper.getCaseManagementLocationCode(asylumCase)).thenReturn("glasgow");
+        when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)).thenReturn(Optional.of(YES));
+
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            false,
+            null,
+            Event.RECORD_ADJOURNMENT_DETAILS,
+            caseReference
+        );
+
+        assertTrue(updateHearingRequest.getCaseDetails().isCaseInterpreterRequiredFlag());
+        assertTrue(updateHearingRequest.getCaseDetails().isCaseAdditionalSecurityFlag());
+        assertEquals(
+            "glasgow",
+            updateHearingRequest.getCaseDetails().getCaseManagementLocationCode());
+
+        assertEquals(
+            getCaseCategoriesValue(asylumCase),
+            updateHearingRequest.getCaseDetails().getCaseCategories());
+    }
+
     private void setDefaultHearingDetails() {
         hearingDetails.setHearingChannels(persistedHearingChannel);
         hearingDetails.setHearingLocations(hearingLocations);
         hearingDetails.setDuration(persistedHearingDuration);
         hearingDetails.setHearingWindow(hearingWindow);
         hearingDetails.setFacilitiesRequired(List.of("1"));
+    }
+
+    private void setDefaultCaseDetails() {
+        CaseCategoryModel caseCategoryModel = new CaseCategoryModel();
+        caseCategoryModel.setCategoryType(CategoryType.CASE_TYPE);
+        caseCategoryModel.setCategoryValue(CaseTypeValue.RPD.getValue());
+        caseCategoryModel.setCategoryParent("");
+
+        caseDetails.setPublicCaseName("Appellant name");
+        caseDetails.setCaseInterpreterRequiredFlag(false);
+        caseDetails.setCaseAdditionalSecurityFlag(false);
+        caseDetails.setCaseCategories(List.of(caseCategoryModel));
+        caseDetails.setCaseManagementLocationCode("manchester");
     }
 }
