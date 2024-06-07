@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ContactPreference;
 
 public enum AsylumCaseFieldDefinition {
 
@@ -311,7 +312,9 @@ public enum AsylumCaseFieldDefinition {
     IS_CASE_USING_LOCATION_REF_DATA(
         "isCaseUsingLocationRefData", new TypeReference<YesOrNo>(){}),
 
-    IS_DECISION_WITHOUT_HEARING("isDecisionWithoutHearing", new TypeReference<YesOrNo>(){});
+    IS_DECISION_WITHOUT_HEARING("isDecisionWithoutHearing", new TypeReference<YesOrNo>(){}),
+
+    CONTACT_PREFERENCE("contactPreference", new TypeReference<ContactPreference>(){});
 
 
     private final String value;
