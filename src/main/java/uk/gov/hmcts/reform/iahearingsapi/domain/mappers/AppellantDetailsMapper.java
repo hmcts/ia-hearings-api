@@ -16,6 +16,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.SingleSexType.MA
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper.appendBookingStatus;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -61,8 +62,17 @@ public class AppellantDetailsMapper {
             singleSexCourtResponse.append(";");
         }
 
-        ContactPreference contactPreference = asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class)
-            .orElseThrow(() -> new IllegalStateException("Contact Preference is not present"));
+        List<String> hearingChannelEmailValue = asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class)
+            .map(c -> c.equals(ContactPreference.WANTS_EMAIL)
+                ? caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef)
+                : Collections.<String>emptyList())
+            .orElse(Collections.emptyList());
+
+        List<String> hearingChannelPhoneValue = asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class)
+            .map(c -> c.equals(ContactPreference.WANTS_SMS)
+                ? caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef)
+                : Collections.<String>emptyList())
+            .orElse(Collections.emptyList());
 
         IndividualDetailsModel individualDetails =
             IndividualDetailsModel.builder()
@@ -71,14 +81,8 @@ public class AppellantDetailsMapper {
                 .vulnerableFlag(caseFlagsMapper.getVulnerableFlag(asylumCase))
                 .firstName(caseDataMapper.getName(asylumCase, APPELLANT_GIVEN_NAMES))
                 .lastName(caseDataMapper.getName(asylumCase, APPELLANT_FAMILY_NAME))
-                .hearingChannelEmail(
-                    contactPreference.equals(ContactPreference.WANTS_EMAIL)
-                        ? caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef)
-                        : Collections.emptyList())
-                .hearingChannelPhone(
-                    contactPreference.equals(ContactPreference.WANTS_SMS)
-                        ? caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef)
-                        : Collections.emptyList())
+                .hearingChannelEmail(hearingChannelEmailValue)
+                .hearingChannelPhone(hearingChannelPhoneValue)
                 .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
                 .build();
 
