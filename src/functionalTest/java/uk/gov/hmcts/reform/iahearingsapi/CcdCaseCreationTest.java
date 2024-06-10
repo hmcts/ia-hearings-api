@@ -168,6 +168,7 @@ public class CcdCaseCreationTest {
     private void submitAppealAsLegalRep() {
         caseData = new HashMap<>();
         caseData.put("decisionHearingFeeOption", "decisionWithHearing");
+        caseData.put("contactPreference", "wantsEmail");
 
         mapValueExpander.expandValues(caseData);
 
