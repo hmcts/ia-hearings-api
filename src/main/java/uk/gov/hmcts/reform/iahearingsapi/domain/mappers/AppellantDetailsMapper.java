@@ -6,6 +6,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PHONE_NUMBER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CONTACT_PREFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.EMAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_SINGLE_SEX_COURT_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MOBILE_NUMBER;
@@ -22,6 +23,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ContactPreference;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
@@ -59,6 +61,9 @@ public class AppellantDetailsMapper {
             singleSexCourtResponse.append(";");
         }
 
+        ContactPreference contactPreference = asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class)
+            .orElseThrow(() -> new IllegalStateException("Contact Preference is not present"));
+
         IndividualDetailsModel individualDetails =
             IndividualDetailsModel.builder()
                 .custodyStatus(caseFlagsMapper.getCustodyStatus(asylumCase))
@@ -67,9 +72,13 @@ public class AppellantDetailsMapper {
                 .firstName(caseDataMapper.getName(asylumCase, APPELLANT_GIVEN_NAMES))
                 .lastName(caseDataMapper.getName(asylumCase, APPELLANT_FAMILY_NAME))
                 .hearingChannelEmail(
-                    caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef))
+                    contactPreference.equals(ContactPreference.WANTS_EMAIL)
+                        ? caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef)
+                        : Collections.emptyList())
                 .hearingChannelPhone(
-                    caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef))
+                    contactPreference.equals(ContactPreference.WANTS_SMS)
+                        ? caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef)
+                        : Collections.emptyList())
                 .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
                 .build();
 
