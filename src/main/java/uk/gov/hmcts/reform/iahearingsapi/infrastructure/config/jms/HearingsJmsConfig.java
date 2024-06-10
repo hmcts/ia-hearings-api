@@ -21,33 +21,33 @@ public class HearingsJmsConfig {
     @Value("${azure.service-bus.hmc-to-hearings-api.receiveTimeout}")
     private Long receiveTimeout;
 
-//    @Bean
-//    @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
-//    public ConnectionFactory hmcHearingsJmsConnectionFactory(HmcTopicConnectionParams hmcTopicConnectionParams) {
-//
-//        JmsConnectionFactory jmsConnectionFactory = new JmsConnectionFactory(hmcTopicConnectionParams.getUrlString());
-//        jmsConnectionFactory.setUsername(hmcTopicConnectionParams.getUsername());
-//        jmsConnectionFactory.setPassword(hmcTopicConnectionParams.getPassword());
-//        jmsConnectionFactory.setClientID(hmcTopicConnectionParams.getClientId());
-//        jmsConnectionFactory.setReceiveLocalOnly(true);
-//
-//        return new CachingConnectionFactory(jmsConnectionFactory);
-//    }
-//
-//    @Bean
-//    @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
-//    public JmsListenerContainerFactory<DefaultMessageListenerContainer> hmcHearingsEventTopicContainerFactory(
-//
-//        ConnectionFactory hmcHearingsJmsConnectionFactory,
-//        DefaultJmsListenerContainerFactoryConfigurer configurer) {
-//        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-//        factory.setConnectionFactory(hmcHearingsJmsConnectionFactory);
-//        factory.setReceiveTimeout(receiveTimeout);
-//        factory.setSubscriptionDurable(Boolean.TRUE);
-//        factory.setSessionTransacted(Boolean.TRUE);
-//        factory.setSessionAcknowledgeMode(Session.SESSION_TRANSACTED);
-//
-//        configurer.configure(factory, hmcHearingsJmsConnectionFactory);
-//        return factory;
-//    }
+    @Bean
+    @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
+    public ConnectionFactory hmcHearingsJmsConnectionFactory(HmcTopicConnectionParams hmcTopicConnectionParams) {
+
+        JmsConnectionFactory jmsConnectionFactory = new JmsConnectionFactory(hmcTopicConnectionParams.getUrlString());
+        jmsConnectionFactory.setUsername(hmcTopicConnectionParams.getUsername());
+        jmsConnectionFactory.setPassword(hmcTopicConnectionParams.getPassword());
+        jmsConnectionFactory.setClientID(hmcTopicConnectionParams.getClientId());
+        jmsConnectionFactory.setReceiveLocalOnly(true);
+
+        return new CachingConnectionFactory(jmsConnectionFactory);
+    }
+
+    @Bean
+    @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
+    public JmsListenerContainerFactory<DefaultMessageListenerContainer> hmcHearingsEventTopicContainerFactory(
+
+        ConnectionFactory hmcHearingsJmsConnectionFactory,
+        DefaultJmsListenerContainerFactoryConfigurer configurer) {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(hmcHearingsJmsConnectionFactory);
+        factory.setReceiveTimeout(receiveTimeout);
+        factory.setSubscriptionDurable(Boolean.TRUE);
+        factory.setSessionTransacted(Boolean.TRUE);
+        factory.setSessionAcknowledgeMode(Session.SESSION_TRANSACTED);
+
+        configurer.configure(factory, hmcHearingsJmsConnectionFactory);
+        return factory;
+    }
 }
