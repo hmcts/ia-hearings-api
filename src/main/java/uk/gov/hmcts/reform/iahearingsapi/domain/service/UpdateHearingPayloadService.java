@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils.getCaseCategoriesValue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -64,7 +66,8 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         String reasonCode,
         Boolean firstAvailableDate,
         HearingWindowModel hearingWindowModel,
-        Event event
+        Event event,
+        Long caseReference
     ) {
         return generateHearingPayload(
             asylumCase,
@@ -72,16 +75,19 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
             reasonCode,
             firstAvailableDate,
             hearingWindowModel,
-            event);
+            event,
+            caseReference);
     }
 
     public UpdateHearingRequest createUpdateHearingPayload(
         AsylumCase asylumCase,
         String hearingId,
         String reasonCode,
-        Event event
+        Event event,
+        Long caseReference
     ) {
-        return generateHearingPayload(asylumCase, hearingId, reasonCode, false, null, event);
+        return generateHearingPayload(asylumCase, hearingId, reasonCode, false,
+            null, event, caseReference);
     }
 
     private UpdateHearingRequest generateHearingPayload(
@@ -90,7 +96,8 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         String reasonCode,
         Boolean firstAvailableDate,
         HearingWindowModel hearingWindowModel,
-        Event event
+        Event event,
+        Long caseReference
     ) {
         HearingGetResponse persistedHearing = hearingService.getHearing(hearingId);
 
@@ -103,10 +110,9 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
             .hearingWindow(updateHearingWindow(firstAvailableDate, hearingWindowModel, persistedHearing))
             .build();
 
-
         UpdateHearingRequest updatedHearingRequest = UpdateHearingRequest.builder()
             .requestDetails(persistedHearing.getRequestDetails())
-            .caseDetails(persistedHearing.getCaseDetails())
+            .caseDetails(buildCaseDetailsWithLatestValues(asylumCase, persistedHearing, caseReference))
             .hearingDetails(buildHearingDetails(
                 asylumCase, persistedHearing.getHearingDetails(), hearingDetails, event))
             .partyDetails(getPartyDetailsModels(asylumCase, persistedHearing.getHearingDetails(), event))
@@ -114,6 +120,20 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
 
         log.info("Updated hearing request to be persisted: {}", updatedHearingRequest.toString());
         return updatedHearingRequest;
+    }
+
+    private CaseDetailsHearing buildCaseDetailsWithLatestValues(AsylumCase asylumCase,
+                                                                HearingGetResponse persistedHearing,
+                                                                Long caseReference) {
+        CaseDetailsHearing caseDetails = persistedHearing.getCaseDetails();
+
+        caseDetails.setPublicCaseName(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference.toString()));
+        caseDetails.setCaseInterpreterRequiredFlag(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase));
+        caseDetails.setCaseAdditionalSecurityFlag(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase));
+        caseDetails.setCaseCategories(getCaseCategoriesValue(asylumCase));
+        caseDetails.setCaseManagementLocationCode(caseDataMapper.getCaseManagementLocationCode(asylumCase));
+
+        return caseDetails;
     }
 
     private boolean getAutoListFlag(AsylumCase asylumCase, HearingDetails persistedHearingDetails) {
