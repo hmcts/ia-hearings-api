@@ -26,6 +26,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_INTERPRETER_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType.HU;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType.STANDARD;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils.getCaseCategoriesValue;
 
 import java.util.List;
@@ -124,6 +125,14 @@ class UpdateHearingPayloadServiceTest {
                                                       persistedHearing.getHearingDetails(),
                                                       event))
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
+
+        when(caseFlagsMapper.getHearingPriorityType(asylumCase)).thenReturn(STANDARD);
+        when(listingCommentsMapper.getListingComments(asylumCase, caseFlagsMapper, caseDataMapper))
+            .thenReturn("test listing comments");
+
+        when(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
+        when(caseDataMapper.getHearingLinkedFlag(asylumCase)).thenReturn(true);
+
         updateHearingPayloadService = new UpdateHearingPayloadService(
             caseDataMapper,
             caseFlagsMapper,
@@ -508,6 +517,16 @@ class UpdateHearingPayloadServiceTest {
             hearingDetails.getAmendReasonCodes(),
             updateHearingRequestSent.getHearingDetails().getAmendReasonCodes()
         );
+        assertEquals(
+            STANDARD.toString(),
+            updateHearingRequestSent.getHearingDetails().getHearingPriorityType()
+        );
+        assertEquals(
+            "test listing comments",
+            updateHearingRequestSent.getHearingDetails().getListingComments()
+        );
+        assertTrue(updateHearingRequestSent.getHearingDetails().getPrivateHearingRequiredFlag());
+        assertTrue(updateHearingRequestSent.getHearingDetails().isHearingIsLinkedFlag());
     }
 
     @Test

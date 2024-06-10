@@ -38,7 +38,7 @@ public class HearingsToDynamicListMapper {
             case UPDATE_SUBMITTED ->
                 caseHearing.getHearingTypeDescription()
                 + " (Update requested)";
-            default -> null;
+            default -> "Test";
         };
     }
 

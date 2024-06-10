@@ -31,42 +31,46 @@ public class HmcHearingsEventTopicListener {
         objectMapper.registerModule(new JavaTimeModule());
     }
 
-    @JmsListener(
-        destination = "${azure.service-bus.hmc-to-hearings-api.topicName}",
-        subscription = "${azure.service-bus.hmc-to-hearings-api.subscriptionName}",
-        containerFactory = "hmcHearingsEventTopicContainerFactory"
-    )
-
-    public void onMessage(byte[] message) throws HmcEventProcessingException {
-
-        String stringMessage = new String(message, StandardCharsets.UTF_8);
-        log.info("Message received: {}", stringMessage);
-
-        try {
-            HmcMessage hmcMessage = objectMapper.readValue(
-                stringMessage,
-                HmcMessage.class);
-
-            Long caseId = hmcMessage.getCaseId();
-            String hearingId = hmcMessage.getHearingId();
-
-            log.info("Received message from HMC hearings topic for Case ID {}, and Hearing ID {}.",
-                     caseId, hearingId);
-
-            if (isMessageRelevantForService(hmcMessage)) {
-
-                log.info("Attempting to process message from HMC hearings topic for"
-                             + " Case ID {}, and Hearing ID {} with status EXCEPTION", caseId, hearingId);
-
-                hmcMessageProcessor.processMessage(hmcMessage);
-            }
-        }  catch (JsonProcessingException ex) {
-            throw new HmcEventProcessingException(
-                String.format("Unable to successfully receive HMC message: %s", stringMessage), ex);
-        }
-    }
-
-    private boolean isMessageRelevantForService(HmcMessage hmcMessage) {
-        return hmctsServiceId.equals(hmcMessage.getHmctsServiceCode());
-    }
+//    @JmsListener(
+//        destination = "${azure.service-bus.hmc-to-hearings-api.topicName}",
+//        subscription = "${azure.service-bus.hmc-to-hearings-api.subscriptionName}",
+//        containerFactory = "hmcHearingsEventTopicContainerFactory"
+//    )
+//
+//    public void onMessage(byte[] message) throws HmcEventProcessingException {
+//
+//        String stringMessage = new String(message, StandardCharsets.UTF_8);
+//        log.info("Message received: {}", stringMessage);
+//
+//        try {
+//            HmcMessage hmcMessage = objectMapper.readValue(
+//                stringMessage,
+//                HmcMessage.class);
+//
+//            Long caseId = hmcMessage.getCaseId();
+//            String hearingId = hmcMessage.getHearingId();
+//
+//            log.info("Received message from HMC hearings topic for Case ID {}, and Hearing ID {}.",
+//                     caseId, hearingId);
+//
+//            /*
+//            Batch-processing enabled: only EXCEPTION messages are processed live
+//             */
+//            if (isMessageRelevantForService(hmcMessage)
+//                && Objects.equals(hmcMessage.getHearingUpdate().getHmcStatus(), EXCEPTION)) {
+//
+//                log.info("Attempting to process message from HMC hearings topic for"
+//                             + " Case ID {}, and Hearing ID {} with status EXCEPTION", caseId, hearingId);
+//
+//                hmcMessageProcessor.processMessage(hmcMessage);
+//            }
+//        }  catch (JsonProcessingException ex) {
+//            throw new HmcEventProcessingException(String.format("Unable to successfully receive HMC message: %s",
+//                                                                message), ex);
+//        }
+//    }
+//
+//    private boolean isMessageRelevantForService(HmcMessage hmcMessage) {
+//        return hmctsServiceId.equals(hmcMessage.getHmctsServiceCode());
+//    }
 }
