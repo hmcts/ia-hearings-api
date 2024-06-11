@@ -48,6 +48,9 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .extract().response();
 
         assertEquals(200, response.getStatusCode());
+        log.info("aipCaseId: " + getAipCaseId());
+        log.info("legalRepCaseId: " + getLegalRepCaseId());
+        log.info("test: should_create_hearing_successfully");
     }
 
     @Test
@@ -110,6 +113,10 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .assertThat().body("vocabulary", notNullValue())
             .assertThat().body("hearingChannels", notNullValue())
             .assertThat().body("hearingLevelParticipantAttendance", notNullValue());
+
+        log.info("aipCaseId: " + getAipCaseId());
+        log.info("legalRepCaseId: " + getLegalRepCaseId());
+        log.info("test: should_get_hearings_values_successfully");
     }
 
     @Test

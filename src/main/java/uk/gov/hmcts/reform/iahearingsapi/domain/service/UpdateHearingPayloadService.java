@@ -255,6 +255,13 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                 ? hearingDetails.getFacilitiesRequired() : Collections.emptyList()
         ));
 
+        hearingDetails.setHearingPriorityType(caseFlagsMapper.getHearingPriorityType(asylumCase).toString());
+        hearingDetails.setListingComments(listingCommentsMapper.getListingComments(
+            asylumCase, caseFlagsMapper, caseDataMapper));
+
+        hearingDetails.setPrivateHearingRequiredFlag(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase));
+        hearingDetails.setHearingIsLinkedFlag(caseDataMapper.getHearingLinkedFlag(asylumCase));
+
         return hearingDetails;
     }
 

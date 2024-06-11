@@ -168,6 +168,7 @@ public class CcdCaseCreationTest {
     private void submitAppealAsLegalRep() {
         caseData = new HashMap<>();
         caseData.put("decisionHearingFeeOption", "decisionWithHearing");
+        caseData.put("contactPreference", "wantsEmail");
 
         mapValueExpander.expandValues(caseData);
 
@@ -239,6 +240,7 @@ public class CcdCaseCreationTest {
         caseData.put("decisionHearingFeeOption", "decisionWithHearing");
         caseData.put("appellantPhoneNumber", "07444445555");
         caseData.put("sponsorMobileNumber", "07444445555");
+        caseData.put("contactPreference", "wantsEmail");
 
         String eventId = "submitAppeal";
         StartEventResponse startEventDetails =
