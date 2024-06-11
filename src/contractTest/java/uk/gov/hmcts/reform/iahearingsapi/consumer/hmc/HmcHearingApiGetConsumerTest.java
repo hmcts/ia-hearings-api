@@ -1,278 +1,144 @@
 package uk.gov.hmcts.reform.iahearingsapi.consumer.hmc;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.CONSUMER;
+import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.HMC_PROVIDER;
+import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.PORT;
 
-import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
-import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import au.com.dius.pact.core.model.annotations.PactFolder;
-import io.pactfoundation.consumer.dsl.LambdaDsl;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
 
-@ExtendWith(SpringExtension.class)
-@ExtendWith(PactConsumerTestExt.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@PactFolder("pacts")
-@TestPropertySource(properties = {"hmc.baseUrl=localhost:4561"})
-@ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
-@PactTestFor(providerName = "hmc_cftHearingService", port = "4561")
+@PactTestFor(providerName = HMC_PROVIDER, port = PORT)
 public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase {
 
-    @Pact(provider = "hmc_cftHearingService", consumer = "ia_hearingsApi")
-    public RequestResponsePact generatePactFragmentForGetHearingRequest(
+    @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
+    public RequestResponsePact getHearingRequest(
         PactDslWithProvider builder) {
         // @formatter:off
-        return builder.given("hmc cftHearingService successfully returns hearing for valid case ref")
-            .uponReceiving("A Request to get hearing response")
+        return builder.given(HMC_PROVIDER + " successfully returns a hearing for a given case ref")
+            .uponReceiving("A request to get a hearing for a given case reference")
             .method("GET")
-            .headers(
-                SERVICE_AUTHORIZATION_HEADER,
-                SERVICE_AUTH_TOKEN,
-                AUTHORIZATION_HEADER,
-                AUTHORIZATION_TOKEN)
+            .headers(authorisedHeadersGet)
             .path("/hearing/2000000056")
             .willRespondWith()
-            .body(buildHearingGetResponseDsl())
+            .body(hearingGetResponseDsl)
             .status(HttpStatus.SC_OK)
             .toPact();
     }
 
     @Test
-    @PactTestFor(pactMethod = "generatePactFragmentForGetHearingRequest")
-    public void verifyGetHearingRequest() {
-        HearingGetResponse hearingGetResponse =
-            hmcHearingApi.getHearingRequest(AUTHORIZATION_TOKEN, SERVICE_AUTH_TOKEN, "2000000056", null);
+    @PactTestFor(pactMethod = "getHearingRequest")
+    public void shouldGetHearingRequest() throws JsonProcessingException {
+        HearingGetResponse result=
+            hmcHearingApi.getHearingRequest(authToken, serviceAuthToken, "2000000056", null);
 
-        assertNotNull(hearingGetResponse);
+        HearingGetResponse expected = getExpectedResponse(
+            hearingGetResponseDsl.toString(), HearingGetResponse.class);
+
+        assertEquals(expected, result);
     }
 
-    protected DslPart buildHearingGetResponseDsl() {
-        return LambdaDsl.newJsonBody((body) -> {
-            body
-                .object("requestDetails", (requestDetails) -> {
-                    requestDetails.stringType("status", "HEARING_REQUESTED");
-                    requestDetails.stringType("timestamp", "2023-09-20T10:09:19.93734");
-                    requestDetails.numberType("versionNumber", 1);
-                    requestDetails.stringType("hearingRequestID", "2000000056");
-                })
-                .object("hearingDetails", (hearingDetails) -> {
-                    hearingDetails.stringType("listingAutoChangeReasonCode", "user-added-comments");
-                    hearingDetails.stringType("hearingType", "BFA1-SUB");
-                    hearingDetails.object("hearingWindow", (hearingWindow) -> {
-                        hearingWindow.stringType("dateRangeStart", "2023-09-20");
-                        hearingWindow.stringType("dateRangeEnd", "2023-10-04");
-                    });
-                })
-                .numberType("duration", 150)
-                .stringType("hearingPriorityType", "Standard")
-                .numberType("numberOfPhysicalAttendees", 0)
-                .booleanType("hearingInWelshFlag", false)
-                .array("hearingLocations", (hearingLocations) -> {
-                    hearingLocations.object(hearingLocation -> {
-                        hearingLocation.stringType("locationType", "court");
-                        hearingLocation.stringType("locationId", "386417");
-                    });
-                })
-                .array("facilitiesRequired", (facilitiesRequired) -> {
-                    facilitiesRequired.numberType(5);
-                })
-                .stringType("listingComments", "some adjustments")
-                .booleanType("privateHearingRequiredFlag", true)
-                .object("panelRequirements", (panelRequirements) -> {
-                    panelRequirements.array("roleType", roleType -> roleType.stringType("84"));
-                    panelRequirements.array("authorisationTypes", authorisationTypes ->
-                        authorisationTypes.stringType(""));
-                    panelRequirements.array("authorisationSubType", authorisationSubType ->
-                        authorisationSubType.stringType(""));
-                    panelRequirements.array("panelPreferences", panelPreferences ->
-                        panelPreferences.stringType(""));
-                    panelRequirements.array("panelSpecialisms", panelSpecialisms ->
-                        panelSpecialisms.stringType(""));
-                })
-                .booleanType("hearingIsLinkedFlag", false)
-                .array("hearingChannels", hearingChannels -> hearingChannels.stringType("INTER"))
-                .booleanType("autolistFlag", false)
-                .object("caseDetails", (caseDetails) -> {
-                    caseDetails.stringType("hmctsServiceCode", "BFA1");
-                    caseDetails.stringType("caseRef", "1694535157958319");
-                    caseDetails.stringType("externalCaseReference", "111112222");
-                    caseDetails.stringType(
-                        "caseDeepLink",
-                        "http://localhost:3002/cases/case-details/1694535157958319#Overview");
-                    caseDetails.stringType("hmctsInternalCaseName", "mmm nnn");
-                    caseDetails.stringType("publicCaseName", "mmm nnn");
-                    caseDetails.booleanType("caseAdditionalSecurityFlag", true);
-                    caseDetails.booleanType("caseInterpreterRequiredFlag", true);
-                })
-                .array("caseCategories", (caseCategories) -> {
-                    caseCategories.object(caseCategory -> {
-                        caseCategory.stringType("categoryType", "caseType");
-                        caseCategory.stringType("categoryValue", "BFA1-TST");
-                        caseCategory.stringType("categoryParent", "");
-                    });
-                })
-                .stringType("caseManagementLocationCode", "227101")
-                .booleanType("caserestrictedFlag", false)
-                .stringType("caseSLAStartDate", "2023-09-20")
-                .array("partyDetails", (partyDetails) -> {
-                    partyDetails.object(partyDetail -> {
-                        partyDetail.stringType("partyID", "111112222");
-                        partyDetail.stringType("partyType", "ORG");
-                        partyDetail.stringType("partyRole", "RESP");
-                        partyDetail.object("organisationDetails", (organisationDetails) -> {
-                            organisationDetails.stringType("name","Secretary of State");
-                            organisationDetails.stringType("organisationType","ORG");
-                            organisationDetails.stringType("cftOrganisationID",null);
-                        });
-                        partyDetail.object("individualDetails", (individualDetails) -> {
-                            individualDetails.stringType("title", null);
-                            individualDetails.stringType("firstName", "eee");
-                            individualDetails.stringType("lastName", "fff");
-                            individualDetails.stringType("preferredHearingChannel", "INTER");
-                            individualDetails.stringType("interpreterLanguage", null);
-                            individualDetails.array("reasonableAdjustments", reasonableAdjustments ->
-                                reasonableAdjustments.stringType(""));
-                            individualDetails.stringType("vulnerableFlag", null);
-                            individualDetails.stringType("vulnerabilityDetails", null);
-                            individualDetails.array("hearingChannelEmail", hearingChannelEmail ->
-                                hearingChannelEmail.stringType(""));
-                            individualDetails.array("hearingChannelPhone", hearingChannelPhone ->
-                                hearingChannelPhone.stringType(""));
-                            individualDetails.array("relatedParties", relatedParties ->
-                                relatedParties.object(relatedParty -> {
-                                    relatedParty.stringType("relatedPartyID", "");
-                                    relatedParty.stringType("relationshipType", "");
-                                }));
-                            individualDetails.stringType("custodyStatus", "");
-                            individualDetails.stringType("otherReasonableAdjustmentDetails", "");
-                        });
-                    });
-                });
-        }).build();
+    @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
+    public RequestResponsePact getHearingsRequest(
+        PactDslWithProvider builder) {
+        // @formatter:off
+        return builder.given(HMC_PROVIDER + " successfully returns a list of hearings for a given case ref")
+            .uponReceiving("A request to get the hearings for a given case reference")
+            .method("GET")
+            .headers(authorisedHeadersGet)
+            .path("/hearings/2000000056")
+            .willRespondWith()
+            .body(hearingsGetResponseDsl)
+            .status(HttpStatus.SC_OK)
+            .toPact();
     }
 
-    @Pact(provider = "hmc_cftHearingService", consumer = "ia_hearingsApi")
-    public RequestResponsePact generatePactFragmentForGetPartiesNotified(
+    @Test
+    @PactTestFor(pactMethod = "getHearingsRequest")
+    public void shouldGetHearingsRequest() throws JsonProcessingException {
+        HearingsGetResponse result=
+            hmcHearingApi.getHearingsRequest(authToken, serviceAuthToken, "2000000056");
+
+        HearingsGetResponse expected = getExpectedResponse(
+            hearingsGetResponseDsl.toString(), HearingsGetResponse.class);
+
+        assertEquals(expected, result);
+    }
+
+    @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
+    public RequestResponsePact getPartiesNotified(
         PactDslWithProvider builder) {
         // @formatter:off
         return builder
-            .given("hmc cftHearingService successfully returns parties notified entry for valid case ref")
-            .uponReceiving("A Request to get parties notified")
+            .given(HMC_PROVIDER + " successfully returns parties notified entry for a given case ref")
+            .uponReceiving("A request to get parties notified")
             .method("GET")
-            .headers(
-                SERVICE_AUTHORIZATION_HEADER,
-                SERVICE_AUTH_TOKEN,
-                AUTHORIZATION_HEADER,
-                AUTHORIZATION_TOKEN)
+            .headers(authorisedHeaders)
             .path("/partiesNotified/2000000056")
             .willRespondWith()
-            .body(buildGetPartiesNotifiedRequestDsl())
+            .body(getPartiesNotifiedRequestDsl)
             .status(HttpStatus.SC_OK)
             .toPact();
     }
 
     @Test
-    @PactTestFor(pactMethod = "generatePactFragmentForGetPartiesNotified")
-    public void verifyGetPartiesNotified() {
+    @PactTestFor(pactMethod = "getPartiesNotified")
+    public void verifyGetPartiesNotified() throws JsonProcessingException {
         PartiesNotifiedResponses hearingGetResponse =
-            hmcHearingApi.getPartiesNotifiedRequest(AUTHORIZATION_TOKEN, SERVICE_AUTH_TOKEN, "2000000056");
+            hmcHearingApi.getPartiesNotifiedRequest(authToken, serviceAuthToken, "2000000056");
 
-        assertNotNull(hearingGetResponse);
+        PartiesNotifiedResponses expected = getExpectedResponse(
+            getPartiesNotifiedRequestDsl.toString(), PartiesNotifiedResponses.class);
     }
 
-    protected DslPart buildGetPartiesNotifiedRequestDsl() {
-        return newJsonBody((body) -> {
-            body
-                .stringType("hearingID", "2000000056")
-                .array("responses", (responses) -> {
-                    responses.object(response -> {
-                        response.stringType("responseReceivedDateTime", "");
-                        response.numberType("requestVersion", 1);
-                        response.stringType("partiesNotified", "");
-                        response.object("serviceData", (serviceData) -> {
-                            serviceData.booleanType("hearingNoticeGenerated", true);
-                            serviceData.stringType("hearingDate", "2023-09-20T10:09:19.93734");
-                            serviceData.stringType("hearingLocation",
-                                                   "Hatton Cross Tribunal Hearing Centre");
-                            serviceData.array("days", days -> {
-                                days.object(day -> {
-                                    day.stringType("hearingStartDateTime", "2023-09-20T10:09:19.93734");
-                                    day.stringType("hearingEndDateTime", "2023-09-20T11:09:19.93734");
-                                });
-                            });
-                        });
-                    });
-                });
-        }).build();
-    }
-
-    @Pact(provider = "hmc_cftHearingService", consumer = "ia_hearingsApi")
-    public RequestResponsePact generatePactFragmentForGetUnNotifiedHearings(
+    @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
+    public RequestResponsePact getUnNotifiedHearings(
         PactDslWithProvider builder) {
         // @formatter:off
         return builder
-            .given("hmc cftHearingService successfully returns unnotified hearings")
-            .uponReceiving("A Request to get unnotified hearings")
+            .given(HMC_PROVIDER + " successfully returns unnotified hearings")
+            .uponReceiving("A request to get unnotified hearings")
             .method("GET")
-            .headers(
-                SERVICE_AUTHORIZATION_HEADER,
-                SERVICE_AUTH_TOKEN,
-                AUTHORIZATION_HEADER,
-                AUTHORIZATION_TOKEN)
+            .headers(authorisedHeadersGet)
             .path("/unNotifiedHearings/BFA1")
             .query("hearing_start_date_from=2024-09-20 00:00:00"
                    + "&hearing_start_date_to=2024-10-20 00:00:00&hearingStatus=LISTED&hearingStatus=CANCELLED")
             .willRespondWith()
-            .body(buildGetUnNotifiedHearingsResponseDsl())
+            .body(getUnNotifiedHearingsResponseDsl)
             .status(HttpStatus.SC_OK)
             .toPact();
     }
 
     @Test
-    @PactTestFor(pactMethod = "generatePactFragmentForGetUnNotifiedHearings")
-    public void verifyGetUnNotifiedHearings() {
+    @PactTestFor(pactMethod = "getUnNotifiedHearings")
+    public void verifyGetUnNotifiedHearings() throws JsonProcessingException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime fromDate = LocalDateTime.parse("2024-09-20 00:00:00", formatter);
         LocalDateTime toDate = LocalDateTime.parse("2024-10-20 00:00:00", formatter);
         UnNotifiedHearingsResponse unNotifiedHearingsResponse =
             hmcHearingApi.getUnNotifiedHearings(
-                AUTHORIZATION_TOKEN,
-                SERVICE_AUTH_TOKEN,
+                authToken,
+                serviceAuthToken,
                 fromDate,
                 toDate,
                 List.of("LISTED", "CANCELLED"),
                 "BFA1");
 
-        System.out.println(unNotifiedHearingsResponse);
-        assertNotNull(unNotifiedHearingsResponse);
-        assertEquals(3, unNotifiedHearingsResponse.getHearingIds().size());
-    }
-
-    protected DslPart buildGetUnNotifiedHearingsResponseDsl() {
-        return newJsonBody((body) -> {
-            body.numberType("totalFound", "3")
-                .array("hearingIds", ids -> {
-                    ids.stringValue("hearingId1");
-                    ids.stringValue("hearingId2");
-                    ids.stringValue("hearingId3");
-                });
-        }).build();
+        UnNotifiedHearingsResponse expected = getExpectedResponse(
+            getUnNotifiedHearingsResponseDsl.toString(), UnNotifiedHearingsResponse.class);
     }
 }
