@@ -82,7 +82,9 @@ public class UnNotifiedHearingsProcessor implements Runnable {
             .orElse(null);
 
         if (null != hearingDaySchedule) {
-            serviceData.write(NEXT_HEARING_DATE, convertFromUTC(hearingDaySchedule.getHearingStartDateTime()));
+            if (hearingDaySchedule.getHearingStartDateTime() != null) {
+                serviceData.write(NEXT_HEARING_DATE, convertFromUTC(hearingDaySchedule.getHearingStartDateTime()));
+            }
             serviceData.write(HEARING_VENUE_ID, hearingDaySchedule.getHearingVenueId());
         }
 
