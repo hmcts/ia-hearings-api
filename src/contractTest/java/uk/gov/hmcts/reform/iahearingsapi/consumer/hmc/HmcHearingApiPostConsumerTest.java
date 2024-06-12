@@ -28,8 +28,8 @@ public class HmcHearingApiPostConsumerTest extends HmcHearingApiConsumerTestBase
             .uponReceiving("A request to create a hearing")
             .method("POST")
             .path("/hearing")
-            .body(objectMapper.writeValueAsString(hearingRequestPayload))
-            .headers(authorisedHeadersGet)
+            .body(objectMapper.writeValueAsString(createHearingRequest))
+            .headers(authorisedHeaders)
             .willRespondWith()
             .headers(responseHeaders)
             .status(HttpStatus.OK.value())
@@ -39,6 +39,6 @@ public class HmcHearingApiPostConsumerTest extends HmcHearingApiConsumerTestBase
     @Test
     @PactTestFor(pactMethod = "createHearingRequest")
     public void shouldCreateHearingRequest() {
-        hmcHearingApi.createHearingRequest(authToken, serviceAuthToken, hearingRequestPayload);
+        hmcHearingApi.createHearingRequest(authToken, serviceAuthToken, createHearingRequest);
     }
 }

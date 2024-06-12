@@ -13,9 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
@@ -28,7 +26,6 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
     public RequestResponsePact getHearingRequest(
         PactDslWithProvider builder) {
-        // @formatter:off
         return builder.given(HMC_PROVIDER + " successfully returns a hearing for a given case ref")
             .uponReceiving("A request to get a hearing for a given case reference")
             .method("GET")
@@ -43,7 +40,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @Test
     @PactTestFor(pactMethod = "getHearingRequest")
     public void shouldGetHearingRequest() throws JsonProcessingException {
-        HearingGetResponse result=
+        HearingGetResponse result =
             hmcHearingApi.getHearingRequest(authToken, serviceAuthToken, "2000000056", null);
 
         HearingGetResponse expected = getExpectedResponse(
@@ -55,7 +52,6 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
     public RequestResponsePact getHearingsRequest(
         PactDslWithProvider builder) {
-        // @formatter:off
         return builder.given(HMC_PROVIDER + " successfully returns a list of hearings for a given case ref")
             .uponReceiving("A request to get the hearings for a given case reference")
             .method("GET")
@@ -70,7 +66,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @Test
     @PactTestFor(pactMethod = "getHearingsRequest")
     public void shouldGetHearingsRequest() throws JsonProcessingException {
-        HearingsGetResponse result=
+        HearingsGetResponse result =
             hmcHearingApi.getHearingsRequest(authToken, serviceAuthToken, "2000000056");
 
         HearingsGetResponse expected = getExpectedResponse(
@@ -82,7 +78,6 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
     public RequestResponsePact getPartiesNotified(
         PactDslWithProvider builder) {
-        // @formatter:off
         return builder
             .given(HMC_PROVIDER + " successfully returns parties notified entry for a given case ref")
             .uponReceiving("A request to get parties notified")
@@ -108,7 +103,6 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
     public RequestResponsePact getUnNotifiedHearings(
         PactDslWithProvider builder) {
-        // @formatter:off
         return builder
             .given(HMC_PROVIDER + " successfully returns unnotified hearings")
             .uponReceiving("A request to get unnotified hearings")

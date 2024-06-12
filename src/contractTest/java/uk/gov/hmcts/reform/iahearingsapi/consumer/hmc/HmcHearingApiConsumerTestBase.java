@@ -13,6 +13,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.buildHearingGetResp
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.buildHearingsGetResponseDsl;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.buildHmcHearingResponse;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.buildUpdateHearingRequest;
+import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.generateHearingLinkData;
+import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.generateServiceHearingValues;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.getDeleteHearingRequest;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
@@ -28,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
@@ -68,7 +71,7 @@ public class HmcHearingApiConsumerTestBase {
         .serviceData(new ServiceData())
         .build();
 
-    protected CreateHearingRequest hearingRequestPayload = HearingRequestGenerator
+    protected CreateHearingRequest createHearingRequest = HearingRequestGenerator
         .generateTestHearingRequest(CASE_REFERENCE);
 
     protected DslPart hearingGetResponseDsl = buildHearingGetResponseDsl();
@@ -85,10 +88,21 @@ public class HmcHearingApiConsumerTestBase {
 
     protected DslPart hmcHearingResponse = buildHmcHearingResponse();
 
+    protected HearingRequestPayload hearingRequestPayload = HearingRequestPayload
+        .builder().caseReference(CASE_REFERENCE).build();
+
     protected  <T> T getExpectedResponse(String responseStr, Class<T> type) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
 
         return objectMapper.readValue(responseStr, type);
+    }
+
+    protected String getServiceHearingValues() throws JsonProcessingException {
+        return objectMapper.writeValueAsString(generateServiceHearingValues());
+    }
+
+    protected String getHearingLinkDataList() throws JsonProcessingException {
+        return objectMapper.writeValueAsString(generateHearingLinkData(CASE_REFERENCE));
     }
 }

@@ -3,13 +3,17 @@ package uk.gov.hmcts.reform.iahearingsapi;
 import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.pactfoundation.consumer.dsl.LambdaDsl;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingDaySchedule;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLinkData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingRequestDetails;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.JudiciaryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HearingRequestGenerator;
@@ -19,6 +23,7 @@ public class DataProvider {
 
     public static final String CASE_REFERENCE = "1111222233334444";
     public static final String HMC_PROVIDER = "hmcHearingServiceProvider";
+    public static final String IAC_PROVIDER = "iacHearingApiProvider";
     public static final String CONSUMER = "iacHearingApiConsumer";
     public static final String AUTH_TOKEN = "Bearer some-access-token";
     public static final String SERVICE_AUTH_HEADER = "ServiceAuthorization";
@@ -280,6 +285,61 @@ public class DataProvider {
                     .timestamp(LocalDateTime.now())
                     .versionNumber(1234L)
                     .build())
+            .build();
+    }
+
+    public static List<HearingLinkData> generateHearingLinkData(String caseRef) {
+        return List.of(
+            HearingLinkData.hearingLinkDataWith()
+                .caseName("Case name")
+                .caseReference(caseRef)
+                .reasonsForLink(List.of("Reason1", "Reason2"))
+                .build()
+        );
+    }
+
+    public static ServiceHearingValuesModel generateServiceHearingValues() {
+        return ServiceHearingValuesModel.builder()
+            .hmctsServiceId("hmctsServiceId")
+            .hmctsInternalCaseName("internalCaseName")
+            .publicCaseName("publicName")
+            .caseAdditionalSecurityFlag(false)
+            .caseCategories(Collections.emptyList())
+            .caseDeepLink("caseDeepLink")
+            .caserestrictedFlag(false)
+            .externalCaseReference("externalCaseReference")
+            .caseSlaStartDate(LocalDate.now().toString())
+            .caseManagementLocationCode("caseManagementLocationCode")
+            .autoListFlag(false)
+            .hearingType("hearingType")
+            .hearingWindow(null)
+            .duration(60)
+            .hearingPriorityType(PriorityType.STANDARD)
+            .numberOfPhysicalAttendees(3)
+            .hearingInWelshFlag(false)
+            .hearingLocations(Collections.emptyList())
+            .facilitiesRequired(Collections.emptyList())
+            .listingComments("listingComments")
+            .hearingRequester("hearingRequester")
+            .privateHearingRequiredFlag(false)
+            .caseInterpreterRequiredFlag(false)
+            .panelRequirements(null)
+            .leadJudgeContractType("leadJudgeContractType")
+            .judiciary(JudiciaryModel.builder()
+                           .roleType(List.of("roleType"))
+                           .authorisationTypes(List.of("authorisationTypes"))
+                           .authorisationSubType(List.of("authorisationSubType"))
+                           .build())
+            .hearingIsLinkedFlag(false)
+            .parties(Collections.emptyList())
+            .caseFlags(Caseflags.builder()
+                           .flags(Collections.emptyList())
+                           .flagAmendUrl("flagAmendUrl")
+                           .build())
+            .screenFlow(null)
+            .vocabulary(Collections.emptyList())
+            .hearingChannels(Collections.emptyList())
+            .hearingLevelParticipantAttendance(Collections.emptyList())
             .build();
     }
 }
