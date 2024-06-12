@@ -139,4 +139,46 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
 
+
+    @Test
+    @Order(5)
+    void should_get_hearings_values_successfully_for_bail() {
+        Case result = createAndGetBailCase();
+
+        HearingRequestPayload payload = HearingRequestPayload.builder()
+            .caseReference(Long.toString(result.getCaseId()))
+            .hearingId("hearingId")
+            .build();
+
+        given(hearingsSpecification)
+            .when()
+            .contentType("application/json")
+            .header(new Header(AUTHORIZATION, legalRepToken))
+            .header(new Header(SERVICE_AUTHORIZATION, s2sToken))
+            .body(payload)
+            .post("/serviceHearingValues")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .log().all(true)
+            .assertThat().body("hmctsServiceID", notNullValue())
+            .assertThat().body("hmctsInternalCaseName", notNullValue())
+            .assertThat().body("publicCaseName", notNullValue())
+            .assertThat().body("caseCategories", notNullValue())
+            .assertThat().body("caseDeepLink", notNullValue())
+            .assertThat().body("hearingPriorityType", notNullValue())
+            .assertThat().body("hearingLocations", notNullValue())
+            .assertThat().body("facilitiesRequired", notNullValue())
+            .assertThat().body("listingComments", notNullValue())
+            .assertThat().body("hearingRequester", notNullValue())
+            .assertThat().body("leadJudgeContractType", notNullValue())
+            .assertThat().body("judiciary", notNullValue())
+            .assertThat().body("parties", notNullValue())
+            .assertThat().body("caseFlags", notNullValue())
+            .assertThat().body("vocabulary", notNullValue())
+            .assertThat().body("hearingChannels", notNullValue())
+            .assertThat().body("hearingLevelParticipantAttendance", notNullValue());
+    }
+
+
+
 }
