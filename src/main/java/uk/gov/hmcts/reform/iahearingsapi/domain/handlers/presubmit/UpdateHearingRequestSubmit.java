@@ -130,10 +130,12 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                 clearFields(asylumCase);
 
             } catch (HmcException e) {
+                log.error("Hearing {} UpdateHearingRequestSubmit failed with exception {}", hearingId, e.getMessage());
                 asylumCase.write(MANUAL_UPDATE_HEARING_REQUIRED, YES);
             }
-        });
 
+            log.info("Hearing {} UpdateHearingRequestSubmit completed successfully", hearingId);
+        });
 
         return new PreSubmitCallbackResponse<>(asylumCase);
     }

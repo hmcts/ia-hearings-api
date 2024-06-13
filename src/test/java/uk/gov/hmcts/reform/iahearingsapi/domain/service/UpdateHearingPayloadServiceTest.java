@@ -24,6 +24,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.LEEDS_MAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_HEARING_REQUEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_INTERPRETER_DETAILS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType.HU;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType.STANDARD;
@@ -117,7 +118,7 @@ class UpdateHearingPayloadServiceTest {
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(persistedHearing);
         when(persistedHearing.getHearingDetails()).thenReturn(hearingDetails);
         when(persistedHearing.getCaseDetails()).thenReturn(caseDetails);
-        when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
+        when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(NO));
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(HU));
         when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase,
                                                       caseFlagsMapper,
@@ -376,7 +377,7 @@ class UpdateHearingPayloadServiceTest {
 
     @Test
     void should_remove_iac_type_c_conference_equipment_facility_when_s94b_is_disabled() {
-        when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
+        when(asylumCase.read(S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(NO));
         hearingDetails.setFacilitiesRequired(List.of("1", IAC_TYPE_C_CONFERENCE_EQUIPMENT.toString()));
         UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
             asylumCase,
@@ -653,6 +654,32 @@ class UpdateHearingPayloadServiceTest {
         assertEquals(
             getCaseCategoriesValue(asylumCase),
             updateHearingRequest.getCaseDetails().getCaseCategories());
+    }
+
+    @Test
+    void should_set_hearing_window_to_null_if_persisted_hearing_window_all_null() {
+        when(asylumCase.read(CHANGE_HEARING_DATE_YES_NO, String.class)).thenReturn(Optional.of(NO.toString()));
+
+        hearingDetails.setHearingWindow(HearingWindowModel
+            .builder()
+            .dateRangeStart(null)
+            .dateRangeEnd(null)
+            .firstDateTimeMustBe(null)
+            .build());
+
+        when(persistedHearing.getHearingDetails()).thenReturn(hearingDetails);
+
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            false,
+            hearingWindow,
+            UPDATE_HEARING_REQUEST,
+            caseReference
+        );
+
+        assertNull(updateHearingRequest.getHearingDetails().getHearingWindow());
     }
 
     private void setDefaultHearingDetails() {

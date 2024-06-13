@@ -240,6 +240,10 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                 .map(changeDate -> equalsIgnoreCase(YES.toString(), changeDate)).orElse(false);
             if (updateHearingDate) {
                 hearingDetails.setHearingWindow(hearingsDetailsUpdate.getHearingWindow());
+            } else {
+                if (hearingDetails.getHearingWindow().allNull()) {
+                    hearingDetails.setHearingWindow(null);
+                }
             }
         } else {
             hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
