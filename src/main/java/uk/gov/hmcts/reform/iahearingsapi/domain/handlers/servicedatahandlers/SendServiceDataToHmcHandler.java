@@ -34,7 +34,6 @@ public class SendServiceDataToHmcHandler implements ServiceDataHandler<ServiceDa
     public boolean canHandle(ServiceData serviceData
     ) {
         requireNonNull(serviceData, "serviceData must not be null");
-
         return !isHmcStatus(serviceData, HmcStatus.EXCEPTION);
     }
 
