@@ -60,6 +60,12 @@ public class SendServiceDataToHmcHandlerTest {
     }
 
     @Test
+    void should_not_run_if_hmc_status_update_submitted() {
+        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.UPDATE_SUBMITTED));
+        assertFalse(sendServiceDataToHmcHandler.canHandle(serviceData));
+    }
+
+    @Test
     void should_update_partiesNotified() {
         when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.AWAITING_LISTING));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));

@@ -34,7 +34,9 @@ public class SendServiceDataToHmcHandler implements ServiceDataHandler<ServiceDa
     public boolean canHandle(ServiceData serviceData
     ) {
         requireNonNull(serviceData, "serviceData must not be null");
-        return !isHmcStatus(serviceData, HmcStatus.EXCEPTION);
+        // Ignoring UPDATE_SUBMITTED as it is only a temporary status before invocation, the actual status we
+        // should process is UPDATE_REQUESTED which should be returned after successful invocation.
+        return !isHmcStatus(serviceData, HmcStatus.EXCEPTION) && !isHmcStatus(serviceData, HmcStatus.UPDATE_SUBMITTED);
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
@@ -60,8 +62,6 @@ public class SendServiceDataToHmcHandler implements ServiceDataHandler<ServiceDa
                 + "receivedDateTime {}.", hearingId, versionNumber.get(), receivedDateTime.get());
 
             hearingService.updatePartiesNotified(hearingId, versionNumber.get(), receivedDateTime.get(), payload);
-            log.info("SendServiceDataToHmcHandler updatePartiesNotified hearing id {}, versionNumber {}, "
-                + "receivedDateTime {}.", hearingId, versionNumber.get(), receivedDateTime.get());
         } else {
             log.info("Message received for hearing {} will not result in a partiesNotified update because both "
                      + "versionNumber and hearingResponseReceivedDateTime are necessary for the update.", hearingId);
