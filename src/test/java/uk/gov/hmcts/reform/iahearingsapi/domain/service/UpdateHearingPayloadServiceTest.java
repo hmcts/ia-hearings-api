@@ -132,7 +132,6 @@ class UpdateHearingPayloadServiceTest {
             .thenReturn("test listing comments");
 
         when(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
-        when(caseDataMapper.getHearingLinkedFlag(asylumCase)).thenReturn(true);
 
         updateHearingPayloadService = new UpdateHearingPayloadService(
             caseDataMapper,
@@ -527,7 +526,6 @@ class UpdateHearingPayloadServiceTest {
             updateHearingRequestSent.getHearingDetails().getListingComments()
         );
         assertTrue(updateHearingRequestSent.getHearingDetails().getPrivateHearingRequiredFlag());
-        assertTrue(updateHearingRequestSent.getHearingDetails().isHearingIsLinkedFlag());
     }
 
     @Test
