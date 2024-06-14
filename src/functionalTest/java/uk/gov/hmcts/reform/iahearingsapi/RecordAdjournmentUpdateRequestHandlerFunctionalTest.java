@@ -49,7 +49,7 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
         Case result = createAndGetCase(isAipJourney);
         createHearing(result);
 
-        AsylumCase asylumCase = result.getCaseData();
+        AsylumCase asylumCase = (AsylumCase) result.getCaseData();
         asylumCase.write(RELIST_CASE_IMMEDIATELY, "No");
         asylumCase.write(HEARING_ADJOURNMENT_WHEN, BEFORE_HEARING_DATE);
         asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(getHearingId(result.getCaseId())));
@@ -89,7 +89,7 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
         Case result = createAndGetCase(isAipJourney);
         createHearing(result);
 
-        AsylumCase asylumCase = result.getCaseData();
+        AsylumCase asylumCase = (AsylumCase) result.getCaseData();
         asylumCase.write(RELIST_CASE_IMMEDIATELY, "Yes");
         asylumCase.write(HEARING_ADJOURNMENT_WHEN, BEFORE_HEARING_DATE);
         asylumCase.write(ADJOURNMENT_DETAILS_HEARING, new DynamicList(getHearingId(result.getCaseId())));
