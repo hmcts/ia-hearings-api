@@ -34,9 +34,8 @@ public class SendServiceDataToHmcHandler implements ServiceDataHandler<ServiceDa
     public boolean canHandle(ServiceData serviceData
     ) {
         requireNonNull(serviceData, "serviceData must not be null");
-        // Ignoring UPDATE_SUBMITTED as it is only a temporary status before invocation, the actual status we
-        // should process is UPDATE_REQUESTED which should be returned after successful invocation.
-        return !isHmcStatus(serviceData, HmcStatus.EXCEPTION) && !isHmcStatus(serviceData, HmcStatus.UPDATE_SUBMITTED);
+
+        return (isHmcStatus(serviceData, HmcStatus.CANCELLED) || isHmcStatus(serviceData, HmcStatus.LISTED));
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
