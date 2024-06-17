@@ -264,7 +264,6 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
             asylumCase, caseFlagsMapper, caseDataMapper));
 
         hearingDetails.setPrivateHearingRequiredFlag(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase));
-        hearingDetails.setHearingIsLinkedFlag(caseDataMapper.getHearingLinkedFlag(asylumCase));
 
         return hearingDetails;
     }
