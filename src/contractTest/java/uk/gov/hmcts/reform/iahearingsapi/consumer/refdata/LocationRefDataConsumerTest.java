@@ -45,7 +45,7 @@ public class LocationRefDataConsumerTest {
     @Autowired
     LocationRefDataApi locationRefDataApi;
 
-    @Pact(provider = "referenceData_court_venues", consumer = "ia_caseApi")
+    @Pact(provider = "referenceData_court_venues", consumer = "ia_hearingsApi")
     public RequestResponsePact generatePactFragment(PactDslWithProvider builder)
         throws JSONException, JsonProcessingException {
 
