@@ -6,17 +6,17 @@ import org.junit.jupiter.api.Test;
 class HearingAdjournmentDayTest {
 
     @Test
-    public void testOnHearingDateValue() {
+    void testOnHearingDateValue() {
         assertEquals("onHearingDate", HearingAdjournmentDay.ON_HEARING_DATE.getValue());
     }
 
     @Test
-    public void testBeforeHearingDateValue() {
+    void testBeforeHearingDateValue() {
         assertEquals("beforeHearingDate", HearingAdjournmentDay.BEFORE_HEARING_DATE.getValue());
     }
 
     @Test
-    public void testToString() {
+    void testToString() {
         assertEquals("onHearingDate", HearingAdjournmentDay.ON_HEARING_DATE.toString());
         assertEquals("beforeHearingDate", HearingAdjournmentDay.BEFORE_HEARING_DATE.toString());
     }

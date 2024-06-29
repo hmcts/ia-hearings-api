@@ -6,7 +6,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseHearing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class CaseHearingTest {
+class CaseHearingTest {
 
     @Test
     void test_get_hearing_type_description() {

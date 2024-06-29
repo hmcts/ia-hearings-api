@@ -4,14 +4,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class DocumentTagTest {
+class DocumentTagTest {
 
     @Test
     void has_correct_values() {
-
         assertEquals("bailSubmission", DocumentTag.BAIL_SUBMISSION.toString());
         assertEquals("", DocumentTag.NONE.toString());
-
     }
 
     @Test

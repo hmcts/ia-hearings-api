@@ -165,7 +165,7 @@ class MapperUtilsTest {
     }
 
     @Test
-    public void parseDateTimeStringWithoutNanos() {
+    void parseDateTimeStringWithoutNanos() {
         String inputDateTimeString = "2024-04-11T10:15:30.123Z";
         String expected = "2024-04-11T10:15:30";
 
@@ -173,7 +173,7 @@ class MapperUtilsTest {
     }
 
     @Test
-    public void parseDateTimeStringWithoutNanos_NullInput() {
+    void parseDateTimeStringWithoutNanos_NullInput() {
         assertNull(MapperUtils.parseDateTimeStringWithoutNanos(null));
     }
 }

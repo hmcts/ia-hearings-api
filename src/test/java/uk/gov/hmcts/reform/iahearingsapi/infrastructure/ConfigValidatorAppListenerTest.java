@@ -1,11 +1,15 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
+
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
@@ -19,6 +23,8 @@ class ConfigValidatorAppListenerTest {
     private Environment env;
 
     private ConfigValidatorAppListener configValidatorAppListener;
+    private static final String PREVIEW_CLUSTER_NAME = "cft-preview-01-aks";
+    private static final String SECRET = "secret";
 
     @BeforeEach
     public void setup() {
@@ -26,86 +32,29 @@ class ConfigValidatorAppListenerTest {
         configValidatorAppListener.setEnvironment(env);
     }
 
-    @Test
-    @SuppressWarnings("java:S2699")
-    void throwsExceptionWhenIaConfigValidatorSecretIsNullSimulateLocal() {
-        // Given
-        configValidatorAppListener.setIaConfigValidatorSecret(null);
-        when(env.getProperty(CLUSTER_NAME)).thenReturn(null);
+    @ParameterizedTest
+    @MethodSource("provideSecretsAndClusterNames")
+    void shouldValidateConfig(String secret, String clusterName, Class<Throwable> expectedException) {
+        configValidatorAppListener.setIaConfigValidatorSecret(secret);
+        when(env.getProperty(CLUSTER_NAME)).thenReturn(clusterName);
 
-        // When
-        configValidatorAppListener.breakOnMissingIaConfigValidatorSecret();
+        if (expectedException != null) {
+            assertThrows(expectedException, configValidatorAppListener::breakOnMissingIaConfigValidatorSecret);
+        } else {
+            configValidatorAppListener.breakOnMissingIaConfigValidatorSecret();
+        }
 
-        // Then
         verify(env).getProperty(CLUSTER_NAME);
     }
 
-    @Test
-    void throwsExceptionWhenIaConfigValidatorSecretIsNullSimulateCluster() {
-        // Given
-        configValidatorAppListener.setIaConfigValidatorSecret(null);
-        when(env.getProperty(CLUSTER_NAME)).thenReturn("cft-preview-01-aks");
-
-        // When/Then
-        assertThrows(IllegalArgumentException.class, configValidatorAppListener::breakOnMissingIaConfigValidatorSecret);
-        verify(env).getProperty(CLUSTER_NAME);
+    private static Stream<Arguments> provideSecretsAndClusterNames() {
+        return Stream.of(
+            Arguments.of(null, null, null),
+            Arguments.of(null, PREVIEW_CLUSTER_NAME, IllegalArgumentException.class),
+            Arguments.of("", null, null),
+            Arguments.of("", PREVIEW_CLUSTER_NAME, IllegalArgumentException.class),
+            Arguments.of(SECRET, null, null),
+            Arguments.of(SECRET, PREVIEW_CLUSTER_NAME, null)
+        );
     }
-
-    @Test
-    void throwsExceptionWhenIaConfigValidatorSecretIsEmptySimulateLocal() {
-        // Given
-        configValidatorAppListener.setIaConfigValidatorSecret("");
-        when(env.getProperty(CLUSTER_NAME)).thenReturn(null);
-
-        // When
-        configValidatorAppListener.breakOnMissingIaConfigValidatorSecret();
-
-        // Then
-        verify(env).getProperty(CLUSTER_NAME);
-    }
-
-    @Test
-    void throwsExceptionWhenIaConfigValidatorSecretIsEmptySimulateCluster() {
-        // Given
-        configValidatorAppListener.setIaConfigValidatorSecret("");
-        when(env.getProperty(CLUSTER_NAME)).thenReturn("cft-preview-01-aks");
-
-
-        // When/Then
-        assertThrows(IllegalArgumentException.class, configValidatorAppListener::breakOnMissingIaConfigValidatorSecret);
-        verify(env).getProperty(CLUSTER_NAME);
-    }
-
-    // suppressing SonarLint warning on assertions as it's ok for this test not to have any
-    @Test
-    @SuppressWarnings("java:S2699")
-    void runsSuccessfullyWhenIaConfigValidatorSecretsAreCorrectlySetSimulateLocal() {
-        // Given
-        configValidatorAppListener.setIaConfigValidatorSecret("secret");
-        when(env.getProperty(CLUSTER_NAME)).thenReturn(null);
-
-        // When
-        configValidatorAppListener.breakOnMissingIaConfigValidatorSecret();
-
-        // Then
-        verify(env).getProperty(CLUSTER_NAME);
-        // I run successfully till the end
-    }
-
-    // suppressing SonarLint warning on assertions as it's ok for this test not to have any
-    @Test
-    @SuppressWarnings("java:S2699")
-    void runsSuccessfullyWhenIaConfigValidatorSecretsAreCorrectlySetSimulateCluster() {
-        // Given
-        configValidatorAppListener.setIaConfigValidatorSecret("secret");
-        when(env.getProperty(CLUSTER_NAME)).thenReturn("cft-preview-01-aks");
-
-        // When
-        configValidatorAppListener.breakOnMissingIaConfigValidatorSecret();
-
-        // Then
-        verify(env).getProperty(CLUSTER_NAME);
-        // I run successfully till the end
-    }
-
 }

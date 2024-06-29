@@ -44,7 +44,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class RecordAdjournmentDetailsMidEventHandlerTest {
+class RecordAdjournmentDetailsMidEventHandlerTest {
 
     @Mock
     private Callback<AsylumCase> callback;

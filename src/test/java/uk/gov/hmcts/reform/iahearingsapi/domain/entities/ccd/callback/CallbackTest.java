@@ -19,7 +19,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 
 
 @ExtendWith(MockitoExtension.class)
-public class CallbackTest {
+class CallbackTest {
 
     private final Event event = Event.LIST_CASE;
     private final Optional<CaseDetails<CaseData>> caseDetailsBefore = Optional.empty();

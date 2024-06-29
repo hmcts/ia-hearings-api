@@ -284,7 +284,7 @@ class ServiceHearingValuesProviderTest {
     }
 
     @Test
-    public void should_throw_exception_when_hmcts_internal_case_name_is_missing() {
+    void should_throw_exception_when_hmcts_internal_case_name_is_missing() {
 
         when(asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)).thenReturn(Optional.empty());
 
@@ -399,7 +399,7 @@ class ServiceHearingValuesProviderTest {
     }
 
     @Test
-    public void should_throw_exception_when_bail_case_name_hmcts_internal_is_missing() {
+    void should_throw_exception_when_bail_case_name_hmcts_internal_is_missing() {
 
         when(bailCase.read(CASE_NAME_HMCTS_INTERNAL, String.class)).thenReturn(Optional.empty());
 

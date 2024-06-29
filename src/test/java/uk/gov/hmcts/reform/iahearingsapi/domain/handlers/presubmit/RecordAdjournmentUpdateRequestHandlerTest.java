@@ -4,7 +4,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -218,10 +217,10 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
 
         if (relistCaseImmediately == NO) {
             verify(hearingService, times(1))
-                .deleteHearing(eq(Long.valueOf(HEARING_ID)), eq(CANCELLATION_REASON.getValue().getCode()));
+                .deleteHearing(Long.valueOf(HEARING_ID), CANCELLATION_REASON.getValue().getCode());
         } else {
             verify(hearingService, never())
-                .deleteHearing(eq(Long.valueOf(HEARING_ID)), eq(CANCELLATION_REASON.getValue().getCode()));
+                .deleteHearing(Long.valueOf(HEARING_ID), CANCELLATION_REASON.getValue().getCode());
         }
 
     }

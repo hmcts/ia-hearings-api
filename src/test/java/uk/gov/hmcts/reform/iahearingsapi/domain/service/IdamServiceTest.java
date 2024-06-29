@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,6 +55,6 @@ class IdamServiceTest {
         expectedIdamApiParameter.put("password", SYSTEM_USER_PASS);
         expectedIdamApiParameter.put("scope", SCOPE);
 
-        verify(idamApi).token(eq(expectedIdamApiParameter));
+        verify(idamApi).token(expectedIdamApiParameter);
     }
 }

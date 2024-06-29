@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.controllers;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
@@ -14,73 +14,41 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.AsylumPreSubmitCallbackDispatcher;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class AsylumPreSubmitCallbackControllerTest {
+class AsylumPreSubmitCallbackControllerTest {
 
     @Mock private AsylumPreSubmitCallbackDispatcher callbackDispatcher;
     @Mock private PreSubmitCallbackResponse<AsylumCase> callbackResponse;
     @Mock private Callback<AsylumCase> callback;
     @Mock private CaseDetails<AsylumCase> caseDetails;
-
+    @InjectMocks
     private AsylumPreSubmitCallbackController asylumPreSubmitCallbackController;
 
-    @BeforeEach
-    public void setUp() {
-        asylumPreSubmitCallbackController =
-            new AsylumPreSubmitCallbackController(
-                callbackDispatcher
-            );
-    }
-
     @Test
-    public void should_dispatch_about_to_start_callback_then_return_response() {
-
+    void givenAboutToStartCallback_whenDispatched_thenResponseIsReturned() {
         when(callback.getCaseDetails()).thenReturn(caseDetails);
+        when(callbackDispatcher.handle(PreSubmitCallbackStage.ABOUT_TO_START, callback)).thenReturn(callbackResponse);
 
-        doReturn(callbackResponse)
-            .when(callbackDispatcher)
-            .handle(PreSubmitCallbackStage.ABOUT_TO_START, callback);
+        Assertions.assertSame(callbackResponse, asylumPreSubmitCallbackController.ccdAboutToStart(callback).getBody());
 
-        ResponseEntity<PreSubmitCallbackResponse<AsylumCase>> actualResponse =
-            asylumPreSubmitCallbackController.ccdAboutToStart(callback);
-
-        assertNotNull(actualResponse);
-
-        verify(callbackDispatcher, times(1)).handle(
-            PreSubmitCallbackStage.ABOUT_TO_START,
-            callback
-        );
+        verify(callbackDispatcher).handle(PreSubmitCallbackStage.ABOUT_TO_START, callback);
     }
 
     @Test
-    public void should_dispatch_about_to_submit_callback_then_return_response() {
-
+    void givenAboutToSubmitCallback_whenDispatched_thenResponseIsReturned() {
         when(callback.getCaseDetails()).thenReturn(caseDetails);
+        when(callbackDispatcher.handle(PreSubmitCallbackStage.ABOUT_TO_SUBMIT, callback)).thenReturn(callbackResponse);
 
-        doReturn(callbackResponse)
-            .when(callbackDispatcher)
-            .handle(PreSubmitCallbackStage.ABOUT_TO_SUBMIT, callback);
+        Assertions.assertSame(callbackResponse, asylumPreSubmitCallbackController.ccdAboutToSubmit(callback).getBody());
 
-        ResponseEntity<PreSubmitCallbackResponse<AsylumCase>> actualResponse =
-            asylumPreSubmitCallbackController.ccdAboutToSubmit(callback);
-
-        assertNotNull(actualResponse);
-
-        verify(callbackDispatcher, times(1)).handle(
-            PreSubmitCallbackStage.ABOUT_TO_SUBMIT,
-            callback
-        );
+        verify(callbackDispatcher).handle(PreSubmitCallbackStage.ABOUT_TO_SUBMIT, callback);
     }
 
     @Test
-    public void should_not_allow_null_constructor_arguments() {
-
+    void should_not_allow_null_constructor_arguments() {
         assertThatThrownBy(() -> new AsylumPreSubmitCallbackController(null))
             .hasMessage("callbackDispatcher must not be null")
             .isExactlyInstanceOf(NullPointerException.class);

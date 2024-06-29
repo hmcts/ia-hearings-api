@@ -41,7 +41,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class CreateHearingPayloadServiceTest {
+class CreateHearingPayloadServiceTest {
 
     private static final Integer LIST_CASE_HEARING_LENGTH = 120;
     private static final String SUBSTANTIVE_HEARING_TYPE = "BFA1-SUB";

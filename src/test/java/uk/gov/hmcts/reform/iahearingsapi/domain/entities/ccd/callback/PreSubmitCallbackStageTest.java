@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class PreSubmitCallbackStageTest {
+class PreSubmitCallbackStageTest {
 
     @Test
     void has_correct_case_event_ids() {

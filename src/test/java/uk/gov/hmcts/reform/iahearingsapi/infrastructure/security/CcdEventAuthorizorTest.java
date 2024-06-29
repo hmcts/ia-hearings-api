@@ -2,8 +2,9 @@ package uk.gov.hmcts.reform.iahearingsapi.infrastructure.security;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
@@ -31,51 +32,45 @@ class CcdEventAuthorizorTest {
 
     @Test
     void should_not_throw_exception_when_event_is_allowed() {
-
         ccdEventAuthorizor = new CcdEventAuthorizor(roleEventAccess, authorizedRolesProvider);
 
         when(authorizedRolesProvider.getRoles()).thenReturn(newHashSet(role));
 
         ccdEventAuthorizor.throwIfNotAuthorized(Event.UNKNOWN);
+
+        assertDoesNotThrow(() -> ccdEventAuthorizor.throwIfNotAuthorized(Event.UNKNOWN));
     }
 
     @Test
     void should_throw_exception_when_provider_returns_empty_list() {
-
         ccdEventAuthorizor = new CcdEventAuthorizor(roleEventAccess, authorizedRolesProvider);
 
         when(authorizedRolesProvider.getRoles()).thenReturn(newHashSet());
 
-        AccessDeniedException thrown = assertThrows(
-            AccessDeniedException.class,
-            () -> ccdEventAuthorizor.throwIfNotAuthorized(Event.UNKNOWN)
-        );
-        assertEquals("Event 'unknown' not allowed", thrown.getMessage());
+        assertThrowsException();
     }
 
     @Test
     void should_throw_exception_when_access_map_is_empty() {
-
         Map<String, List<Event>> roleEventAccess = new ImmutableMap.Builder<String, List<Event>>().build();
 
         ccdEventAuthorizor = new CcdEventAuthorizor(roleEventAccess, authorizedRolesProvider);
 
-        AccessDeniedException thrown = assertThrows(
-            AccessDeniedException.class,
-            () -> ccdEventAuthorizor.throwIfNotAuthorized(Event.UNKNOWN)
-        );
-        assertEquals("Event 'unknown' not allowed", thrown.getMessage());
+        assertThrowsException();
     }
 
     @Test
     void should_throw_exception_when_access_map_for_role_is_empty() {
-
         Map<String, List<Event>> roleEventAccess = new ImmutableMap.Builder<String, List<Event>>()
             .put(role, newArrayList())
             .build();
 
         ccdEventAuthorizor = new CcdEventAuthorizor(roleEventAccess, authorizedRolesProvider);
 
+        assertThrowsException();
+    }
+
+    private void assertThrowsException() {
         AccessDeniedException thrown = assertThrows(
             AccessDeniedException.class,
             () -> ccdEventAuthorizor.throwIfNotAuthorized(Event.UNKNOWN)

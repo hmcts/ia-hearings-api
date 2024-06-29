@@ -20,7 +20,7 @@ import java.util.List;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class LocationRefDataServiceTest {
+class LocationRefDataServiceTest {
 
     @Mock
     private AuthTokenGenerator authTokenGenerator;

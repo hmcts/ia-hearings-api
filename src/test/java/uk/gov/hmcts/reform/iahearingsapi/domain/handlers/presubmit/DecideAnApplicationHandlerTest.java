@@ -48,7 +48,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @SuppressWarnings("unchecked")
-public class DecideAnApplicationHandlerTest {
+class DecideAnApplicationHandlerTest {
 
     private static final long CASE_ID = 4444111122223333L;
     private static final String HEARING_ID_1 = "1";

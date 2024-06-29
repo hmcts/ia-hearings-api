@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -103,7 +102,7 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void should_fetch_one_case_by_id() {
+    void should_fetch_one_case_by_id() {
         CaseDetails caseDetails = mock(CaseDetails.class);
         Map<String, Object> data = new HashMap<>();
         when(caseDetails.getData()).thenReturn(data);
@@ -116,19 +115,19 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void should_get_case_status() {
+    void should_get_case_status() {
         CaseDetails caseDetails = CaseDetails.builder().state("listing").build();
 
         when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(caseDetails);
 
         State caseState = coreCaseDataService.getCaseState(CASE_ID);
 
-        assertEquals(caseState, LISTING);
+        assertEquals(LISTING, caseState);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"Asylum", "Bail"})
-    public void should_get_case_type(String caseType) {
+    void should_get_case_type(String caseType) {
         CaseDetails caseDetails = CaseDetails.builder().caseTypeId(caseType).build();
 
         when(coreCaseDataApi.getCase(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID)).thenReturn(caseDetails);
@@ -139,7 +138,7 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void should_start_an_event_case() {
+    void should_start_an_event_case() {
 
         CaseDetails caseDetails = mock(CaseDetails.class);
         Map<String, Object> data = new HashMap<>();
@@ -153,7 +152,7 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void should_start_an_event_bail_case() {
+    void should_start_an_event_bail_case() {
 
         CaseDetails caseDetails = mock(CaseDetails.class);
         Map<String, Object> data = new HashMap<>();
@@ -168,7 +167,7 @@ public class CoreCaseDataServiceTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"Asylum", "Bail"})
-    public void should_start_case_event(String caseType) {
+    void should_start_case_event(String caseType) {
         when(coreCaseDataApi.startEventForCaseWorker(
             AUTH_TOKEN,
             SERVICE_TOKEN,
@@ -185,7 +184,7 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void should_trigger_event() {
+    void should_trigger_event() {
 
         when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
@@ -198,14 +197,14 @@ public class CoreCaseDataServiceTest {
         );
 
         verify(coreCaseDataService, times(2))
-            .startCaseEvent(eq(LIST_CASE), eq(CASE_ID), eq(CASE_TYPE_ASYLUM));
+            .startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_ASYLUM);
         verify(coreCaseDataService).triggerSubmitEvent(
             LIST_CASE, CASE_ID, startEventResponse, asylumCase);
         assertEquals(caseDetails, actualCaseDetails);
     }
 
     @Test
-    public void should_throw_exception_when_case_details_is_old() {
+    void should_throw_exception_when_case_details_is_old() {
         when(intermediateStartEventResponse.getToken()).thenReturn(EVENT_TOKEN);
         when(intermediateStartEventResponse.getCaseDetails()).thenReturn(intermediateCaseDetails);
         when(intermediateCaseDetails.getLastModified()).thenReturn(now.plusSeconds(10));
@@ -222,7 +221,7 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void should_trigger_event_bailCase() {
+    void should_trigger_event_bailCase() {
 
         when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_BAIL))
             .thenReturn(startEventResponse);
@@ -235,14 +234,14 @@ public class CoreCaseDataServiceTest {
         );
 
         verify(coreCaseDataService, times(2))
-            .startCaseEvent(eq(LIST_CASE), eq(CASE_ID), eq(CASE_TYPE_BAIL));
+            .startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_BAIL);
         verify(coreCaseDataService).triggerBailSubmitEvent(
             LIST_CASE, CASE_ID, startEventResponse, bailCase);
         assertEquals(caseDetails, actualCaseDetails);
     }
 
     @Test
-    public void should_throw_exception() {
+    void should_throw_exception() {
         when(coreCaseDataApi.startEventForCaseWorker(any(), any(), any(), any(), any(), any(), any()))
             .thenThrow(new RuntimeException("test"));
 
@@ -252,7 +251,7 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void triggerReviewInterpreterBookingTask() {
+    void triggerReviewInterpreterBookingTask() {
 
         when(coreCaseDataService.startCaseEvent(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
@@ -261,7 +260,7 @@ public class CoreCaseDataServiceTest {
         coreCaseDataService.triggerReviewInterpreterBookingTask(CASE_ID);
 
         verify(coreCaseDataService, times(3))
-            .startCaseEvent(eq(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK), eq(CASE_ID), eq(CASE_TYPE_ASYLUM));
+            .startCaseEvent(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, CASE_TYPE_ASYLUM);
         verify(coreCaseDataService).triggerSubmitEvent(
             TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, startEventResponse, asylumCase);
 

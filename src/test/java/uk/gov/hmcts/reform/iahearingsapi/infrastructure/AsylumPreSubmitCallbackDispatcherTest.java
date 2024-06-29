@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
-public class AsylumPreSubmitCallbackDispatcherTest {
+class AsylumPreSubmitCallbackDispatcherTest {
 
     @Mock private CcdEventAuthorizor ccdEventAuthorizor;
     @Mock private PreSubmitCallbackHandler<AsylumCase> handler1;
@@ -77,7 +77,7 @@ public class AsylumPreSubmitCallbackDispatcherTest {
     }
 
     @Test
-    public void should_dispatch_callback_to_handlers_according_to_priority_collecting_any_error_messages() {
+    void should_dispatch_callback_to_handlers_according_to_priority_collecting_any_error_messages() {
 
         Set<String> expectedErrors =
             ImmutableSet.of("error1", "error2", "error3", "error4");
@@ -135,7 +135,7 @@ public class AsylumPreSubmitCallbackDispatcherTest {
     }
 
     @Test
-    public void should_only_dispatch_callback_to_handlers_that_can_handle_it() {
+    void should_only_dispatch_callback_to_handlers_that_can_handle_it() {
 
         for (PreSubmitCallbackStage callbackStage : PreSubmitCallbackStage.values()) {
 
@@ -181,7 +181,7 @@ public class AsylumPreSubmitCallbackDispatcherTest {
     }
 
     @Test
-    public void should_not_dispatch_to_handlers_if_user_not_authorized_for_event() {
+    void should_not_dispatch_to_handlers_if_user_not_authorized_for_event() {
 
         for (PreSubmitCallbackStage callbackStage : PreSubmitCallbackStage.values()) {
 
@@ -208,7 +208,7 @@ public class AsylumPreSubmitCallbackDispatcherTest {
     }
 
     @Test
-    public void should_not_error_if_no_handlers_are_provided() {
+    void should_not_error_if_no_handlers_are_provided() {
 
         AsylumPreSubmitCallbackDispatcher preSubmitCallbackDispatcher =
             new AsylumPreSubmitCallbackDispatcher(ccdEventAuthorizor, Collections.emptyList());
@@ -240,24 +240,21 @@ public class AsylumPreSubmitCallbackDispatcherTest {
     }
 
     @Test
-    public void should_not_allow_null_ccd_event_authorizor() {
-
-        assertThatThrownBy(() -> new AsylumPreSubmitCallbackDispatcher(null, Collections.emptyList()))
+    void should_not_allow_null_ccd_event_authorizor() {
+        assertThatThrownBy(this::createDispatcherWithNullCcdEventAuthorizor)
             .hasMessage("ccdEventAuthorizer must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
     }
 
     @Test
-    public void should_not_allow_null_handlers() {
-
+    void should_not_allow_null_handlers() {
         assertThatThrownBy(() -> new AsylumPreSubmitCallbackDispatcher(ccdEventAuthorizor, null))
             .hasMessage("callbackHandlers must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
     }
 
     @Test
-    public void should_not_allow_null_arguments() {
-
+    void should_not_allow_null_arguments() {
         assertThatThrownBy(() -> preSubmitCallbackDispatcher.handle(null, callback))
             .hasMessage("callbackStage must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
@@ -268,7 +265,7 @@ public class AsylumPreSubmitCallbackDispatcherTest {
     }
 
     @Test
-    public void should_sort_handlers_by_name() {
+    void should_sort_handlers_by_name() {
         PreSubmitCallbackHandler<AsylumCase> h1 = new UpdateHearingRequestPreparer(
             mock(HearingService.class)
         );
@@ -296,5 +293,9 @@ public class AsylumPreSubmitCallbackDispatcherTest {
         assertEquals(2, sortedDispatcher.size());
         assertEquals(h3, sortedDispatcher.get(0));
         assertEquals(h1, sortedDispatcher.get(1));
+    }
+
+    private void createDispatcherWithNullCcdEventAuthorizor() {
+        new AsylumPreSubmitCallbackDispatcher(null, Collections.emptyList());
     }
 }

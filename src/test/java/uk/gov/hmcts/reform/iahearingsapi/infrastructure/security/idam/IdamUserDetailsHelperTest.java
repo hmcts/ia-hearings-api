@@ -21,7 +21,7 @@ class IdamUserDetailsHelperTest {
     private IdamUserDetailsHelper idamUserDetailsHelper = new IdamUserDetailsHelper();
 
     @Test
-    public void should_get_logged_in_with_a_valid_user_role() {
+    void should_get_logged_in_with_a_valid_user_role() {
 
         Stream.of(
             "caseworker-ia-caseofficer",
@@ -67,7 +67,7 @@ class IdamUserDetailsHelperTest {
     }
 
     @Test
-    public void should_get_logged_in_user_role_unknown() {
+    void should_get_logged_in_user_role_unknown() {
 
         List<String> expectedRoles = Arrays.asList("caseworker-ia-unknown", "role-2");
 
@@ -79,7 +79,7 @@ class IdamUserDetailsHelperTest {
     }
 
     @Test
-    public void should_get_logged_in_user_role_home_office_generic() {
+    void should_get_logged_in_user_role_home_office_generic() {
 
         Stream.of(
             "caseworker-ia-respondentofficer"
@@ -95,7 +95,7 @@ class IdamUserDetailsHelperTest {
     }
 
     @Test
-    public void should_get_idam_username() {
+    void should_get_idam_username() {
 
         when(userDetails.getForename()).thenReturn("First name");
         when(userDetails.getSurname()).thenReturn("Surname");

@@ -33,7 +33,7 @@ class HearingsControllerAdviceTest {
                 "HMCTS internal case name is a required field"));
 
         assertEquals(responseEntity.getStatusCode().value(), HttpStatus.BAD_REQUEST.value());
-        assertEquals(responseEntity.getBody(), "{\"error\": \"HMCTS internal case name is a required field\"}");
+        assertEquals("{\"error\": \"HMCTS internal case name is a required field\"}", responseEntity.getBody());
     }
 
     @Test
@@ -43,7 +43,7 @@ class HearingsControllerAdviceTest {
             .handleExceptions(request, new IllegalArgumentException("HMCTS internal case name is a required field"));
 
         assertEquals(responseEntity.getStatusCode().value(), HttpStatus.BAD_REQUEST.value());
-        assertEquals(responseEntity.getBody(), "{\"error\": \"HMCTS internal case name is a required field\"}");
+        assertEquals("{\"error\": \"HMCTS internal case name is a required field\"}", responseEntity.getBody());
     }
 
     @Test
@@ -53,6 +53,6 @@ class HearingsControllerAdviceTest {
             .handleExceptions(request, new IllegalStateException("HMCTS internal case name is a required field"));
 
         assertEquals(responseEntity.getStatusCode().value(), HttpStatus.BAD_REQUEST.value());
-        assertEquals(responseEntity.getBody(), "{\"error\": \"HMCTS internal case name is a required field\"}");
+        assertEquals("{\"error\": \"HMCTS internal case name is a required field\"}", responseEntity.getBody());
     }
 }

@@ -15,7 +15,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 
 
 @ExtendWith(MockitoExtension.class)
-public class PreSubmitCallbackResponseTest {
+class PreSubmitCallbackResponseTest {
 
     @Mock
     private CaseData caseData;
