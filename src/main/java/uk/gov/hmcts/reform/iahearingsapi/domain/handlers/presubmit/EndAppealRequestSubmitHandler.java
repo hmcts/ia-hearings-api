@@ -76,11 +76,11 @@ public class EndAppealRequestSubmitHandler implements PreSubmitCallbackHandler<A
                 .stream()
                 .filter(hearing -> canBeCanceled(hearing))
                 .forEach(
-                    hearing -> {
+                    hearing ->
                         hearingService
                             .deleteHearing(Long.valueOf(hearing.getHearingRequestId()), cancellationReason)
-                            .getStatusCode();
-                    });
+                            .getStatusCode()
+                );
         } catch (HmcException e) {
             asylumCase.write(MANUAL_CANCEL_HEARINGS_REQUIRED, YES);
         }

@@ -29,9 +29,9 @@ public enum ServiceDataFieldDefinition {
     CASE_CATEGORY("caseCategory", new TypeReference<List<CaseCategoryModel>>() {});
 
     private final String value;
-    private final TypeReference typeReference;
+    private final TypeReference<?> typeReference;
 
-    ServiceDataFieldDefinition(String value, TypeReference typeReference) {
+    ServiceDataFieldDefinition(String value, TypeReference<?> typeReference) {
         this.value = value;
         this.typeReference = typeReference;
     }
@@ -40,7 +40,7 @@ public enum ServiceDataFieldDefinition {
         return value;
     }
 
-    public TypeReference getTypeReference() {
+    public TypeReference<?> getTypeReference() {
         return typeReference;
     }
 }

@@ -56,15 +56,15 @@ public class RecordAdjournmentDetailsMidEventHandler implements PreSubmitCallbac
 
         if (hearingId != null) {
             try {
-                asylumCase.read(NEXT_HEARING_VENUE, DynamicList.class).ifPresent(nextHearingVenue -> {
+                asylumCase.read(NEXT_HEARING_VENUE, DynamicList.class).ifPresent(nextHearingVenue ->
                     getHearingLocation(hearingId).ifPresent(location -> {
                         Value nextHearingVenueValue = nextHearingVenue.getListItems().stream()
                             .filter(venue -> Objects.equals(venue.getCode(), location.getLocationId()))
                             .findFirst().orElse(nextHearingVenue.getValue());
                         nextHearingVenue.setValue(nextHearingVenueValue);
                         asylumCase.write(NEXT_HEARING_VENUE, nextHearingVenue);
-                    });
-                });
+                    })
+                );
             } catch (HmcException ex) {
                 log.error(ex.getMessage());
             }

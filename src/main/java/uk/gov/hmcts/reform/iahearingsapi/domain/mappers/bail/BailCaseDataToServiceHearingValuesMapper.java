@@ -41,6 +41,7 @@ public class BailCaseDataToServiceHearingValuesMapper {
     static final int HEARING_WINDOW_END_INTERVAL_DEFAULT = 8;
     static final int HEARING_START_WINDOW_INTERVAL_CONDITIONAL_BAIL = 29;
     static final String BAIL_STATE_DECISION_CONDITIONAL_BAIL = "decisionConditionalBail";
+    private static final String datePattern = "yyyy-MM-dd";
 
     private final DateProvider hearingServiceDateProvider;
 
@@ -62,24 +63,35 @@ public class BailCaseDataToServiceHearingValuesMapper {
         return "";
     }
 
+    private boolean isConditionalBail(String bailState) {
+        return bailState.equals(BAIL_STATE_DECISION_CONDITIONAL_BAIL);
+    }
+
+    private HearingWindowModel buildHearingWindowModelForConditionalBail(ZonedDateTime now) {
+        return HearingWindowModel.builder()
+            .firstDateTimeMustBe(hearingServiceDateProvider
+                                     .calculateDueDate(now, HEARING_START_WINDOW_INTERVAL_CONDITIONAL_BAIL)
+                                     .format(DateTimeFormatter.ofPattern(datePattern)))
+            .build();
+    }
+
+    private HearingWindowModel buildHearingWindowModelDefault(ZonedDateTime now) {
+        return HearingWindowModel.builder()
+            .dateRangeStart(hearingServiceDateProvider
+                                .calculateDueDate(now, HEARING_START_WINDOW_INTERVAL_DEFAULT)
+                                .format(DateTimeFormatter.ofPattern(datePattern)))
+            .dateRangeEnd(hearingServiceDateProvider
+                              .calculateDueDate(now, HEARING_WINDOW_END_INTERVAL_DEFAULT)
+                              .format(DateTimeFormatter.ofPattern(datePattern)))
+            .build();
+    }
+
     public HearingWindowModel getHearingWindowModel(String bailState) {
         ZonedDateTime now = hearingServiceDateProvider.zonedNowWithTime();
-
-        if (bailState.equals(BAIL_STATE_DECISION_CONDITIONAL_BAIL)) {
-            return HearingWindowModel.builder()
-                .firstDateTimeMustBe(hearingServiceDateProvider
-                                    .calculateDueDate(now, HEARING_START_WINDOW_INTERVAL_CONDITIONAL_BAIL)
-                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                .build();
+        if (isConditionalBail(bailState)) {
+            return buildHearingWindowModelForConditionalBail(now);
         } else {
-            return HearingWindowModel.builder()
-                .dateRangeStart(hearingServiceDateProvider
-                                    .calculateDueDate(now, HEARING_START_WINDOW_INTERVAL_DEFAULT)
-                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                .dateRangeEnd(hearingServiceDateProvider
-                                  .calculateDueDate(now, HEARING_WINDOW_END_INTERVAL_DEFAULT)
-                                  .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                .build();
+            return buildHearingWindowModelDefault(now);
         }
 
     }

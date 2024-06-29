@@ -15,29 +15,23 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.HealthCheckConfig
 @Component
 public class DownStreamHealthIndicator implements CompositeHealthContributor {
 
-    private final RestTemplate restTemplate;
-
-    private final HealthCheckConfiguration healthCheckConfiguration;
-
     private Map<String, HealthContributor> contributors = new HashMap<>();
 
     public DownStreamHealthIndicator(
         RestTemplate restTemplate,
         HealthCheckConfiguration healthCheckConfiguration
     ) {
-        this.restTemplate = restTemplate;
-        this.healthCheckConfiguration = healthCheckConfiguration;
 
         try {
 
             healthCheckConfiguration.getServices().entrySet().stream()
-                .forEach(s -> {
+                .forEach(s ->
                     contributors
                         .put(s.getKey(), new ServiceHealthIndicator(
                             s.getValue().get("uri"),
                             s.getValue().get("response"),
-                            restTemplate));
-                });
+                            restTemplate))
+            );
         } catch (NullPointerException ex) {
 
             log.error("HealthCheckConfiguration cannot be null or empty");
@@ -54,6 +48,6 @@ public class DownStreamHealthIndicator implements CompositeHealthContributor {
     public Iterator<NamedContributor<HealthContributor>> iterator() {
 
         return contributors.entrySet().stream()
-            .map((entry) -> NamedContributor.of(entry.getKey(), entry.getValue())).iterator();
+            .map(entry -> NamedContributor.of(entry.getKey(), entry.getValue())).iterator();
     }
 }

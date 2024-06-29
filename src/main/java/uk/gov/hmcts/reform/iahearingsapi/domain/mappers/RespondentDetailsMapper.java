@@ -11,7 +11,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServi
 @Component
 public class RespondentDetailsMapper {
 
-    private static final String bailHomeOfficeName = "Secretary of State";
+    private static final String BAIL_HOME_OFFICE_NAME = "Secretary of State";
 
     public PartyDetailsModel map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
 
@@ -36,7 +36,7 @@ public class RespondentDetailsMapper {
             .organisationDetails(
                 OrganisationDetailsModel.builder()
                     .organisationType(PartyType.ORG.getPartyType())
-                    .name(bailHomeOfficeName)
+                    .name(BAIL_HOME_OFFICE_NAME)
                     .build())
             .build();
     }

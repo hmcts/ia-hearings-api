@@ -301,9 +301,9 @@ public enum AsylumCaseFieldDefinition {
 
 
     private final String value;
-    private final TypeReference typeReference;
+    private final TypeReference<?> typeReference;
 
-    AsylumCaseFieldDefinition(String value, TypeReference typeReference) {
+    AsylumCaseFieldDefinition(String value, TypeReference<?> typeReference) {
         this.value = value;
         this.typeReference = typeReference;
     }
@@ -312,7 +312,7 @@ public enum AsylumCaseFieldDefinition {
         return value;
     }
 
-    public TypeReference getTypeReference() {
+    public TypeReference<?> getTypeReference() {
         return typeReference;
     }
 }

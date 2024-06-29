@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLinkData;
@@ -73,7 +72,6 @@ public class HearingsController {
             }
     )
     @PostMapping(path = "/serviceHearingValues")
-    @ResponseBody
     public ResponseEntity<ServiceHearingValuesModel> getHearingsValues(
         @Parameter(name = "Hearing values request payload: caseId and hearingId", required = true)
         @NotNull @RequestBody HearingRequestPayload hearingRequestPayload
@@ -99,7 +97,6 @@ public class HearingsController {
                     content = @Content)
             })
     @PostMapping(path = "/serviceLinkedCases")
-    @ResponseBody
     public ResponseEntity<List<HearingLinkData>> getHearingsLinkData(
         @Parameter(name = "Hearing values request payload", required = true)
         @NotNull @RequestBody HearingRequestPayload hearingRequestPayload) {

@@ -69,9 +69,12 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 @RequiredArgsConstructor
 public class CaseDataToServiceHearingValuesMapper {
 
-    static final int HEARING_WINDOW_INTERVAL_DEFAULT = 11;
-    public static final String REQUIRED_FIELD_FOR_RES_ID_NOT_PRESENT_ERROR =
+    private static final int HEARING_WINDOW_INTERVAL_DEFAULT = 11;
+    private static final String REQUIRED_FIELD_FOR_RES_ID_NOT_PRESENT_ERROR =
         "Require either homeOfficeReferenceNumber or gwfReferenceNumber field to be present.";
+    private static final String SECRETARY_OF_STATE = "Secretary of State";
+    private static final String ENTRY_CLEARANCE_OFFICER = "Entry Clearance Officer";
+    private static final String REQUIRED_FIELD = "is a required field";
 
     private final DateProvider hearingServiceDateProvider;
 
@@ -186,37 +189,33 @@ public class CaseDataToServiceHearingValuesMapper {
 
     public String getAppellantPartyId(AsylumCase asylumCase) {
         return asylumCase.read(APPELLANT_PARTY_ID, String.class)
-            .orElseThrow(() -> new RequiredFieldMissingException("appellantPartyId is a required field"));
+            .orElseThrow(() -> new RequiredFieldMissingException("appellantPartyId " + REQUIRED_FIELD));
     }
 
     public String getRespondentPartyId(AsylumCase asylumCase) {
-        Optional<String> refNumber = asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class);
-        if (refNumber.isPresent()) {
-            return refNumber.get();
-        } else {
-            return asylumCase.read(GWF_REFERENCE_NUMBER, String.class)
-                .orElseThrow(() -> new RequiredFieldMissingException(REQUIRED_FIELD_FOR_RES_ID_NOT_PRESENT_ERROR));
-        }
+        return asylumCase.read(HOME_OFFICE_REFERENCE_NUMBER, String.class)
+            .orElseGet(() -> asylumCase.read(GWF_REFERENCE_NUMBER, String.class)
+                .orElseThrow(() -> new RequiredFieldMissingException(REQUIRED_FIELD_FOR_RES_ID_NOT_PRESENT_ERROR)));
     }
 
     public String getLegalRepPartyId(AsylumCase asylumCase) {
         return asylumCase.read(LEGAL_REP_INDIVIDUAL_PARTY_ID, String.class)
-            .orElseThrow(() -> new RequiredFieldMissingException("legalRepIndividualPartyId is a required field"));
+            .orElseThrow(() -> new RequiredFieldMissingException("legalRepIndividualPartyId " + REQUIRED_FIELD));
     }
 
     public String getLegalRepOrgPartyId(AsylumCase asylumCase) {
         return asylumCase.read(LEGAL_REP_ORGANISATION_PARTY_ID, String.class)
-            .orElseThrow(() -> new RequiredFieldMissingException("legalRepOrganisationPartyId is a required field"));
+            .orElseThrow(() -> new RequiredFieldMissingException("legalRepOrganisationPartyId " + REQUIRED_FIELD));
     }
 
     public String getSponsorPartyId(AsylumCase asylumCase) {
         return asylumCase.read(SPONSOR_PARTY_ID, String.class)
-            .orElseThrow(() -> new RequiredFieldMissingException("sponsorPartyId is a required field"));
+            .orElseThrow(() -> new RequiredFieldMissingException("sponsorPartyId " + REQUIRED_FIELD));
     }
 
     public String getLegalRepCompany(AsylumCase asylumCase) {
         return asylumCase.read(LEGAL_REP_COMPANY, String.class)
-            .orElseThrow(() -> new RequiredFieldMissingException("legalRepCompany is a required field"));
+            .orElseThrow(() -> new RequiredFieldMissingException("legalRepCompany " + REQUIRED_FIELD));
     }
 
     public String getLegalRepOrganisationIdentifier(AsylumCase asylumCase) {
@@ -261,12 +260,9 @@ public class CaseDataToServiceHearingValuesMapper {
     }
 
     public String getRespondentName(AsylumCase asylumCase) {
-
-        if (MapperUtils.isAppellantInUk(asylumCase) || MapperUtils.isS94B(asylumCase)) {
-            return "Secretary of State";
-        } else {
-            return "Entry Clearance Officer";
-        }
+        return MapperUtils.isAppellantInUk(asylumCase) || MapperUtils.isS94B(asylumCase)
+            ? SECRETARY_OF_STATE
+            : ENTRY_CLEARANCE_OFFICER;
     }
 
     public String getListingComments(AsylumCase asylumCase) {
@@ -300,9 +296,9 @@ public class CaseDataToServiceHearingValuesMapper {
                 ADDITIONAL_TRIBUNAL_RESPONSE
             ) : "");
 
-        asylumCase.read(ADDITIONAL_INSTRUCTIONS_DESCRIPTION, String.class).ifPresent(description -> {
-            commentsBuilder.append("Additional instructions: ").append(description).append(";");
-        });
+        asylumCase.read(ADDITIONAL_INSTRUCTIONS_DESCRIPTION, String.class).ifPresent(description ->
+            commentsBuilder.append("Additional instructions: ").append(description).append(";")
+        );
 
         return commentsBuilder.toString();
 

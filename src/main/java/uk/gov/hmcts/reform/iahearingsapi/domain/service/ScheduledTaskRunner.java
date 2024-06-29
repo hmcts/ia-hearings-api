@@ -4,7 +4,6 @@ import static java.lang.Character.toLowerCase;
 
 import com.launchdarkly.shaded.javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +11,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ScheduledTaskRunner {
 
-    @Autowired
-    ApplicationContext context;
+    private final ApplicationContext context;
+
+    public ScheduledTaskRunner(ApplicationContext context) {
+        this.context = context;
+    }
 
     public void run(String taskName) {
         final var beanName = toLowerCase(taskName.charAt(0)) + taskName.substring(1);

@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
@@ -123,26 +124,29 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                                                     HearingGetResponse persistedHearing,
                                                     Event event) {
 
-        Optional<String> locationCodes = Optional.empty();
-        if (event != null) {
-            switch (event) {
-                case RECORD_ADJOURNMENT_DETAILS -> locationCodes = asylumCase
-                    .read(NEXT_HEARING_VENUE, DynamicList.class)
-                    .map(hearingLocation -> hearingLocation.getValue().getCode());
-                case UPDATE_HEARING_REQUEST -> locationCodes = asylumCase
-                    .read(HEARING_LOCATION, DynamicList.class)
-                    .map(hearingLocation -> hearingLocation.getValue().getCode());
-            }
-        }
-
-        return locationCodes.map(locationCode ->
-                List.of(HearingLocationModel.builder()
-                    .locationId(locationCode)
-                    .locationType(persistedHearing
-                        .getHearingDetails()
-                        .getHearingLocations().get(0)
-                        .getLocationType()).build()))
+        return getEventLocationCode(asylumCase, event)
+            .map(locationCode ->
+                     List.of(HearingLocationModel.builder()
+                                 .locationId(locationCode)
+                                 .locationType(persistedHearing
+                                                   .getHearingDetails()
+                                                   .getHearingLocations().get(0)
+                                                   .getLocationType()).build()))
             .orElseGet(() -> persistedHearing.getHearingDetails().getHearingLocations());
+    }
+
+    private Optional<String> getEventLocationCode(AsylumCase asylumCase, Event event) {
+        if (event == Event.RECORD_ADJOURNMENT_DETAILS) {
+            return asylumCase
+                .read(NEXT_HEARING_VENUE, DynamicList.class)
+                .map(hearingLocation -> hearingLocation.getValue().getCode());
+        }
+        if (event == Event.UPDATE_HEARING_REQUEST) {
+            return asylumCase
+                .read(HEARING_LOCATION, DynamicList.class)
+                .map(hearingLocation -> hearingLocation.getValue().getCode());
+        }
+        return Optional.empty();
     }
 
     private Integer getDuration(AsylumCase asylumCase,
@@ -159,16 +163,13 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
 
         int hearingDuration = 0;
         if (event != null) {
-            switch (event) {
-                case RECORD_ADJOURNMENT_DETAILS:
-                    hearingDuration = caseDataMapper
-                        .getIntHearingDurationFromString(asylumCase, NEXT_HEARING_DURATION);
-                    break;
-
-                case UPDATE_HEARING_REQUEST:
-                    hearingDuration = caseDataMapper
-                        .getIntHearingDurationFromString(asylumCase, REQUEST_HEARING_LENGTH);
-                    break;
+            if (event == Event.RECORD_ADJOURNMENT_DETAILS) {
+                hearingDuration = caseDataMapper
+                    .getIntHearingDurationFromString(asylumCase, NEXT_HEARING_DURATION);
+            }
+            if (event == Event.UPDATE_HEARING_REQUEST) {
+                hearingDuration = caseDataMapper
+                    .getIntHearingDurationFromString(asylumCase, REQUEST_HEARING_LENGTH);
             }
         }
         return hearingDuration <= 0 ? null : hearingDuration;
@@ -187,43 +188,31 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         return null;
     }
 
-    private HearingWindowModel returnValidHearingWindow(HearingWindowModel hearingWindowModel) {
-        if (hearingWindowModel != null) {
-            if (!hearingWindowModel.allNull()) {
-                return hearingWindowModel;
-            }
+    private void updateHearingWindow(AsylumCase asylumCase,
+                                     HearingDetails hearingDetails,
+                                     HearingDetails hearingsDetailsUpdate) {
+        if (shouldUpdate(asylumCase, CHANGE_HEARING_DATE_YES_NO)) {
+            hearingDetails.setHearingWindow(hearingsDetailsUpdate.getHearingWindow());
         }
-        return null;
+    }
+
+    private HearingWindowModel returnValidHearingWindow(HearingWindowModel hearingWindowModel) {
+        return isHearingWindowModelNotNull(hearingWindowModel) ? hearingWindowModel : null;
+    }
+
+    private static boolean isHearingWindowModelNotNull(HearingWindowModel hearingWindowModel) {
+        return hearingWindowModel != null && !hearingWindowModel.allNull();
     }
 
     private HearingDetails buildHearingDetails(AsylumCase asylumCase, HearingDetails hearingDetails,
                                                HearingDetails hearingsDetailsUpdate, Event event) {
         if (event == Event.UPDATE_HEARING_REQUEST) {
-            boolean updateHearingChannel = asylumCase.read(CHANGE_HEARING_TYPE_YES_NO, String.class)
-                .map(changeType -> Objects.equals(YES.toString(), changeType)).orElse(false);
-            if (updateHearingChannel) {
-                hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
-            }
-            boolean updateHearingLocation = asylumCase.read(CHANGE_HEARING_LOCATION_YES_NO, String.class)
-                .map(changeLocation -> Objects.equals(YES.toString(), changeLocation)).orElse(false);
-            if (updateHearingLocation) {
-                hearingDetails.setHearingLocations(hearingsDetailsUpdate.getHearingLocations());
-            }
-            boolean updateHearingDuration = asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, String.class)
-                .map(changeDuratrion -> Objects.equals(YES.toString(), changeDuratrion)).orElse(false);
-            if (updateHearingDuration) {
-                hearingDetails.setDuration(hearingsDetailsUpdate.getDuration());
-            }
-            boolean updateHearingDate = asylumCase.read(CHANGE_HEARING_DATE_YES_NO, String.class)
-                .map(changeDate -> Objects.equals(YES.toString(), changeDate)).orElse(false);
-            if (updateHearingDate) {
-                hearingDetails.setHearingWindow(hearingsDetailsUpdate.getHearingWindow());
-            }
+            updateHearingChannels(asylumCase, hearingDetails, hearingsDetailsUpdate);
+            updateHearingLocations(asylumCase, hearingDetails, hearingsDetailsUpdate);
+            updateHearingDuration(asylumCase, hearingDetails, hearingsDetailsUpdate);
+            updateHearingWindow(asylumCase, hearingDetails, hearingsDetailsUpdate);
         } else {
-            hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
-            hearingDetails.setHearingLocations(hearingsDetailsUpdate.getHearingLocations());
-            hearingDetails.setDuration(hearingsDetailsUpdate.getDuration());
-            hearingDetails.setHearingWindow(hearingsDetailsUpdate.getHearingWindow());
+            setHearingDetails(hearingDetails, hearingsDetailsUpdate);
         }
 
         hearingDetails.setAmendReasonCodes(hearingsDetailsUpdate.getAmendReasonCodes());
@@ -235,6 +224,44 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
 
         return hearingDetails;
     }
+
+    private void updateHearingChannels(AsylumCase asylumCase,
+                                       HearingDetails hearingDetails,
+                                       HearingDetails hearingsDetailsUpdate) {
+        if (shouldUpdate(asylumCase, CHANGE_HEARING_TYPE_YES_NO)) {
+            hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
+        }
+    }
+
+    private void updateHearingLocations(AsylumCase asylumCase,
+                                        HearingDetails hearingDetails,
+                                        HearingDetails hearingsDetailsUpdate) {
+        if (shouldUpdate(asylumCase, CHANGE_HEARING_LOCATION_YES_NO)) {
+            hearingDetails.setHearingLocations(hearingsDetailsUpdate.getHearingLocations());
+        }
+    }
+
+    private void updateHearingDuration(AsylumCase asylumCase,
+                                       HearingDetails hearingDetails,
+                                       HearingDetails hearingsDetailsUpdate) {
+        if (shouldUpdate(asylumCase, CHANGE_HEARING_DURATION_YES_NO)) {
+            hearingDetails.setDuration(hearingsDetailsUpdate.getDuration());
+        }
+    }
+
+    private boolean shouldUpdate(AsylumCase asylumCase, AsylumCaseFieldDefinition field) {
+        return asylumCase.read(field, String.class)
+            .map(change -> Objects.equals(YES.toString(), change)).orElse(false);
+    }
+
+    private void setHearingDetails(HearingDetails hearingDetails, HearingDetails hearingsDetailsUpdate) {
+        hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
+        hearingDetails.setHearingLocations(hearingsDetailsUpdate.getHearingLocations());
+        hearingDetails.setDuration(hearingsDetailsUpdate.getDuration());
+        hearingDetails.setHearingWindow(hearingsDetailsUpdate.getHearingWindow());
+    }
+
+
 
     private List<String> getFacilitiesRequired(AsylumCase asylumCase, List<String> facilities) {
         List<String> filteredFacilities = new ArrayList<>(facilities);
