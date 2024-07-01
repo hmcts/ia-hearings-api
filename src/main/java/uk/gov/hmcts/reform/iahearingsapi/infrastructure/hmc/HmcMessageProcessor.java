@@ -14,6 +14,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_CATEGORY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils.convertFromUTC;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +59,9 @@ public class HmcMessageProcessor {
         through UnNotifiedHearingsProcessor
          */
         if (!hmcStatus.equals(HmcStatus.EXCEPTION)) {
-            serviceData.write(NEXT_HEARING_DATE, hearingUpdate.getNextHearingDate());
+            if (hearingUpdate.getNextHearingDate() != null) {
+                serviceData.write(NEXT_HEARING_DATE, convertFromUTC(hearingUpdate.getNextHearingDate()));
+            }
             serviceData.write(HEARING_VENUE_ID, hearingUpdate.getHearingVenueId());
             serviceData.write(HEARING_LISTING_STATUS, hearingUpdate.getHearingListingStatus());
             serviceData.write(LIST_ASSIST_CASE_STATUS, hearingUpdate.getListAssistCaseStatus());

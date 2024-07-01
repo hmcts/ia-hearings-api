@@ -1,12 +1,12 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Map;
-
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +20,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.GetLinkedCasesResponse;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.LinkedCasesApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
 
 @Slf4j
@@ -35,6 +37,7 @@ public class CoreCaseDataService {
     private final IdamService idamService;
     private final CoreCaseDataApi coreCaseDataApi;
     private final IaCcdConvertService iaCcdConvertService;
+    private final LinkedCasesApi linkedCasesApi;
 
     public StartEventResponse startCaseEvent(Event event, String caseId, String caseType) {
         try {
@@ -238,5 +241,14 @@ public class CoreCaseDataService {
         log.info("Sending `{}` event for  Case ID `{}`", TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId);
         triggerSubmitEvent(
             TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId, startEventResponse, asylumCase);
+    }
+
+    public GetLinkedCasesResponse getLinkedCases(String caseReference) {
+        return linkedCasesApi.getLinkedCases(
+            idamService.getServiceUserToken(),
+            serviceAuthTokenGenerator.generate(),
+            caseReference,
+            "1",
+            "100");
     }
 }

@@ -24,7 +24,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_VENUE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE_1;
@@ -54,6 +54,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ReasonCodes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
@@ -102,6 +103,7 @@ class UpdateHearingsRequestSubmitTest {
             .toList());
 
     private AsylumCase asylumCase;
+    private Long caseReference = Long.parseLong("1717667659221764");
 
     @BeforeEach
     void setUp() {
@@ -110,6 +112,7 @@ class UpdateHearingsRequestSubmitTest {
         asylumCase.write(CHANGE_HEARINGS, dynamicListOfHearings);
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
+        when(callback.getCaseDetails().getId()).thenReturn(caseReference);
         when(callback.getEvent()).thenReturn(UPDATE_HEARING_REQUEST);
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(hearingGetResponse);
         when(hearingService.getHearing(anyString())).thenReturn(updatedHearing);
@@ -117,6 +120,7 @@ class UpdateHearingsRequestSubmitTest {
         when(updatedHearingResponse.getLaCaseStatus()).thenReturn(CASE_CREATED);
         when(updateHearingRequest.getHearingDetails()).thenReturn(hearingDetails);
         when(updateHearingPayloadService.createUpdateHearingPayload(
+            any(),
             any(),
             any(),
             any(),
@@ -151,7 +155,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals(TEL.getLabel(), asylumCase.read(CHANGE_HEARING_TYPE, String.class).orElse(""));
@@ -181,7 +186,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals(NEWCASTLE.getValue(), asylumCase.read(CHANGE_HEARING_VENUE, String.class).orElse(""));
@@ -213,7 +219,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             newHearingWindow,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals("Date to be fixed: 02 December 2023",
@@ -247,7 +254,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             newHearingWindow,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals("Choose a date range: Earliest 02 December 2023: Latest 26 December 2023",
@@ -275,7 +283,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             true,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals("First available date", asylumCase.read(CHANGE_HEARING_DATE, String.class).orElse(""));
@@ -312,11 +321,12 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         assertEquals("240", asylumCase.read(CHANGE_HEARING_DURATION, String.class).orElse(""));
-        assertEquals("240", asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class).orElse(""));
+        assertEquals(new HoursMinutes(240), asylumCase.read(LISTING_LENGTH, HoursMinutes.class).orElse(null));
 
         verifyFieldsAreCleared();
     }
@@ -370,7 +380,8 @@ class UpdateHearingsRequestSubmitTest {
             reasonCode.getValue().getCode(),
             false,
             null,
-            UPDATE_HEARING_REQUEST
+            UPDATE_HEARING_REQUEST,
+            caseReference
         );
 
         // Still INTER, not changed to TEL

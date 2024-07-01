@@ -6,19 +6,20 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.EXCEPTION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.HEARING_REQUESTED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.iahearingsapi.TestUtils;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HearingUpdate;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
 
@@ -44,10 +45,10 @@ class HmcHearingsEventTopicListenerTest {
         ReflectionTestUtils.setField(hmcHearingsEventTopicListener, "hmctsServiceId", SERVICE_CODE);
     }
 
-    @Test
-    public void testOnMessageWithRelevantMessage() throws Exception {
-        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE);
-        hmcMessage.setHearingUpdate(HearingUpdate.builder().hmcStatus(EXCEPTION).build());
+    @ParameterizedTest
+    @EnumSource(value = HmcStatus.class, names = { "LISTED", "CANCELLED" })
+    public void testOnMessageWithRelevantMessage(HmcStatus hmcStatus) throws Exception {
+        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, hmcStatus);
 
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
         byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
@@ -61,7 +62,7 @@ class HmcHearingsEventTopicListenerTest {
 
     @Test
     public void testOnMessageWithIrrelevantMessage() throws Exception {
-        HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode");
+        HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode", HEARING_REQUESTED);
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
         byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
 
@@ -71,11 +72,11 @@ class HmcHearingsEventTopicListenerTest {
         verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
     }
 
-    // Disable this test if using live-processing instead of batch-processing of messages
-    @Test
-    public void should_not_process_messages_with_hmc_status_different_than_exception() throws Exception {
-        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE);
-        hmcMessage.setHearingUpdate(HearingUpdate.builder().hmcStatus(LISTED).build());
+    @ParameterizedTest
+    @EnumSource(value = HmcStatus.class, names = {"HEARING_REQUESTED", "AWAITING_LISTING", "UPDATE_REQUESTED",
+        "UPDATE_SUBMITTED", "CANCELLATION_REQUESTED", "CANCELLATION_SUBMITTED", "CLOSED", "EXCEPTION"})
+    public void testOnMessageWithIrrelevantHmcStatuses(HmcStatus hmcStatus) throws Exception {
+        HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode", hmcStatus);
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
         byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
 
@@ -84,5 +85,4 @@ class HmcHearingsEventTopicListenerTest {
 
         verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
     }
-
 }

@@ -7,13 +7,19 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CONTACT_PREFERENCE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.EMAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_SINGLE_SEX_COURT_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MOBILE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SINGLE_SEX_COURT_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.NOT_REQUESTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ContactPreference.WANTS_EMAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ContactPreference.WANTS_SMS;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,16 +28,21 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.SingleSexType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ContactPreference;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AppellantDetailsMapperTest {
 
     @Mock
@@ -45,12 +56,15 @@ class AppellantDetailsMapperTest {
     @Mock
     private HearingDetails persistedHearingDetails;
     @Mock
+    private AsylumCaseFieldDefinition asylumCaseFieldDefinition;
+    @Mock
     Event event;
 
     @BeforeEach
     void setup() {
         when(caseDataMapper.getAppellantPartyId(asylumCase)).thenReturn("partyId");
         when(asylumCase.read(JOURNEY_TYPE, String.class)).thenReturn(Optional.of(REP.getValue()));
+        when(asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class)).thenReturn(Optional.of(WANTS_EMAIL));
     }
 
     @Test
@@ -234,6 +248,34 @@ class AppellantDetailsMapperTest {
             assertEquals(appellantPartyDetailsModel, new AppellantDetailsMapper(languageAndAdjustmentsMapper)
                 .map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event));
         }
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ContactPreference.class, names = {"WANTS_EMAIL", "WANTS_SMS"})
+    void should_set_email_and_phone_based_on_contact_preference(ContactPreference contactPreference) {
+        when(asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class))
+            .thenReturn(Optional.of(contactPreference));
+
+        String mobileNumber = "07777777777";
+        String email = "test@test.com";
+        when(caseDataMapper.getHearingChannelEmail(asylumCase, EMAIL))
+            .thenReturn(List.of(email));
+
+        when(caseDataMapper.getHearingChannelPhone(asylumCase, MOBILE_NUMBER))
+            .thenReturn(List.of(mobileNumber));
+
+        List<String> expectedEmail = contactPreference.equals(WANTS_EMAIL)
+            ? List.of(email) : Collections.emptyList();
+
+        List<String> expectedPhone = contactPreference.equals(WANTS_SMS)
+            ? List.of(mobileNumber) : Collections.emptyList();
+
+        IndividualDetailsModel actualIndividualDetails = new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+            .map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event)
+            .getIndividualDetails();
+
+        assertEquals(expectedEmail, actualIndividualDetails.getHearingChannelEmail());
+        assertEquals(expectedPhone, actualIndividualDetails.getHearingChannelPhone());
     }
 
     private PartyDetailsModel getPartyDetailsModelForAppellant(IndividualDetailsModel individualDetails) {

@@ -6,6 +6,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CASE_NAME_HMCTS_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CURRENT_CASE_STATE_VISIBLE_TO_ADMIN_OFFICER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils.getEpimsId;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils.getCaseCategoriesValue;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils.getNumberOfPhysicalAttendees;
 
@@ -53,6 +54,7 @@ public class ServiceHearingValuesProvider {
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_APPEALS = "classpath:appealsScreenFlow.json";
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_BAILS = "classpath:bailsScreenFlow.json";
     private static final String TRIBUNAL_JUDGE = "84";
+    public static final String BAILS_LOCATION_REF_DATA_FEATURE = "bails-location-reference-data";
 
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
     private final BailCaseDataToServiceHearingValuesMapper bailCaseDataMapper;
@@ -61,6 +63,7 @@ public class ServiceHearingValuesProvider {
     private final PartyDetailsMapper partyDetailsMapper;
     private final ListingCommentsMapper listingCommentsMapper;
     private final ResourceLoader resourceLoader;
+    private final FeatureToggler featureToggler;
     @Value("${xui.api.baseUrl}")
     private String baseUrl;
 
@@ -165,7 +168,7 @@ public class ServiceHearingValuesProvider {
             .caseCategories(getBailCaseCategoriesValue())
             .caseDeepLink(baseUrl.concat(caseDataMapper.getCaseDeepLink(caseReference)))
             .externalCaseReference(bailCaseDataMapper.getExternalCaseReference(bailCase))
-            .caseManagementLocationCode(bailCaseDataMapper.getCaseManagementLocationCode(bailCase))
+            .caseManagementLocationCode(getCaseManagementLocationCode(bailCase))
             .autoListFlag(false)
             .caseSlaStartDate(bailCaseDataMapper.getCaseSlaStartDate(bailCase))
             .duration(Integer.parseInt(listCaseHearingLength))
@@ -250,5 +253,11 @@ public class ServiceHearingValuesProvider {
 
     private List<PartyDetailsModel> getPartyDetails(BailCase bailCase) {
         return partyDetailsMapper.mapBailPartyDetails(bailCase, bailCaseFlagsMapper, bailCaseDataMapper);
+    }
+
+    private String getCaseManagementLocationCode(BailCase bailCase) {
+        return featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false)
+            ? getEpimsId(bailCase)
+            : bailCaseDataMapper.getCaseManagementLocationCode(bailCase);
     }
 }

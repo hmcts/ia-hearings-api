@@ -1,18 +1,24 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_CMR_LISTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_CMR_UPDATED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
@@ -48,15 +54,31 @@ public class ListCmrHandler extends ListedHearingService implements ServiceDataH
 
         String hearingId = serviceData.read(HEARING_ID, String.class)
             .orElseThrow(() -> new IllegalStateException("HearingID can not be missing"));
-        log.info("ListCmrHandler triggered for hearing " + hearingId);
+        String caseId = getCaseReference(serviceData);
         PartiesNotifiedResponses partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId);
+
         log.info("partiesNotifiedResponses for hearing " + hearingId + " : "
             + partiesNotifiedResponses.getResponses().toString());
-        String caseId = getCaseReference(serviceData);
+
         if (partiesNotifiedResponses.getResponses().isEmpty()) {
             triggerCmrListedNotification(caseId);
+            log.info("ListCmrHandler triggered for hearing " + hearingId);
         } else {
-            triggerCmrUpdatedNotification(caseId);
+            Set<ServiceDataFieldDefinition> updatedTargetFields = findUpdatedServiceDataFields(
+                serviceData, partiesNotifiedResponses.getResponses(), Set.of(
+                    NEXT_HEARING_DATE,
+                    HEARING_CHANNELS,
+                    DURATION,
+                    HEARING_VENUE_ID
+                ));
+
+            if (updatedTargetFields.isEmpty()) {
+                log.info("Hearing date, channel, duration and location not updated");
+                log.info("CmrHandler not triggered for hearing " + hearingId);
+            } else {
+                triggerCmrUpdatedNotification(caseId);
+                log.info("updateCmrHandler triggered for hearing " + hearingId);
+            }
         }
 
         return new ServiceDataResponse<>(serviceData);

@@ -62,7 +62,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
 
         if (relistCaseImmediately(asylumCase)) {
-            updateHearing(asylumCase, getHearingId(asylumCase));
+            updateHearing(asylumCase, getHearingId(asylumCase), callback.getCaseDetails().getId());
         } else {
             deleteHearing(asylumCase, getHearingId(asylumCase));
         }
@@ -99,7 +99,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
         hearingService.deleteHearing(Long.valueOf(hearingId), cancellationReason.getValue().getCode());;
     }
 
-    private void updateHearing(AsylumCase asylumCase, String hearingId) {
+    private void updateHearing(AsylumCase asylumCase, String hearingId, Long caseReference) {
         DynamicList cancellationReason = asylumCase.read(HEARING_REASON_TO_UPDATE, DynamicList.class)
             .orElseThrow(() -> new IllegalStateException("Hearing relisted cancellation reason is not present"));
         String nextHearingDate = asylumCase.read(NEXT_HEARING_DATE, String.class)
@@ -112,7 +112,8 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
                 cancellationReason.getValue().getCode(),
                 nextHearingDate.equals(NEXT_HEARING_DATE_FIRST_AVAILABLE_DATE),
                 updateHearingWindow(asylumCase),
-                RECORD_ADJOURNMENT_DETAILS
+                RECORD_ADJOURNMENT_DETAILS,
+                caseReference
             ),
             hearingId
         );

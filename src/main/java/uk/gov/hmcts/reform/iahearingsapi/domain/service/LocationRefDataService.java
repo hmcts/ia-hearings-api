@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -17,15 +18,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LocationRefDataService {
 
+    private static final String OPEN = "Open";
+    private static final String Y = "Y";
+
     private final AuthTokenGenerator authTokenGenerator;
     private final UserDetails userDetails;
     private final LocationRefDataApi locationRefDataApi;
+    private final IdamService idamService;
     @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}")
     private String serviceId;
 
-    public DynamicList getHearingLocationsDynamicList() {
+    public DynamicList getHearingLocationsDynamicList(boolean isServiceUser) {
 
-        return new DynamicList(new Value("", ""), getCourtVenues().stream()
+        List<CourtVenue> courtVenues = isServiceUser ? getCourtVenuesAsServiceUser() : getCourtVenues();
+
+        return new DynamicList(new Value("", ""), courtVenues.stream()
+            .filter(this::isOpenHearingLocation)
             .map(courtVenue -> new Value(courtVenue.getEpimmsId(), courtVenue.getCourtName()))
             .toList());
     }
@@ -40,7 +48,23 @@ public class LocationRefDataService {
             : locationCategory.getCourtVenues();
     }
 
+    public List<CourtVenue> getCourtVenuesAsServiceUser() {
+
+        CourtLocationCategory locationCategory = locationRefDataApi
+            .getCourtVenues(idamService.getServiceUserToken(), authTokenGenerator.generate(), serviceId);
+
+        return locationCategory == null
+            ? Collections.emptyList()
+            : locationCategory.getCourtVenues();
+    }
+
     public void setServiceId(String serviceId) {
         this.serviceId = serviceId;
+    }
+
+
+    private boolean isOpenHearingLocation(CourtVenue courtVenue) {
+        return StringUtils.equals(courtVenue.getCourtStatus(), OPEN)
+               && StringUtils.equals(courtVenue.getIsHearingLocation(), Y);
     }
 }

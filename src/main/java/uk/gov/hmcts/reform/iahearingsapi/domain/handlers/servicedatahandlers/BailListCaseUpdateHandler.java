@@ -9,6 +9,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPLICATION_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.BAILS_LOCATION_REF_DATA_FEATURE;
 
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +28,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDat
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
 @Component
@@ -36,6 +39,8 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
 
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
+    private final FeatureToggler featureToggler;
+    private final LocationRefDataService locationRefDataService;
 
     public boolean canHandle(ServiceData serviceData
     ) {
@@ -92,7 +97,10 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
                 coreCaseDataService.startCaseEvent(CASE_LISTING, caseId, CASE_TYPE_BAIL);
 
             BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
-            updateRelistingBailCaseListing(serviceData, bailCase, serviceDataFieldsWithUpdates);
+            updateRelistingBailCaseListing(serviceData, bailCase, serviceDataFieldsWithUpdates,
+                featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false),
+                locationRefDataService.getCourtVenuesAsServiceUser(),
+                locationRefDataService.getHearingLocationsDynamicList(true));
 
             log.info("Sending `{}` event for Case ID `{}`", CASE_LISTING, caseId);
             coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId, startEventResponse, bailCase);

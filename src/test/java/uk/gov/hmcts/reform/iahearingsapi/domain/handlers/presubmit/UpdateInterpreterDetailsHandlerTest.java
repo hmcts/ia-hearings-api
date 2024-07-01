@@ -56,6 +56,7 @@ class UpdateInterpreterDetailsHandlerTest {
 
     UpdateInterpreterDetailsHandler updateInterpreterDetailsHandler;
     private AsylumCase asylumCase;
+    private Long caseReference = Long.parseLong("1717667659221764");
 
     @BeforeEach
     void setUp() {
@@ -69,6 +70,7 @@ class UpdateInterpreterDetailsHandlerTest {
         when(hearingService.updateHearing(any(UpdateHearingRequest.class), any())).thenReturn(new HearingGetResponse());
 
         when(updateHearingPayloadService.createUpdateHearingPayload(
+            any(),
             any(),
             any(),
             any(),
@@ -133,7 +135,8 @@ class UpdateInterpreterDetailsHandlerTest {
             asylumCase,
             updateHearingRequestIdCode,
             ReasonCodes.OTHER.toString(),
-            UPDATE_INTERPRETER_DETAILS
+            UPDATE_INTERPRETER_DETAILS,
+            1L
         );
         verify(hearingService, times(1)).updateHearing(any(), any());
     }
@@ -163,7 +166,7 @@ class UpdateInterpreterDetailsHandlerTest {
             ));
 
         when(updateHearingPayloadService.createUpdateHearingPayload(
-            any(AsylumCase.class), anyString(), anyString(), eq(UPDATE_INTERPRETER_DETAILS)))
+            any(AsylumCase.class), anyString(), anyString(), eq(UPDATE_INTERPRETER_DETAILS), any()))
             .thenReturn(updateHearingRequest);
         when(hearingService.updateHearing(any(), anyString()))
             .thenThrow(new HmcException(new RuntimeException("Failure")));

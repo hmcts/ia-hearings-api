@@ -222,3 +222,6 @@ bail:
 flags:
   hmc-to-hearings-api:
     enabled: ${HMC_HEARINGS_LISTENING_ENABLED:true}
+
+pactbroker:
+  url: ${PACT_BROKER_FULL_URL:http://localhost:80}

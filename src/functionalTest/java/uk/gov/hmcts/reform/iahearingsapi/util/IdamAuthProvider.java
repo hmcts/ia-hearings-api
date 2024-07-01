@@ -72,6 +72,14 @@ public class IdamAuthProvider {
         );
     }
 
+    public String getBailsLegalRepToken() {
+
+        return getUserToken(
+            System.getenv("TEST_LAW_FIRM_BAILS_USERNAME"),
+            System.getenv("TEST_LAW_FIRM_BAILS_PASSWORD")
+        );
+    }
+
     public String getCaseOfficerToken() {
 
         return getUserToken(

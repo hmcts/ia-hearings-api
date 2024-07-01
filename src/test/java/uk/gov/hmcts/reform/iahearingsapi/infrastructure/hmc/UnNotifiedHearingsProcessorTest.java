@@ -6,11 +6,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_REQUEST_VERSION_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_CATEGORY;
 
@@ -158,44 +156,13 @@ class UnNotifiedHearingsProcessorTest {
     void should_process_unnotified_hearings() {
         List<HearingGetResponse> hearings = createHearingGetResponses();
 
-        when(hearingService.getUnNotifiedHearings(any(LocalDateTime.class))).thenReturn(unNotifiedHearingsResponse);
+        when(hearingService.getUnNotifiedHearings(any(LocalDateTime.class), any()))
+            .thenReturn(unNotifiedHearingsResponse);
         when(unNotifiedHearingsResponse.getHearingIds()).thenReturn(List.of(HEARING_ID_1, HEARING_ID_2));
         when(hearingService.getHearing(HEARING_ID_1)).thenReturn(hearings.get(0));
         when(hearingService.getHearing(HEARING_ID_2)).thenReturn(hearings.get(1));
 
         unNotifiedHearingsProcessor.processUnNotifiedHearings();
-
-        ServiceData serviceData1 = new ServiceData();
-        serviceData1.write(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE, HMCTS_SERVICE_CODE);
-        serviceData1.write(CASE_REF, CASE_ID_1);
-        serviceData1.write(ServiceDataFieldDefinition.HEARING_ID, HEARING_ID_1);
-        serviceData1.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, twoDaysLater);
-        serviceData1.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, HEARING_VENUE_ID);
-        serviceData1.write(ServiceDataFieldDefinition.HMC_STATUS, HMC_STATUS_LISTED);
-        serviceData1.write(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, HEARING_LISTING_STATUS);
-        serviceData1.write(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, LIST_ASSIST_CASE_STATUS);
-        serviceData1.write(ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME,
-                          anHourLater);
-        serviceData1.write(HEARING_CHANNELS, List.of(HearingChannel.INTER));
-        serviceData1.write(HEARING_TYPE, HearingType.SUBSTANTIVE.getKey());
-        serviceData1.write(DURATION, 120);
-        serviceData1.write(HEARING_REQUEST_VERSION_NUMBER,VERSION_1);
-
-        ServiceData serviceData2 = new ServiceData();
-        serviceData2.write(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE, HMCTS_SERVICE_CODE);
-        serviceData2.write(CASE_REF, CASE_ID_2);
-        serviceData2.write(ServiceDataFieldDefinition.HEARING_ID, HEARING_ID_2);
-        serviceData2.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, twoDaysLater);
-        serviceData2.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, HEARING_VENUE_ID);
-        serviceData2.write(ServiceDataFieldDefinition.HMC_STATUS, HMC_STATUS_LISTED);
-        serviceData2.write(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, HEARING_LISTING_STATUS);
-        serviceData2.write(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, LIST_ASSIST_CASE_STATUS);
-        serviceData2.write(ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME,
-                           anHourLater);
-        serviceData2.write(HEARING_CHANNELS, List.of(HearingChannel.INTER));
-        serviceData2.write(HEARING_TYPE, HearingType.SUBSTANTIVE.getKey());
-        serviceData2.write(DURATION, 120);
-        serviceData2.write(HEARING_REQUEST_VERSION_NUMBER,VERSION_1);
 
         ArgumentCaptor<ServiceData> serviceDataArgumentCaptor = ArgumentCaptor.forClass(ServiceData.class);
         verify(dispatcher, times(2)).dispatch(serviceDataArgumentCaptor.capture());

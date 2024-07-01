@@ -112,7 +112,7 @@ public class AutoRequestHearingFunctionalTest extends CcdCaseCreationTest {
 
     private AsylumCase buildAsylumCase(Case result, Event event, boolean isAipJourney) {
 
-        AsylumCase asylumCase = result.getCaseData();
+        AsylumCase asylumCase = (AsylumCase) result.getCaseData();
         asylumCase.write(HEARING_CHANNEL, new DynamicList("INTER"));
         asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
         asylumCase.write(HEARING_ADJOURNMENT_WHEN, ON_HEARING_DATE);

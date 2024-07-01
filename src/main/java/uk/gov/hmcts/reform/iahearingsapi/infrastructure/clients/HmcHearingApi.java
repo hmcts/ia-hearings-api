@@ -4,6 +4,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import javax.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -107,6 +108,7 @@ public interface HmcHearingApi {
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime hearingStartDateFrom,
         @RequestParam(name = "hearing_start_date_to", required = false)
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime hearingStartDateTo,
+        @RequestParam(name = "hearingStatus", required = false) List<String> hearingStatus,
         @PathVariable String serviceId
     );
 }

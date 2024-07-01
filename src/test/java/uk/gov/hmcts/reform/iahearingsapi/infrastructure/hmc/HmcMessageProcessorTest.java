@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -132,6 +133,9 @@ class HmcMessageProcessorTest {
                                              HEARING_TYPE.value(),
                                              DURATION.value(),
                                              CASE_CATEGORY.value())));
+
+        assertEquals(LocalDateTime.of(2023, 9, 29, 13, 0),
+            argument.get("nextHearingDate"));
     }
 
     @Test

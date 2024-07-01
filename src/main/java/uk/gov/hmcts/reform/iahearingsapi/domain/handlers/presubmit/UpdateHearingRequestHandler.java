@@ -10,9 +10,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_VENUE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE_1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
@@ -35,6 +35,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingLength;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
@@ -130,7 +131,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
 
     private void setHearingLocationDetails(AsylumCase asylumCase, HearingDetails hearingDetails) {
         DynamicList hearingLocation = asylumCase.read(HEARING_LOCATION, DynamicList.class)
-            .orElseGet(locationRefDataService::getHearingLocationsDynamicList);
+            .orElseGet(() -> locationRefDataService.getHearingLocationsDynamicList(false));
         HearingCentre listCaseHearingCentre = asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class)
             .orElse(null);
         if (isPhysicalHearingCentre(listCaseHearingCentre)) {
@@ -156,14 +157,24 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
     }
 
     private void setHearingDurationDetails(AsylumCase asylumCase, HearingDetails hearingDetails) {
-        String hearingLengthStr = asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class).orElse(null);
+        Optional<HoursMinutes> optionalHoursMinutes = asylumCase.read(LISTING_LENGTH, HoursMinutes.class);
 
-        Optional<HearingLength> hearingLengthOptional = hearingLengthStr != null && !hearingLengthStr.isEmpty()
-            ?  HearingLength.from(Integer.parseInt(hearingLengthStr))
-            : HearingLength.from(hearingDetails.getDuration());
+        Optional<HearingLength> optionalHearingLength;
 
-        hearingLengthOptional.ifPresent(hearingLength -> {
-            asylumCase.write(CHANGE_HEARING_DURATION, hearingLength.convertToHourMinuteString());
+        if (optionalHoursMinutes.isPresent()) {
+
+            HoursMinutes hoursMinutes = optionalHoursMinutes.get();
+            asylumCase.write(CHANGE_HEARING_DURATION, hoursMinutes.convertToPhrasalValue());
+            optionalHearingLength = HearingLength.from(hoursMinutes.convertToIntegerMinutes());
+
+        } else {
+            optionalHearingLength = HearingLength.from(hearingDetails.getDuration());
+            optionalHearingLength.ifPresent(
+                hearingLength -> asylumCase.write(CHANGE_HEARING_DURATION, hearingLength.convertToHourMinuteString())
+            );
+        }
+
+        optionalHearingLength.ifPresent(hearingLength -> {
             asylumCase.write(REQUEST_HEARING_LENGTH, String.valueOf(hearingLength.getValue()));
         });
     }
