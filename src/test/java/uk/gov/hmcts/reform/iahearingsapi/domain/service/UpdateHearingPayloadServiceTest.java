@@ -14,6 +14,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DEPORTATION_ORDER_OPTIONS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_DECISION_WITHOUT_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
@@ -132,6 +133,7 @@ class UpdateHearingPayloadServiceTest {
             .thenReturn("test listing comments");
 
         when(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
+        when(asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)).thenReturn(Optional.of("internalCaseName"));
 
         updateHearingPayloadService = new UpdateHearingPayloadService(
             caseDataMapper,
@@ -652,6 +654,10 @@ class UpdateHearingPayloadServiceTest {
         assertEquals(
             getCaseCategoriesValue(asylumCase),
             updateHearingRequest.getCaseDetails().getCaseCategories());
+
+        assertEquals(
+            "internalCaseName",
+            updateHearingRequest.getCaseDetails().getHmctsInternalCaseName());
     }
 
     @Test
