@@ -46,7 +46,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mock;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
@@ -68,14 +67,11 @@ class ListedHearingServiceTest {
     private static final String GLASGOW_EPIMMS_ID = "366559";
     public static final String LISTING_REF = "LAI";
 
-    @Mock
-    private LocalDateTime nextHearingDate;
-
     ServiceData serviceData;
     AsylumCase asylumCase;
     BailCase bailCase;
     ListedHearingService listedHearingService;
-    private List<CourtVenue> courtVenueList = List.of(
+    private final List<CourtVenue> courtVenueList = List.of(
         new CourtVenue("Glasgow Tribunals Centre",
             "Glasgow Tribunals Centre",
             "366559",
@@ -87,7 +83,7 @@ class ListedHearingServiceTest {
             "Y",
             "Open"));
 
-    private DynamicList hearingLocationList = new DynamicList(
+    private final DynamicList hearingLocationList = new DynamicList(
         new Value("745389", "Hendon Magistrates Court"),
         List.of(new Value("745389", "Hendon Magistrates Court")));
 

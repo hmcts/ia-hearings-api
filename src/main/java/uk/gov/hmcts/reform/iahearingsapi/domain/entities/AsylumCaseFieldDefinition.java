@@ -314,7 +314,9 @@ public enum AsylumCaseFieldDefinition {
 
     IS_DECISION_WITHOUT_HEARING("isDecisionWithoutHearing", new TypeReference<YesOrNo>(){}),
 
-    CONTACT_PREFERENCE("contactPreference", new TypeReference<ContactPreference>(){});
+    CONTACT_PREFERENCE("contactPreference", new TypeReference<ContactPreference>(){}),
+
+    NEXT_HEARING_DETAILS("nextHearingDetails", new TypeReference<NextHearingDetails>(){});
 
 
     private final String value;
