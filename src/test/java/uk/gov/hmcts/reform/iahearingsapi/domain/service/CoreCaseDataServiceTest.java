@@ -28,6 +28,8 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
@@ -39,14 +41,18 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserI
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@ActiveProfiles("test")
 public class CoreCaseDataServiceTest {
 
     private static final String CASE_ID = "123456789";
     private static final String AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJubGJoN";
     private static final String SERVICE_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.serviceToken";
     private static final String JURISDICTION = "IA";
-    private static final String CASE_TYPE_ASYLUM = "Asylum";
-    public static final String CASE_TYPE_BAIL = "Bail";
+    @Value("core_case_data.caseTypeAsylumId")
+    public static String CASE_TYPE_ASYLUM;
+
+    @Value("core_case_data.caseTypeBailId")
+    public static String CASE_TYPE_BAIL;
     private static final String USER_ID = "userId";
     private static final String EVENT_TOKEN = "eventToken";
 
