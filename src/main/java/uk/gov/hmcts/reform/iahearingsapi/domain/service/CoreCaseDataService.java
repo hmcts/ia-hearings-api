@@ -31,9 +31,9 @@ public class CoreCaseDataService {
     private static final String JURISDICTION_ID = "IA";
 
     @Value("${core_case_data.caseTypeAsylumId}")
-    public static String CASE_TYPE_ASYLUM;
+    public static String CASE_TYPE_ASYLUM = "Asylum";
     @Value("${core_case_data.caseTypeBailId}")
-    public static String CASE_TYPE_BAIL;
+    public static String CASE_TYPE_BAIL = "Bail";
 
     private final AuthTokenGenerator serviceAuthTokenGenerator;
     private final IdamService idamService;
