@@ -31,7 +31,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 public class DecisionWithoutHearingListed implements ServiceDataHandler<ServiceData> {
 
     @Value("${core_case_data.caseTypeAsylumId}")
-    public static String CASE_TYPE_ASYLUM = "Asylum";
+    String caseTypeAsylum = "Asylum";
 
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
@@ -67,7 +67,7 @@ public class DecisionWithoutHearingListed implements ServiceDataHandler<ServiceD
             StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(
                 Event.DECISION_WITHOUT_HEARING_LISTED,
                 caseId,
-                CASE_TYPE_ASYLUM
+                caseTypeAsylum
             );
 
             AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);

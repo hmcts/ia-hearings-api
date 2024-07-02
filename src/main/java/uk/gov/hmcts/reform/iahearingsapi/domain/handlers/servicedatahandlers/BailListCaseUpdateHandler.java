@@ -8,7 +8,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPLICATION_SUBMITTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeBail;
 
 import java.util.HashSet;
 import java.util.List;
@@ -89,7 +89,7 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
             String caseId = getCaseReference(serviceData);
 
             StartEventResponse startEventResponse =
-                coreCaseDataService.startCaseEvent(CASE_LISTING, caseId, CASE_TYPE_BAIL);
+                coreCaseDataService.startCaseEvent(CASE_LISTING, caseId, caseTypeBail);
 
             BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
             updateRelistingBailCaseListing(serviceData, bailCase, serviceDataFieldsWithUpdates);

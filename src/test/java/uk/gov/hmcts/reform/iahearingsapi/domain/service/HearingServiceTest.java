@@ -15,8 +15,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_LINKS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeAsylum;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeBail;
 
 import feign.FeignException;
 import feign.Request;
@@ -182,7 +182,7 @@ class HearingServiceTest {
 
         CaseDetails caseDetails = mock(CaseDetails.class);
         when(coreCaseDataService.getCaseDetails(CASE_ID)).thenReturn(caseDetails);
-        when(caseDetails.getCaseTypeId()).thenReturn(CASE_TYPE_ASYLUM);
+        when(caseDetails.getCaseTypeId()).thenReturn(caseTypeAsylum);
         when(domainCaseDetails.getState()).thenReturn(State.LISTING);
         when(domainCaseDetails.getId()).thenReturn(Long.parseLong(CASE_ID));
         when(domainCaseDetails.getCaseData()).thenReturn(asylumCase);
@@ -205,7 +205,7 @@ class HearingServiceTest {
 
         CaseDetails caseDetails = mock(CaseDetails.class);
         when(coreCaseDataService.getCaseDetails(CASE_ID)).thenReturn(caseDetails);
-        when(caseDetails.getCaseTypeId()).thenReturn(CASE_TYPE_BAIL);
+        when(caseDetails.getCaseTypeId()).thenReturn(caseTypeBail);
         when(iaCcdConvertService.convertToBailCaseData(caseDetails.getData())).thenReturn(bailCase);
 
         ServiceHearingValuesModel result = hearingService.getServiceHearingValues(

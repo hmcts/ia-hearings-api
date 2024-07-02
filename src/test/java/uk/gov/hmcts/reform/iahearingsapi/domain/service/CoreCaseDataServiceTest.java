@@ -12,8 +12,8 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeAsylum;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeBail;
 
 import java.time.LocalDateTime;
 import java.util.ConcurrentModificationException;
@@ -41,7 +41,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserI
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class CoreCaseDataServiceTest {
+class CoreCaseDataServiceTest {
 
     private static final String CASE_ID = "123456789";
     private static final String AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiJubGJoN";
@@ -187,7 +187,7 @@ public class CoreCaseDataServiceTest {
     @Test
     public void should_trigger_event() {
 
-        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_ASYLUM))
+        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, caseTypeAsylum))
             .thenReturn(startEventResponse);
 
         CaseDetails actualCaseDetails = coreCaseDataService.triggerSubmitEvent(
@@ -198,7 +198,7 @@ public class CoreCaseDataServiceTest {
         );
 
         verify(coreCaseDataService, times(2))
-            .startCaseEvent(eq(LIST_CASE), eq(CASE_ID), eq(CASE_TYPE_ASYLUM));
+            .startCaseEvent(eq(LIST_CASE), eq(CASE_ID), eq(caseTypeAsylum));
         verify(coreCaseDataService).triggerSubmitEvent(
             LIST_CASE, CASE_ID, startEventResponse, asylumCase);
         assertEquals(caseDetails, actualCaseDetails);
@@ -209,7 +209,7 @@ public class CoreCaseDataServiceTest {
         when(intermediateStartEventResponse.getToken()).thenReturn(EVENT_TOKEN);
         when(intermediateStartEventResponse.getCaseDetails()).thenReturn(intermediateCaseDetails);
         when(intermediateCaseDetails.getLastModified()).thenReturn(now.plusSeconds(10));
-        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_ASYLUM))
+        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, caseTypeAsylum))
             .thenReturn(intermediateStartEventResponse);
 
         assertThatThrownBy(() -> coreCaseDataService.triggerSubmitEvent(
@@ -224,7 +224,7 @@ public class CoreCaseDataServiceTest {
     @Test
     public void should_trigger_event_bailCase() {
 
-        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_BAIL))
+        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, caseTypeBail))
             .thenReturn(startEventResponse);
 
         CaseDetails actualCaseDetails = coreCaseDataService.triggerBailSubmitEvent(
@@ -235,7 +235,7 @@ public class CoreCaseDataServiceTest {
         );
 
         verify(coreCaseDataService, times(2))
-            .startCaseEvent(eq(LIST_CASE), eq(CASE_ID), eq(CASE_TYPE_BAIL));
+            .startCaseEvent(eq(LIST_CASE), eq(CASE_ID), eq(caseTypeBail));
         verify(coreCaseDataService).triggerBailSubmitEvent(
             LIST_CASE, CASE_ID, startEventResponse, bailCase);
         assertEquals(caseDetails, actualCaseDetails);
@@ -246,7 +246,7 @@ public class CoreCaseDataServiceTest {
         when(coreCaseDataApi.startEventForCaseWorker(any(), any(), any(), any(), any(), any(), any()))
             .thenThrow(new RuntimeException("test"));
 
-        assertThatThrownBy(() -> coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, CASE_TYPE_ASYLUM))
+        assertThatThrownBy(() -> coreCaseDataService.startCaseEvent(LIST_CASE, CASE_ID, caseTypeAsylum))
             .hasMessage(String.format("Case %s not found", CASE_ID))
             .isExactlyInstanceOf(IllegalArgumentException.class);
     }
@@ -254,14 +254,14 @@ public class CoreCaseDataServiceTest {
     @Test
     public void triggerReviewInterpreterBookingTask() {
 
-        when(coreCaseDataService.startCaseEvent(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, CASE_TYPE_ASYLUM))
+        when(coreCaseDataService.startCaseEvent(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, caseTypeAsylum))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
 
         coreCaseDataService.triggerReviewInterpreterBookingTask(CASE_ID);
 
         verify(coreCaseDataService, times(3))
-            .startCaseEvent(eq(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK), eq(CASE_ID), eq(CASE_TYPE_ASYLUM));
+            .startCaseEvent(eq(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK), eq(CASE_ID), eq(caseTypeAsylum));
         verify(coreCaseDataService).triggerSubmitEvent(
             TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, startEventResponse, asylumCase);
     }

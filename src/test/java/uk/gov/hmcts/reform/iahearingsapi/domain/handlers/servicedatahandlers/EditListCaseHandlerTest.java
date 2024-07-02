@@ -21,7 +21,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPAR
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeAsylum;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -301,7 +301,7 @@ class EditListCaseHandlerTest {
     }
 
     private void initializeServiceData() {
-        when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REFERENCE, CASE_TYPE_ASYLUM))
+        when(coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, CASE_REFERENCE, caseTypeAsylum))
             .thenReturn(startEventResponse);
         when(serviceData.read(CASE_REF, String.class))
             .thenReturn(Optional.of(CASE_REFERENCE));
