@@ -53,7 +53,8 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @PactTestFor(pactMethod = "generatePactFragmentForGetHearingRequest")
     public void verifyGetHearingRequest() {
         HearingGetResponse hearingGetResponse =
-            hmcHearingApi.getHearingRequest(AUTHORIZATION_TOKEN, SERVICE_AUTH_TOKEN, "2000000056", null);
+            hmcHearingApi.getHearingRequest(AUTHORIZATION_TOKEN, SERVICE_AUTH_TOKEN, null,
+                                            "2000000056", null);
 
         assertNotNull(hearingGetResponse);
     }
@@ -186,7 +187,8 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @PactTestFor(pactMethod = "generatePactFragmentForGetPartiesNotified")
     public void verifyGetPartiesNotified() {
         PartiesNotifiedResponses hearingGetResponse =
-            hmcHearingApi.getPartiesNotifiedRequest(AUTHORIZATION_TOKEN, SERVICE_AUTH_TOKEN, "2000000056");
+            hmcHearingApi.getPartiesNotifiedRequest(AUTHORIZATION_TOKEN, SERVICE_AUTH_TOKEN, null,
+                                                    "2000000056");
 
         assertNotNull(hearingGetResponse);
     }

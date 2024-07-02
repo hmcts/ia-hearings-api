@@ -15,6 +15,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -44,7 +45,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("unchecked")
 class ListCaseHandlerTest {
 
     private static final String GLASGOW_EPIMMS_ID = "366559";
@@ -139,7 +139,7 @@ class ListCaseHandlerTest {
     @Test
     void should_trigger_case_listing() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REF, "Asylum")).thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REF, CASE_TYPE_ASYLUM)).thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));

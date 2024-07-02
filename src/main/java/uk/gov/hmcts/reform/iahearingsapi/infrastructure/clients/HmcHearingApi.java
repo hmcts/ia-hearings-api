@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHea
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.DisableHystrixFeignConfiguration;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.FeignConfiguration;
 
+@SuppressWarnings({"PMD.UseObjectForClearerAPI"})
 @FeignClient(
     name = "hmc-hearing",
     url = "${hmc.baseUrl}",
@@ -41,11 +42,13 @@ public interface HmcHearingApi {
     String HEARINGS_ENDPOINT = "/hearings";
     String PARTIES_NOTIFIED_ENDPOINT = "/partiesNotified";
     String UN_NOTIFIED_HEARINGS_ENDPOINT = "/unNotifiedHearings";
+    String HMCTS_DEPLOYMENT_ID = "hmctsDeploymentId";
 
     @PostMapping(value = HEARING_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE)
     HmcHearingResponse createHearingRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @RequestBody CreateHearingRequest hearingPayload
     );
 
@@ -53,6 +56,7 @@ public interface HmcHearingApi {
     HearingGetResponse getHearingRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @PathVariable String id,
         @RequestParam(name = "isValid", required = false) Boolean isValid
     );
@@ -61,6 +65,7 @@ public interface HmcHearingApi {
     HearingsGetResponse getHearingsRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @PathVariable String id
     );
 
@@ -68,6 +73,7 @@ public interface HmcHearingApi {
     HearingGetResponse updateHearingRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @RequestBody UpdateHearingRequest updateHearingRequest,
         @PathVariable String id
     );
@@ -76,6 +82,7 @@ public interface HmcHearingApi {
     PartiesNotifiedResponses getPartiesNotifiedRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @PathVariable("id") String id
     );
 
@@ -83,6 +90,7 @@ public interface HmcHearingApi {
     void updatePartiesNotifiedRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @RequestBody PartiesNotified partiesNotified,
         @PathVariable("id") String hearingId,
         @RequestParam("version") long requestVersion,
@@ -95,6 +103,7 @@ public interface HmcHearingApi {
     ResponseEntity<HmcHearingResponse> deleteHearing(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @PathVariable("id") Long hearingId,
         @RequestBody @Valid DeleteHearingRequest deleteRequest
     );
@@ -103,6 +112,7 @@ public interface HmcHearingApi {
     UnNotifiedHearingsResponse getUnNotifiedHearings(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @RequestParam(name = "hearing_start_date_from")
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime hearingStartDateFrom,
         @RequestParam(name = "hearing_start_date_to", required = false)

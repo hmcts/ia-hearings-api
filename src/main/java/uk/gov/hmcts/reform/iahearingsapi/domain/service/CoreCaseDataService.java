@@ -9,6 +9,7 @@ import java.util.Map;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
@@ -28,7 +29,10 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityMa
 public class CoreCaseDataService {
 
     private static final String JURISDICTION_ID = "IA";
+
+    @Value("${core_case_data.caseTypeAsylumId}")
     public static final String CASE_TYPE_ASYLUM = "Asylum";
+    @Value("${core_case_data.caseTypeBailId}")
     public static final String CASE_TYPE_BAIL = "Bail";
 
     private final AuthTokenGenerator serviceAuthTokenGenerator;

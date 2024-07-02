@@ -45,7 +45,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 @ExtendWith(MockitoExtension.class)
 public class DecisionWithoutHearingListedTest {
 
-    private static final String CASE_REFERNECE = "1111222233334444";
+    private static final String CASE_REFERENCE = "1111222233334444";
     private static final String HEARING_REQ_ID = "2000000001";
 
     @Mock
@@ -89,7 +89,7 @@ public class DecisionWithoutHearingListedTest {
         when(serviceData.read(HEARING_TYPE, String.class)).thenReturn(Optional.of(SUBSTANTIVE.getKey()));
         when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(hmcStatus));
         when(serviceData.read(HEARING_CHANNELS, List.class)).thenReturn(Optional.of(List.of(ONPPRS)));
-        when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERNECE));
+        when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERENCE));
         when(serviceData.read(HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_REQ_ID));
         when(hearingService.getPartiesNotified(HEARING_REQ_ID)).thenReturn(
             PartiesNotifiedResponses.builder()
@@ -99,15 +99,16 @@ public class DecisionWithoutHearingListedTest {
         );
         when(coreCaseDataService.startCaseEvent(
             Event.DECISION_WITHOUT_HEARING_LISTED,
-            CASE_REFERNECE,
-            CASE_TYPE_ASYLUM)).thenReturn(startEventResponse);
+            CASE_REFERENCE,
+            CASE_TYPE_ASYLUM
+        )).thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
 
         decisionWithoutHearingListed.handle(serviceData);
 
         verify(coreCaseDataService, times(1)).startCaseEvent(
             Event.DECISION_WITHOUT_HEARING_LISTED,
-            CASE_REFERNECE,
+            CASE_REFERENCE,
             CASE_TYPE_ASYLUM
         );
 
@@ -116,7 +117,7 @@ public class DecisionWithoutHearingListedTest {
 
         verify(coreCaseDataService, times(1)).triggerSubmitEvent(
             Event.DECISION_WITHOUT_HEARING_LISTED,
-            CASE_REFERNECE,
+            CASE_REFERENCE,
             startEventResponse,
             asylumCase
         );
