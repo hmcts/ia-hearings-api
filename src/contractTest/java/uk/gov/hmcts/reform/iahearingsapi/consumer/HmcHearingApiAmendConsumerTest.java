@@ -22,10 +22,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @PactFolder("pacts")
 @TestPropertySource(properties = {"hmc.baseUrl=localhost:4561"})
 @ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
-@PactTestFor(providerName = "hmc_cft_hearings_api", port = "4561")
+@PactTestFor(providerName = "hmc_cftHearingService", port = "4561")
 public class HmcHearingApiAmendConsumerTest extends HmcHearingApiConsumerTestBase {
 
-    @Pact(provider = "hmc_cft_hearings_api", consumer = "ia_hearingsApi")
+    @Pact(provider = "hmc_cftHearingService", consumer = "ia_hearingsApi")
     public RequestResponsePact generatePactFragmentForUpdatePartiesNotified(
         PactDslWithProvider builder) throws JsonProcessingException {
         return builder.given("Hearings exist")
