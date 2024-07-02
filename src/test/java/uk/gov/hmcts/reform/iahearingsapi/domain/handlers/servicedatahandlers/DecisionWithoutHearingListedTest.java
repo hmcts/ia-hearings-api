@@ -20,7 +20,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChann
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeAsylum;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import java.util.Collections;
 import java.util.List;
@@ -100,7 +100,8 @@ public class DecisionWithoutHearingListedTest {
         when(coreCaseDataService.startCaseEvent(
             Event.DECISION_WITHOUT_HEARING_LISTED,
             CASE_REFERENCE,
-            caseTypeAsylum)).thenReturn(startEventResponse);
+            CASE_TYPE_ASYLUM
+        )).thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
 
         decisionWithoutHearingListed.handle(serviceData);
@@ -108,7 +109,7 @@ public class DecisionWithoutHearingListedTest {
         verify(coreCaseDataService, times(1)).startCaseEvent(
             Event.DECISION_WITHOUT_HEARING_LISTED,
             CASE_REFERENCE,
-            caseTypeAsylum
+            CASE_TYPE_ASYLUM
         );
 
         verify(asylumCase, times(1))

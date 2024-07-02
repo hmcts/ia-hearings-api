@@ -5,7 +5,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_CMR_LISTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_CMR_UPDATED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeAsylum;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +64,7 @@ public class ListCmrHandler extends ListedHearingService implements ServiceDataH
 
     private void triggerCmrListedNotification(String caseId) {
         StartEventResponse startEventResponse =
-            coreCaseDataService.startCaseEvent(TRIGGER_CMR_LISTED, caseId, caseTypeAsylum);
+            coreCaseDataService.startCaseEvent(TRIGGER_CMR_LISTED, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
@@ -74,7 +74,7 @@ public class ListCmrHandler extends ListedHearingService implements ServiceDataH
 
     private void triggerCmrUpdatedNotification(String caseId) {
         StartEventResponse startEventResponse =
-            coreCaseDataService.startCaseEvent(TRIGGER_CMR_UPDATED, caseId, caseTypeAsylum);
+            coreCaseDataService.startCaseEvent(TRIGGER_CMR_UPDATED, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 

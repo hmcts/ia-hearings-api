@@ -17,7 +17,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrN
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.getHearingDateAndTime;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeAsylum;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -71,7 +71,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         String caseId = getCaseReference(serviceData);
         log.info("EditListCaseHandler triggered for case " + caseId);
         StartEventResponse startEventResponse =
-            coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, caseId, caseTypeAsylum);
+            coreCaseDataService.startCaseEvent(EDIT_CASE_LISTING, caseId, CASE_TYPE_ASYLUM);
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
         if (tryUpdateListCaseHearingDetails(asylumCase, serviceData)) {

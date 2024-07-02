@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPLICATION_SUBMITTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeBail;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +48,7 @@ public class BailListCaseHandler
         String caseId = getCaseReference(serviceData);
 
         StartEventResponse startEventResponse =
-            coreCaseDataService.startCaseEvent(CASE_LISTING, caseId, caseTypeBail);
+            coreCaseDataService.startCaseEvent(CASE_LISTING, caseId, CASE_TYPE_BAIL);
         BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
         updateInitialBailCaseListing(serviceData, bailCase);
         log.info("Sending `{}` event for  Case ID `{}`", CASE_LISTING, caseId);

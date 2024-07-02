@@ -31,9 +31,9 @@ public class CoreCaseDataService {
     private static final String JURISDICTION_ID = "IA";
 
     @Value("${core_case_data.caseTypeAsylumId}")
-    public static final String caseTypeAsylum = "Asylum";
+    public static final String CASE_TYPE_ASYLUM = "Asylum";
     @Value("${core_case_data.caseTypeBailId}")
-    public static final String caseTypeBail = "Bail";
+    public static final String CASE_TYPE_BAIL = "Bail";
 
     private final AuthTokenGenerator serviceAuthTokenGenerator;
     private final IdamService idamService;
@@ -90,7 +90,7 @@ public class CoreCaseDataService {
             true,
             startEventResponse.getToken(),
             startEventResponse.getCaseDetails().getLastModified(),
-            caseTypeAsylum
+            CASE_TYPE_ASYLUM
         );
 
         log.info("Event {} triggered for case {}, Status: {}", event, caseId,
@@ -115,7 +115,7 @@ public class CoreCaseDataService {
             true,
             startEventResponse.getToken(),
             startEventResponse.getCaseDetails().getLastModified(),
-            caseTypeBail
+            CASE_TYPE_BAIL
         );
 
         log.info("Event {} triggered for case {}, Status: {}", event, caseId,
@@ -235,7 +235,7 @@ public class CoreCaseDataService {
 
     public void triggerReviewInterpreterBookingTask(String caseId) {
         StartEventResponse startEventResponse = startCaseEvent(
-            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId, caseTypeAsylum);
+            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = getCaseFromStartedEvent(startEventResponse);
 

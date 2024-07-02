@@ -35,7 +35,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.ListingEven
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeBail;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -112,7 +112,7 @@ class BailListCaseHandlerTest {
     @Test
     void should_trigger_case_listing() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(CASE_LISTING, CASE_REF, caseTypeBail))
+        when(coreCaseDataService.startCaseEvent(CASE_LISTING, CASE_REF, CASE_TYPE_BAIL))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse)).thenReturn(bailCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))

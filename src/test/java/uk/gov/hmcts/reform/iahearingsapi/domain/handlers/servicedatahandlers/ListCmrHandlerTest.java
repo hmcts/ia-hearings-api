@@ -13,7 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_CMR_UPDATED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeAsylum;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -115,7 +115,7 @@ class ListCmrHandlerTest {
     @Test
     void should_trigger_cmr_listed_notification() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(TRIGGER_CMR_LISTED, CASE_REF, caseTypeAsylum))
+        when(coreCaseDataService.startCaseEvent(TRIGGER_CMR_LISTED, CASE_REF, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
@@ -139,7 +139,7 @@ class ListCmrHandlerTest {
     @Test
     void should_trigger_cmr_updated_notification() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(TRIGGER_CMR_UPDATED, CASE_REF, caseTypeAsylum))
+        when(coreCaseDataService.startCaseEvent(TRIGGER_CMR_UPDATED, CASE_REF, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))

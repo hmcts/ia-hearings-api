@@ -3,8 +3,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_LINKS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeAsylum;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeBail;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 import feign.FeignException;
 import java.time.LocalDateTime;
@@ -80,10 +80,10 @@ public class HearingService {
 
         CaseDetails caseDetails = coreCaseDataService.getCaseDetails(payload.getCaseReference());
 
-        if (caseDetails.getCaseTypeId().equals(caseTypeAsylum)) {
+        if (caseDetails.getCaseTypeId().equals(CASE_TYPE_ASYLUM)) {
             return serviceHearingValuesProvider
                 .provideAsylumServiceHearingValues(iaCcdConvertService.convertToAsylumCaseDetails(caseDetails));
-        } else if (caseDetails.getCaseTypeId().equals(caseTypeBail)) {
+        } else if (caseDetails.getCaseTypeId().equals(CASE_TYPE_BAIL)) {
             return serviceHearingValuesProvider
                 .provideBailServiceHearingValues(iaCcdConvertService.convertToBailCaseData(caseDetails.getData()),
                                                  caseReference);

@@ -20,7 +20,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChann
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.caseTypeBail;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -178,7 +178,7 @@ class BailListCaseUpdateHandlerTest {
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
         when(partiesNotifiedResponses.getResponses()).thenReturn(List.of(partiesNotifiedResponse));
         when(partiesNotifiedResponse.getServiceData()).thenReturn(previousServiceData);
-        when(coreCaseDataService.startCaseEvent(CASE_LISTING, CASE_REF, caseTypeBail))
+        when(coreCaseDataService.startCaseEvent(CASE_LISTING, CASE_REF, CASE_TYPE_BAIL))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse)).thenReturn(bailCase);
 
@@ -215,7 +215,7 @@ class BailListCaseUpdateHandlerTest {
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
         when(partiesNotifiedResponses.getResponses()).thenReturn(List.of(partiesNotifiedResponse));
         when(partiesNotifiedResponse.getServiceData()).thenReturn(previousServiceData);
-        when(coreCaseDataService.startCaseEvent(CASE_LISTING, CASE_REF, caseTypeBail))
+        when(coreCaseDataService.startCaseEvent(CASE_LISTING, CASE_REF, CASE_TYPE_BAIL))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse)).thenReturn(bailCase);
 
@@ -260,7 +260,7 @@ class BailListCaseUpdateHandlerTest {
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
         when(partiesNotifiedResponses.getResponses()).thenReturn(Collections.emptyList());
         when(partiesNotifiedResponse.getServiceData()).thenReturn(previousServiceData);
-        when(coreCaseDataService.startCaseEvent(CASE_LISTING, CASE_REF, caseTypeBail))
+        when(coreCaseDataService.startCaseEvent(CASE_LISTING, CASE_REF, CASE_TYPE_BAIL))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse)).thenReturn(bailCase);
 
