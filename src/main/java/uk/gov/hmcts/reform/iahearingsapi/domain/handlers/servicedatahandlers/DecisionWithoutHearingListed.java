@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandl
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHmcStatus;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -29,7 +30,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 @RequiredArgsConstructor
 public class DecisionWithoutHearingListed implements ServiceDataHandler<ServiceData> {
 
-    public static final String CASE_TYPE_ASYLUM = "Asylum";
+    @Value("${core_case_data.caseTypeAsylumId}")
+    public static String CASE_TYPE_ASYLUM;
 
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;

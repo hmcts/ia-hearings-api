@@ -50,7 +50,6 @@ public class CoreCaseDataServiceTest {
     private static final String JURISDICTION = "IA";
     @Value("core_case_data.caseTypeAsylumId")
     public static String CASE_TYPE_ASYLUM;
-
     @Value("core_case_data.caseTypeBailId")
     public static String CASE_TYPE_BAIL;
     private static final String USER_ID = "userId";

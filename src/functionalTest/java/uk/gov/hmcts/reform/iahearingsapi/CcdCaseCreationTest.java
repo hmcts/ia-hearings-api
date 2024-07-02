@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import static java.lang.Long.parseLong;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -79,7 +80,6 @@ public class CcdCaseCreationTest {
     protected static String caseOfficerToken;
 
     private static final String jurisdiction = "IA";
-    private static final String caseType = "Asylum";
     protected static final String AUTHORIZATION = "Authorization";
     protected static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
 
@@ -143,7 +143,7 @@ public class CcdCaseCreationTest {
                 legalRepToken,
                 s2sToken,
                 legalRepUserId,
-                jurisdiction, caseType, eventId);
+                jurisdiction, CASE_TYPE_ASYLUM, eventId);
 
         Event event = Event.builder().id(eventId).build();
 
@@ -160,7 +160,7 @@ public class CcdCaseCreationTest {
                 legalRepToken,
                 s2sToken,
                 legalRepUserId,
-                jurisdiction, caseType, true, content);
+                jurisdiction, CASE_TYPE_ASYLUM, true, content);
 
         legalRepCaseId = caseDetails.getId();
 
@@ -179,7 +179,7 @@ public class CcdCaseCreationTest {
                 s2sToken,
                 legalRepUserId,
                 jurisdiction,
-                caseType,
+                CASE_TYPE_ASYLUM,
                 String.valueOf(legalRepCaseId),
                 eventId);
 
@@ -212,7 +212,7 @@ public class CcdCaseCreationTest {
                 citizenToken,
                 s2sToken,
                 citizenUserId,
-                jurisdiction, caseType, eventId);
+                jurisdiction, CASE_TYPE_ASYLUM, eventId);
 
         Event event = Event.builder().id(eventId).build();
 
@@ -229,7 +229,7 @@ public class CcdCaseCreationTest {
                 citizenToken,
                 s2sToken,
                 citizenUserId,
-                jurisdiction, caseType, true, content);
+                jurisdiction, CASE_TYPE_ASYLUM, true, content);
 
         aipCaseId = caseDetails.getId();
 
@@ -248,7 +248,7 @@ public class CcdCaseCreationTest {
                 s2sToken,
                 citizenUserId,
                 jurisdiction,
-                caseType,
+                CASE_TYPE_ASYLUM,
                 String.valueOf(aipCaseId),
                 eventId);
 
