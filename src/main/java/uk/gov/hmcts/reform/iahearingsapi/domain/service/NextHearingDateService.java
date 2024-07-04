@@ -22,6 +22,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse
 public class NextHearingDateService {
 
     private final HearingService hearingService;
+    private final FeatureToggler featureToggler;
+
+    public boolean enabled() {
+        return featureToggler.getValue("nextHearingDateEnabled", false);
+    }
 
     public NextHearingDetails getNextHearingDetails(long caseId) {
 
