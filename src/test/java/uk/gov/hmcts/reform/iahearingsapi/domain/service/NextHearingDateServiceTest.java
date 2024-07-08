@@ -24,12 +24,23 @@ class NextHearingDateServiceTest {
 
     @Mock
     private HearingService hearingService;
+    @Mock
+    private FeatureToggler featureToggler;
+
     private final long caseId = 123456789L;
     private NextHearingDateService nextHearingDateService;
 
     @BeforeEach
     public void setUp() {
-        nextHearingDateService = new NextHearingDateService(hearingService);
+        nextHearingDateService = new NextHearingDateService(hearingService, featureToggler);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"true", "false"})
+    void test_enabled(boolean enabled) {
+        when(featureToggler.getValue("nextHearingDateEnabled", false)).thenReturn(enabled);
+
+        assertEquals(enabled, nextHearingDateService.enabled());
     }
 
     @ParameterizedTest
