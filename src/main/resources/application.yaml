@@ -81,6 +81,7 @@ security:
       - "submitAppeal"
     caseworker-ia-admofficer:
       - "listCase"
+      - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
       - "endAppeal"
@@ -90,6 +91,8 @@ security:
     caseworker-ia-caseworker:
       - "listCase"
     caseworker-ia-caseofficer:
+      - "listCase"
+      - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
       - "endAppeal"
