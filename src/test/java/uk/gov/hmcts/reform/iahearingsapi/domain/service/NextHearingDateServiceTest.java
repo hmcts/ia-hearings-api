@@ -38,7 +38,7 @@ class NextHearingDateServiceTest {
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void test_enabled(boolean enabled) {
-        when(featureToggler.getValue("nextHearingDateEnabled", false)).thenReturn(enabled);
+        when(featureToggler.getValueAsServiceUser("nextHearingDateEnabled", false)).thenReturn(enabled);
 
         assertEquals(enabled, nextHearingDateService.enabled());
     }

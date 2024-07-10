@@ -26,7 +26,7 @@ public class NextHearingDateService {
     private final FeatureToggler featureToggler;
 
     public boolean enabled() {
-        return featureToggler.getValue("nextHearingDateEnabled", false);
+        return featureToggler.getValueAsServiceUser("nextHearingDateEnabled", false);
     }
 
     public NextHearingDetails getNextHearingDetails(long caseId) {
