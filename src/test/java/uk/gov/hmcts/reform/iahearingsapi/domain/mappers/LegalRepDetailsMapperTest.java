@@ -2,9 +2,12 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_FAMILY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_NAME;
 
 import java.util.Collections;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
@@ -37,24 +41,28 @@ class LegalRepDetailsMapperTest {
 
     @ParameterizedTest
     @CsvSource({
-        "firstName middleName familyName, firstName middleName, familyName",
-        "firstName familyName, firstName, familyName",
-        "firstName, firstName, ''",
-        "'', '', ''"
+        "firstName middleName familyName, , firstName middleName, familyName",
+        "firstName familyName, , firstName, familyName",
+        "firstName, , firstName, ",
+        ", , , ",
+        "firstName middleName, familyName, firstName middleName, familyName",
+        "firstName middleName, familyName familySecondName, firstName middleName, familyName familySecondName",
+        "firstName, familyName, firstName, familyName",
+
     })
-    void should_map_asylum_correctly(String fullName, String givenNames, String lastName) {
+    void should_map_asylum_correctly(String legalRepName, String legalRepFamilyName, String expectedGivenNames, String expectedLastName) {
 
         when(caseDataMapper.getLegalRepPartyId(asylumCase)).thenReturn("partyId");
         when(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
             .thenReturn("hearingChannel");
-        when(caseDataMapper.getLegalRepPartyId(asylumCase)).thenReturn("partyId");
-        when(caseDataMapper.getName(asylumCase, LEGAL_REP_NAME)).thenReturn(fullName);
+        when(caseDataMapper.getName(asylumCase, LEGAL_REP_NAME)).thenReturn(legalRepName);
+        when(caseDataMapper.getName(asylumCase, LEGAL_REP_FAMILY_NAME)).thenReturn(legalRepFamilyName);
         IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()
             .hearingChannelEmail(Collections.emptyList())
             .hearingChannelPhone(Collections.emptyList())
             .preferredHearingChannel("hearingChannel")
-            .firstName(givenNames)
-            .lastName(lastName)
+            .firstName(expectedGivenNames)
+            .lastName(expectedLastName)
             .build();
         PartyDetailsModel expected = PartyDetailsModel.builder()
             .individualDetails(individualDetails)
@@ -63,22 +71,32 @@ class LegalRepDetailsMapperTest {
             .partyRole("LGRP")
             .build();
 
-        assertEquals(expected, new LegalRepDetailsMapper().map(asylumCase,
-                                                               caseDataMapper,
-                                                               persistedHearingDetails,
-                                                               event));
+        assertEquals(expected, new LegalRepDetailsMapper().map(
+            asylumCase,
+            caseDataMapper,
+            persistedHearingDetails,
+            event
+        ));
     }
 
     @Test
     void should_map_bail_correctly() {
-
         when(bailCaseDataMapper.getLegalRepPartyId(bailCase)).thenReturn("partyId");
         when(bailCaseDataMapper.getHearingChannel(bailCase)).thenReturn("VID");
-
+        when(bailCaseDataMapper.getStringValueByDefinition(
+            bailCase,
+            BailCaseFieldDefinition.LEGAL_REP_NAME
+        )).thenReturn("firstName");
+        when(bailCaseDataMapper.getStringValueByDefinition(
+            bailCase,
+            BailCaseFieldDefinition.LEGAL_REP_FAMILY_NAME
+        )).thenReturn("lastName");
         IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()
             .hearingChannelEmail(Collections.emptyList())
             .hearingChannelPhone(Collections.emptyList())
             .preferredHearingChannel("VID")
+            .firstName("firstName")
+            .lastName("lastName")
             .build();
         PartyDetailsModel expected = PartyDetailsModel.builder()
             .individualDetails(individualDetails)

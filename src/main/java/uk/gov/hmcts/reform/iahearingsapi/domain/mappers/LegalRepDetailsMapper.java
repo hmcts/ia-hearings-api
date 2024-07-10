@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REPRESENTATIVE_EMAIL_ADDRESS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_NAME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.*;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_EMAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_PHONE;
 
@@ -25,15 +24,18 @@ public class LegalRepDetailsMapper {
                                  CaseDataToServiceHearingValuesMapper caseDataMapper,
                                  HearingDetails persistedHearingDetails,
                                  Event event) {
-        String[] parts = caseDataMapper.getName(asylumCase, LEGAL_REP_NAME).split(" ");
-        String givenNames = "";
-        String familyName = "";
-        if (parts.length > 1) {
-            familyName = parts[parts.length - 1];
-            givenNames = String.join(" ", java.util.Arrays.copyOf(parts, parts.length - 1));
-        } else if (parts.length == 1) {
-            givenNames = parts[0];
+        String givenNames = caseDataMapper.getName(asylumCase, LEGAL_REP_NAME);
+        String familyName = caseDataMapper.getName(asylumCase, LEGAL_REP_FAMILY_NAME);
+        if (familyName == null && givenNames != null) {
+            String[] parts = givenNames.split(" ");
+            if (parts.length > 1) {
+                familyName = parts[parts.length - 1];
+                givenNames = String.join(" ", java.util.Arrays.copyOf(parts, parts.length - 1));
+            } else if (parts.length == 1) {
+                givenNames = parts[0];
+            }
         }
+
         return PartyDetailsModel.builder()
             .partyID(caseDataMapper.getLegalRepPartyId(asylumCase))
             .partyType(PartyType.IND.getPartyType())
