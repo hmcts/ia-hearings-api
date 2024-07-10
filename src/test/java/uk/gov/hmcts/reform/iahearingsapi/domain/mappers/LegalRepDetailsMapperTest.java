@@ -6,7 +6,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_NAME;
 
 import java.util.Collections;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +49,8 @@ class LegalRepDetailsMapperTest {
         "firstName, familyName, firstName, familyName",
 
     })
-    void should_map_asylum_correctly(String legalRepName, String legalRepFamilyName, String expectedGivenNames, String expectedLastName) {
+    void should_map_asylum_correctly(String legalRepName, String legalRepFamilyName,
+                                     String expectedGivenNames, String expectedLastName) {
 
         when(caseDataMapper.getLegalRepPartyId(asylumCase)).thenReturn("partyId");
         when(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
