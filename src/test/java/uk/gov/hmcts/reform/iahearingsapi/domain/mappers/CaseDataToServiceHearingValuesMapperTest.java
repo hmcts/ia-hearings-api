@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +33,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.*;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -48,7 +59,7 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     public static final String GWF_REFERENCE = "gwfReference";
     private final String homeOfficeRef = "homeOfficeRef";
-    private final LocalDate date = LocalDate.of(2023,8,1);
+    private final LocalDate date = LocalDate.of(2023, 8, 1);
     private CaseDataToServiceHearingValuesMapper mapper;
     @Mock
     private DateProvider hearingServiceDateProvider;
@@ -67,7 +78,10 @@ class CaseDataToServiceHearingValuesMapperTest {
         String startDate = "2023-08-01T10:46:48.962301+01:00[Europe/London]";
         ZonedDateTime zonedDateTimeFrom = ZonedDateTime.parse(startDate);
         when(hearingServiceDateProvider.zonedNowWithTime()).thenReturn(zonedDateTimeFrom);
-        when(asylumCase.read(AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(homeOfficeRef));
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER,
+            String.class
+        )).thenReturn(Optional.of(homeOfficeRef));
 
         CaseManagementLocation caseManagementLocation = CaseManagementLocation
             .builder().region(Region.NATIONAL).baseLocation(BaseLocation.BIRMINGHAM).build();
@@ -75,7 +89,8 @@ class CaseDataToServiceHearingValuesMapperTest {
             .thenReturn(Optional.of(caseManagementLocation));
 
         DynamicList hearingChannel = new DynamicList("INTER");
-        when(asylumCase.read(AsylumCaseFieldDefinition.HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(hearingChannel));
+        when(asylumCase.read(AsylumCaseFieldDefinition.HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(
+            hearingChannel));
 
         when(asylumCase.read(AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE, String.class))
             .thenReturn(Optional.of("vulnerabilities"));
@@ -112,7 +127,10 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Test
     void getHearingChannels_should_return_empty_list() {
 
-        when(asylumCase.read(AsylumCaseFieldDefinition.HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.HEARING_CHANNEL,
+            DynamicList.class
+        )).thenReturn(Optional.empty());
 
         assertEquals(mapper.getHearingChannels(asylumCase), Collections.emptyList());
     }
@@ -129,7 +147,7 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Test
     void getHearingDuration_should_return_null_when_event_is_null() {
 
-        assertEquals(null, mapper.getHearingDuration(asylumCase));
+        assertNull(mapper.getHearingDuration(asylumCase));
     }
 
     @Test
@@ -142,7 +160,8 @@ class CaseDataToServiceHearingValuesMapperTest {
     @CsvSource({"0", "-20"})
     void getHearingDuration_should_return_null(String duration) {
 
-        when(asylumCase.read(AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of(duration));
+        when(asylumCase.read(AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of(
+            duration));
 
         assertNull(mapper.getHearingDuration(asylumCase));
     }
@@ -151,18 +170,20 @@ class CaseDataToServiceHearingValuesMapperTest {
     @CsvSource({"0", "-20"})
     void getHearingDuration_should_return_null_when_is_adjourned(String duration) {
 
-        when(asylumCase.read(AsylumCaseFieldDefinition.NEXT_HEARING_DURATION, String.class)).thenReturn(Optional.of(duration));
+        when(asylumCase.read(AsylumCaseFieldDefinition.NEXT_HEARING_DURATION, String.class)).thenReturn(Optional.of(
+            duration));
 
         assertNull(mapper.getHearingDuration(asylumCase));
     }
 
     @ParameterizedTest
-    @EnumSource(value = AppealType.class, names = {"EA","EU","HU","PA","DC","RP"})
+    @EnumSource(value = AppealType.class, names = {"EA", "EU", "HU", "PA", "DC", "RP"})
     void getHearingDuration_should_return_appropriate_value_when_without_hearing(AppealType appealType) {
 
         when(asylumCase.read(AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE, HearingCentre.class))
             .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
-        when(asylumCase.read(AsylumCaseFieldDefinition.APPEAL_TYPE, AppealType.class)).thenReturn(Optional.ofNullable(appealType));
+        when(asylumCase.read(AsylumCaseFieldDefinition.APPEAL_TYPE, AppealType.class)).thenReturn(Optional.ofNullable(
+            appealType));
 
         switch (Objects.requireNonNull(appealType)) {
             case EA, HU, EU -> assertEquals(60, mapper.getHearingDuration(asylumCase));
@@ -180,8 +201,12 @@ class CaseDataToServiceHearingValuesMapperTest {
     void getExternalCaseReference_should_return_gwf_reference() {
         assertEquals(mapper.getExternalCaseReference(asylumCase), homeOfficeRef);
 
-        when(asylumCase.read(AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(GWF_REFERENCE));
-        when(asylumCase.read(AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(
+            GWF_REFERENCE));
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER,
+            String.class
+        )).thenReturn(Optional.empty());
 
         assertEquals(mapper.getExternalCaseReference(asylumCase), GWF_REFERENCE);
     }
@@ -189,7 +214,10 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Test
     void getExternalCaseReference_should_return_null() {
 
-        when(asylumCase.read(AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER,
+            String.class
+        )).thenReturn(Optional.empty());
 
         assertNull(mapper.getExternalCaseReference(asylumCase));
     }
@@ -279,14 +307,24 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     @Test
     void getRespondentPartyId() {
-        when(asylumCase.read(AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(homeOfficeRef));
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER,
+            String.class
+        )).thenReturn(Optional.of(homeOfficeRef));
         assertEquals(homeOfficeRef, mapper.getRespondentPartyId(asylumCase));
 
-        when(asylumCase.read(AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER, String.class)).thenReturn(Optional.empty());
-        when(asylumCase.read(AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(GWF_REFERENCE));
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER,
+            String.class
+        )).thenReturn(Optional.empty());
+        when(asylumCase.read(AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER, String.class)).thenReturn(Optional.of(
+            GWF_REFERENCE));
         assertEquals(GWF_REFERENCE, mapper.getRespondentPartyId(asylumCase));
 
-        when(asylumCase.read(AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER,
+            String.class
+        )).thenReturn(Optional.empty());
         assertThatThrownBy(() -> mapper.getRespondentPartyId(asylumCase))
             .isExactlyInstanceOf(RequiredFieldMissingException.class)
             .hasMessage("Require either homeOfficeReferenceNumber or gwfReferenceNumber field to be present.");
@@ -295,7 +333,8 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Test
     void getHearingChannel_should_return_a_hearing_channel() {
         DynamicList dynamicList = new DynamicList("hearingChannel");
-        when(asylumCase.read(AsylumCaseFieldDefinition.HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(dynamicList));
+        when(asylumCase.read(AsylumCaseFieldDefinition.HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(
+            dynamicList));
 
         assertEquals("hearingChannel", mapper.getHearingChannel(asylumCase));
     }
@@ -303,7 +342,8 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Test
     void getName_should_return_appellant_given_names() {
         final String givenNames = "firstName secondName familyName";
-        when(asylumCase.read(AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES, String.class)).thenReturn(Optional.of(givenNames));
+        when(asylumCase.read(AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES, String.class)).thenReturn(Optional.of(
+            givenNames));
 
         assertEquals(givenNames, mapper.getName(asylumCase, AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES));
     }
@@ -318,7 +358,8 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     @Test
     void getName_should_return_legal_rep_family_name() {
-        when(asylumCase.read(AsylumCaseFieldDefinition.LEGAL_REP_FAMILY_NAME, String.class)).thenReturn(Optional.of("familyName"));
+        when(asylumCase.read(AsylumCaseFieldDefinition.LEGAL_REP_FAMILY_NAME, String.class)).thenReturn(Optional.of(
+            "familyName"));
 
         assertEquals("familyName", mapper.getName(asylumCase, AsylumCaseFieldDefinition.LEGAL_REP_FAMILY_NAME));
     }
@@ -332,7 +373,8 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         assertEquals(
             List.of(appellantEmail),
-            mapper.getHearingChannelEmail(asylumCase, AsylumCaseFieldDefinition.APPELLANT_EMAIL_ADDRESS));
+            mapper.getHearingChannelEmail(asylumCase, AsylumCaseFieldDefinition.APPELLANT_EMAIL_ADDRESS)
+        );
     }
 
     @Test
@@ -344,7 +386,8 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         assertEquals(
             List.of(appellantPhone),
-            mapper.getHearingChannelPhone(asylumCase, AsylumCaseFieldDefinition.APPELLANT_PHONE_NUMBER));
+            mapper.getHearingChannelPhone(asylumCase, AsylumCaseFieldDefinition.APPELLANT_PHONE_NUMBER)
+        );
     }
 
     @Test
@@ -355,7 +398,8 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         assertEquals(
             List.of(legalRepEmail),
-            mapper.getHearingChannelEmail(asylumCase, AsylumCaseFieldDefinition.LEGAL_REPRESENTATIVE_EMAIL_ADDRESS));
+            mapper.getHearingChannelEmail(asylumCase, AsylumCaseFieldDefinition.LEGAL_REPRESENTATIVE_EMAIL_ADDRESS)
+        );
     }
 
     @Test
@@ -384,7 +428,10 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Test
     void getRespondentName_should_return_secretary_of_state() {
 
-        when(asylumCase.read(AsylumCaseFieldDefinition.APPELLANT_IN_UK, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.APPELLANT_IN_UK,
+            YesOrNo.class
+        )).thenReturn(Optional.of(YesOrNo.YES));
 
         assertEquals("Secretary of State", mapper.getRespondentName(asylumCase));
     }
@@ -392,8 +439,14 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Test
     void getRespondentName_should_return_secretary_of_state_when_s94b_status_is_set() {
 
-        when(asylumCase.read(AsylumCaseFieldDefinition.S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
-        when(asylumCase.read(AsylumCaseFieldDefinition.APPELLANT_IN_UK, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.S94B_STATUS,
+            YesOrNo.class
+        )).thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.APPELLANT_IN_UK,
+            YesOrNo.class
+        )).thenReturn(Optional.of(YesOrNo.NO));
 
         assertEquals("Secretary of State", mapper.getRespondentName(asylumCase));
 
@@ -403,7 +456,10 @@ class CaseDataToServiceHearingValuesMapperTest {
     void getRespondentName_should_return_entry_clearance_officer() {
 
         when(asylumCase.read(AsylumCaseFieldDefinition.S94B_STATUS, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
-        when(asylumCase.read(AsylumCaseFieldDefinition.APPELLANT_IN_UK, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.APPELLANT_IN_UK,
+            YesOrNo.class
+        )).thenReturn(Optional.of(YesOrNo.NO));
 
         assertEquals("Entry Clearance Officer", mapper.getRespondentName(asylumCase));
     }
@@ -540,8 +596,10 @@ class CaseDataToServiceHearingValuesMapperTest {
             .thenReturn(Optional.of(new DynamicList("VID")));
         when(persistedHearingDetails.getHearingChannels()).thenReturn(List.of("NA"));
 
-        assertEquals(List.of(expectedResult),
-                     mapper.getHearingChannels(asylumCase, persistedHearingDetails, event));
+        assertEquals(
+            List.of(expectedResult),
+            mapper.getHearingChannels(asylumCase, persistedHearingDetails, event)
+        );
     }
 
 }
