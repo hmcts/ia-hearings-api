@@ -9,6 +9,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UP
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,7 @@ public class NextHearingDateService {
         }
         return caseHearing.getHearingDaySchedule().stream()
             .map(HearingDaySchedule::getHearingStartDateTime)
+            .filter(Objects::nonNull)
             .min(LocalDateTime::compareTo).orElse(null);
     }
 
