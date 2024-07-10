@@ -52,6 +52,7 @@ public class HmcHearingApiPostConsumerTest extends HmcHearingApiConsumerTestBase
     public void verifyUpdatePartiesNotified() {
         hmcHearingApi.createHearingRequest(AUTHORIZATION_TOKEN,
                                            SERVICE_AUTH_TOKEN,
+                                           null,
                                            hearingRequestPayload);
     }
 }

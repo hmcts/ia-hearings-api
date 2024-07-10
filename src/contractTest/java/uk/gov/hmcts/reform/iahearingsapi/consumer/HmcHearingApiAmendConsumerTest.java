@@ -49,6 +49,7 @@ public class HmcHearingApiAmendConsumerTest extends HmcHearingApiConsumerTestBas
     public void verifyUpdatePartiesNotified() {
         hmcHearingApi.updatePartiesNotifiedRequest(AUTHORIZATION_TOKEN,
                                                    SERVICE_AUTH_TOKEN,
+                                                   null,
                                                    partiesNotified,
                                                    "2000000057",
                                                    1,

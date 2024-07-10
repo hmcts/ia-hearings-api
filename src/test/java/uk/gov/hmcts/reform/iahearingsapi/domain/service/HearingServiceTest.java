@@ -144,8 +144,8 @@ class HearingServiceTest {
             .versionNumber(VERSION)
             .build();
 
-        when(hmcHearingApi.createHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, payload))
-            .thenReturn(response);
+        when(hmcHearingApi.createHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION,null,
+                                                payload)).thenReturn(response);
 
         HmcHearingResponse result = hearingService.createHearing(payload);
 
@@ -218,8 +218,8 @@ class HearingServiceTest {
 
     @Test
     void testGetHearing() {
-        when(hmcHearingApi.getHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, HEARING_ID, null))
-            .thenReturn(new HearingGetResponse());
+        when(hmcHearingApi.getHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, null,
+                                             HEARING_ID, null)).thenReturn(new HearingGetResponse());
 
         HearingGetResponse result = hearingService.getHearing(HEARING_ID);
 
@@ -230,7 +230,7 @@ class HearingServiceTest {
     void testGetHearingException() {
         when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
         when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
-        when(hmcHearingApi.getHearingRequest(anyString(), anyString(), anyString(), any()))
+        when(hmcHearingApi.getHearingRequest(anyString(), anyString(), any(), anyString(), any()))
             .thenThrow(FeignException.class);
 
         assertThrows(HmcException.class, () -> {
@@ -240,8 +240,8 @@ class HearingServiceTest {
 
     @Test
     void testGetHearings() {
-        when(hmcHearingApi.getHearingsRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, HEARING_ID))
-            .thenReturn(new HearingsGetResponse());
+        when(hmcHearingApi.getHearingsRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION,
+                                              null, HEARING_ID)).thenReturn(new HearingsGetResponse());
 
         HearingsGetResponse result = hearingService.getHearings(Long.parseLong(HEARING_ID));
 
@@ -252,7 +252,7 @@ class HearingServiceTest {
     void testGetHearingsException() {
         when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
         when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
-        when(hmcHearingApi.getHearingsRequest(anyString(), anyString(), anyString()))
+        when(hmcHearingApi.getHearingsRequest(anyString(), anyString(), any(), anyString()))
             .thenThrow(FeignException.class);
 
         assertThrows(HmcException.class, () -> {
@@ -262,8 +262,8 @@ class HearingServiceTest {
 
     @Test
     void testUpdateHearing() {
-        when(hmcHearingApi.updateHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, updateHearingRequest,
-                                                HEARING_ID
+        when(hmcHearingApi.updateHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION,
+                                                null, updateHearingRequest, HEARING_ID
         )).thenReturn(new HearingGetResponse());
         CaseDetailsHearing caseDetailsHearing = mock(CaseDetailsHearing.class);
         when(updateHearingRequest.getCaseDetails()).thenReturn(caseDetailsHearing);
@@ -281,8 +281,8 @@ class HearingServiceTest {
     void testUpdateHearingException() {
         when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
         when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
-        when(hmcHearingApi.updateHearingRequest(anyString(), anyString(), any(UpdateHearingRequest.class), anyString()))
-            .thenThrow(FeignException.class);
+        when(hmcHearingApi.updateHearingRequest(anyString(), anyString(), any(), any(UpdateHearingRequest.class),
+                                                anyString())).thenThrow(FeignException.class);
         CaseDetailsHearing caseDetailsHearing = mock(CaseDetailsHearing.class);
         when(updateHearingRequest.getCaseDetails()).thenReturn(caseDetailsHearing);
         when(caseDetailsHearing.getCaseRef()).thenReturn("caseRef");
@@ -313,14 +313,14 @@ class HearingServiceTest {
         );
 
         assertThat(result).isNotNull();
-        assertEquals(expected.size(), expected.size());
+        assertEquals(expected.size(), result.size());
         assertThat(expected.get(0)).usingRecursiveComparison().isEqualTo(result.get(0));
     }
 
     @Test
     void testGetPartiesNotified() {
-        when(hmcHearingApi.getPartiesNotifiedRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, HEARING_ID))
-            .thenReturn(new PartiesNotifiedResponses());
+        when(hmcHearingApi.getPartiesNotifiedRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, null,
+                                                     HEARING_ID)).thenReturn(new PartiesNotifiedResponses());
 
         PartiesNotifiedResponses result = hearingService.getPartiesNotified(HEARING_ID);
 
@@ -331,7 +331,7 @@ class HearingServiceTest {
     void testGetPartiesNotifiedException() {
         when(idamService.getServiceUserToken()).thenReturn("serviceUserToken");
         when(serviceAuthTokenGenerator.generate()).thenReturn("serviceAuthToken");
-        when(hmcHearingApi.getPartiesNotifiedRequest(anyString(), anyString(), anyString()))
+        when(hmcHearingApi.getPartiesNotifiedRequest(anyString(), anyString(), any(), anyString()))
             .thenThrow(FeignException.class);
 
         assertThrows(HmcException.class, () -> {
@@ -347,6 +347,7 @@ class HearingServiceTest {
         verify(hmcHearingApi, times(1)).updatePartiesNotifiedRequest(
             IDAM_OAUTH2_TOKEN,
             SERVICE_AUTHORIZATION,
+            null,
             payload,
             HEARING_ID,
             1,
@@ -364,6 +365,7 @@ class HearingServiceTest {
             .updatePartiesNotifiedRequest(
                 anyString(),
                 anyString(),
+                any(),
                 any(PartiesNotified.class),
                 anyString(),
                 anyLong(),
@@ -377,7 +379,7 @@ class HearingServiceTest {
 
     @Test
     void testDeleteHearing() {
-        when(hmcHearingApi.deleteHearing(eq(IDAM_OAUTH2_TOKEN), eq(SERVICE_AUTHORIZATION),
+        when(hmcHearingApi.deleteHearing(eq(IDAM_OAUTH2_TOKEN), eq(SERVICE_AUTHORIZATION), any(),
             eq(Long.valueOf(HEARING_ID)), any(DeleteHearingRequest.class)))
             .thenReturn(new ResponseEntity<>(HttpStatus.OK));
 
@@ -394,7 +396,7 @@ class HearingServiceTest {
         hearingService.setServiceId(SERVICE_ID);
         LocalDateTime now = LocalDateTime.now();
         when(hmcHearingApi.getUnNotifiedHearings(eq(IDAM_OAUTH2_TOKEN), eq(SERVICE_AUTHORIZATION),
-                                         eq(now), eq(null), anyString()))
+                                         any(), eq(now), eq(null), anyString()))
             .thenReturn(unNotifiedHearingsResponse);
 
         UnNotifiedHearingsResponse result = hearingService.getUnNotifiedHearings(now);
@@ -407,7 +409,7 @@ class HearingServiceTest {
         hearingService.setServiceId(SERVICE_ID);
         LocalDateTime now = LocalDateTime.now();
         when(hmcHearingApi.getUnNotifiedHearings(eq(IDAM_OAUTH2_TOKEN), eq(SERVICE_AUTHORIZATION),
-                                                 eq(now), eq(null), anyString()))
+                                                 any(), eq(now), eq(null), anyString()))
             .thenThrow(new FeignException.BadRequest("Bad request",
                                                      request,
                                                      new byte[]{},
@@ -429,8 +431,8 @@ class HearingServiceTest {
             .hearingRequestId(HEARING_REQUEST_ID)
             .versionNumber(VERSION)
             .build();
-        when(hmcHearingApi.createHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, createHearingRequest))
-            .thenReturn(response);
+        when(hmcHearingApi.createHearingRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, null,
+                                                createHearingRequest)).thenReturn(response);
 
         hearingService.createHearingWithPayload(callback);
 

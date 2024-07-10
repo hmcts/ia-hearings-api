@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REPRESENTATIVE_EMAIL_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_FAMILY_NAME;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_MOBILE_PHONE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_EMAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LEGAL_REP_PHONE;
@@ -18,6 +17,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.BailCaseDataToServiceHearingValuesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
+import java.util.Collections;
+
 @Component
 public class LegalRepDetailsMapper {
 
@@ -25,6 +26,17 @@ public class LegalRepDetailsMapper {
                                  CaseDataToServiceHearingValuesMapper caseDataMapper,
                                  HearingDetails persistedHearingDetails,
                                  Event event) {
+        String givenNames = caseDataMapper.getName(asylumCase, LEGAL_REP_NAME);
+        String familyName = caseDataMapper.getName(asylumCase, LEGAL_REP_FAMILY_NAME);
+        if (familyName == null && givenNames != null) {
+            String[] parts = givenNames.split(" ");
+            if (parts.length > 1) {
+                familyName = parts[parts.length - 1];
+                givenNames = String.join(" ", java.util.Arrays.copyOf(parts, parts.length - 1));
+            } else if (parts.length == 1) {
+                givenNames = parts[0];
+            }
+        }
 
         return PartyDetailsModel.builder()
             .partyID(caseDataMapper.getLegalRepPartyId(asylumCase))
@@ -32,15 +44,14 @@ public class LegalRepDetailsMapper {
             .partyRole("LGRP")
             .individualDetails(
                 IndividualDetailsModel.builder()
-                    .firstName(caseDataMapper.getName(asylumCase, LEGAL_REP_NAME))
-                    .lastName(caseDataMapper.getName(asylumCase, LEGAL_REP_FAMILY_NAME))
+                    .firstName(givenNames)
+                    .lastName(familyName)
                     .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase,
                                                                               persistedHearingDetails,
                                                                               event))
                     .hearingChannelEmail(
                         caseDataMapper.getHearingChannelEmail(asylumCase, LEGAL_REPRESENTATIVE_EMAIL_ADDRESS))
-                    .hearingChannelPhone(
-                        caseDataMapper.getHearingChannelPhone(asylumCase, LEGAL_REP_MOBILE_PHONE_NUMBER))
+                    .hearingChannelPhone(Collections.emptyList())
                     .build())
             .build();
     }
