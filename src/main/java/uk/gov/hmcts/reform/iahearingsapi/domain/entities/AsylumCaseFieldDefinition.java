@@ -33,12 +33,8 @@ public enum AsylumCaseFieldDefinition {
         "caseFlags", new TypeReference<StrategicCaseFlag>(){}),
     LEGAL_REP_NAME(
         "legalRepName", new TypeReference<String>(){}),
-    LEGAL_REP_FAMILY_NAME(
-        "legalRepFamilyName", new TypeReference<String>(){}),
     LEGAL_REPRESENTATIVE_EMAIL_ADDRESS(
         "legalRepresentativeEmailAddress", new TypeReference<String>(){}),
-    LEGAL_REP_MOBILE_PHONE_NUMBER(
-        "legalRepMobilePhoneNumber", new TypeReference<String>(){}),
     LEGAL_REP_COMPANY("legalRepCompany", new TypeReference<String>(){}),
     LEGAL_REP_COMPANY_NAME("legalRepCompanyName", new TypeReference<String>(){}),
     LOCAL_AUTHORITY_POLICY(

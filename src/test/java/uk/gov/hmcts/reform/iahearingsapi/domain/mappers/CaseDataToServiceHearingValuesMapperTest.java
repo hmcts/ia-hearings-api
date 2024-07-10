@@ -26,9 +26,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VULNERABILITIES_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REPRESENTATIVE_EMAIL_ADDRESS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_FAMILY_NAME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_MOBILE_PHONE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
@@ -344,18 +343,18 @@ class CaseDataToServiceHearingValuesMapperTest {
 
     @Test
     void getName_should_return_appellant_given_names() {
-        final String givenNames = "firstName secondName";
+        final String givenNames = "firstName secondName familyName";
         when(asylumCase.read(APPELLANT_GIVEN_NAMES, String.class)).thenReturn(Optional.of(givenNames));
 
         assertEquals(givenNames, mapper.getName(asylumCase, APPELLANT_GIVEN_NAMES));
     }
 
     @Test
-    void getName_should_return_legal_rep_family_name() {
-        final String familyName = "familyName";
-        when(asylumCase.read(LEGAL_REP_FAMILY_NAME, String.class)).thenReturn(Optional.of(familyName));
+    void getName_should_return_legal_rep_name() {
+        final String name = "firstName secondName familyName";
+        when(asylumCase.read(LEGAL_REP_NAME, String.class)).thenReturn(Optional.of(name));
 
-        assertEquals(familyName, mapper.getName(asylumCase, LEGAL_REP_FAMILY_NAME));
+        assertEquals(name, mapper.getName(asylumCase, LEGAL_REP_NAME));
     }
 
     @Test
@@ -391,17 +390,6 @@ class CaseDataToServiceHearingValuesMapperTest {
         assertEquals(
             List.of(legalRepEmail),
             mapper.getHearingChannelEmail(asylumCase, LEGAL_REPRESENTATIVE_EMAIL_ADDRESS));
-    }
-
-    @Test
-    void getHearingChannelPhone_should_return_legal_rep_phone() {
-        final String legalRepPhone = "legalRepPhone";
-        when(asylumCase.read(LEGAL_REP_MOBILE_PHONE_NUMBER, String.class))
-            .thenReturn(Optional.of(legalRepPhone));
-
-        assertEquals(
-            List.of(legalRepPhone),
-            mapper.getHearingChannelPhone(asylumCase, LEGAL_REP_MOBILE_PHONE_NUMBER));
     }
 
     @Test

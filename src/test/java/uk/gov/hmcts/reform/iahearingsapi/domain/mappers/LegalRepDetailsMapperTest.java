@@ -2,10 +2,13 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_NAME;
 
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -32,17 +35,26 @@ class LegalRepDetailsMapperTest {
     @Mock
     Event event;
 
-    @Test
-    void should_map_asylum_correctly() {
+    @ParameterizedTest
+    @CsvSource({
+        "firstName middleName familyName, firstName middleName, familyName",
+        "firstName familyName, firstName, familyName",
+        "firstName, firstName, ''",
+        "'', '', ''"
+    })
+    void should_map_asylum_correctly(String fullName, String givenNames, String lastName) {
 
         when(caseDataMapper.getLegalRepPartyId(asylumCase)).thenReturn("partyId");
         when(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
             .thenReturn("hearingChannel");
-
+        when(caseDataMapper.getLegalRepPartyId(asylumCase)).thenReturn("partyId");
+        when(caseDataMapper.getName(asylumCase, LEGAL_REP_NAME)).thenReturn(fullName);
         IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()
             .hearingChannelEmail(Collections.emptyList())
             .hearingChannelPhone(Collections.emptyList())
             .preferredHearingChannel("hearingChannel")
+            .firstName(givenNames)
+            .lastName(lastName)
             .build();
         PartyDetailsModel expected = PartyDetailsModel.builder()
             .individualDetails(individualDetails)
