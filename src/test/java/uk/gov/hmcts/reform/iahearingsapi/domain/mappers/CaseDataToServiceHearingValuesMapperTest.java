@@ -14,6 +14,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PHONE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATES_TO_AVOID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
@@ -69,6 +70,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocationRefData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -76,6 +78,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
@@ -105,6 +108,8 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Mock
     private HearingDetails persistedHearingDetails;
 
+    private final String birminghamEpimmsId = "231596";
+
     @BeforeEach
     void setup() {
         when(hearingServiceDateProvider.now()).thenReturn(date);
@@ -117,6 +122,15 @@ class CaseDataToServiceHearingValuesMapperTest {
             .builder().region(Region.NATIONAL).baseLocation(BaseLocation.BIRMINGHAM).build();
         when(asylumCase.read(CASE_MANAGEMENT_LOCATION, CaseManagementLocation.class))
             .thenReturn(Optional.of(caseManagementLocation));
+
+        Value locationValue = new Value("231596", "Birmingham Civil and Family Justice Centre");
+        CaseManagementLocationRefData caseManagementLocationRefData = CaseManagementLocationRefData
+            .builder()
+            .region(Region.NATIONAL)
+            .baseLocation(new DynamicList(locationValue, List.of(locationValue)))
+            .build();
+        when(asylumCase.read(CASE_MANAGEMENT_LOCATION_REF_DATA, CaseManagementLocationRefData.class))
+            .thenReturn(Optional.of(caseManagementLocationRefData));
 
         DynamicList hearingChannel = new DynamicList("INTER");
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(hearingChannel));
@@ -132,16 +146,23 @@ class CaseDataToServiceHearingValuesMapperTest {
             new CaseDataToServiceHearingValuesMapper(hearingServiceDateProvider);
     }
 
-    @Test
-    void getCaseManagementLocationCode_should_return_location_code() {
+    @ParameterizedTest
+    @EnumSource(value = YesOrNo.class, names = {"YES", "NO"})
+    void getCaseManagementLocationCode_should_return_location_code(YesOrNo refDataEnabled) {
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(refDataEnabled));
 
-        assertEquals(mapper.getCaseManagementLocationCode(asylumCase), BaseLocation.BIRMINGHAM.getId());
+        assertEquals(mapper.getCaseManagementLocationCode(asylumCase), birminghamEpimmsId);
     }
 
-    @Test
-    void getCaseManagementLocationCode_should_return_null() {
-
+    @ParameterizedTest
+    @EnumSource(value = YesOrNo.class, names = {"YES", "NO"})
+    void getCaseManagementLocationCode_should_return_null(YesOrNo refDataEnabled) {
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(refDataEnabled));
         when(asylumCase.read(CASE_MANAGEMENT_LOCATION, CaseManagementLocation.class))
+            .thenReturn(Optional.empty());
+        when(asylumCase.read(CASE_MANAGEMENT_LOCATION_REF_DATA, CaseManagementLocationRefData.class))
             .thenReturn(Optional.empty());
 
         assertNull(mapper.getCaseManagementLocationCode(asylumCase));

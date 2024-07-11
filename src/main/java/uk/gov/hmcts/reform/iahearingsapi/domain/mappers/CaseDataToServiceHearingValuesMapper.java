@@ -6,6 +6,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATES_TO_AVOID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
@@ -45,6 +46,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocationRefData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -75,6 +77,27 @@ public class CaseDataToServiceHearingValuesMapper {
     private final DateProvider hearingServiceDateProvider;
 
     public String getCaseManagementLocationCode(AsylumCase asylumCase) {
+        if (HearingsUtils.isAppealsLocationRefDataEnabled(asylumCase)) {
+            return getCaseManagementLocationEpimmsIdFromRefData(asylumCase);
+        } else {
+            return getCaseManagementLocationEpimmsId(asylumCase);
+        }
+    }
+
+    private String getCaseManagementLocationEpimmsIdFromRefData(AsylumCase asylumCase) {
+        Optional<CaseManagementLocationRefData> caseManagementLocationOptional = asylumCase
+            .read(CASE_MANAGEMENT_LOCATION_REF_DATA, CaseManagementLocationRefData.class);
+        if (caseManagementLocationOptional.isPresent()) {
+            DynamicList baseLocation = caseManagementLocationOptional.get().getBaseLocation();
+            if (baseLocation != null && baseLocation.getValue() != null) {
+                return baseLocation.getValue().getCode();
+            }
+        }
+
+        return null;
+    }
+
+    private String getCaseManagementLocationEpimmsId(AsylumCase asylumCase) {
         Optional<CaseManagementLocation> caseManagementLocationOptional = asylumCase
             .read(CASE_MANAGEMENT_LOCATION, CaseManagementLocation.class);
         if (caseManagementLocationOptional.isPresent()) {

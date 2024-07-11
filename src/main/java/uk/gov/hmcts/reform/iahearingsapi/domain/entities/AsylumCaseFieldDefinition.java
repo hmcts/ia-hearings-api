@@ -316,7 +316,10 @@ public enum AsylumCaseFieldDefinition {
 
     CONTACT_PREFERENCE("contactPreference", new TypeReference<ContactPreference>(){}),
 
-    NEXT_HEARING_DETAILS("nextHearingDetails", new TypeReference<NextHearingDetails>(){});
+    NEXT_HEARING_DETAILS("nextHearingDetails", new TypeReference<NextHearingDetails>(){}),
+
+    CASE_MANAGEMENT_LOCATION_REF_DATA(
+        "caseManagementLocationRefData", new TypeReference<CaseManagementLocationRefData>(){});
 
 
     private final String value;
