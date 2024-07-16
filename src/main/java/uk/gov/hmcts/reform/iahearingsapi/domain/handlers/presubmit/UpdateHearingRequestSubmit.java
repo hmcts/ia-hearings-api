@@ -108,7 +108,7 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
             }
 
             try {
-                hearingService.updateHearing(
+                hearingService.updateHearingWithError(
                     updateHearingPayloadService.createUpdateHearingPayload(
                         asylumCase,
                         hearingId,

@@ -73,6 +73,14 @@ public interface HmcHearingApi {
         @PathVariable String id
     );
 
+    @PutMapping("/WrongHearingEndpoint/{id}")
+    HearingGetResponse updateHearingRequestWithError(
+        @RequestHeader(AUTHORIZATION) String authorisation,
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestBody UpdateHearingRequest updateHearingRequest,
+        @PathVariable String id
+    );
+
     @GetMapping(value = PARTIES_NOTIFIED_ENDPOINT + "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     PartiesNotifiedResponses getPartiesNotifiedRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
@@ -94,6 +102,18 @@ public interface HmcHearingApi {
 
     @DeleteMapping(path = "/hearing/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     ResponseEntity<HmcHearingResponse> deleteHearing(
+        @RequestHeader(AUTHORIZATION) String authorisation,
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @PathVariable("id") Long hearingId,
+        @RequestBody @Valid DeleteHearingRequest deleteRequest
+    );
+
+    @DeleteMapping(
+        path = "/WrongHearingEndpoint/{id}",
+        consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<HmcHearingResponse> deleteHearingWithError(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @PathVariable("id") Long hearingId,

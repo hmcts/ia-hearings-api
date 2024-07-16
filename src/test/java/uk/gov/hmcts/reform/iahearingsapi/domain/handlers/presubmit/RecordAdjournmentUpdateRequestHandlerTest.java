@@ -151,10 +151,10 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
         assertEquals(asylumCase, callbackResponse.getData());
 
         if (relistCaseImmediately == YES) {
-            verify(hearingService, times(1)).updateHearing(updateHearingRequest, HEARING_ID);
+            verify(hearingService, times(1)).updateHearingWithError(updateHearingRequest, HEARING_ID);
 
         } else {
-            verify(hearingService, times(0)).updateHearing(any(), any());
+            verify(hearingService, times(0)).updateHearingWithError(any(), any());
         }
     }
 
@@ -178,7 +178,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
         );
 
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1)).updateHearing(updateHearingRequest, HEARING_ID);
+        verify(hearingService, times(1)).updateHearingWithError(updateHearingRequest, HEARING_ID);
         verify(hearingService, never()).createHearingWithPayload(callback);
 
     }
@@ -209,7 +209,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
         );
 
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1)).updateHearing(updateHearingRequest, HEARING_ID);
+        verify(hearingService, times(1)).updateHearingWithError(updateHearingRequest, HEARING_ID);
 
     }
 
@@ -223,10 +223,10 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
 
         if (relistCaseImmediately == NO) {
             verify(hearingService, times(1))
-                .deleteHearing(eq(Long.valueOf(HEARING_ID)), eq(CANCELLATION_REASON.getValue().getCode()));
+                .deleteHearingWithError(eq(Long.valueOf(HEARING_ID)), eq(CANCELLATION_REASON.getValue().getCode()));
         } else {
             verify(hearingService, never())
-                .deleteHearing(eq(Long.valueOf(HEARING_ID)), eq(CANCELLATION_REASON.getValue().getCode()));
+                .deleteHearingWithError(eq(Long.valueOf(HEARING_ID)), eq(CANCELLATION_REASON.getValue().getCode()));
         }
 
     }
