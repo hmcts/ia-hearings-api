@@ -96,7 +96,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
         DynamicList cancellationReason = asylumCase.read(HEARING_REASON_TO_CANCEL, DynamicList.class)
             .orElseThrow(() -> new IllegalStateException("Hearing cancellation reason is not present"));
 
-        hearingService.deleteHearingWithError(Long.valueOf(hearingId), cancellationReason.getValue().getCode());
+        hearingService.deleteHearing(Long.valueOf(hearingId), cancellationReason.getValue().getCode());;
     }
 
     private void updateHearing(AsylumCase asylumCase, String hearingId, Long caseReference) {
@@ -105,7 +105,7 @@ public class RecordAdjournmentUpdateRequestHandler implements PreSubmitCallbackH
         String nextHearingDate = asylumCase.read(NEXT_HEARING_DATE, String.class)
             .orElseThrow(() -> new IllegalStateException(NEXT_HEARING_DATE + "  is not present"));
 
-        hearingService.updateHearingWithError(
+        hearingService.updateHearing(
             updateHearingPayloadService.createUpdateHearingPayload(
                 asylumCase,
                 hearingId,
