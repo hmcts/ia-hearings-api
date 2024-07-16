@@ -33,7 +33,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.controllers.HearingsCont
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @Provider(IAC_PROVIDER)
-@PactBroker(scheme ="https", host = "pact-broker.platform.hmcts.net", port = "80")
+@PactBroker(scheme = "https", host = "pact-broker.platform.hmcts.net", port = "80")
 public class IaHearingApiProvider {
 
     @Mock
