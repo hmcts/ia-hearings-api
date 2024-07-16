@@ -5,12 +5,11 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.IAC_PROVIDER;
-import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.generateHearingLinkData;
-import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.generateServiceHearingValues;
+import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.*;
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
+import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
@@ -33,7 +32,9 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.controllers.HearingsCont
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @Provider(IAC_PROVIDER)
-@PactBroker(scheme = "https", host = "pact-broker.platform.hmcts.net", port = "80")
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",
+    host = "${PACT_BROKER_URL:localhost}",
+    port = "${PACT_BROKER_PORT:80}")
 public class IaHearingApiProvider {
 
     @Mock

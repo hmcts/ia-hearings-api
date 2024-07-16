@@ -89,6 +89,10 @@ withPipeline(type, product, component) {
   env.HEARINGS_API_URL = "http://ia-hearings-api-demo.service.core-compute-demo.internal"
   env.LOCATION_REF_DATA_URL = "http://rd-location-ref-api-aat.service.core-compute-aat.internal"
 
+  env.PACT_BROKER_URL = "pact-broker.platform.hmcts.net"
+  env.PACT_BROKER_PORT = "443"
+  env.PACT_BROKER_SCHEME = "https"
+
   enableAksStagingDeployment()
   disableLegacyDeployment()
   loadVaultSecrets(secrets)
