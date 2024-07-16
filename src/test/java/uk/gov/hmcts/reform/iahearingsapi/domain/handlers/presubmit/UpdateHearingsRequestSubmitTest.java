@@ -147,7 +147,7 @@ class UpdateHearingsRequestSubmitTest {
             callback
         );
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1)).updateHearingWithError(any(), any());
+        verify(hearingService, times(1)).updateHearing(any(), any());
 
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             asylumCase,
@@ -178,7 +178,7 @@ class UpdateHearingsRequestSubmitTest {
             callback
         );
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1)).updateHearingWithError(any(), any());
+        verify(hearingService, times(1)).updateHearing(any(), any());
 
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             asylumCase,
@@ -207,7 +207,7 @@ class UpdateHearingsRequestSubmitTest {
             callback
         );
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1)).updateHearingWithError(any(), any());
+        verify(hearingService, times(1)).updateHearing(any(), any());
         HearingWindowModel newHearingWindow = HearingWindowModel
             .builder()
             .firstDateTimeMustBe("2023-12-02T16:00")
@@ -275,7 +275,7 @@ class UpdateHearingsRequestSubmitTest {
             callback
         );
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1)).updateHearingWithError(any(), any());
+        verify(hearingService, times(1)).updateHearing(any(), any());
 
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             asylumCase,
@@ -344,7 +344,7 @@ class UpdateHearingsRequestSubmitTest {
     void should_require_manual_update_hearing_if_update_hearing_call_failed() {
         asylumCase.write(REQUEST_HEARING_CHANNEL, "TEL");
         asylumCase.write(CHANGE_HEARING_UPDATE_REASON, reasonCode);
-        when(hearingService.updateHearingWithError(any(UpdateHearingRequest.class), any()))
+        when(hearingService.updateHearing(any(UpdateHearingRequest.class), any()))
             .thenThrow(new HmcException(new Throwable()));
 
         updateHearingRequestSubmit.handle(
@@ -372,7 +372,7 @@ class UpdateHearingsRequestSubmitTest {
             callback
         );
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(hearingService, times(1)).updateHearingWithError(any(), any());
+        verify(hearingService, times(1)).updateHearing(any(), any());
 
         verify(updateHearingPayloadService, times(1)).createUpdateHearingPayload(
             asylumCase,

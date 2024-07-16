@@ -243,32 +243,6 @@ public class HearingService {
         }
     }
 
-    public HearingGetResponse updateHearingWithError(
-        UpdateHearingRequest updateHearingRequest,
-        String hearingId
-    ) throws HmcException {
-        log.debug(
-            "Update Hearing for Case ID {}, hearing ID {} and request:\n{}",
-            updateHearingRequest.getCaseDetails().getCaseRef(),
-            hearingId,
-            updateHearingRequest
-        );
-        try {
-            String serviceUserToken = idamService.getServiceUserToken();
-            String serviceAuthToken = serviceAuthTokenGenerator.generate();
-
-            return hmcHearingApi.updateHearingRequestWithError(
-                serviceUserToken,
-                serviceAuthToken,
-                updateHearingRequest,
-                hearingId
-            );
-        } catch (FeignException ex) {
-            log.error("Failed to update hearing with Id: {} from HMC. Error: {}", hearingId, ex.getMessage());
-            throw new HmcException(ex);
-        }
-    }
-
     public PartiesNotifiedResponses getPartiesNotified(String hearingId) {
         log.debug("Requesting Get Parties Notified with Hearing ID {}", hearingId);
         try {
@@ -307,24 +281,6 @@ public class HearingService {
     }
 
     public ResponseEntity<HmcHearingResponse> deleteHearing(Long hearingId, String cancellationReason) {
-        log.debug("Requesting Get delete hearing with Hearing ID {}", hearingId);
-        try {
-            String serviceUserToken = idamService.getServiceUserToken();
-            String serviceAuthToken = serviceAuthTokenGenerator.generate();
-
-            return hmcHearingApi.deleteHearing(
-                serviceUserToken,
-                serviceAuthToken,
-                hearingId,
-                new DeleteHearingRequest(Arrays.asList(cancellationReason))
-            );
-        } catch (FeignException e) {
-            log.error("Failed to delete hearing with Id: {} from HMC", hearingId);
-            throw new HmcException(e);
-        }
-    }
-
-    public ResponseEntity<HmcHearingResponse> deleteHearingWithError(Long hearingId, String cancellationReason) {
         log.debug("Requesting Get delete hearing with Hearing ID {}", hearingId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
