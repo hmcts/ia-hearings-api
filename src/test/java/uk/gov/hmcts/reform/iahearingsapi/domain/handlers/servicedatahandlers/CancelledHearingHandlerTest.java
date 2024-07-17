@@ -17,14 +17,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.NextHearingDateService;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -34,18 +33,16 @@ class CancelledHearingHandlerTest {
     @Mock
     CoreCaseDataService coreCaseDataService;
     @Mock
+    NextHearingDateService nextHearingDateService;
+    @Mock
     ServiceData serviceData;
-    @Mock
-    StartEventResponse startEventResponse;
-    @Mock
-    AsylumCase asylumCase;
     private CancelledHearingHandler cancelledHearingHandler;
 
     @BeforeEach
     public void setUp() {
 
         cancelledHearingHandler =
-            new CancelledHearingHandler(coreCaseDataService);
+            new CancelledHearingHandler(coreCaseDataService, nextHearingDateService);
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.CANCELLED));
@@ -89,6 +86,16 @@ class CancelledHearingHandlerTest {
         cancelledHearingHandler.handle(serviceData);
 
         verify(coreCaseDataService).triggerReviewInterpreterBookingTask(CASE_REF);
+    }
+
+    @Test
+    void should_trigger_set_next_hearing_date_event() {
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(nextHearingDateService.enabled()).thenReturn(true);
+
+        cancelledHearingHandler.handle(serviceData);
+
+        verify(coreCaseDataService).setNextHearingDate(CASE_REF);
     }
 
 }

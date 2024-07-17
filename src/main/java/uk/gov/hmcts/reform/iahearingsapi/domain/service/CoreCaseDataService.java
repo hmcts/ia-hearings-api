@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SET_NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 
 import java.time.LocalDateTime;
@@ -250,5 +251,16 @@ public class CoreCaseDataService {
             caseReference,
             "1",
             "100");
+    }
+
+    public void setNextHearingDate(String caseId) {
+        StartEventResponse startEventResponse = startCaseEvent(
+            SET_NEXT_HEARING_DATE, caseId, CASE_TYPE_ASYLUM);
+
+        AsylumCase asylumCase = getCaseFromStartedEvent(startEventResponse);
+
+        log.info("Sending `{}` event for  Case ID `{}`", SET_NEXT_HEARING_DATE, caseId);
+        triggerSubmitEvent(
+            SET_NEXT_HEARING_DATE, caseId, startEventResponse, asylumCase);
     }
 }
