@@ -30,14 +30,19 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLinkData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.CaseLinkDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.CaseLinkInfo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.GetLinkedCasesResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.Reason;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
@@ -91,12 +96,24 @@ public class HearingService {
     }
 
     public List<HearingLinkData> getHearingLinkData(@NotNull HearingRequestPayload payload) {
-        AsylumCase asylumCase = coreCaseDataService.getCase(payload.getCaseReference());
+
+        String caseReference = payload.getCaseReference();
+
+        List<HearingLinkData> serviceLinkedCases = new ArrayList<>();
+        serviceLinkedCases.addAll(getChildCasesThisCaseLinkedTo(caseReference));
+        serviceLinkedCases.addAll(getParentCasesThisCaseLinkedFrom(caseReference));
+
+        return serviceLinkedCases;
+    }
+
+    private List<HearingLinkData> getChildCasesThisCaseLinkedTo(String caseReference) {
+
+        AsylumCase asylumCase = coreCaseDataService.getCase(caseReference);
 
         Optional<List<IdValue<CaseLink>>> caseLinksOptional = asylumCase.read(CASE_LINKS);
         List<IdValue<CaseLink>> caseLinkIdValues = caseLinksOptional.orElse(Collections.emptyList());
 
-        List<HearingLinkData> serviceLinkedCases = new ArrayList<>();
+        List<HearingLinkData> hearingLinkDataList = new ArrayList<>();
 
         if (!caseLinkIdValues.isEmpty()) {
 
@@ -119,12 +136,48 @@ public class HearingService {
                             .reasonsForLink(reasonList)
                             .caseName(caseName)
                             .build();
-                    serviceLinkedCases.add(hearingLinkData);
+                    hearingLinkDataList.add(hearingLinkData);
                 }
             }
         }
 
-        return serviceLinkedCases;
+        return hearingLinkDataList;
+    }
+
+    private List<HearingLinkData> getParentCasesThisCaseLinkedFrom(String caseReference) {
+
+        GetLinkedCasesResponse getLinkedCasesResponse = coreCaseDataService.getLinkedCases(caseReference);
+        List<CaseLinkInfo> parentCasesThisCaseLinkedFrom = getLinkedCasesResponse.getLinkedCases();
+
+        List<HearingLinkData> hearingLinkDataList = new ArrayList<>();
+
+        for (CaseLinkInfo caseLinkInfo : parentCasesThisCaseLinkedFrom) {
+
+            List<CaseLinkDetails> linkDetails = caseLinkInfo.getLinkDetails();
+
+            if (!linkDetails.isEmpty() && !linkDetails.get(0).getReasons().isEmpty()) {
+
+                CaseLinkDetails caseLinkDetails = linkDetails.get(0);
+
+                List<String> reasonList =
+                    caseLinkDetails.getReasons().stream()
+                        .map(Reason::getReasonCode)
+                        .collect(Collectors.toList());
+
+                AsylumCase linkedCase = coreCaseDataService.getCase(caseLinkInfo.getCaseReference());
+                String caseName = linkedCase.read(APPELLANT_NAME_FOR_DISPLAY, String.class).orElse("");
+
+                HearingLinkData hearingLinkData =
+                    HearingLinkData.hearingLinkDataWith()
+                        .caseReference(caseLinkInfo.getCaseReference())
+                        .reasonsForLink(reasonList)
+                        .caseName(caseName)
+                        .build();
+                hearingLinkDataList.add(hearingLinkData);
+            }
+        }
+
+        return hearingLinkDataList;
     }
 
     public HearingGetResponse getHearing(String hearingId) throws HmcException {
@@ -245,7 +298,8 @@ public class HearingService {
         }
     }
 
-    public UnNotifiedHearingsResponse getUnNotifiedHearings(LocalDateTime hearingStartDateFrom) {
+    public UnNotifiedHearingsResponse getUnNotifiedHearings(
+        LocalDateTime hearingStartDateFrom, List<HmcStatus> hearingStatus) {
         log.debug("Retrieving UnNotified hearings");
         try {
             String serviceUserToken = idamService.getServiceUserToken();
@@ -255,6 +309,7 @@ public class HearingService {
                                                        serviceAuthToken,
                                                        hearingStartDateFrom,
                                                        null,
+                                                       hearingStatus.stream().map(HmcStatus::name).toList(),
                                                        serviceId);
         } catch (FeignException e) {
             log.error("Failed to retrieve unNotified hearings");

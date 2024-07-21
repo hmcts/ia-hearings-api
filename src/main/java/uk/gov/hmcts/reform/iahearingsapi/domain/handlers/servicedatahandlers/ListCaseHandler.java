@@ -18,6 +18,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDat
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
 @Slf4j
 @Component
@@ -25,6 +27,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 public class ListCaseHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
+    private final LocationRefDataService locationRefDataService;
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -53,8 +56,13 @@ public class ListCaseHandler extends ListedHearingService implements ServiceData
 
         StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(LIST_CASE, caseId, CASE_TYPE_ASYLUM);
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
+        log.info("asylumCase for  Case ID `{}` contains '{}'", caseId, asylumCase.toString());
 
-        updateListCaseHearingDetails(serviceData, asylumCase);
+        boolean isAppealsLocationRefDataEnabled = HearingsUtils.isAppealsLocationRefDataEnabled(asylumCase);
+
+        updateListCaseHearingDetails(serviceData, asylumCase, isAppealsLocationRefDataEnabled, caseId,
+            locationRefDataService.getCourtVenuesAsServiceUser(),
+            locationRefDataService.getHearingLocationsDynamicList(true));
 
         log.info("Sending `{}` event for  Case ID `{}`", LIST_CASE, caseId);
         coreCaseDataService.triggerSubmitEvent(LIST_CASE, caseId, startEventResponse, asylumCase);

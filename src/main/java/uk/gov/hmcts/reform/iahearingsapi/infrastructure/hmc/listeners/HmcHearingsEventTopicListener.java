@@ -1,17 +1,17 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.listeners;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.EXCEPTION;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcEventProcessingException;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
@@ -56,20 +56,20 @@ public class HmcHearingsEventTopicListener {
             log.info("Received message from HMC hearings topic for Case ID {}, and Hearing ID {}.",
                      caseId, hearingId);
 
-            /*
-            Batch-processing enabled: only EXCEPTION messages are processed live
-             */
+            HmcStatus hmcStatus = hmcMessage.getHearingUpdate().getHmcStatus();
+
             if (isMessageRelevantForService(hmcMessage)
-                && Objects.equals(hmcMessage.getHearingUpdate().getHmcStatus(), EXCEPTION)) {
+                && (hmcStatus.equals(LISTED) || hmcStatus.equals(CANCELLED))) {
 
                 log.info("Attempting to process message from HMC hearings topic for"
-                             + " Case ID {}, and Hearing ID {} with status EXCEPTION", caseId, hearingId);
+                             + " Case ID {}, and Hearing ID {} with status {}", caseId, hearingId,
+                    hmcMessage.getHearingUpdate().getHmcStatus());
 
                 hmcMessageProcessor.processMessage(hmcMessage);
             }
         }  catch (JsonProcessingException ex) {
-            throw new HmcEventProcessingException(String.format("Unable to successfully receive HMC message: %s",
-                                                                message), ex);
+            throw new HmcEventProcessingException(
+                String.format("Unable to successfully receive HMC message: %s", stringMessage), ex);
         }
     }
 

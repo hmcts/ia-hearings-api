@@ -8,9 +8,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
@@ -34,13 +35,17 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -55,6 +60,8 @@ class ListCaseHandlerTest {
     @Mock
     CoreCaseDataService coreCaseDataService;
     @Mock
+    LocationRefDataService locationRefDataService;
+    @Mock
     ServiceData serviceData;
     @Mock
     StartEventResponse startEventResponse;
@@ -63,11 +70,15 @@ class ListCaseHandlerTest {
 
     private ListCaseHandler listCaseHandler;
 
+    private DynamicList hearingLocationList = new DynamicList(
+        new Value("745389", "Hendon Magistrates Court"),
+        List.of(new Value("745389", "Hendon Magistrates Court")));
+
     @BeforeEach
     public void setUp() {
 
         listCaseHandler =
-            new ListCaseHandler(coreCaseDataService);
+            new ListCaseHandler(coreCaseDataService, locationRefDataService);
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -81,6 +92,15 @@ class ListCaseHandlerTest {
             .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
         when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.LISTING);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
+
+        List<CourtVenue> courtVenueList = List.of(new CourtVenue("Manchester Magistrates",
+            "Manchester Magistrates Court",
+            "231596",
+            "Y",
+            "Open"));
+        when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(courtVenueList);
+        when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(hearingLocationList);
     }
 
     @Test
@@ -156,7 +176,7 @@ class ListCaseHandlerTest {
         verify(asylumCase).write(LIST_CASE_HEARING_DATE,
                                  LocalDateTime.of(2023, 9, 29, 9, 45)
                                      .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
-        verify(asylumCase).write(LIST_CASE_HEARING_LENGTH, "150");
+        verify(asylumCase).write(LISTING_LENGTH, new HoursMinutes(150));
         verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
         verify(asylumCase).write(HEARING_CHANNEL, new DynamicList(new Value(HearingChannel.INTER.name(),
                                                                             HearingChannel.INTER.getLabel()),

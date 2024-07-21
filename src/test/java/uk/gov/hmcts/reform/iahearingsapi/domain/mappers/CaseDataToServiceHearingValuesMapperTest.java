@@ -2,10 +2,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_INSTRUCTIONS_DESCRIPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
@@ -16,11 +14,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PHONE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_MANAGEMENT_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DATES_TO_AVOID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.GWF_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HOME_OFFICE_REFERENCE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_ADDITIONAL_ADJUSTMENTS_ALLOWED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_DECISION_WITHOUT_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_HEARING_LINKED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_MULTIMEDIA_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VULNERABILITIES_ALLOWED;
@@ -30,6 +31,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_MOBILE_PHONE_NUMBER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
@@ -68,6 +70,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BaseLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocationRefData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DateProvider;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DatesToAvoid;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -75,7 +78,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Organisation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.OrganisationPolicy;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Region;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
@@ -103,6 +108,8 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Mock
     private HearingDetails persistedHearingDetails;
 
+    private final String birminghamEpimmsId = "231596";
+
     @BeforeEach
     void setup() {
         when(hearingServiceDateProvider.now()).thenReturn(date);
@@ -115,6 +122,15 @@ class CaseDataToServiceHearingValuesMapperTest {
             .builder().region(Region.NATIONAL).baseLocation(BaseLocation.BIRMINGHAM).build();
         when(asylumCase.read(CASE_MANAGEMENT_LOCATION, CaseManagementLocation.class))
             .thenReturn(Optional.of(caseManagementLocation));
+
+        Value locationValue = new Value("231596", "Birmingham Civil and Family Justice Centre");
+        CaseManagementLocationRefData caseManagementLocationRefData = CaseManagementLocationRefData
+            .builder()
+            .region(Region.NATIONAL)
+            .baseLocation(new DynamicList(locationValue, List.of(locationValue)))
+            .build();
+        when(asylumCase.read(CASE_MANAGEMENT_LOCATION_REF_DATA, CaseManagementLocationRefData.class))
+            .thenReturn(Optional.of(caseManagementLocationRefData));
 
         DynamicList hearingChannel = new DynamicList("INTER");
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(hearingChannel));
@@ -130,16 +146,23 @@ class CaseDataToServiceHearingValuesMapperTest {
             new CaseDataToServiceHearingValuesMapper(hearingServiceDateProvider);
     }
 
-    @Test
-    void getCaseManagementLocationCode_should_return_location_code() {
+    @ParameterizedTest
+    @EnumSource(value = YesOrNo.class, names = {"YES", "NO"})
+    void getCaseManagementLocationCode_should_return_location_code(YesOrNo refDataEnabled) {
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(refDataEnabled));
 
-        assertEquals(mapper.getCaseManagementLocationCode(asylumCase), BaseLocation.BIRMINGHAM.getId());
+        assertEquals(mapper.getCaseManagementLocationCode(asylumCase), birminghamEpimmsId);
     }
 
-    @Test
-    void getCaseManagementLocationCode_should_return_null() {
-
+    @ParameterizedTest
+    @EnumSource(value = YesOrNo.class, names = {"YES", "NO"})
+    void getCaseManagementLocationCode_should_return_null(YesOrNo refDataEnabled) {
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(refDataEnabled));
         when(asylumCase.read(CASE_MANAGEMENT_LOCATION, CaseManagementLocation.class))
+            .thenReturn(Optional.empty());
+        when(asylumCase.read(CASE_MANAGEMENT_LOCATION_REF_DATA, CaseManagementLocationRefData.class))
             .thenReturn(Optional.empty());
 
         assertNull(mapper.getCaseManagementLocationCode(asylumCase));
@@ -164,6 +187,17 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
             .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
+
+        assertEquals(List.of("ONPPRS"), mapper.getHearingChannels(asylumCase));
+    }
+
+    @Test
+    void getHearingChannels_should_return_on_the_papers_when_ref_data_is_enabled() {
+
+        when(asylumCase.read(IS_DECISION_WITHOUT_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
 
         assertEquals(List.of("ONPPRS"), mapper.getHearingChannels(asylumCase));
     }
@@ -198,12 +232,39 @@ class CaseDataToServiceHearingValuesMapperTest {
         assertNull(mapper.getHearingDuration(asylumCase));
     }
 
+    @Test
+    void getHearingDuration_should_return_hearing_length() {
+
+        when(asylumCase.read(LISTING_LENGTH, HoursMinutes.class)).thenReturn(Optional.of(
+            new HoursMinutes(1,10)
+        ));
+
+        assertEquals(70, mapper.getHearingDuration(asylumCase));
+    }
+
     @ParameterizedTest
     @EnumSource(value = AppealType.class, names = {"EA","EU","HU","PA","DC","RP"})
     void getHearingDuration_should_return_appropriate_value_when_without_hearing(AppealType appealType) {
 
         when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
             .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
+        when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.ofNullable(appealType));
+
+        switch (Objects.requireNonNull(appealType)) {
+            case EA, HU, EU -> assertEquals(60, mapper.getHearingDuration(asylumCase));
+            case PA, RP, DC -> assertEquals(90, mapper.getHearingDuration(asylumCase));
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = AppealType.class, names = {"EA","EU","HU","PA","DC","RP"})
+    void getHearingDuration_should_return_appropriate_value_for_decision_without_hearing_and_ref_data_enabled(
+        AppealType appealType) {
+
+        when(asylumCase.read(IS_DECISION_WITHOUT_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.ofNullable(appealType));
 
         switch (Objects.requireNonNull(appealType)) {
@@ -506,20 +567,6 @@ class CaseDataToServiceHearingValuesMapperTest {
         String listingComments = mapper.getListingComments(asylumCase);
 
         assertEquals(listingComments, "Additional instructions: New instructions;");
-    }
-
-    @Test
-    void isDecisionWithoutHearingAppeal_should_return_true() {
-        when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
-            .thenReturn(Optional.of(DECISION_WITHOUT_HEARING));
-
-        assertTrue(mapper.isDecisionWithoutHearingAppeal(asylumCase));
-    }
-
-    @Test
-    void isDecisionWithoutHearingAppeal_should_return_false() {
-
-        assertFalse(mapper.isDecisionWithoutHearingAppeal(asylumCase));
     }
 
     @Test

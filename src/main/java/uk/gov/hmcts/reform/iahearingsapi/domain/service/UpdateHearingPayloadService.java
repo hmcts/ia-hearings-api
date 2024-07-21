@@ -1,29 +1,33 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import static com.microsoft.applicationinsights.web.dependencies.apachecommons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_TYPE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_VENUE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.Facilities.IAC_TYPE_C_CONFERENCE_EQUIPMENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils.getCaseCategoriesValue;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -33,6 +37,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearin
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.ListingCommentsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @Component
@@ -63,7 +68,8 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         String reasonCode,
         Boolean firstAvailableDate,
         HearingWindowModel hearingWindowModel,
-        Event event
+        Event event,
+        Long caseReference
     ) {
         return generateHearingPayload(
             asylumCase,
@@ -71,16 +77,19 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
             reasonCode,
             firstAvailableDate,
             hearingWindowModel,
-            event);
+            event,
+            caseReference);
     }
 
     public UpdateHearingRequest createUpdateHearingPayload(
         AsylumCase asylumCase,
         String hearingId,
         String reasonCode,
-        Event event
+        Event event,
+        Long caseReference
     ) {
-        return generateHearingPayload(asylumCase, hearingId, reasonCode, false, null, event);
+        return generateHearingPayload(asylumCase, hearingId, reasonCode, false,
+            null, event, caseReference);
     }
 
     private UpdateHearingRequest generateHearingPayload(
@@ -89,7 +98,8 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         String reasonCode,
         Boolean firstAvailableDate,
         HearingWindowModel hearingWindowModel,
-        Event event
+        Event event,
+        Long caseReference
     ) {
         HearingGetResponse persistedHearing = hearingService.getHearing(hearingId);
 
@@ -102,10 +112,9 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
             .hearingWindow(updateHearingWindow(firstAvailableDate, hearingWindowModel, persistedHearing))
             .build();
 
-
         UpdateHearingRequest updatedHearingRequest = UpdateHearingRequest.builder()
             .requestDetails(persistedHearing.getRequestDetails())
-            .caseDetails(persistedHearing.getCaseDetails())
+            .caseDetails(buildCaseDetailsWithLatestValues(asylumCase, persistedHearing, caseReference))
             .hearingDetails(buildHearingDetails(
                 asylumCase, persistedHearing.getHearingDetails(), hearingDetails, event))
             .partyDetails(getPartyDetailsModels(asylumCase, persistedHearing.getHearingDetails(), event))
@@ -115,8 +124,28 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         return updatedHearingRequest;
     }
 
+    private CaseDetailsHearing buildCaseDetailsWithLatestValues(AsylumCase asylumCase,
+                                                                HearingGetResponse persistedHearing,
+                                                                Long caseReference) {
+        CaseDetailsHearing caseDetails = persistedHearing.getCaseDetails();
+
+        String hmctsInternalCaseName = asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)
+            .orElseThrow(() ->
+                new RequiredFieldMissingException("HMCTS internal case name is a required field"));
+
+        caseDetails.setHmctsInternalCaseName(hmctsInternalCaseName);
+        caseDetails.setPublicCaseName(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference.toString()));
+        caseDetails.setCaseInterpreterRequiredFlag(caseFlagsMapper.getCaseInterpreterRequiredFlag(asylumCase));
+        caseDetails.setCaseAdditionalSecurityFlag(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase));
+        caseDetails.setCaseCategories(getCaseCategoriesValue(asylumCase));
+        caseDetails.setCaseManagementLocationCode(caseDataMapper.getCaseManagementLocationCode(asylumCase));
+
+        return caseDetails;
+    }
+
     private boolean getAutoListFlag(AsylumCase asylumCase, HearingDetails persistedHearingDetails) {
-        return !caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase) && persistedHearingDetails.isAutolistFlag();
+        return !HearingsUtils.isDecisionWithoutHearingAppeal(asylumCase)
+               && persistedHearingDetails.isAutolistFlag();
     }
 
     private List<HearingLocationModel> getLocations(AsylumCase asylumCase,
@@ -153,7 +182,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
     }
 
     public Integer getHearingDuration(AsylumCase asylumCase, Event event) {
-        if (caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase)) {
+        if (HearingsUtils.isDecisionWithoutHearingAppeal(asylumCase)) {
             return null;
         }
 
@@ -200,24 +229,28 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                                                HearingDetails hearingsDetailsUpdate, Event event) {
         if (event == Event.UPDATE_HEARING_REQUEST) {
             boolean updateHearingChannel = asylumCase.read(CHANGE_HEARING_TYPE_YES_NO, String.class)
-                .map(changeType -> Objects.equals(YES.toString(), changeType)).orElse(false);
+                .map(changeType -> equalsIgnoreCase(YES.toString(), changeType)).orElse(false);
             if (updateHearingChannel) {
                 hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
             }
             boolean updateHearingLocation = asylumCase.read(CHANGE_HEARING_LOCATION_YES_NO, String.class)
-                .map(changeLocation -> Objects.equals(YES.toString(), changeLocation)).orElse(false);
+                .map(changeLocation -> equalsIgnoreCase(YES.toString(), changeLocation)).orElse(false);
             if (updateHearingLocation) {
                 hearingDetails.setHearingLocations(hearingsDetailsUpdate.getHearingLocations());
             }
             boolean updateHearingDuration = asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, String.class)
-                .map(changeDuratrion -> Objects.equals(YES.toString(), changeDuratrion)).orElse(false);
+                .map(changeDuration -> equalsIgnoreCase(YES.toString(), changeDuration)).orElse(false);
             if (updateHearingDuration) {
                 hearingDetails.setDuration(hearingsDetailsUpdate.getDuration());
             }
             boolean updateHearingDate = asylumCase.read(CHANGE_HEARING_DATE_YES_NO, String.class)
-                .map(changeDate -> Objects.equals(YES.toString(), changeDate)).orElse(false);
+                .map(changeDate -> equalsIgnoreCase(YES.toString(), changeDate)).orElse(false);
             if (updateHearingDate) {
                 hearingDetails.setHearingWindow(hearingsDetailsUpdate.getHearingWindow());
+            } else {
+                if (hearingDetails.getHearingWindow().allNull()) {
+                    hearingDetails.setHearingWindow(null);
+                }
             }
         } else {
             hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
@@ -232,6 +265,12 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
             hearingDetails.getFacilitiesRequired() != null
                 ? hearingDetails.getFacilitiesRequired() : Collections.emptyList()
         ));
+
+        hearingDetails.setHearingPriorityType(caseFlagsMapper.getHearingPriorityType(asylumCase).toString());
+        hearingDetails.setListingComments(listingCommentsMapper.getListingComments(
+            asylumCase, caseFlagsMapper, caseDataMapper));
+
+        hearingDetails.setPrivateHearingRequiredFlag(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase));
 
         return hearingDetails;
     }

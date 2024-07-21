@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients;
 
+import java.util.Arrays;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,6 +15,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.UserDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.IdamService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
 
 
@@ -28,6 +31,9 @@ class LaunchDarklyFeatureTogglerTest {
 
     @Mock
     private LDValue expectedJsonValue;
+
+    @Mock
+    private IdamService idamService;
 
     @InjectMocks
     private LaunchDarklyFeatureToggler launchDarklyFeatureToggler;
@@ -91,6 +97,34 @@ class LaunchDarklyFeatureTogglerTest {
         ).thenReturn(expectedJsonValue);
 
         assertEquals(expectedJsonValue, launchDarklyFeatureToggler.getJsonValue(existingKey, LDValue.ofNull()));
+    }
+
+    @Test
+    void getValueAsServiceUser() {
+        UserInfo serviceUser = new UserInfo(
+            "email",
+            "id",
+            Arrays.asList("role-1", "role-2"),
+            "name",
+            "forename",
+            "surname"
+        );
+
+        when(idamService.getUserInfo()).thenReturn(serviceUser);
+
+        String existingKey = "existing-key";
+
+        when(ldClient.boolVariation(
+            existingKey,
+            LDContext.builder(serviceUser.getUid())
+                .set("firstName", serviceUser.getGivenName())
+                .set("lastName", serviceUser.getFamilyName())
+                .set("email", serviceUser.getEmail())
+                .build(),
+            false)
+        ).thenReturn(true);
+
+        assertTrue(launchDarklyFeatureToggler.getValueAsServiceUser(existingKey, false));
     }
 
     @Test

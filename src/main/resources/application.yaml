@@ -81,6 +81,7 @@ security:
       - "submitAppeal"
     caseworker-ia-admofficer:
       - "listCase"
+      - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
       - "endAppeal"
@@ -90,6 +91,8 @@ security:
     caseworker-ia-caseworker:
       - "listCase"
     caseworker-ia-caseofficer:
+      - "listCase"
+      - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
       - "endAppeal"
@@ -110,6 +113,8 @@ security:
       - "listCaseForFTOnly"
       - "triggerCmrListed"
       - "decisionWithoutHearingListed"
+      - "listCase"
+      - "editCaseListing"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
@@ -222,3 +227,6 @@ bail:
 flags:
   hmc-to-hearings-api:
     enabled: ${HMC_HEARINGS_LISTENING_ENABLED:true}
+
+pactbroker:
+  url: ${PACT_BROKER_FULL_URL:http://localhost:80}

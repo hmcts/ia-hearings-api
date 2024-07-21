@@ -16,7 +16,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_VENUE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MANUAL_UPDATE_HEARING_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE_1;
@@ -36,6 +36,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
@@ -114,7 +115,8 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                         getReason(asylumCase),
                         firstAvailableDate,
                         updateHearingWindow(asylumCase),
-                        Event.UPDATE_HEARING_REQUEST
+                        Event.UPDATE_HEARING_REQUEST,
+                        callback.getCaseDetails().getId()
                     ),
                     hearingId
                 );
@@ -128,10 +130,12 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
                 clearFields(asylumCase);
 
             } catch (HmcException e) {
+                log.error("Hearing {} UpdateHearingRequestSubmit failed with exception {}", hearingId, e.getMessage());
                 asylumCase.write(MANUAL_UPDATE_HEARING_REQUIRED, YES);
             }
-        });
 
+            log.info("Hearing {} UpdateHearingRequestSubmit completed successfully", hearingId);
+        });
 
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
@@ -173,7 +177,7 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
         asylumCase.read(REQUEST_HEARING_LENGTH, String.class)
                 .ifPresentOrElse(duration -> {
                     asylumCase.write(CHANGE_HEARING_DURATION, duration);
-                    asylumCase.write(LIST_CASE_HEARING_LENGTH, duration);
+                    asylumCase.write(LISTING_LENGTH, new HoursMinutes(Integer.parseInt(duration)));
                 },
                                  throwRequiredFieldMissingError("Request Hearing Length missing"));
     }

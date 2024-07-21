@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPLICATION_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.BAILS_LOCATION_REF_DATA_FEATURE;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPr
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 
 @Slf4j
 @Component
@@ -24,6 +27,8 @@ public class BailListCaseHandler
     extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
+    private final FeatureToggler featureToggler;
+    private final LocationRefDataService locationRefDataService;
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -46,15 +51,28 @@ public class BailListCaseHandler
         }
 
         String caseId = getCaseReference(serviceData);
+        log.info("BailListCaseHandler called for  Case ID `{}`", caseId);
 
         StartEventResponse startEventResponse =
             coreCaseDataService.startCaseEvent(CASE_LISTING, caseId, CASE_TYPE_BAIL);
         BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
-        updateInitialBailCaseListing(serviceData, bailCase);
+        log.info("bailCase for  Case ID `{}` contains '{}'", caseId, bailCase.toString());
+
+        boolean isBailsLocationRefDataEnabled = false;
+
+        isBailsLocationRefDataEnabled = featureToggler.getValueAsServiceUser(
+            BAILS_LOCATION_REF_DATA_FEATURE, false);
+
+        log.info("isBailsLocationRefDataEnabled value is " + isBailsLocationRefDataEnabled);
+
+        updateInitialBailCaseListing(serviceData, bailCase, isBailsLocationRefDataEnabled, caseId,
+            locationRefDataService.getCourtVenuesAsServiceUser(),
+            locationRefDataService.getHearingLocationsDynamicList(true));
+
         log.info("Sending `{}` event for  Case ID `{}`", CASE_LISTING, caseId);
         coreCaseDataService.triggerBailSubmitEvent(CASE_LISTING, caseId,
                                                    startEventResponse, bailCase);
-
+        log.info("Completed `{}` event for  Case ID `{}`", CASE_LISTING, caseId);
         return new ServiceDataResponse<>(serviceData);
     }
 }

@@ -19,9 +19,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_VENUE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_DATE_1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_LENGTH;
@@ -53,6 +53,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
@@ -228,12 +229,12 @@ class UpdateHearingsRequestHandlerTest {
             .thenReturn(Optional.empty());
         when(asylumCase.read(HEARING_LOCATION, DynamicList.class)).thenReturn(Optional.empty());
         when(hearingDetails.getHearingLocations()).thenReturn(null);
-        when(locationRefDataService.getHearingLocationsDynamicList())
+        when(locationRefDataService.getHearingLocationsDynamicList(false))
             .thenReturn(new DynamicList(new Value("", ""), List.of(glasgowValue, birminghamValue)));
 
         updateHearingsRequestHandler.handle(MID_EVENT, callback);
 
-        verify(locationRefDataService, times(1)).getHearingLocationsDynamicList();
+        verify(locationRefDataService, times(1)).getHearingLocationsDynamicList(false);
         verify(asylumCase, never()).write(eq(CHANGE_HEARING_VENUE), any());
         verify(asylumCase).write(eq(HEARING_LOCATION), dynamicListArgumentCaptor.capture());
         assertFalse(dynamicListArgumentCaptor.getValue().getListItems().isEmpty());
@@ -332,8 +333,8 @@ class UpdateHearingsRequestHandlerTest {
     }
 
     @Test
-    void should_initialize_hearing_duration_with_list_case_hearing_length() {
-        when(asylumCase.read(LIST_CASE_HEARING_LENGTH, String.class)).thenReturn(Optional.of("120"));
+    void should_initialize_hearing_duration_with_listing_length() {
+        when(asylumCase.read(LISTING_LENGTH, HoursMinutes.class)).thenReturn(Optional.of(new HoursMinutes(120)));
 
         updateHearingsRequestHandler.handle(MID_EVENT, callback);
 
