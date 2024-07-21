@@ -129,7 +129,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         if (currentHearingChannels.isEmpty()) {
             hearingChannelChanged = false;
         } else {
-            hearingChannelChanged = !currentHearingChannels.get().equals(nextHearingChannel);
+            hearingChannelChanged = !currentHearingChannels.get().getValue().toString().equals(nextHearingChannel);
         }
 
         final boolean hearingVenueChanged = !currentVenueId.equals(nextHearingVenueId);
