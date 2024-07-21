@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -99,10 +100,6 @@ public class EditListCaseHandler extends ListedHearingService implements Service
             HearingCentre.class
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingCentre can not be null")).getEpimsId();
 
-        DynamicList currentHearingChannels = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
-            .orElseThrow(() -> new IllegalStateException("hearingChannel can not be null"));
-
-        final String currentHearingChannel = currentHearingChannels.getValue().getCode();
 
         final String currentDuration = asylumCase.read(
             LIST_CASE_HEARING_LENGTH,
@@ -125,7 +122,16 @@ public class EditListCaseHandler extends ListedHearingService implements Service
             ? REMOTE_HEARING.getEpimsId()
             : getHearingVenueId(serviceData);
 
-        final boolean hearingChannelChanged = !currentHearingChannel.equals(nextHearingChannel);
+        boolean hearingChannelChanged;
+
+        Optional<DynamicList> currentHearingChannels = asylumCase.read(HEARING_CHANNEL, DynamicList.class);
+
+        if (currentHearingChannels.isEmpty()) {
+            hearingChannelChanged = false;
+        } else {
+            hearingChannelChanged = !currentHearingChannels.get().equals(nextHearingChannel);
+        }
+
         final boolean hearingVenueChanged = !currentVenueId.equals(nextHearingVenueId);
         final boolean hearingCentreChanged = hearingChannelChanged || hearingVenueChanged;
         final int nextDuration = getHearingDuration(serviceData);
