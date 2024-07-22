@@ -243,8 +243,8 @@ pitest {
 project.tasks['pitest'].group = "Verification"
 
 project.ext {
-  pacticipant = 'ia_caseNotificationsApi'
-  pacticipantVersion = System.env.GIT_COMMIT.substring(0,9)
+  pacticipant = 'ia_hearingsApi'
+  pacticipantVersion = getCheckedOutGitCommitHash()
 }
 
 project.tasks['check'].dependsOn integration
