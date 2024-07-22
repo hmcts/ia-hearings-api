@@ -107,8 +107,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingCentre can not be null")).getEpimsId();
 
 
-        final HoursMinutes currentDuration = asylumCase.read(LISTING_LENGTH, HoursMinutes.class)
-            .orElseThrow(() -> new IllegalStateException("listingLength can not be null"));
+
 
         final String nextHearingChannel = nextHearingChannelList.get(0).name();
 
@@ -139,7 +138,15 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         final boolean hearingVenueChanged = !currentVenueId.equals(nextHearingVenueId);
         final boolean hearingCentreChanged = hearingChannelChanged || hearingVenueChanged;
         final int nextDuration = getHearingDuration(serviceData);
-        final boolean durationChanged = currentDuration.convertToIntegerMinutes() != nextDuration;
+
+        boolean durationChanged;
+        Optional<HoursMinutes> currentDuration = asylumCase.read(LISTING_LENGTH, HoursMinutes.class);
+        if (currentDuration.isEmpty()) {
+            durationChanged = false;
+        } else {
+            durationChanged = currentDuration.get().convertToIntegerMinutes() != nextDuration;
+        }
+
         boolean sendUpdate = false;
 
         String hearingId = serviceData.read(HEARING_ID, String.class)
@@ -201,10 +208,10 @@ public class EditListCaseHandler extends ListedHearingService implements Service
             new DynamicList(
                 new Value(getHearingVenueId(serviceData),
                     getHearingCourtName(serviceData, locationRefDataService.getCourtVenuesAsServiceUser())),
-                locationRefDataService.getHearingLocationsDynamicList(true).getListItems()));
+                        locationRefDataService.getHearingLocationsDynamicList(true).getListItems()));
 
         log.info("tryUpdateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
-            asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
+                 asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
     }
 }
 
