@@ -205,10 +205,10 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         log.info("tryUpdateListCaseHearingDetails for Case ID `{}` serviceData contains '{}", caseId, serviceData);
 
         asylumCase.write(AsylumCaseFieldDefinition.LISTING_LOCATION,
-                         new DynamicList(
-                             new Value(getHearingVenueId(serviceData),
-                                       getHearingCourtName(serviceData, locationRefDataService.getCourtVenuesAsServiceUser())),
-                             locationRefDataService.getHearingLocationsDynamicList(true).getListItems()));
+            new DynamicList(
+                new Value(getHearingVenueId(serviceData),
+                    getHearingCourtName(serviceData, locationRefDataService.getCourtVenuesAsServiceUser())),
+                        locationRefDataService.getHearingLocationsDynamicList(true).getListItems()));
 
         log.info("tryUpdateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
                  asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
