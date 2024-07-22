@@ -18,18 +18,13 @@ import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.generateServiceHear
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.getDeleteHearingRequest;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
-import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
-import au.com.dius.pact.core.model.annotations.PactFolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.util.Map;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
@@ -40,10 +35,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHear
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 
 @Component
-@ExtendWith(SpringExtension.class)
-@ExtendWith(PactConsumerTestExt.class)
-@PactFolder("pacts")
-@ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
 public class HmcHearingApiConsumerTestBase {
 
     @Autowired
