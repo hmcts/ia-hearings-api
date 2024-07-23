@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SET_NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.values;
 
@@ -35,7 +36,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.NextHearingDateService;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
-class ListEditCaseHandlerTest {
+class NextHearingDateHandlerTest {
 
     @Mock
     private NextHearingDateService nextHearingDateService;
@@ -48,15 +49,15 @@ class ListEditCaseHandlerTest {
     @Captor
     private ArgumentCaptor<NextHearingDetails> captor;
 
-    private ListEditCaseHandler listEditCaseHandler;
+    private NextHearingDateHandler nextHearingDateHandler;
 
     @BeforeEach
     void setUp() {
-        listEditCaseHandler = new ListEditCaseHandler(nextHearingDateService);
+        nextHearingDateHandler = new NextHearingDateHandler(nextHearingDateService);
     }
 
     @ParameterizedTest
-    @EnumSource(value = Event.class, names = {"LIST_CASE", "EDIT_CASE_LISTING"})
+    @EnumSource(value = Event.class, names = {"LIST_CASE", "EDIT_CASE_LISTING", "SET_NEXT_HEARING_DATE"})
     void should_set_next_hearing_details(Event event) {
 
         final long caseId = 1234L;
@@ -74,7 +75,7 @@ class ListEditCaseHandlerTest {
         when(callback.getEvent()).thenReturn(event);
         when(caseDetails.getId()).thenReturn(caseId);
 
-        listEditCaseHandler.handle(ABOUT_TO_SUBMIT, callback);
+        nextHearingDateHandler.handle(ABOUT_TO_SUBMIT, callback);
 
         verify(asylumCase).write(eq(NEXT_HEARING_DETAILS), captor.capture());
 
@@ -85,19 +86,19 @@ class ListEditCaseHandlerTest {
     @Test
     void should_not_allow_null_arguments() {
 
-        assertThatThrownBy(() -> listEditCaseHandler.canHandle(null, callback))
+        assertThatThrownBy(() -> nextHearingDateHandler.canHandle(null, callback))
             .hasMessage("callbackStage must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
 
-        assertThatThrownBy(() -> listEditCaseHandler.canHandle(ABOUT_TO_SUBMIT, null))
+        assertThatThrownBy(() -> nextHearingDateHandler.canHandle(ABOUT_TO_SUBMIT, null))
             .hasMessage("callback must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
 
-        assertThatThrownBy(() -> listEditCaseHandler.handle(null, callback))
+        assertThatThrownBy(() -> nextHearingDateHandler.handle(null, callback))
             .hasMessage("callbackStage must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
 
-        assertThatThrownBy(() -> listEditCaseHandler.handle(ABOUT_TO_SUBMIT, null))
+        assertThatThrownBy(() -> nextHearingDateHandler.handle(ABOUT_TO_SUBMIT, null))
             .hasMessage("callback must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
 
@@ -112,9 +113,9 @@ class ListEditCaseHandlerTest {
 
             for (PreSubmitCallbackStage callbackStage : values()) {
 
-                boolean canHandle = listEditCaseHandler.canHandle(callbackStage, callback);
+                boolean canHandle = nextHearingDateHandler.canHandle(callbackStage, callback);
 
-                if (List.of(LIST_CASE, EDIT_CASE_LISTING).contains(event)
+                if (List.of(LIST_CASE, EDIT_CASE_LISTING, SET_NEXT_HEARING_DATE).contains(event)
                     && callbackStage == ABOUT_TO_SUBMIT) {
 
                     assertTrue(canHandle);

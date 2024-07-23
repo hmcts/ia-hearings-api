@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SET_NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 
 import java.util.List;
@@ -20,7 +21,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.NextHearingDateService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ListEditCaseHandler implements PreSubmitCallbackHandler<AsylumCase> {
+public class NextHearingDateHandler implements PreSubmitCallbackHandler<AsylumCase> {
 
     private final  NextHearingDateService nextHearingDateService;
 
@@ -31,7 +32,7 @@ public class ListEditCaseHandler implements PreSubmitCallbackHandler<AsylumCase>
         requireNonNull(callback, "callback must not be null");
 
         return callbackStage == ABOUT_TO_SUBMIT
-               && List.of(LIST_CASE, EDIT_CASE_LISTING).contains(callback.getEvent());
+               && List.of(LIST_CASE, EDIT_CASE_LISTING, SET_NEXT_HEARING_DATE).contains(callback.getEvent());
     }
 
     @Override
