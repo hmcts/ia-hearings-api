@@ -25,6 +25,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataServi
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -50,7 +52,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class ListCmrHandlerTest {
+class CmrHandlerTest {
 
     private static final String CASE_REF = "1234";
     public static final String HEARING_ID = "1";
@@ -70,7 +72,7 @@ class ListCmrHandlerTest {
     @Captor
     private ArgumentCaptor<NextHearingDetails> nextHearingDetailsArgumentCaptor;
 
-    private ListCmrHandler listCmrHandler;
+    private CmrHandler cmrHandler;
 
     private final NextHearingDetails nextHearingDetailsFromHearings = NextHearingDetails
         .builder()
@@ -87,8 +89,8 @@ class ListCmrHandlerTest {
     @BeforeEach
     public void setUp() {
 
-        listCmrHandler =
-            new ListCmrHandler(coreCaseDataService, hearingService, nextHearingDateService);
+        cmrHandler =
+            new CmrHandler(coreCaseDataService, hearingService, nextHearingDateService);
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -104,40 +106,44 @@ class ListCmrHandlerTest {
 
     @Test
     void should_have_early_dispatch_priority() {
-        assertEquals(DispatchPriority.EARLY, listCmrHandler.getDispatchPriority());
+        assertEquals(DispatchPriority.EARLY, cmrHandler.getDispatchPriority());
     }
 
-    @Test
-    void should_handle_only_if_service_data_qualifies() {
-        assertTrue(listCmrHandler.canHandle(serviceData));
+    @ParameterizedTest
+    @EnumSource(value = HmcStatus.class, names = { "LISTED", "CANCELLED" })
+    void should_handle_only_if_service_data_qualifies(HmcStatus hmcStatus) {
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
+            .thenReturn(Optional.of(hmcStatus));
+
+        assertTrue(cmrHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hearing_type_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
-        assertFalse(listCmrHandler.canHandle(serviceData));
+        assertFalse(cmrHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hmc_status_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.CLOSED));
-        assertFalse(listCmrHandler.canHandle(serviceData));
+        assertFalse(cmrHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hearing_channels_on_papers() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS, List.class))
             .thenReturn(Optional.of(List.of(HearingChannel.ONPPRS)));
-        assertFalse(listCmrHandler.canHandle(serviceData));
+        assertFalse(cmrHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_list_assist_case_status_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
             .thenReturn(Optional.of(ListAssistCaseStatus.CASE_CLOSED));
-        assertFalse(listCmrHandler.canHandle(serviceData));
+        assertFalse(cmrHandler.canHandle(serviceData));
     }
 
     @Test
@@ -158,14 +164,14 @@ class ListCmrHandlerTest {
                 .hearingID(HEARING_ID).build();
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
 
-        listCmrHandler.handle(serviceData);
+        cmrHandler.handle(serviceData);
 
         verify(coreCaseDataService).triggerSubmitEvent(
             TRIGGER_CMR_LISTED, CASE_REF, startEventResponse, asylumCase);
     }
 
     @Test
-    void should_trigger_cmr_updated_notification() {
+    void should_trigger_cmr_updated_notification_for_listed_cmr() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(coreCaseDataService.startCaseEvent(TRIGGER_CMR_UPDATED, CASE_REF, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
@@ -188,7 +194,27 @@ class ListCmrHandlerTest {
                 .hearingID(HEARING_ID).build();
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
 
-        listCmrHandler.handle(serviceData);
+        cmrHandler.handle(serviceData);
+
+        verify(coreCaseDataService).triggerSubmitEvent(
+            TRIGGER_CMR_UPDATED, CASE_REF, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_trigger_cmr_updated_notification_for_cancelled_cmr() {
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
+            .thenReturn(Optional.of(HmcStatus.CANCELLED));
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(coreCaseDataService.startCaseEvent(TRIGGER_CMR_UPDATED, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
+            .thenReturn(Optional.of(HEARING_ID));
+
+        cmrHandler.handle(serviceData);
 
         verify(coreCaseDataService).triggerSubmitEvent(
             TRIGGER_CMR_UPDATED, CASE_REF, startEventResponse, asylumCase);
@@ -222,7 +248,7 @@ class ListCmrHandlerTest {
                 .hearingID(HEARING_ID).build();
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
 
-        listCmrHandler.handle(serviceData);
+        cmrHandler.handle(serviceData);
 
         verify(coreCaseDataService, never()).triggerSubmitEvent(
             TRIGGER_CMR_UPDATED, CASE_REF, startEventResponse, asylumCase);
@@ -246,7 +272,7 @@ class ListCmrHandlerTest {
                 .hearingID(HEARING_ID).build();
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
 
-        listCmrHandler.handle(serviceData);
+        cmrHandler.handle(serviceData);
 
         verify(nextHearingDateService, never()).getNextHearingDetails(anyLong());
         verify(asylumCase, never()).write(eq(NEXT_HEARING_DETAILS), any());
@@ -273,7 +299,7 @@ class ListCmrHandlerTest {
         when(nextHearingDateService.getNextHearingDetails(Long.parseLong(CASE_REF)))
             .thenReturn(nextHearingDetailsFromHearings);
 
-        listCmrHandler.handle(serviceData);
+        cmrHandler.handle(serviceData);
 
         verify(nextHearingDateService, times(1)).getNextHearingDetails(anyLong());
         verify(asylumCase).write(eq(NEXT_HEARING_DETAILS), nextHearingDetailsArgumentCaptor.capture());
@@ -308,7 +334,30 @@ class ListCmrHandlerTest {
         when(nextHearingDateService.getNextHearingDetails(Long.parseLong(CASE_REF)))
             .thenReturn(nextHearingDetailsFromHearings);
 
-        listCmrHandler.handle(serviceData);
+        cmrHandler.handle(serviceData);
+
+        verify(nextHearingDateService, times(1)).getNextHearingDetails(anyLong());
+        verify(asylumCase).write(eq(NEXT_HEARING_DETAILS), nextHearingDetailsArgumentCaptor.capture());
+
+        assertEquals(nextHearingDetailsFromHearings, nextHearingDetailsArgumentCaptor.getValue());
+    }
+
+    @Test
+    public void should_set_next_hearing_date_from_hearings_on_cmr_cancelled() {
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
+            .thenReturn(Optional.of(HmcStatus.CANCELLED));
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(coreCaseDataService.startCaseEvent(TRIGGER_CMR_UPDATED, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
+            .thenReturn(Optional.of(HEARING_ID));
+
+        when(nextHearingDateService.enabled()).thenReturn(true);
+        when(nextHearingDateService.getNextHearingDetails(Long.parseLong(CASE_REF)))
+            .thenReturn(nextHearingDetailsFromHearings);
+
+        cmrHandler.handle(serviceData);
 
         verify(nextHearingDateService, times(1)).getNextHearingDetails(anyLong());
         verify(asylumCase).write(eq(NEXT_HEARING_DETAILS), nextHearingDetailsArgumentCaptor.capture());
@@ -344,7 +393,7 @@ class ListCmrHandlerTest {
         when(nextHearingDateService.getNextHearingDetails(Long.parseLong(CASE_REF)))
             .thenThrow(new HmcException(new Throwable("Error")));
 
-        listCmrHandler.handle(serviceData);
+        cmrHandler.handle(serviceData);
 
         verify(nextHearingDateService, times(1)).getNextHearingDetails(anyLong());
         verify(asylumCase).write(eq(NEXT_HEARING_DETAILS), nextHearingDetailsArgumentCaptor.capture());
