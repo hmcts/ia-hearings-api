@@ -35,6 +35,8 @@ import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.GetLinkedCasesResponse;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.LinkedCasesApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,6 +58,8 @@ public class CoreCaseDataServiceTest {
     @Mock
     private CoreCaseDataApi coreCaseDataApi;
     @Mock
+    private LinkedCasesApi linkedCasesApi;
+    @Mock
     private IaCcdConvertService iaCcdConvertService;
     @Mock
     private AuthTokenGenerator authTokenGenerator;
@@ -75,6 +79,8 @@ public class CoreCaseDataServiceTest {
     private StartEventResponse intermediateStartEventResponse;
     @Mock
     private UserInfo userInfo;
+    @Mock
+    private GetLinkedCasesResponse getLinkedCasesResponse;
 
     private final LocalDateTime now = LocalDateTime.now();
 
@@ -265,6 +271,14 @@ public class CoreCaseDataServiceTest {
         verify(coreCaseDataService).triggerSubmitEvent(
             TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, startEventResponse, asylumCase);
 
+    }
+
+    @Test
+    void should_get_linked_cases() {
+        when(linkedCasesApi.getLinkedCases(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID, "1", "100"))
+            .thenReturn(getLinkedCasesResponse);
+
+        assertEquals(getLinkedCasesResponse, coreCaseDataService.getLinkedCases(CASE_ID));
     }
 
 }

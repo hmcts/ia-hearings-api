@@ -1,4 +1,8 @@
-package uk.gov.hmcts.reform.iahearingsapi.consumer;
+package uk.gov.hmcts.reform.iahearingsapi.consumer.hmc;
+
+import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.CONSUMER;
+import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.HMC_PROVIDER;
+import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.PORT;
 
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
@@ -7,48 +11,48 @@ import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.ImmutableMap;
 import java.time.LocalDateTime;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+@PactTestFor(providerName = HMC_PROVIDER, port = PORT)
 @ExtendWith(SpringExtension.class)
 @ExtendWith(PactConsumerTestExt.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @PactFolder("pacts")
-@TestPropertySource(properties = {"hmc.baseUrl=localhost:4561"})
 @ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
-@PactTestFor(providerName = "hmc_cftHearingService", port = "4561")
-public class HmcHearingApiAmendConsumerTest extends HmcHearingApiConsumerTestBase {
+public class HmcPartiesNotifiedApiUpdateConsumerTest extends HmcHearingApiConsumerTestBase {
 
-    @Pact(provider = "hmc_cftHearingService", consumer = "ia_hearingsApi")
-    public RequestResponsePact generatePactFragmentForUpdatePartiesNotified(
+    @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
+    public RequestResponsePact updatePartiesNotified(
         PactDslWithProvider builder) throws JsonProcessingException {
-        return builder.given("Hearings exist")
-            .uponReceiving("A Request to update parties notified")
+        Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
+            .put("Connection", "close")
+            .build();
+
+        return builder
+            .given(HMC_PROVIDER + " successfully updates parties notified")
+            .uponReceiving("A request to update parties notified")
             .method("PUT")
-            .headers(
-                SERVICE_AUTHORIZATION_HEADER,
-                SERVICE_AUTH_TOKEN,
-                AUTHORIZATION_HEADER,
-                AUTHORIZATION_TOKEN)
+            .headers(authorisedHeaders)
             .path("/partiesNotified/2000000057")
             .body(objectMapper.writeValueAsString(partiesNotified))
             .query("version=1&received=2024-09-20T10:09:19")
             .willRespondWith()
+            .headers(responseHeaders)
             .status(HttpStatus.OK.value())
             .toPact();
     }
 
     @Test
-    @PactTestFor(pactMethod = "generatePactFragmentForUpdatePartiesNotified")
-    public void verifyUpdatePartiesNotified() {
-        hmcHearingApi.updatePartiesNotifiedRequest(AUTHORIZATION_TOKEN,
-                                                   SERVICE_AUTH_TOKEN,
+    @PactTestFor(pactMethod = "updatePartiesNotified")
+    public void shouldUpdatePartiesNotified() {
+        hmcHearingApi.updatePartiesNotifiedRequest(authToken,
+                                                   serviceAuthToken,
                                                    partiesNotified,
                                                    "2000000057",
                                                    1,

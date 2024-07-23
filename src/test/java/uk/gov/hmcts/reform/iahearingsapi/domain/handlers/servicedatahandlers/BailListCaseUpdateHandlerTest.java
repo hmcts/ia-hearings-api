@@ -21,6 +21,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChann
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.BAILS_LOCATION_REF_DATA_FEATURE;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -40,9 +41,11 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
@@ -51,7 +54,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -84,14 +90,22 @@ class BailListCaseUpdateHandlerTest {
     static LocalDateTime timeOne;
     @Mock
     static LocalDateTime timeTwo;
+    @Mock
+    FeatureToggler featureToggler;
+    @Mock
+    LocationRefDataService locationRefDataService;
 
     private BailListCaseUpdateHandler bailListCaseUpdateHandler;
+
+    private DynamicList hearingLocationList = new DynamicList(
+        new Value("745389", "Hendon Magistrates Court"),
+        List.of(new Value("745389", "Hendon Magistrates Court")));
 
     @BeforeEach
     public void setUp() {
 
         bailListCaseUpdateHandler =
-            new BailListCaseUpdateHandler(coreCaseDataService, hearingService);
+            new BailListCaseUpdateHandler(coreCaseDataService, hearingService, featureToggler, locationRefDataService);
 
         when(serviceData.read(HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -101,6 +115,17 @@ class BailListCaseUpdateHandlerTest {
             .thenReturn(Optional.of(BAIL.getKey()));
         when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.BAIL_SUMMARY_UPLOADED);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(false);
+
+        List<CourtVenue> courtVenueList = List.of(
+            new CourtVenue("Glasgow Tribunals Centre",
+                "Glasgow Tribunals Centre",
+                "231596",
+                "Y",
+                "Open"));
+        when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(courtVenueList);
+        when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(hearingLocationList);
+
     }
 
     @Test
@@ -239,6 +264,8 @@ class BailListCaseUpdateHandlerTest {
         when(previousServiceData.read(HEARING_VENUE_ID)).thenReturn(Optional.of(VENUE_TWO));
 
         when(timeOne.format(any())).thenReturn("formattedDate");
+        when(serviceData.read(HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of("231596"));
 
         bailListCaseUpdateHandler.handle(serviceData);
 
@@ -276,6 +303,8 @@ class BailListCaseUpdateHandlerTest {
         when(serviceData.read(DURATION, Integer.class)).thenReturn(Optional.of(60));
 
         when(serviceData.read(HEARING_VENUE_ID)).thenReturn(Optional.of(VENUE_ONE));
+        when(serviceData.read(HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of("231596"));
 
         when(timeOne.format(any())).thenReturn("formattedDate");
 

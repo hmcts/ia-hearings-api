@@ -2,10 +2,12 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ContactPreference;
 
 public enum AsylumCaseFieldDefinition {
 
@@ -23,6 +25,8 @@ public enum AsylumCaseFieldDefinition {
         "hmctsCaseNameInternal", new TypeReference<String>() {}),
     LIST_CASE_HEARING_LENGTH(
         "listCaseHearingLength", new TypeReference<String>() {}),
+    LISTING_LENGTH(
+        "listingLength", new TypeReference<HoursMinutes>() {}),
     LIST_CASE_HEARING_CENTRE(
         "listCaseHearingCentre", new TypeReference<HearingCentre>(){}),
     APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {
@@ -297,7 +301,25 @@ public enum AsylumCaseFieldDefinition {
     REQUEST_HEARING_DATE_1(
         "requestHearingDate1", new TypeReference<String>(){}),
 
-    ADDITIONAL_INSTRUCTIONS_DESCRIPTION("additionalInstructionsDescription", new TypeReference<String>(){});
+    ADDITIONAL_INSTRUCTIONS_DESCRIPTION("additionalInstructionsDescription", new TypeReference<String>(){}),
+
+    LISTING_LOCATION(
+        "listingLocation", new TypeReference<DynamicList>(){}),
+
+    IS_REMOTE_HEARING(
+        "isRemoteHearing", new TypeReference<YesOrNo>(){}),
+
+    IS_CASE_USING_LOCATION_REF_DATA(
+        "isCaseUsingLocationRefData", new TypeReference<YesOrNo>(){}),
+
+    IS_DECISION_WITHOUT_HEARING("isDecisionWithoutHearing", new TypeReference<YesOrNo>(){}),
+
+    CONTACT_PREFERENCE("contactPreference", new TypeReference<ContactPreference>(){}),
+
+    NEXT_HEARING_DETAILS("nextHearingDetails", new TypeReference<NextHearingDetails>(){}),
+
+    CASE_MANAGEMENT_LOCATION_REF_DATA(
+        "caseManagementLocationRefData", new TypeReference<CaseManagementLocationRefData>(){});
 
 
     private final String value;

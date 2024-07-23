@@ -62,6 +62,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
     public static final String HEARING_ID = "123";
     public static final String DATE1 = "2023-11-28";
     public static final String DATE2 = "2023-11-29";
+    private static final Long caseReference = Long.parseLong("1717667659221764");
 
     @Mock
     private Callback<AsylumCase> callback;
@@ -93,6 +94,7 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
 
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(callback.getCaseDetails().getCaseData()).thenReturn(asylumCase);
+        when(callback.getCaseDetails().getId()).thenReturn(caseReference);
         when(callback.getEvent()).thenReturn(RECORD_ADJOURNMENT_DETAILS);
         when(hearingService.getHearing(updateHearingsCode)).thenReturn(hearingGetResponse);
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
@@ -136,7 +138,8 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
             false,
             HearingWindowModel.builder().firstDateTimeMustBe(
                 HearingsUtils.convertToLocalDateFormat(DATE1).toString()).build(),
-            Event.RECORD_ADJOURNMENT_DETAILS
+            Event.RECORD_ADJOURNMENT_DETAILS,
+            caseReference
         ))
             .thenReturn(updateHearingRequest);
 
@@ -165,7 +168,8 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
             CANCELLATION_REASON.getValue().getCode(),
             true,
             null,
-            Event.RECORD_ADJOURNMENT_DETAILS
+            Event.RECORD_ADJOURNMENT_DETAILS,
+            caseReference
         )).thenReturn(updateHearingRequest);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(
@@ -195,7 +199,8 @@ public class RecordAdjournmentUpdateRequestHandlerTest {
                 .dateRangeStart(HearingsUtils.convertToLocalDateFormat(DATE1).toString())
                 .dateRangeEnd(HearingsUtils.convertToLocalDateFormat(DATE2).toString())
                 .build(),
-            Event.RECORD_ADJOURNMENT_DETAILS
+            Event.RECORD_ADJOURNMENT_DETAILS,
+            caseReference
         )).thenReturn(updateHearingRequest);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(
