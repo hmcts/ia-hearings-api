@@ -1,16 +1,15 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SET_NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
+
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Map;
-
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
@@ -254,7 +253,18 @@ public class CoreCaseDataService {
             "100");
     }
 
-    public void hearingCancelledTask(String caseId) {
+     public void setNextHearingDate(String caseId) {
+        StartEventResponse startEventResponse = startCaseEvent(
+            SET_NEXT_HEARING_DATE, caseId, CASE_TYPE_ASYLUM);
+
+        AsylumCase asylumCase = getCaseFromStartedEvent(startEventResponse);
+
+        log.info("Sending `{}` event for  Case ID `{}`", SET_NEXT_HEARING_DATE, caseId);
+        triggerSubmitEvent(
+            SET_NEXT_HEARING_DATE, caseId, startEventResponse, asylumCase);
+    }
+  
+     public void hearingCancelledTask(String caseId) {
         StartEventResponse startEventResponse = startCaseEvent(
             HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
 
@@ -264,5 +274,4 @@ public class CoreCaseDataService {
         triggerSubmitEvent(
             HEARING_CANCELLED, caseId, startEventResponse, asylumCase);
     }
-
 }

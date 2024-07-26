@@ -15,7 +15,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.RE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
@@ -72,6 +71,12 @@ public class ListedHearingService {
         return isHmcStatus(serviceData, HmcStatus.CANCELLED)
             && !isHearingChannel(serviceData, ONPPRS)
             && isHearingType(serviceData, SUBSTANTIVE);
+    }
+
+    public boolean isCmrCancelledHearing(ServiceData serviceData) {
+        return isHmcStatus(serviceData, HmcStatus.CANCELLED)
+               && !isHearingChannel(serviceData, ONPPRS)
+               && isHearingType(serviceData, CASE_MANAGEMENT_REVIEW);
     }
 
     public boolean isBailListedHearing(ServiceData serviceData) {
@@ -174,9 +179,7 @@ public class ListedHearingService {
     public boolean isCaseManagementReview(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)
             && !isHearingChannel(serviceData, ONPPRS)
-            && serviceData.read(HEARING_TYPE, String.class)
-            .map(hearingType -> Objects.equals(hearingType, CASE_MANAGEMENT_REVIEW.getKey()))
-            .orElse(false);
+            && isHearingType(serviceData, CASE_MANAGEMENT_REVIEW);
     }
 
     public void updateInitialBailCaseListing(ServiceData serviceData, BailCase bailCase,

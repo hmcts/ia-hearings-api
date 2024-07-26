@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPr
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.NextHearingDateService;
 
 import java.util.Objects;
 
@@ -24,6 +25,7 @@ public class CancelledHearingHandler extends ListedHearingService
     implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
+    private final NextHearingDateService nextHearingDateService;
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -43,9 +45,15 @@ public class CancelledHearingHandler extends ListedHearingService
         }
 
         String caseId = getCaseReference(serviceData);
+
         log.info("CancelledHearingHandler triggered for case " + caseId);
         coreCaseDataService.triggerReviewInterpreterBookingTask(caseId);
         handleCancelledHearing(serviceData, caseId);
+
+        if (nextHearingDateService.enabled()) {
+            log.info("Trigger set next hearing date event for case " + caseId);
+            coreCaseDataService.setNextHearingDate(caseId);
+        }
 
         return new ServiceDataResponse<>(serviceData);
     }
