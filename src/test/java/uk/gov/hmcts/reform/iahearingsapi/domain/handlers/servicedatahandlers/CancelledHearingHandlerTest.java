@@ -105,6 +105,8 @@ class CancelledHearingHandlerTest {
     void should_trigger_set_next_hearing_date_event() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(nextHearingDateService.enabled()).thenReturn(true);
+        AsylumCase asylumCase = new AsylumCase();
+        when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
 
         cancelledHearingHandler.handle(serviceData);
 
