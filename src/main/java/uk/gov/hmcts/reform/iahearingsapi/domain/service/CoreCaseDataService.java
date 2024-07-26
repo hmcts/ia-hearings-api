@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SET_NEXT_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -24,6 +21,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.GetLinkedCasesResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.LinkedCasesApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SET_NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
+
 
 @Slf4j
 @Service
@@ -263,7 +264,7 @@ public class CoreCaseDataService {
         triggerSubmitEvent(
             SET_NEXT_HEARING_DATE, caseId, startEventResponse, asylumCase);
     }
-  
+
      public void hearingCancelledTask(String caseId) {
         StartEventResponse startEventResponse = startCaseEvent(
             HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
