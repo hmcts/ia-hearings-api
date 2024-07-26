@@ -35,7 +35,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ListCmrHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
+public class CmrHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
@@ -49,8 +49,8 @@ public class ListCmrHandler extends ListedHearingService implements ServiceDataH
     public boolean canHandle(ServiceData serviceData) {
         requireNonNull(serviceData, "serviceData must not be null");
 
-        return isCaseManagementReview(serviceData)
-            && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED);
+        return isCmrListedHearing(serviceData)
+               || isCmrCancelledHearing(serviceData);
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {
@@ -61,30 +61,11 @@ public class ListCmrHandler extends ListedHearingService implements ServiceDataH
         String hearingId = serviceData.read(HEARING_ID, String.class)
             .orElseThrow(() -> new IllegalStateException("HearingID can not be missing"));
         String caseId = getCaseReference(serviceData);
-        PartiesNotifiedResponses partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId);
 
-        log.info("partiesNotifiedResponses for hearing " + hearingId + " : "
-            + partiesNotifiedResponses.getResponses().toString());
-
-        if (partiesNotifiedResponses.getResponses().isEmpty()) {
-            triggerCmrListedNotification(caseId);
-            log.info("ListCmrHandler triggered for hearing " + hearingId);
+        if (isCmrListedHearing(serviceData)) {
+            handleCmrListedHearing(serviceData, hearingId, caseId);
         } else {
-            Set<ServiceDataFieldDefinition> updatedTargetFields = findUpdatedServiceDataFields(
-                serviceData, partiesNotifiedResponses.getResponses(), Set.of(
-                    NEXT_HEARING_DATE,
-                    HEARING_CHANNELS,
-                    DURATION,
-                    HEARING_VENUE_ID
-                ));
-
-            if (updatedTargetFields.isEmpty()) {
-                log.info("Hearing date, channel, duration and location not updated");
-                log.info("CmrHandler not triggered for hearing " + hearingId);
-            } else {
-                triggerCmrUpdatedNotification(caseId);
-                log.info("updateCmrHandler triggered for hearing " + hearingId);
-            }
+            handleCmrCancelledHearing(hearingId, caseId);
         }
 
         return new ServiceDataResponse<>(serviceData);
@@ -139,5 +120,43 @@ public class ListCmrHandler extends ListedHearingService implements ServiceDataH
             .hearingId("999")
             .hearingDateTime(listCaseHearingDate)
             .build();
+    }
+
+    private boolean isCmrListedHearing(ServiceData serviceData) {
+        return isCaseManagementReview(serviceData)
+               && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED);
+    }
+
+    private void handleCmrListedHearing(ServiceData serviceData, String hearingId, String caseId) {
+        PartiesNotifiedResponses partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId);
+
+        log.info("partiesNotifiedResponses for hearing " + hearingId + " : "
+                 + partiesNotifiedResponses.getResponses().toString());
+
+        if (partiesNotifiedResponses.getResponses().isEmpty()) {
+            triggerCmrListedNotification(caseId);
+            log.info("ListCmrHandler triggered for hearing " + hearingId);
+        } else {
+            Set<ServiceDataFieldDefinition> updatedTargetFields = findUpdatedServiceDataFields(
+                serviceData, partiesNotifiedResponses.getResponses(), Set.of(
+                    NEXT_HEARING_DATE,
+                    HEARING_CHANNELS,
+                    DURATION,
+                    HEARING_VENUE_ID
+                ));
+
+            if (updatedTargetFields.isEmpty()) {
+                log.info("Hearing date, channel, duration and location not updated");
+                log.info("CmrHandler not triggered for hearing " + hearingId);
+            } else {
+                triggerCmrUpdatedNotification(caseId);
+                log.info("updateCmrHandler triggered for hearing " + hearingId);
+            }
+        }
+    }
+
+    private void handleCmrCancelledHearing(String hearingId, String caseId) {
+        triggerCmrUpdatedNotification(caseId);
+        log.info("updateCmrHandler triggered for hearing " + hearingId);
     }
 }
