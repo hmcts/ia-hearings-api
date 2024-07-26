@@ -44,8 +44,6 @@ class CancelledHearingHandlerTest {
     AsylumCase asylumCase;
     @Mock
     NextHearingDateService nextHearingDateService;
-    @Mock
-    ServiceData serviceData;
 
     private CancelledHearingHandler cancelledHearingHandler;
 
@@ -102,7 +100,7 @@ class CancelledHearingHandlerTest {
 
         verify(coreCaseDataService).triggerReviewInterpreterBookingTask(CASE_REF);
     }
-  
+
     @Test
     void should_trigger_set_next_hearing_date_event() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
@@ -112,21 +110,21 @@ class CancelledHearingHandlerTest {
 
         verify(coreCaseDataService).setNextHearingDate(CASE_REF);
     }
-  
-     @Test
-    void test_Handle_CancelledHearing() {
-        CancelledHearingHandler cancelledHearingHandler = new CancelledHearingHandler(coreCaseDataService);
-        cancelledHearingHandler.handleCancelledHearing(serviceData, CASE_ID);
-        AsylumCase asylumCase = new AsylumCase();
 
+    @Test
+    void test_Handle_CancelledHearing() {
+        CancelledHearingHandler cancelledHearingHandler = new CancelledHearingHandler(coreCaseDataService, nextHearingDateService);
+        AsylumCase asylumCase = new AsylumCase();
         when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
+
+        cancelledHearingHandler.handleCancelledHearing(serviceData, CASE_ID);
 
         verify(coreCaseDataService).hearingCancelledTask(CASE_ID);
     }
 
     @Test
     void test_Handle_Cancelled_Hearing_NoMatch() {
-        CancelledHearingHandler cancelledHearingHandler = new CancelledHearingHandler(coreCaseDataService);
+        CancelledHearingHandler cancelledHearingHandler = new CancelledHearingHandler(coreCaseDataService, nextHearingDateService);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of("123"));
         when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
         cancelledHearingHandler.handleCancelledHearing(serviceData, CASE_ID);

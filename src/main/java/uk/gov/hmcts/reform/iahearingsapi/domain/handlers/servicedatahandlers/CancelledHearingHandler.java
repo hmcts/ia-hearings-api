@@ -71,5 +71,4 @@ public class CancelledHearingHandler extends ListedHearingService
             coreCaseDataService.hearingCancelledTask(caseId);
         }
     }
-
 }

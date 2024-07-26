@@ -254,7 +254,7 @@ public class CoreCaseDataService {
             "100");
     }
 
-     public void setNextHearingDate(String caseId) {
+    public void setNextHearingDate(String caseId) {
         StartEventResponse startEventResponse = startCaseEvent(
             SET_NEXT_HEARING_DATE, caseId, CASE_TYPE_ASYLUM);
 
@@ -265,7 +265,7 @@ public class CoreCaseDataService {
             SET_NEXT_HEARING_DATE, caseId, startEventResponse, asylumCase);
     }
 
-     public void hearingCancelledTask(String caseId) {
+    public void hearingCancelledTask(String caseId) {
         StartEventResponse startEventResponse = startCaseEvent(
             HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
 
