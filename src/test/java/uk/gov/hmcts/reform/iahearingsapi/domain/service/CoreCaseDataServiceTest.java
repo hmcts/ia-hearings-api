@@ -9,6 +9,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
@@ -279,6 +281,20 @@ public class CoreCaseDataServiceTest {
             .thenReturn(getLinkedCasesResponse);
 
         assertEquals(getLinkedCasesResponse, coreCaseDataService.getLinkedCases(CASE_ID));
+    }
+
+    @Test
+    public void hearing_cancelled_task() {
+        when(coreCaseDataService.startCaseEvent(HEARING_CANCELLED, CASE_ID, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+
+        coreCaseDataService.hearingCancelledTask(CASE_ID);
+
+        verify(coreCaseDataService, times(3))
+            .startCaseEvent(eq(HEARING_CANCELLED), eq(CASE_ID), eq(CASE_TYPE_ASYLUM));
+        verify(coreCaseDataService).triggerSubmitEvent(
+            HEARING_CANCELLED, CASE_ID, startEventResponse, asylumCase);
     }
 
 }
