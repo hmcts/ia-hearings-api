@@ -113,7 +113,8 @@ class CancelledHearingHandlerTest {
 
     @Test
     void test_Handle_CancelledHearing() {
-        CancelledHearingHandler cancelledHearingHandler = new CancelledHearingHandler(coreCaseDataService, nextHearingDateService);
+        CancelledHearingHandler cancelledHearingHandler = new CancelledHearingHandler
+            (coreCaseDataService, nextHearingDateService);
         AsylumCase asylumCase = new AsylumCase();
         when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
 
@@ -124,7 +125,8 @@ class CancelledHearingHandlerTest {
 
     @Test
     void test_Handle_Cancelled_Hearing_NoMatch() {
-        CancelledHearingHandler cancelledHearingHandler = new CancelledHearingHandler(coreCaseDataService, nextHearingDateService);
+        CancelledHearingHandler cancelledHearingHandler = new CancelledHearingHandler
+            (coreCaseDataService, nextHearingDateService);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of("123"));
         when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
         cancelledHearingHandler.handleCancelledHearing(serviceData, CASE_ID);
