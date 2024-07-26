@@ -36,7 +36,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.NextHearingDateService;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
-class NextHearingDateHandlerTest {
+class NextHearingInfoHandlerTest {
 
     @Mock
     private NextHearingDateService nextHearingDateService;
@@ -49,11 +49,11 @@ class NextHearingDateHandlerTest {
     @Captor
     private ArgumentCaptor<NextHearingDetails> captor;
 
-    private NextHearingDateHandler nextHearingDateHandler;
+    private NextHearingInfoHandler nextHearingDateHandler;
 
     @BeforeEach
     void setUp() {
-        nextHearingDateHandler = new NextHearingDateHandler(nextHearingDateService);
+        nextHearingDateHandler = new NextHearingInfoHandler(nextHearingDateService);
     }
 
     @ParameterizedTest

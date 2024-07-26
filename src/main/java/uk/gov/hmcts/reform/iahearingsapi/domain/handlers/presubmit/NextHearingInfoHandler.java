@@ -21,7 +21,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.NextHearingDateService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class NextHearingDateHandler implements PreSubmitCallbackHandler<AsylumCase> {
+public class NextHearingInfoHandler implements PreSubmitCallbackHandler<AsylumCase> {
 
     private final  NextHearingDateService nextHearingDateService;
 
