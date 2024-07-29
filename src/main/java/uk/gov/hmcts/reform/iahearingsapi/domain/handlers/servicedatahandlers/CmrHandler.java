@@ -77,7 +77,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
-        setNextHearingDate(asylumCase, caseId);
+        updateNextHearingInfo(asylumCase, caseId);
 
         log.info("Sending `{}` event for  Case ID `{}`", TRIGGER_CMR_LISTED, caseId);
         coreCaseDataService.triggerSubmitEvent(TRIGGER_CMR_LISTED, caseId, startEventResponse, asylumCase);
@@ -89,13 +89,13 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
-        setNextHearingDate(asylumCase, caseId);
+        updateNextHearingInfo(asylumCase, caseId);
 
         log.info("Sending `{}` event for case ID `{}`", TRIGGER_CMR_UPDATED, caseId);
         coreCaseDataService.triggerSubmitEvent(TRIGGER_CMR_UPDATED, caseId, startEventResponse, asylumCase);
     }
 
-    private void setNextHearingDate(AsylumCase asylumCase, String caseId) {
+    private void updateNextHearingInfo(AsylumCase asylumCase, String caseId) {
         if (nextHearingDateService.enabled()) {
             try {
                 asylumCase.write(

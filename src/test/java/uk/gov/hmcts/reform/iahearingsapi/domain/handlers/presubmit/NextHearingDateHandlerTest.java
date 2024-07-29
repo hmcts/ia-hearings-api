@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SET_NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_NEXT_HEARING_INFO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.values;
 
@@ -57,7 +57,7 @@ class NextHearingDateHandlerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = Event.class, names = {"LIST_CASE", "EDIT_CASE_LISTING", "SET_NEXT_HEARING_DATE"})
+    @EnumSource(value = Event.class, names = {"LIST_CASE", "EDIT_CASE_LISTING", "UPDATE_NEXT_HEARING_INFO"})
     void should_set_next_hearing_details(Event event) {
 
         final long caseId = 1234L;
@@ -115,7 +115,7 @@ class NextHearingDateHandlerTest {
 
                 boolean canHandle = nextHearingDateHandler.canHandle(callbackStage, callback);
 
-                if (List.of(LIST_CASE, EDIT_CASE_LISTING, SET_NEXT_HEARING_DATE).contains(event)
+                if (List.of(LIST_CASE, EDIT_CASE_LISTING, UPDATE_NEXT_HEARING_INFO).contains(event)
                     && callbackStage == ABOUT_TO_SUBMIT) {
 
                     assertTrue(canHandle);
