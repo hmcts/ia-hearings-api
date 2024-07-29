@@ -6,8 +6,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +19,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.NextHearingDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
@@ -29,13 +34,17 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.NextHearingDateService;
 @ExtendWith(MockitoExtension.class)
 class CancelledHearingHandlerTest {
     private static final String CASE_REF = "1234";
+    private static final String CASE_ID = "1234";
 
     @Mock
     CoreCaseDataService coreCaseDataService;
     @Mock
-    NextHearingDateService nextHearingDateService;
-    @Mock
     ServiceData serviceData;
+    @Mock
+    AsylumCase asylumCase;
+    @Mock
+    NextHearingDateService nextHearingDateService;
+
     private CancelledHearingHandler cancelledHearingHandler;
 
     @BeforeEach
@@ -50,6 +59,8 @@ class CancelledHearingHandlerTest {
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
+        when(asylumCase.read(AsylumCaseFieldDefinition.NEXT_HEARING_DATE)).thenReturn(Optional.empty());
+        when(asylumCase.read(NEXT_HEARING_DETAILS, NextHearingDetails.class)).thenReturn(Optional.empty());
     }
 
     @Test
@@ -82,6 +93,8 @@ class CancelledHearingHandlerTest {
     @Test
     void should_trigger_review_interpreter_booking_task() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        AsylumCase asylumCase = new AsylumCase();
+        when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
 
         cancelledHearingHandler.handle(serviceData);
 
@@ -92,10 +105,36 @@ class CancelledHearingHandlerTest {
     void should_trigger_set_next_hearing_date_event() {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(nextHearingDateService.enabled()).thenReturn(true);
+        AsylumCase asylumCase = new AsylumCase();
+        when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
 
         cancelledHearingHandler.handle(serviceData);
 
         verify(coreCaseDataService).setNextHearingDate(CASE_REF);
     }
 
+    @Test
+    void test_Handle_CancelledHearing() {
+        CancelledHearingHandler cancelledHearingHandler =
+            new CancelledHearingHandler(coreCaseDataService, nextHearingDateService);
+        AsylumCase asylumCase = new AsylumCase();
+        when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
+
+        cancelledHearingHandler.handleCancelledHearing(serviceData, CASE_ID);
+
+        verify(coreCaseDataService).hearingCancelledTask(CASE_ID);
+    }
+
+    @Test
+    void test_Handle_Cancelled_Hearing_NoMatch() {
+        CancelledHearingHandler cancelledHearingHandler =
+            new CancelledHearingHandler(coreCaseDataService, nextHearingDateService);
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of("123"));
+        when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
+        cancelledHearingHandler.handleCancelledHearing(serviceData, CASE_ID);
+        when(asylumCase.read(NEXT_HEARING_DETAILS, NextHearingDetails.class))
+            .thenReturn(Optional.of(NextHearingDetails.builder().hearingId("456").build()));
+
+        verify(coreCaseDataService, never()).hearingCancelledTask(CASE_ID);
+    }
 }

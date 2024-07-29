@@ -28,6 +28,7 @@ public enum Event {
     DECISION_AND_REASONS_STARTED("decisionAndReasonsStarted"),
     RESTORE_STATE_FROM_ADJOURN("restoreStateFromAdjourn"),
     SET_NEXT_HEARING_DATE("setNextHearingDate"),
+    HEARING_CANCELLED("hearingCancelled"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");
