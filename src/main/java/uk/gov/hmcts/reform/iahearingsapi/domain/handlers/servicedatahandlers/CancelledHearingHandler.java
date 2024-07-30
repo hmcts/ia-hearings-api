@@ -52,7 +52,7 @@ public class CancelledHearingHandler extends ListedHearingService
 
         if (nextHearingDateService.enabled()) {
             log.info("Trigger set next hearing date event for case " + caseId);
-            coreCaseDataService.setNextHearingDate(caseId);
+            coreCaseDataService.updateNextHearingInfo(caseId);
         }
 
         return new ServiceDataResponse<>(serviceData);

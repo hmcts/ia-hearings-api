@@ -12,7 +12,7 @@ import static org.mockito.Mockito.when;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SET_NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_NEXT_HEARING_INFO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 
@@ -284,18 +284,18 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void setNextHearingDate() {
+    public void updateNextHearingInfo() {
 
-        when(coreCaseDataService.startCaseEvent(SET_NEXT_HEARING_DATE, CASE_ID, CASE_TYPE_ASYLUM))
+        when(coreCaseDataService.startCaseEvent(UPDATE_NEXT_HEARING_INFO, CASE_ID, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
 
-        coreCaseDataService.setNextHearingDate(CASE_ID);
+        coreCaseDataService.updateNextHearingInfo(CASE_ID);
 
         verify(coreCaseDataService, times(3))
-            .startCaseEvent(eq(SET_NEXT_HEARING_DATE), eq(CASE_ID), eq(CASE_TYPE_ASYLUM));
+            .startCaseEvent(eq(UPDATE_NEXT_HEARING_INFO), eq(CASE_ID), eq(CASE_TYPE_ASYLUM));
         verify(coreCaseDataService).triggerSubmitEvent(
-            SET_NEXT_HEARING_DATE, CASE_ID, startEventResponse, asylumCase);
+            UPDATE_NEXT_HEARING_INFO, CASE_ID, startEventResponse, asylumCase);
     }
   
     @Test

@@ -110,7 +110,7 @@ class CancelledHearingHandlerTest {
 
         cancelledHearingHandler.handle(serviceData);
 
-        verify(coreCaseDataService).setNextHearingDate(CASE_REF);
+        verify(coreCaseDataService).updateNextHearingInfo(CASE_REF);
     }
 
     @Test

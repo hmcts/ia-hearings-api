@@ -22,7 +22,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.GetLink
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.LinkedCasesApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.SET_NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_NEXT_HEARING_INFO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 
 
@@ -254,15 +254,15 @@ public class CoreCaseDataService {
             "100");
     }
 
-    public void setNextHearingDate(String caseId) {
+    public void updateNextHearingInfo(String caseId) {
         StartEventResponse startEventResponse = startCaseEvent(
-            SET_NEXT_HEARING_DATE, caseId, CASE_TYPE_ASYLUM);
+            UPDATE_NEXT_HEARING_INFO, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = getCaseFromStartedEvent(startEventResponse);
 
-        log.info("Sending `{}` event for  Case ID `{}`", SET_NEXT_HEARING_DATE, caseId);
+        log.info("Sending `{}` event for  Case ID `{}`", UPDATE_NEXT_HEARING_INFO, caseId);
         triggerSubmitEvent(
-            SET_NEXT_HEARING_DATE, caseId, startEventResponse, asylumCase);
+            UPDATE_NEXT_HEARING_INFO, caseId, startEventResponse, asylumCase);
     }
 
     public void hearingCancelledTask(String caseId) {
