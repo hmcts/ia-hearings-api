@@ -149,14 +149,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
     private boolean tryUpdateHearingChannel(AsylumCase asylumCase, ServiceData serviceData, String hearingId) {
         final List<HearingChannel> nextHearingChannelList = getHearingChannels(serviceData);
 
-        final String nextHearingChannel = nextHearingChannelList.get(0).name();
-
-        String currentHearingChannel = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
-            .map(dynamicList -> dynamicList.getValue().getCode()).orElse("");
-
-        boolean updated = !Objects.equals(currentHearingChannel, nextHearingChannel);
-
-        if (updated) {
+        if (hearingChannelUpdated(asylumCase, serviceData, nextHearingChannelList.get(0).name())) {
             asylumCase.write(
                 HEARING_CHANNEL,
                 buildHearingChannelDynmicList(nextHearingChannelList));
@@ -171,26 +164,24 @@ public class EditListCaseHandler extends ListedHearingService implements Service
     private boolean tryUpdateHearingCentre(
         AsylumCase asylumCase, ServiceData serviceData, boolean hearingChannelUpdated, String hearingId) {
 
-        final List<HearingChannel> nextHearingChannelList = getHearingChannels(serviceData);
         final String currentVenueId = asylumCase.read(
             LIST_CASE_HEARING_CENTRE,
             HearingCentre.class
         ).orElseThrow(() -> new IllegalStateException("listCaseHearingCentre can not be null")).getEpimsId();
-        final String nextHearingChannel = nextHearingChannelList.get(0).name();
-        final boolean isRemoteHearing = nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
-
-        // venue id shown on frontend and in notifications will show as Remote Hearing if it's remote
-        final String nextHearingVenueId = isRemoteHearing
-            ? REMOTE_HEARING.getEpimsId()
-            : getHearingVenueId(serviceData);
+        String nextHearingVenueId = getHearingVenueId(serviceData);
 
         final boolean hearingVenueUpdated = !currentVenueId.equals(nextHearingVenueId);
         final boolean hearingCentreUpdated = hearingChannelUpdated || hearingVenueUpdated;
 
+        // venue id shown on frontend and in notifications will show as Remote Hearing if it's remote
+        if (isRemoteHearing(serviceData)) {
+            nextHearingVenueId = REMOTE_HEARING.getEpimsId();
+        }
+
         if (hearingCentreUpdated) {
             asylumCase.write(
                 LIST_CASE_HEARING_CENTRE,
-                HandlerUtils.getLocation(nextHearingChannelList, nextHearingVenueId)
+                HandlerUtils.getLocation(getHearingChannels(serviceData), nextHearingVenueId)
             );
             log.info("Hearing centre updated for hearing " + hearingId);
             return true;
@@ -234,6 +225,19 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
         log.info("tryUpdateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
                  asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
+    }
+
+    private boolean hearingChannelUpdated(AsylumCase asylumCase, ServiceData serviceData, String nextHearingChannel) {
+        String currentHearingChannel = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
+            .map(dynamicList -> dynamicList.getValue().getCode()).orElse("");
+
+        boolean updated = !Objects.equals(currentHearingChannel, nextHearingChannel);
+
+        // Remote to remote hearing channel update (VID to TEL or TEL to VID) is not considered an update
+        boolean isCurrentHearingChannelRemote = List.of(VID.name(), TEL.name()).contains(currentHearingChannel);
+        boolean isNextHearingChannelRemote = isRemoteHearing(serviceData);
+
+        return updated & !(isCurrentHearingChannelRemote && isNextHearingChannelRemote);
     }
 }
 

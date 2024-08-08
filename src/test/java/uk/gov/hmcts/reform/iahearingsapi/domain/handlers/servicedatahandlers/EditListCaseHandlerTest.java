@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,6 +27,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPAR
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.INTER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
@@ -200,6 +204,9 @@ class EditListCaseHandlerTest {
         initializeAsylumCaseData();
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
             .thenReturn(Optional.of(HearingCentre.BRADFORD.getEpimsId()));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
 
         editListCaseHandler.handle(serviceData);
 
@@ -221,6 +228,9 @@ class EditListCaseHandlerTest {
         initializeAsylumCaseData();
         when(serviceData.read(ServiceDataFieldDefinition.DURATION, Integer.class))
             .thenReturn(Optional.of(100));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
 
         editListCaseHandler.handle(serviceData);
 
@@ -231,19 +241,19 @@ class EditListCaseHandlerTest {
 
     @ParameterizedTest
     @MethodSource("updateHearingCentreSource")
-    void should_update_hearing_centre_when_channel_or_venue_updated(List<HearingChannel> hearingChannel,
-                                                                    String hearingLocation,
-                                                                    boolean hasUpdated) {
+    void should_update_hearing_centre_when_channel_or_venue_updated(
+        String currentChannel,
+        List<HearingChannel> hearingChannel,
+        String hearingLocation) {
+
         initializeServiceData();
         initializeAsylumCaseData();
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(hearingChannel));
-        when(serviceData.read(ServiceDataFieldDefinition.DURATION, Integer.class))
-            .thenReturn(Optional.of(100));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
             .thenReturn(Optional.of(hearingLocation));
-        when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class))
-            .thenReturn(Optional.of(HearingCentre.NEWPORT));
+        when(asylumCase.read(HEARING_CHANNEL, DynamicList.class))
+            .thenReturn(Optional.of(new DynamicList(currentChannel)));
 
         editListCaseHandler.handle(serviceData);
 
@@ -252,77 +262,184 @@ class EditListCaseHandlerTest {
         String dateTimeAtNineFortyFive = LocalDateTime.of(2023, 9, 29, 9, 45)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
 
-        if (hasUpdated) {
-            if (hearingChannel.equals(List.of(INTER))
-                && hearingLocation.equals(HearingCentre.BIRMINGHAM.getEpimsId())) {
+        if (hearingChannel.equals(List.of(INTER))
+            && hearingLocation.equals(HearingCentre.BIRMINGHAM.getEpimsId())) {
 
-                verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
-                verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtTen);
-                verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+            verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
+            verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtTen);
+            verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
-            } else if (hearingChannel.equals(List.of(INTER))
-                       && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
+        } else if (hearingChannel.equals(List.of(INTER))
+                   && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
 
-                verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
-                verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtNineFortyFive);
-                verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+            verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
+            verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtNineFortyFive);
+            verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
-            } else if (hearingChannel.equals(List.of(TEL))
-                       && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
+        } else if (hearingChannel.equals(List.of(TEL))
+                   && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
 
-                verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
-                verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtNineFortyFive);
-                verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+            verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
+            verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtNineFortyFive);
+            verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
-            } else if (hearingChannel.equals(List.of(TEL))
-                       && hearingLocation.equals(HearingCentre.BIRMINGHAM.getEpimsId())) {
+        } else if (hearingChannel.equals(List.of(TEL))
+                   && hearingLocation.equals(HearingCentre.BIRMINGHAM.getEpimsId())) {
 
-                verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
-                verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtTen);
-                verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
-            }
-        } else {
-            verify(asylumCase, never()).write(LIST_CASE_HEARING_CENTRE, HearingCentre.BIRMINGHAM);
-            verify(asylumCase, never()).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
-            verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+            verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
+            verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtTen);
+            verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        } else if (hearingLocation.equals(HearingCentre.GLASGOW_TRIBUNALS_CENTRE.getEpimsId())) {
+
+            verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
+            verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtNineFortyFive);
+            verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
         }
     }
 
     private static Stream<Arguments> updateHearingCentreSource() {
         return Stream.of(
-            Arguments.of(List.of(INTER), HearingCentre.BIRMINGHAM.getEpimsId(), true),
-            Arguments.of(List.of(INTER), HearingCentre.GLASGOW.getEpimsId(), true),
-            Arguments.of(List.of(TEL), HearingCentre.GLASGOW.getEpimsId(), true),
-            Arguments.of(List.of(TEL), HearingCentre.BIRMINGHAM.getEpimsId(), true)
+            Arguments.of(INTER.name(), List.of(INTER), HearingCentre.BIRMINGHAM.getEpimsId(), true),
+            Arguments.of(INTER.name(), List.of(ONPPRS), HearingCentre.GLASGOW.getEpimsId(), true),
+            Arguments.of(INTER.name(), List.of(TEL), HearingCentre.GLASGOW.getEpimsId(), true),
+            Arguments.of(INTER.name(), List.of(TEL), HearingCentre.BIRMINGHAM.getEpimsId(), true)
         );
     }
 
 
     @Test
-    void should_trigger_events_when_hearing_channel_updated() {
+    void should_trigger_events_when_hearing_channel_updated_from_inPerson_to_onThePapers() {
         initializeServiceData();
         initializeAsylumCaseData();
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
-            .thenReturn(Optional.of(List.of(HearingChannel.ONPPRS)));
-        when(serviceData.read(ServiceDataFieldDefinition.DURATION, Integer.class))
-            .thenReturn(Optional.of(100));
-        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
-            .thenReturn(Optional.of("231596"));
+            .thenReturn(Optional.of(List.of(ONPPRS)));
 
         editListCaseHandler.handle(serviceData);
 
         verify(asylumCase).write(
             HEARING_CHANNEL, new DynamicList(new Value(
-                HearingChannel.ONPPRS.name(),
-                HearingChannel.ONPPRS.getLabel()
+                ONPPRS.name(),
+                ONPPRS.getLabel()
             ), List.of(new Value(
-                HearingChannel.ONPPRS.name(),
-                HearingChannel.ONPPRS.getLabel()
+                ONPPRS.name(),
+                ONPPRS.getLabel()
             )))
         );
 
         verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
         verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+
+    }
+
+    @Test
+    void should_trigger_events_when_hearing_channel_updated_from_inPerson_to_vid() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(VID)));
+
+        editListCaseHandler.handle(serviceData);
+
+        verify(asylumCase).write(
+            HEARING_CHANNEL, new DynamicList(new Value(
+                VID.name(),
+                VID.getLabel()
+            ), List.of(new Value(
+                VID.name(),
+                VID.getLabel()
+            )))
+        );
+
+        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+
+    }
+
+    @Test
+    void should_trigger_events_when_hearing_channel_updated_from_inPerson_to_tel() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(TEL)));
+
+        editListCaseHandler.handle(serviceData);
+
+        verify(asylumCase).write(
+            HEARING_CHANNEL, new DynamicList(new Value(
+                TEL.name(),
+                TEL.getLabel()
+            ), List.of(new Value(
+                TEL.name(),
+                TEL.getLabel()
+            )))
+        );
+
+        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+
+    }
+
+    @Test
+    void should_not_trigger_events_when_nothing_is_updated() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(
+            new DynamicList(VID.name())));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(VID)));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
+
+        editListCaseHandler.handle(serviceData);
+
+        verify(asylumCase, never()).write(eq(LIST_CASE_HEARING_CENTRE), any());
+        verify(asylumCase, never()).write(eq(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK), anyBoolean());
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_not_trigger_events_when_hearing_channel_is_changed_from_video_to_tel() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(
+            new DynamicList(VID.name())));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(TEL)));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
+
+        editListCaseHandler.handle(serviceData);
+
+        verify(asylumCase, never()).write(eq(LIST_CASE_HEARING_CENTRE), any());
+        verify(asylumCase, never()).write(eq(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK), anyBoolean());
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+
+    }
+
+    @Test
+    void should_not_trigger_events_when_hearing_channel_is_changed_from_tel_video() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(
+            new DynamicList(TEL.name())));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(VID)));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
+
+        editListCaseHandler.handle(serviceData);
+
+        verify(asylumCase, never()).write(eq(LIST_CASE_HEARING_CENTRE), any());
+        verify(asylumCase, never()).write(eq(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK), anyBoolean());
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
 
     }
