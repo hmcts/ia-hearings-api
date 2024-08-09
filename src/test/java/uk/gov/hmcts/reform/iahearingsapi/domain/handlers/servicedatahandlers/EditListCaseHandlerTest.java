@@ -329,11 +329,10 @@ class EditListCaseHandlerTest {
         verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
-
     }
 
     @Test
-    void should_trigger_events_when_hearing_channel_updated_from_inPerson_to_vid() {
+    void should_trigger_events_when_hearing_channel_updated_from_inPerson_remote() {
         initializeServiceData();
         initializeAsylumCaseData();
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
@@ -350,7 +349,7 @@ class EditListCaseHandlerTest {
                 VID.getLabel()
             )))
         );
-
+        verify(asylumCase).write(eq(LIST_CASE_HEARING_CENTRE), any(HearingCentre.class));
         verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
@@ -358,28 +357,29 @@ class EditListCaseHandlerTest {
     }
 
     @Test
-    void should_trigger_events_when_hearing_channel_updated_from_inPerson_to_tel() {
+    void should_trigger_events_when_hearing_channel_updated_from_remote_to_inPerson() {
         initializeServiceData();
         initializeAsylumCaseData();
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
-            .thenReturn(Optional.of(List.of(TEL)));
+            .thenReturn(Optional.of(List.of(INTER)));
+        when(asylumCase.read(HEARING_CHANNEL, DynamicList.class))
+            .thenReturn(Optional.of(new DynamicList(VID.name())));
 
         editListCaseHandler.handle(serviceData);
 
         verify(asylumCase).write(
             HEARING_CHANNEL, new DynamicList(new Value(
-                TEL.name(),
-                TEL.getLabel()
+                INTER.name(),
+                INTER.getLabel()
             ), List.of(new Value(
-                TEL.name(),
-                TEL.getLabel()
+                INTER.name(),
+                INTER.getLabel()
             )))
         );
-
+        verify(asylumCase).write(eq(LIST_CASE_HEARING_CENTRE), any(HearingCentre.class));
         verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
-
     }
 
     @Test
@@ -403,7 +403,7 @@ class EditListCaseHandlerTest {
     }
 
     @Test
-    void should_not_trigger_events_when_hearing_channel_is_changed_from_video_to_tel() {
+    void should_trigger_only_editListCase_event_when_hearing_channel_is_changed_from_video_to_tel() {
         initializeServiceData();
         initializeAsylumCaseData();
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(
@@ -416,15 +416,23 @@ class EditListCaseHandlerTest {
 
         editListCaseHandler.handle(serviceData);
 
-        verify(asylumCase, never()).write(eq(LIST_CASE_HEARING_CENTRE), any());
-        verify(asylumCase, never()).write(eq(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK), anyBoolean());
-        verify(coreCaseDataService, never()).triggerSubmitEvent(
-            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+        verify(asylumCase).write(
+            HEARING_CHANNEL, new DynamicList(new Value(
+                TEL.name(),
+                TEL.getLabel()
+            ), List.of(new Value(
+                TEL.name(),
+                TEL.getLabel()
+            )))
+        );
 
+        verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
     @Test
-    void should_not_trigger_events_when_hearing_channel_is_changed_from_tel_video() {
+    void should_trigger_only_editCaseListing_event_when_hearing_channel_is_changed_from_tel_video() {
         initializeServiceData();
         initializeAsylumCaseData();
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(
@@ -437,11 +445,19 @@ class EditListCaseHandlerTest {
 
         editListCaseHandler.handle(serviceData);
 
-        verify(asylumCase, never()).write(eq(LIST_CASE_HEARING_CENTRE), any());
-        verify(asylumCase, never()).write(eq(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK), anyBoolean());
-        verify(coreCaseDataService, never()).triggerSubmitEvent(
-            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+        verify(asylumCase).write(
+            HEARING_CHANNEL, new DynamicList(new Value(
+                VID.name(),
+                VID.getLabel()
+            ), List.of(new Value(
+                VID.name(),
+                VID.getLabel()
+            )))
+        );
 
+        verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
 
     @ParameterizedTest
