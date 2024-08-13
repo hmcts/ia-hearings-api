@@ -93,20 +93,29 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
         String hearingId = serviceData.read(HEARING_ID, String.class)
             .orElseThrow(() -> new IllegalStateException("hearing id can not be null"));
+        String currentHearingChannel = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
+            .map(dynamicList -> dynamicList.getValue().getCode()).orElse("");
 
         boolean hearingDateTimeUpdated = tryUpdateHearingDateTime(asylumCase, serviceData, hearingId);
         boolean hearingChannelUpdated = tryUpdateHearingChannel(asylumCase, serviceData, hearingId);
         boolean hearingDurationUpdated = tryUpdateHearingDuration(asylumCase, serviceData, hearingId);
-        boolean hearingCentreUpdated = tryUpdateHearingCentre(
-            asylumCase, serviceData, hearingChannelUpdated, hearingId);
+
+        boolean currentChannelIsRemote = List.of(VID.name(), TEL.name()).contains(currentHearingChannel);
+        boolean nextChannelIsRemote = isRemoteHearing(serviceData);
+        //Channel update is not VID to TEL or TEL to VID
+        boolean isNonRemoteToRemoteChannelUpdate =
+            hearingChannelUpdated && !(currentChannelIsRemote && nextChannelIsRemote);
+        boolean hearingLocationUpdated = tryUpdateHearingCentre(
+            asylumCase, serviceData, isNonRemoteToRemoteChannelUpdate, hearingId);
 
         boolean sendUpdate = hearingDateTimeUpdated
                              || hearingChannelUpdated
-                             || hearingCentreUpdated
+                             || hearingLocationUpdated
                              || hearingDurationUpdated;
 
         // Only trigger review interpreter task if the hearing location, date or channel are updated.
-        if (hearingChannelUpdated || hearingCentreUpdated || hearingDateTimeUpdated) {
+        // Don not trigger when hearing channel update is remote to remote
+        if (isNonRemoteToRemoteChannelUpdate || hearingLocationUpdated || hearingDateTimeUpdated) {
             asylumCase.write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
             log.info("Setting trigger review interpreter task flag for hearing " + hearingId);
         } else if (sendUpdate) {
@@ -148,8 +157,13 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
     private boolean tryUpdateHearingChannel(AsylumCase asylumCase, ServiceData serviceData, String hearingId) {
         final List<HearingChannel> nextHearingChannelList = getHearingChannels(serviceData);
+        String currentHearingChannel = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
+            .map(dynamicList -> dynamicList.getValue().getCode()).orElse("");
+        String nextHearingChannel = nextHearingChannelList.get(0).name();
 
-        if (hearingChannelUpdated(asylumCase, serviceData, nextHearingChannelList.get(0).name())) {
+        boolean updated = !Objects.equals(currentHearingChannel, nextHearingChannel);
+
+        if (updated) {
             asylumCase.write(
                 HEARING_CHANNEL,
                 buildHearingChannelDynmicList(nextHearingChannelList));
@@ -225,19 +239,6 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
         log.info("tryUpdateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
                  asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
-    }
-
-    private boolean hearingChannelUpdated(AsylumCase asylumCase, ServiceData serviceData, String nextHearingChannel) {
-        String currentHearingChannel = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
-            .map(dynamicList -> dynamicList.getValue().getCode()).orElse("");
-
-        boolean updated = !Objects.equals(currentHearingChannel, nextHearingChannel);
-
-        // Remote to remote hearing channel update (VID to TEL or TEL to VID) is not considered an update
-        boolean isCurrentHearingChannelRemote = List.of(VID.name(), TEL.name()).contains(currentHearingChannel);
-        boolean isNextHearingChannelRemote = isRemoteHearing(serviceData);
-
-        return updated & !(isCurrentHearingChannelRemote && isNextHearingChannelRemote);
     }
 }
 
