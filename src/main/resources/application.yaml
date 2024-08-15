@@ -116,6 +116,8 @@ security:
       - "listCase"
       - "editCaseListing"
       - "updateNextHearingInfo"
+    next-hearing-date-admin:
+      - "updateNextHearingInfo"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
