@@ -108,10 +108,10 @@ security:
       - "decideAnApplication"
     caseworker-ia-system:
       - "handleHearingException"
-      - "triggerCmrUpdated"
+      - "cmrReListing"
       - "recordAdjournmentDetails"
       - "listCaseForFTOnly"
-      - "triggerCmrListed"
+      - "cmrListing"
       - "decisionWithoutHearingListed"
       - "listCase"
       - "editCaseListing"

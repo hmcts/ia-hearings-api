@@ -9,11 +9,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_NEXT_HEARING_INFO;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 
 import java.time.LocalDateTime;
@@ -261,21 +259,6 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void triggerReviewInterpreterBookingTask() {
-
-        when(coreCaseDataService.startCaseEvent(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, CASE_TYPE_ASYLUM))
-            .thenReturn(startEventResponse);
-        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
-
-        coreCaseDataService.triggerReviewInterpreterBookingTask(CASE_ID);
-
-        verify(coreCaseDataService, times(3))
-            .startCaseEvent(eq(TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK), eq(CASE_ID), eq(CASE_TYPE_ASYLUM));
-        verify(coreCaseDataService).triggerSubmitEvent(
-            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, CASE_ID, startEventResponse, asylumCase);
-    }
-
-    @Test
     void should_get_linked_cases() {
         when(linkedCasesApi.getLinkedCases(AUTH_TOKEN, SERVICE_TOKEN, CASE_ID, "1", "100"))
             .thenReturn(getLinkedCasesResponse);
@@ -297,7 +280,7 @@ public class CoreCaseDataServiceTest {
         verify(coreCaseDataService).triggerSubmitEvent(
             UPDATE_NEXT_HEARING_INFO, CASE_ID, startEventResponse, asylumCase);
     }
-  
+
     @Test
     public void hearing_cancelled_task() {
         when(coreCaseDataService.startCaseEvent(HEARING_CANCELLED, CASE_ID, CASE_TYPE_ASYLUM))
