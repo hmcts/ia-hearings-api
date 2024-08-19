@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -91,99 +91,31 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
     private boolean tryUpdateListCaseHearingDetails(AsylumCase asylumCase, ServiceData serviceData, String caseId) {
 
-        final List<HearingChannel> nextHearingChannelList = getHearingChannels(serviceData);
-
-        final LocalDateTime nextHearingDateTime = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
-            .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
-
-        final LocalDateTime currentHearingDateTime = LocalDateTime.parse(asylumCase.read(
-            LIST_CASE_HEARING_DATE,
-            String.class
-        ).orElseThrow(() -> new IllegalStateException("listCaseHearingDate can not be null")));
-
-        final String currentVenueId = asylumCase.read(
-            LIST_CASE_HEARING_CENTRE,
-            HearingCentre.class
-        ).orElseThrow(() -> new IllegalStateException("listCaseHearingCentre can not be null")).getEpimsId();
-
-
-
-
-        final String nextHearingChannel = nextHearingChannelList.get(0).name();
-
-        final boolean isRemoteHearing = nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
-
-        // the nextHearingDateTime has to be recalculated according to the actual physical venue (Glasgow / non-Glasgow)
-        final String physicalNextHearingVenueId = getHearingVenueId(serviceData);
-        final LocalDateTime calculatedNextHearingDateTime = getHearingDateAndTime(nextHearingDateTime,
-                                                                                  physicalNextHearingVenueId);
-
-        final boolean hearingDateTimeChanged = !(currentHearingDateTime).equals(calculatedNextHearingDateTime);
-
-        // venue id shown on frontend and in notifications will show as Remote Hearing if it's remote
-        final String nextHearingVenueId = isRemoteHearing
-            ? REMOTE_HEARING.getEpimsId()
-            : getHearingVenueId(serviceData);
-
-        boolean hearingChannelChanged;
-
-        Optional<DynamicList> currentHearingChannels = asylumCase.read(HEARING_CHANNEL, DynamicList.class);
-
-        if (currentHearingChannels.isEmpty()) {
-            hearingChannelChanged = false;
-        } else {
-            hearingChannelChanged = !currentHearingChannels.get().getValue().toString().equals(nextHearingChannel);
-        }
-
-        final boolean hearingVenueChanged = !currentVenueId.equals(nextHearingVenueId);
-        final boolean hearingCentreChanged = hearingChannelChanged || hearingVenueChanged;
-        final int nextDuration = getHearingDuration(serviceData);
-
-        boolean durationChanged;
-        Optional<HoursMinutes> currentDuration = asylumCase.read(LISTING_LENGTH, HoursMinutes.class);
-        if (currentDuration.isEmpty()) {
-            durationChanged = false;
-        } else {
-            durationChanged = currentDuration.get().convertToIntegerMinutes() != nextDuration;
-        }
-
-        boolean sendUpdate = false;
-
         String hearingId = serviceData.read(HEARING_ID, String.class)
             .orElseThrow(() -> new IllegalStateException("hearing id can not be null"));
+        String currentHearingChannel = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
+            .map(dynamicList -> dynamicList.getValue().getCode()).orElse("");
 
-        // listCaseHearingDate has to be recalculated based on the hearing venue
-        if (hearingDateTimeChanged) {
-            asylumCase.write(
-                LIST_CASE_HEARING_DATE,
-                calculatedNextHearingDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
-            );
-            sendUpdate = true;
-            log.info("hearing date updated for hearing " + hearingId);
-        }
-        if (durationChanged) {
-            asylumCase.write(LISTING_LENGTH, new HoursMinutes(nextDuration));
-            sendUpdate = true;
-            log.info("hearing length updated for hearing " + hearingId);
-        }
-        if (hearingChannelChanged) {
-            asylumCase.write(
-                HEARING_CHANNEL,
-                buildHearingChannelDynmicList(nextHearingChannelList));
-            sendUpdate = true;
-            log.info("hearing channel updated for hearing " + hearingId);
-        }
-        if (hearingCentreChanged) {
-            asylumCase.write(
-                LIST_CASE_HEARING_CENTRE,
-                HandlerUtils.getLocation(nextHearingChannelList, nextHearingVenueId)
-            );
-            sendUpdate = true;
-            log.info("hearing centre updated for hearing " + hearingId);
-        }
+        boolean hearingDateTimeUpdated = tryUpdateHearingDateTime(asylumCase, serviceData, hearingId);
+        boolean hearingChannelUpdated = tryUpdateHearingChannel(asylumCase, serviceData, hearingId);
+        boolean hearingDurationUpdated = tryUpdateHearingDuration(asylumCase, serviceData, hearingId);
+
+        boolean currentChannelIsRemote = List.of(VID.name(), TEL.name()).contains(currentHearingChannel);
+        boolean nextChannelIsRemote = isRemoteHearing(serviceData);
+        //Channel update is not VID to TEL or TEL to VID
+        boolean isNonRemoteToRemoteChannelUpdate =
+            hearingChannelUpdated && !(currentChannelIsRemote && nextChannelIsRemote);
+        boolean hearingLocationUpdated = tryUpdateHearingCentre(
+            asylumCase, serviceData, isNonRemoteToRemoteChannelUpdate, hearingId);
+
+        boolean sendUpdate = hearingDateTimeUpdated
+                             || hearingChannelUpdated
+                             || hearingLocationUpdated
+                             || hearingDurationUpdated;
 
         // Only trigger review interpreter task if the hearing location, date or channel are updated.
-        if (hearingChannelChanged || hearingCentreChanged || hearingDateTimeChanged) {
+        // Don not trigger when hearing channel update is remote to remote
+        if (isNonRemoteToRemoteChannelUpdate || hearingLocationUpdated || hearingDateTimeUpdated) {
             asylumCase.write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
             log.info("Setting trigger review interpreter task flag for hearing " + hearingId);
         } else if (sendUpdate) {
@@ -193,6 +125,101 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         assignRefDataFields(asylumCase, serviceData, caseId);
 
         return sendUpdate;
+    }
+
+    private boolean tryUpdateHearingDateTime(AsylumCase asylumCase, ServiceData serviceData, String hearingId) {
+        final LocalDateTime nextHearingDateTime = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
+            .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
+
+        final LocalDateTime currentHearingDateTime = LocalDateTime.parse(asylumCase.read(
+            LIST_CASE_HEARING_DATE,
+            String.class
+        ).orElseThrow(() -> new IllegalStateException("listCaseHearingDate can not be null")));
+
+        // the nextHearingDateTime has to be recalculated according to the actual physical venue (Glasgow / non-Glasgow)
+        final String physicalNextHearingVenueId = getHearingVenueId(serviceData);
+        final LocalDateTime calculatedNextHearingDateTime = getHearingDateAndTime(nextHearingDateTime,
+                                                                                  physicalNextHearingVenueId);
+        boolean updated =  !currentHearingDateTime.equals(calculatedNextHearingDateTime);
+
+        if (updated) {
+            asylumCase.write(
+                LIST_CASE_HEARING_DATE,
+                calculatedNextHearingDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
+            );
+            log.info("Hearing date updated for hearing " + hearingId);
+            return true;
+        } else {
+            log.info("Hearing date not updated for hearing " + hearingId);
+            return false;
+        }
+    }
+
+    private boolean tryUpdateHearingChannel(AsylumCase asylumCase, ServiceData serviceData, String hearingId) {
+        final List<HearingChannel> nextHearingChannelList = getHearingChannels(serviceData);
+        String currentHearingChannel = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
+            .map(dynamicList -> dynamicList.getValue().getCode()).orElse("");
+        String nextHearingChannel = nextHearingChannelList.get(0).name();
+
+        boolean updated = !Objects.equals(currentHearingChannel, nextHearingChannel);
+
+        if (updated) {
+            asylumCase.write(
+                HEARING_CHANNEL,
+                buildHearingChannelDynmicList(nextHearingChannelList));
+            log.info("Hearing channel updated for hearing " + hearingId);
+            return true;
+        } else {
+            log.info("Hearing channel not updated for hearing " + hearingId);
+            return false;
+        }
+    }
+
+    private boolean tryUpdateHearingCentre(
+        AsylumCase asylumCase, ServiceData serviceData, boolean hearingChannelUpdated, String hearingId) {
+
+        final String currentVenueId = asylumCase.read(
+            LIST_CASE_HEARING_CENTRE,
+            HearingCentre.class
+        ).orElseThrow(() -> new IllegalStateException("listCaseHearingCentre can not be null")).getEpimsId();
+        String nextHearingVenueId = getHearingVenueId(serviceData);
+
+        final boolean hearingVenueUpdated = !currentVenueId.equals(nextHearingVenueId);
+        final boolean hearingCentreUpdated = hearingChannelUpdated || hearingVenueUpdated;
+
+        // venue id shown on frontend and in notifications will show as Remote Hearing if it's remote
+        if (isRemoteHearing(serviceData)) {
+            nextHearingVenueId = REMOTE_HEARING.getEpimsId();
+        }
+
+        if (hearingCentreUpdated) {
+            asylumCase.write(
+                LIST_CASE_HEARING_CENTRE,
+                HandlerUtils.getLocation(getHearingChannels(serviceData), nextHearingVenueId)
+            );
+            log.info("Hearing centre updated for hearing " + hearingId);
+            return true;
+        } else {
+            log.info("Hearing centre not updated for hearing " + hearingId);
+            return false;
+        }
+    }
+
+    private boolean tryUpdateHearingDuration(AsylumCase asylumCase, ServiceData serviceData, String hearingId) {
+        final int nextDuration = getHearingDuration(serviceData);
+        int currentDuration = asylumCase.read(LISTING_LENGTH, HoursMinutes.class)
+            .map(HoursMinutes::convertToIntegerMinutes).orElse(0);
+
+        boolean updated = currentDuration != nextDuration;
+
+        if (updated) {
+            asylumCase.write(LISTING_LENGTH, new HoursMinutes(nextDuration));
+            log.info("Hearing length updated for hearing " + hearingId);
+            return true;
+        } else {
+            log.info("Hearing length not updated for hearing " + hearingId);
+            return false;
+        }
     }
 
     private void assignRefDataFields(AsylumCase asylumCase, ServiceData serviceData, String caseId) {
