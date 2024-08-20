@@ -186,20 +186,21 @@ task contract(type: Test, description: 'Runs the consumer Pact tests', group: 'V
 checkstyle {
   maxWarnings = 0
   toolVersion = '10.12.5'
-  getConfigDirectory().set(new File(rootDir, 'config/checkstyle.xml'))
+  configDirectory.set(new File(rootDir, 'config/checkstyle.xml'))
 }
 
-// make build fail on Checkstyle issues (https://github.com/gradle/gradle/issues/881)
+// Make build fail on Checkstyle issues
 tasks.withType(Checkstyle).each { checkstyleTask ->
   checkstyleTask.doLast {
     reports.all { report ->
-      def outputFile = report.destination
+      def outputFile = report.outputLocation.asFile.get()
       if (outputFile.exists() && outputFile.text.contains("<error ")) {
         throw new GradleException("There were checkstyle warnings! For more info check $outputFile")
       }
     }
   }
 }
+
 
 pmd {
   toolVersion = "6.55.0"
