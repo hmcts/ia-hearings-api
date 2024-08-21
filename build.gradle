@@ -309,6 +309,13 @@ ext {
         entry 'logback-core'
       }
 
+      dependencySet(group: 'org.springframework.security', version: '1.1.1') {
+        entry 'spring-security-rsa'
+      }
+      dependencySet(group: 'org.springframework.security', version: '5.8.11') {
+        entry 'spring-security-oauth2-client'
+      }
+
     }
   }}
 
