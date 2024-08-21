@@ -1,36 +1,33 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_CMR_LISTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_CMR_UPDATED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.NextHearingDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.NextHearingDateService;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
 @Slf4j
 @Component
@@ -39,7 +36,6 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
-    private final NextHearingDateService nextHearingDateService;
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -63,63 +59,45 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         String caseId = getCaseReference(serviceData);
 
         if (isCmrListedHearing(serviceData)) {
-            handleCmrListedHearing(serviceData, hearingId, caseId);
+            PartiesNotifiedResponses partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId);
+            if (isInitialListing(hearingId, partiesNotifiedResponses.getResponses())) {
+                handleCmrListing(caseId);
+            } else {
+                boolean cmrHearingUpdated = isCmrUpdated(serviceData, partiesNotifiedResponses.getResponses());
+                if (cmrHearingUpdated) {
+                    handleCmrReListing(caseId);
+                    log.info("cmrRelistingHandler triggered for hearing " + hearingId);
+                } else {
+                    log.info("Hearing date, channel, duration and location not updated");
+                    log.info("cmrRelistingHandler not triggered for hearing " + hearingId);
+                }
+            }
         } else {
-            handleCmrCancelledHearing(hearingId, caseId);
+            handleCmrReListing(caseId);
+            log.info("cmrRelistingHandler triggered for hearing " + hearingId);
         }
 
         return new ServiceDataResponse<>(serviceData);
     }
 
-    private void triggerCmrListedNotification(String caseId) {
+    private void handleCmrListing(String caseId) {
         StartEventResponse startEventResponse =
-            coreCaseDataService.startCaseEvent(TRIGGER_CMR_LISTED, caseId, CASE_TYPE_ASYLUM);
+            coreCaseDataService.startCaseEvent(CMR_LISTING, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
-        updateNextHearingInfo(asylumCase, caseId);
-
-        log.info("Sending `{}` event for  Case ID `{}`", TRIGGER_CMR_LISTED, caseId);
-        coreCaseDataService.triggerSubmitEvent(TRIGGER_CMR_LISTED, caseId, startEventResponse, asylumCase);
+        log.info("Sending `{}` event for  Case ID `{}`", CMR_LISTING, caseId);
+        coreCaseDataService.triggerSubmitEvent(CMR_LISTING, caseId, startEventResponse, asylumCase);
     }
 
-    private void triggerCmrUpdatedNotification(String caseId) {
+    private void handleCmrReListing(String caseId) {
         StartEventResponse startEventResponse =
-            coreCaseDataService.startCaseEvent(TRIGGER_CMR_UPDATED, caseId, CASE_TYPE_ASYLUM);
+            coreCaseDataService.startCaseEvent(CMR_RE_LISTING, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
-        updateNextHearingInfo(asylumCase, caseId);
-
-        log.info("Sending `{}` event for case ID `{}`", TRIGGER_CMR_UPDATED, caseId);
-        coreCaseDataService.triggerSubmitEvent(TRIGGER_CMR_UPDATED, caseId, startEventResponse, asylumCase);
-    }
-
-    private void updateNextHearingInfo(AsylumCase asylumCase, String caseId) {
-        if (nextHearingDateService.enabled()) {
-            try {
-                asylumCase.write(
-                    NEXT_HEARING_DETAILS, nextHearingDateService.getNextHearingDetails(Long.parseLong(caseId)));
-                log.info("Successfully calculated next hearing date from hearings for case ID {}", caseId);
-            } catch (HmcException e) {
-                log.error("Failed to calculate next hearing date from hearings for case ID {}.\n", caseId, e);
-                log.info("Getting next hearing date from case data for case ID {}", caseId);
-
-                asylumCase.write(NEXT_HEARING_DETAILS, getNextHearingDateFromCaseData(asylumCase));
-            }
-            log.info("Successfully set next hearing date for case ID {}", caseId);
-        } else {
-            log.debug("Next hearing date feature not enabled");
-        }
-    }
-
-    private NextHearingDetails getNextHearingDateFromCaseData(AsylumCase asylumCase) {
-        String listCaseHearingDate = asylumCase.read(LIST_CASE_HEARING_DATE, String.class).orElse("");
-
-        return NextHearingDetails.builder()
-            .hearingId("999")
-            .hearingDateTime(listCaseHearingDate)
-            .build();
+        log.info("Sending `{}` event for case ID `{}`", CMR_RE_LISTING, caseId);
+        coreCaseDataService.triggerSubmitEvent(CMR_RE_LISTING, caseId, startEventResponse, asylumCase);
     }
 
     private boolean isCmrListedHearing(ServiceData serviceData) {
@@ -127,36 +105,24 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
                && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED);
     }
 
-    private void handleCmrListedHearing(ServiceData serviceData, String hearingId, String caseId) {
-        PartiesNotifiedResponses partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId);
+    private boolean isInitialListing(String hearingId, List<PartiesNotifiedResponse> partiesNotifiedResponses) {
 
         log.info("partiesNotifiedResponses for hearing " + hearingId + " : "
-                 + partiesNotifiedResponses.getResponses().toString());
+                 + partiesNotifiedResponses.toString());
 
-        if (partiesNotifiedResponses.getResponses().isEmpty()) {
-            triggerCmrListedNotification(caseId);
-            log.info("ListCmrHandler triggered for hearing " + hearingId);
-        } else {
-            Set<ServiceDataFieldDefinition> updatedTargetFields = findUpdatedServiceDataFields(
-                serviceData, partiesNotifiedResponses.getResponses(), Set.of(
-                    NEXT_HEARING_DATE,
-                    HEARING_CHANNELS,
-                    DURATION,
-                    HEARING_VENUE_ID
-                ));
-
-            if (updatedTargetFields.isEmpty()) {
-                log.info("Hearing date, channel, duration and location not updated");
-                log.info("CmrHandler not triggered for hearing " + hearingId);
-            } else {
-                triggerCmrUpdatedNotification(caseId);
-                log.info("updateCmrHandler triggered for hearing " + hearingId);
-            }
-        }
+        return partiesNotifiedResponses.isEmpty();
     }
 
-    private void handleCmrCancelledHearing(String hearingId, String caseId) {
-        triggerCmrUpdatedNotification(caseId);
-        log.info("updateCmrHandler triggered for hearing " + hearingId);
+    private boolean isCmrUpdated(
+        ServiceData serviceData, List<PartiesNotifiedResponse> partiesNotifiedResponses) {
+        Set<ServiceDataFieldDefinition> updatedTargetFields = findUpdatedServiceDataFields(
+            serviceData, partiesNotifiedResponses, Set.of(
+                NEXT_HEARING_DATE,
+                HEARING_CHANNELS,
+                DURATION,
+                HEARING_VENUE_ID
+            ));
+
+        return !updatedTargetFields.isEmpty();
     }
 }

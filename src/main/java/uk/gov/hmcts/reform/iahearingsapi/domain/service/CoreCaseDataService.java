@@ -23,8 +23,6 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.LinkedCasesApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_NEXT_HEARING_INFO;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
-
 
 @Slf4j
 @Service
@@ -232,17 +230,6 @@ public class CoreCaseDataService {
             return iaCcdConvertService.convertToBailCaseData(caseDetails.getData());
         }
         return null;
-    }
-
-    public void triggerReviewInterpreterBookingTask(String caseId) {
-        StartEventResponse startEventResponse = startCaseEvent(
-            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId, CASE_TYPE_ASYLUM);
-
-        AsylumCase asylumCase = getCaseFromStartedEvent(startEventResponse);
-
-        log.info("Sending `{}` event for  Case ID `{}`", TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId);
-        triggerSubmitEvent(
-            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId, startEventResponse, asylumCase);
     }
 
     public GetLinkedCasesResponse getLinkedCases(String caseReference) {

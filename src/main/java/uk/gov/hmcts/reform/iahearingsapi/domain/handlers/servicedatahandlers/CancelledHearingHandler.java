@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DETAILS;
 
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,8 +16,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDat
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.NextHearingDateService;
-
-import java.util.Objects;
 
 @Slf4j
 @Component
@@ -46,29 +45,31 @@ public class CancelledHearingHandler extends ListedHearingService
 
         String caseId = getCaseReference(serviceData);
 
-        log.info("CancelledHearingHandler triggered for case " + caseId);
-        coreCaseDataService.triggerReviewInterpreterBookingTask(caseId);
-        handleCancelledHearing(serviceData, caseId);
-
         if (nextHearingDateService.enabled()) {
-            log.info("Trigger set next hearing date event for case " + caseId);
-            coreCaseDataService.updateNextHearingInfo(caseId);
+            if (isNextHearingCancelled(serviceData, caseId)) {
+                //If ID of cancelled hearing is the same as the hearing ID in the next hearing date details
+                log.info("Reset next hearing info for case " + caseId);
+                coreCaseDataService.hearingCancelledTask(caseId);
+            } else {
+                log.info("Update next hearing info for case " + caseId);
+                coreCaseDataService.updateNextHearingInfo(caseId);
+            }
+        } else {
+            log.info("Next hearing date not enabled for case {}", caseId);
         }
 
         return new ServiceDataResponse<>(serviceData);
     }
 
-    protected void handleCancelledHearing(ServiceData serviceData, String caseId) {
+    private boolean isNextHearingCancelled(ServiceData serviceData, String caseId) {
         String cancelledHearingId = serviceData.read(
             ServiceDataFieldDefinition.HEARING_ID, String.class).orElse("");
 
-        AsylumCase asylumcase = coreCaseDataService.getCase(caseId);
+        AsylumCase asylumCase = coreCaseDataService.getCase(caseId);
 
-        String currentHearingId = asylumcase.read(NEXT_HEARING_DETAILS, NextHearingDetails.class)
+        String currentHearingId = asylumCase.read(NEXT_HEARING_DETAILS, NextHearingDetails.class)
             .map(NextHearingDetails::getHearingId).orElse("");
 
-        if (Objects.equals(currentHearingId, cancelledHearingId)) {
-            coreCaseDataService.hearingCancelledTask(caseId);
-        }
+        return Objects.equals(currentHearingId, cancelledHearingId);
     }
 }
