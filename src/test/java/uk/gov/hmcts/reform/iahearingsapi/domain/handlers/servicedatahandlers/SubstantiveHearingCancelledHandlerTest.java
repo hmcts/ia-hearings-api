@@ -32,7 +32,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.NextHearingDateService;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class CancelledHearingHandlerTest {
+class SubstantiveHearingCancelledHandlerTest {
     private static final String CASE_ID = "1234";
 
     @Mock
@@ -44,13 +44,13 @@ class CancelledHearingHandlerTest {
     @Mock
     NextHearingDateService nextHearingDateService;
 
-    private CancelledHearingHandler cancelledHearingHandler;
+    private SubstantiveHearingCancelledHandler substantiveHearingCancelledHandler;
 
     @BeforeEach
     public void setUp() {
 
-        cancelledHearingHandler =
-            new CancelledHearingHandler(coreCaseDataService, nextHearingDateService);
+        substantiveHearingCancelledHandler =
+            new SubstantiveHearingCancelledHandler(coreCaseDataService, nextHearingDateService);
 
         when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_ID));
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
@@ -63,19 +63,19 @@ class CancelledHearingHandlerTest {
 
     @Test
     void should_have_early_dispatch_priority() {
-        assertEquals(DispatchPriority.EARLY, cancelledHearingHandler.getDispatchPriority());
+        assertEquals(DispatchPriority.EARLY, substantiveHearingCancelledHandler.getDispatchPriority());
     }
 
     @Test
     void should_handle_only_if_service_data_qualifies() {
-        assertTrue(cancelledHearingHandler.canHandle(serviceData));
+        assertTrue(substantiveHearingCancelledHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hearing_type_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(CASE_MANAGEMENT_REVIEW.getKey()));
-        assertFalse(cancelledHearingHandler.canHandle(serviceData));
+        assertFalse(substantiveHearingCancelledHandler.canHandle(serviceData));
     }
 
     @Test
@@ -83,13 +83,13 @@ class CancelledHearingHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(CASE_MANAGEMENT_REVIEW.getKey()));
 
-        assertThatThrownBy(() -> cancelledHearingHandler.handle(serviceData))
+        assertThatThrownBy(() -> substantiveHearingCancelledHandler.handle(serviceData))
             .hasMessage("Cannot handle service data")
             .isExactlyInstanceOf(IllegalStateException.class);
     }
 
     @Test
-    void should_trigger_set_next_hearing_date_event() {
+    void should_trigger_update_next_hearing_info_event() {
         NextHearingDetails nextHearingDetails = NextHearingDetails.builder().hearingId("hearingId").build();
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
             .thenReturn(Optional.of("differentHearingId"));
@@ -98,33 +98,16 @@ class CancelledHearingHandlerTest {
             .thenReturn(Optional.of(nextHearingDetails));
         when(nextHearingDateService.enabled()).thenReturn(true);
 
-        cancelledHearingHandler.handle(serviceData);
+        substantiveHearingCancelledHandler.handle(serviceData);
 
         verify(coreCaseDataService, never()).hearingCancelledTask(CASE_ID);
         verify(coreCaseDataService).updateNextHearingInfo(CASE_ID);
     }
 
     @Test
-    void should_trigger_hearing_cancelled_task() {
-        NextHearingDetails nextHearingDetails = NextHearingDetails.builder().hearingId("hearingId").build();
-        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
-            .thenReturn(Optional.of(nextHearingDetails.getHearingId()));
-        when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
-        when(asylumCase.read(NEXT_HEARING_DETAILS, NextHearingDetails.class))
-            .thenReturn(Optional.of(nextHearingDetails));
-        when(nextHearingDateService.enabled()).thenReturn(true);
-
-        cancelledHearingHandler.handle(serviceData);
-
-        verify(coreCaseDataService, never()).updateNextHearingInfo(CASE_ID);
-        verify(coreCaseDataService).hearingCancelledTask(CASE_ID);
-    }
-
-    @Test
-    void should_not_trigger_any_task_when_next_hearing_date_not_enabled() {
+    void should_not_trigger_update_next_hearing_info_event() {
         when(nextHearingDateService.enabled()).thenReturn(false);
 
-        verify(coreCaseDataService, never()).hearingCancelledTask(CASE_ID);
         verify(coreCaseDataService, never()).updateNextHearingInfo(CASE_ID);
     }
 }

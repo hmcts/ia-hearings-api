@@ -48,7 +48,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class EditListCaseHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
+public class SubstantiveHearingEditedHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
     private final LocationRefDataService locationRefDataService;
