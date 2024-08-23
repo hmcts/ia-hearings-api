@@ -89,7 +89,7 @@ class SubstantiveHearingCancelledHandlerTest {
     }
 
     @Test
-    void should_trigger_update_next_hearing_info_event() {
+    void should_trigger_hearing_cancelled_event() {
         NextHearingDetails nextHearingDetails = NextHearingDetails.builder().hearingId("hearingId").build();
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
             .thenReturn(Optional.of("differentHearingId"));
@@ -100,14 +100,13 @@ class SubstantiveHearingCancelledHandlerTest {
 
         substantiveHearingCancelledHandler.handle(serviceData);
 
-        verify(coreCaseDataService, never()).hearingCancelledTask(CASE_ID);
-        verify(coreCaseDataService).updateNextHearingInfo(CASE_ID);
+        verify(coreCaseDataService).hearingCancelledTask(CASE_ID);
     }
 
     @Test
-    void should_not_trigger_update_next_hearing_info_event() {
+    void should_not_trigger_hearing_cancelled_event() {
         when(nextHearingDateService.enabled()).thenReturn(false);
 
-        verify(coreCaseDataService, never()).updateNextHearingInfo(CASE_ID);
+        verify(coreCaseDataService, never()).hearingCancelledTask(CASE_ID);
     }
 }
