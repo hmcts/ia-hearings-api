@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_NEXT_HEARING_INFO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
@@ -60,7 +61,7 @@ class NextHearingInfoHandlerTest {
 
     @ParameterizedTest
     @EnumSource(value = Event.class, names = {"LIST_CASE", "EDIT_CASE_LISTING", "UPDATE_NEXT_HEARING_INFO",
-        "CMR_LISTING", "CMR_RE_LISTING"})
+        "CMR_LISTING", "CMR_RE_LISTING", "HEARING_CANCELLED"})
     void should_set_next_hearing_details(Event event) {
 
         final long caseId = 1234L;
@@ -119,7 +120,7 @@ class NextHearingInfoHandlerTest {
                 boolean canHandle = nextHearingDateHandler.canHandle(callbackStage, callback);
 
                 if (List.of(LIST_CASE, EDIT_CASE_LISTING, UPDATE_NEXT_HEARING_INFO,
-                            CMR_LISTING, CMR_RE_LISTING).contains(event)
+                            CMR_LISTING, CMR_RE_LISTING, HEARING_CANCELLED).contains(event)
                     && callbackStage == ABOUT_TO_SUBMIT) {
 
                     assertTrue(canHandle);
