@@ -23,8 +23,6 @@ public enum AsylumCaseFieldDefinition {
         "hearingChannel", new TypeReference<DynamicList>(){}),
     HMCTS_CASE_NAME_INTERNAL(
         "hmctsCaseNameInternal", new TypeReference<String>() {}),
-    LIST_CASE_HEARING_LENGTH(
-        "listCaseHearingLength", new TypeReference<String>() {}),
     LISTING_LENGTH(
         "listingLength", new TypeReference<HoursMinutes>() {}),
     LIST_CASE_HEARING_CENTRE(

@@ -19,7 +19,6 @@ import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,7 +43,6 @@ import uk.gov.hmcts.reform.iahearingsapi.util.MapValueExpander;
 @Slf4j
 @SpringBootTest()
 @ActiveProfiles("functional")
-@Disabled
 public class CcdCaseCreationTest {
 
     @Value("classpath:templates/start-appeal-aip.json")
@@ -359,7 +357,7 @@ public class CcdCaseCreationTest {
     protected void listCaseWithRequiredFields() {
         systemUserToken = idamAuthProvider.getSystemUserToken();
 
-        caseData.put("listCaseHearingLength", "120");
+        caseData.put("listingLength", "120");
         caseData.put("appealType", "protection");
         caseData.put("hearingChannel", "INTER");
         caseData.put("hmctsCaseNameInternal", "Talha Awan");
@@ -456,6 +454,8 @@ public class CcdCaseCreationTest {
             caseData = getLegalRepCase();
             caseId = parseLong(getLegalRepCaseId());
         }
+
+        caseData.put("hmctsCaseNameInternal", "Talha Awan");
 
         return new Case(caseId, caseData);
     }

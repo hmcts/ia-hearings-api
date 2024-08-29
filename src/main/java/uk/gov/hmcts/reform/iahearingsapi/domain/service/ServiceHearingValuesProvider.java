@@ -156,7 +156,7 @@ public class ServiceHearingValuesProvider {
             .orElseThrow(() -> new RequiredFieldMissingException(
                 "case name HMCTS internal case name is a required field"));
 
-        String listCaseHearingLength = "60";
+        String listingLength = "60";
         String bailState = bailCase.read(CURRENT_CASE_STATE_VISIBLE_TO_ADMIN_OFFICER, String.class)
             .orElse("");
 
@@ -171,7 +171,7 @@ public class ServiceHearingValuesProvider {
             .caseManagementLocationCode(getCaseManagementLocationCode(bailCase))
             .autoListFlag(false)
             .caseSlaStartDate(bailCaseDataMapper.getCaseSlaStartDate(bailCase))
-            .duration(Integer.parseInt(listCaseHearingLength))
+            .duration(Integer.parseInt(listingLength))
             .hearingType(HearingType.BAIL.getKey())
             .hearingWindow(bailCaseDataMapper
                                .getHearingWindowModel(bailState))

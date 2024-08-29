@@ -78,7 +78,7 @@ class ServiceHearingValuesProviderTest {
     private static final String BAILS_LOCATION_REF_DATA_FEATURE = "bails-location-reference-data";
     private final String hmctsCaseNameInternal = "Eke Uke";
     private final String caseNameHmctsInternal = "John Doe";
-    private final String listCaseHearingLength = "120";
+    private final String listingLength = "120";
     private final String caseReference = "1234567891234567";
     private final String homeOfficeRef = "homeOfficeRef";
     private final LocalDate date = LocalDate.of(2023, 8, 1);
@@ -171,7 +171,7 @@ class ServiceHearingValuesProviderTest {
             .thenReturn(BaseLocation.BIRMINGHAM.getId());
         when(caseDataMapper.getCaseDeepLink(caseReference)).thenReturn(caseDeepLink);
         when(caseDataMapper.getCaseSlaStartDate()).thenReturn(date);
-        when(caseDataMapper.getHearingDuration(asylumCase)).thenReturn(Integer.parseInt(listCaseHearingLength));
+        when(caseDataMapper.getHearingDuration(asylumCase)).thenReturn(Integer.parseInt(listingLength));
         when(caseFlagsMapper.getPublicCaseName(asylumCase, caseReference))
             .thenReturn(caseReference);
         when(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase)).thenReturn(true);
@@ -338,7 +338,7 @@ class ServiceHearingValuesProviderTest {
             .autoListFlag(false)
             .hearingType(null)
             .hearingWindow(hearingWindowModel)
-            .duration(Integer.parseInt(listCaseHearingLength))
+            .duration(Integer.parseInt(listingLength))
             .hearingPriorityType(STANDARD)
             .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
@@ -375,7 +375,7 @@ class ServiceHearingValuesProviderTest {
 
     private ServiceHearingValuesModel buildTestBailServiceHearingValuesModel() {
 
-        String bailListCaseHearingLength = "60";
+        String bailListingLength = "60";
         return ServiceHearingValuesModel.builder()
             .hmctsServiceId(serviceId)
             .hmctsInternalCaseName(caseNameHmctsInternal)
@@ -390,7 +390,7 @@ class ServiceHearingValuesProviderTest {
             .autoListFlag(false)
             .hearingType(bailHearingType)
             .hearingWindow(hearingWindowModel)
-            .duration(Integer.parseInt(bailListCaseHearingLength))
+            .duration(Integer.parseInt(bailListingLength))
             .hearingPriorityType(STANDARD)
             .numberOfPhysicalAttendees(0)
             .hearingInWelshFlag(false)
