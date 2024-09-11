@@ -81,6 +81,7 @@ public class HearingRequestGenerator {
         CaseDetailsHearing caseDetails = new CaseDetailsHearing();
         caseDetails.setHmctsServiceCode("BBA3");
         caseDetails.setCaseRef(caseReference);
+        caseDetails.setHmctsInternalCaseName("Jane Doe");
         caseDetails.setExternalCaseReference("EXT/REF123");
         caseDetails.setCaseDeepLink("https://www.google.com");
         caseDetails.setHmctsInternalCaseName("Jane Doe vs DWP");

@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_ADJOURNMENT_WHEN;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HMCTS_CASE_NAME_INTERNAL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.RELIST_CASE_IMMEDIATELY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingAdjournmentDay.ON_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE_WITHOUT_HEARING_REQUIREMENTS;
@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -32,7 +31,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
 @Slf4j
-@Disabled
 @ActiveProfiles("functional")
 public class AutoRequestHearingFunctionalTest extends CcdCaseCreationTest {
 
@@ -116,7 +114,7 @@ public class AutoRequestHearingFunctionalTest extends CcdCaseCreationTest {
         asylumCase.write(HEARING_CHANNEL, new DynamicList("INTER"));
         asylumCase.write(RELIST_CASE_IMMEDIATELY, YES);
         asylumCase.write(HEARING_ADJOURNMENT_WHEN, ON_HEARING_DATE);
-        asylumCase.write(LIST_CASE_HEARING_LENGTH, "120");
+        asylumCase.write(LISTING_LENGTH, "120");
 
         if (isAipJourney) {
             asylumCase.write(HMCTS_CASE_NAME_INTERNAL, "Talha Awan");
