@@ -26,6 +26,21 @@ public class LegalRepOrgDetailsMapper {
             .build();
     }
 
+    public PartyDetailsModel mapInternalCaseLegalRepOrg(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
+
+        return PartyDetailsModel.builder()
+            .partyID(caseDataMapper.getLegalRepOrgPartyId(asylumCase))
+            .partyType(PartyType.ORG.getPartyType())
+            .partyRole("LGRP")
+            .organisationDetails(
+                OrganisationDetailsModel.builder()
+                    .organisationType(PartyType.ORG.getPartyType())
+                    .name(caseDataMapper.getInternalCaseLegalRepCompany(asylumCase))
+                    .cftOrganisationID(caseDataMapper.getLegalRepOrganisationIdentifier(asylumCase))
+                    .build())
+            .build();
+    }
+
     public PartyDetailsModel map(BailCase bailCase, BailCaseDataToServiceHearingValuesMapper caseDataMapper) {
 
         return PartyDetailsModel.builder()

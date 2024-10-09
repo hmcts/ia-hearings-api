@@ -16,6 +16,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_MULTIMEDIA_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VULNERABILITIES_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_COMPANY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_COMPANY_PAPER_J;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_ORGANISATION_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
@@ -243,6 +244,11 @@ public class CaseDataToServiceHearingValuesMapper {
     public String getLegalRepCompany(AsylumCase asylumCase) {
         return asylumCase.read(LEGAL_REP_COMPANY, String.class)
             .orElseThrow(() -> new RequiredFieldMissingException("legalRepCompany is a required field"));
+    }
+
+    public String getInternalCaseLegalRepCompany(AsylumCase asylumCase) {
+        return asylumCase.read(LEGAL_REP_COMPANY_PAPER_J, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("legalRepCompanyPaperJ is a required field"));
     }
 
     public String getLegalRepOrganisationIdentifier(AsylumCase asylumCase) {
