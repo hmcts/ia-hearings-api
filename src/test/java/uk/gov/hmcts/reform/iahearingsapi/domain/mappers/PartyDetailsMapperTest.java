@@ -172,6 +172,7 @@ class PartyDetailsMapperTest {
         when(asylumCase.read(AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD,
                              ChangeOrganisationRequest.class))
             .thenReturn(changeOrgReq);
+        when(asylumCase.read(AsylumCaseFieldDefinition.IS_ADMIN, YesOrNo.class)).thenReturn(Optional.empty());
 
         PartyDetailsMapper mapper = new PartyDetailsMapper(
             appellantDetailsMapper,
@@ -349,5 +350,46 @@ class PartyDetailsMapperTest {
         assertEquals("partyType", partyDetails.getPartyType());
         assertEquals(unavailabilityDayOfWeekModels, partyDetails.getUnavailabilityDayOfWeek());
         assertEquals(unavailabilityRangeModels, partyDetails.getUnavailabilityRanges());
+    }
+
+    @Test
+    void should_map_internal_legal_rep_details_accordingly() {
+
+        when(appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper, null, null))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(legalRepDetailsMapper.mapInternalCaseLegalRep(asylumCase, caseDataMapper, null, null))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(legalRepOrgDetailsMapper.mapInternalCaseLegalRepOrg(asylumCase, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(sponsorDetailsMapper.map(asylumCase, caseDataMapper, null, null))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(respondentDetailsMapper.map(asylumCase, caseDataMapper))
+            .thenReturn(PartyDetailsModel.builder().build());
+        when(witnessDetailsMapper.map(asylumCase, caseDataMapper, null, null))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        when(interpreterDetailsMapper.map(asylumCase, caseDataMapper, null, null))
+            .thenReturn(List.of(PartyDetailsModel.builder().build()));
+        when(asylumCase.read(AsylumCaseFieldDefinition.HAS_SPONSOR, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(AsylumCaseFieldDefinition.IS_ADMIN, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(AsylumCaseFieldDefinition.APPELLANTS_REPRESENTATION, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.NO));
+
+        PartyDetailsMapper mapper = new PartyDetailsMapper(
+            appellantDetailsMapper,
+            applicantDetailsMapper,
+            legalRepDetailsMapper,
+            legalRepOrgDetailsMapper,
+            respondentDetailsMapper,
+            sponsorDetailsMapper,
+            witnessDetailsMapper,
+            financialConditionSupporterDetailsMapper,
+            interpreterDetailsMapper,
+            bailInterpreterDetailsMapper
+        );
+
+        assertEquals(7, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper).size());
+
     }
 }

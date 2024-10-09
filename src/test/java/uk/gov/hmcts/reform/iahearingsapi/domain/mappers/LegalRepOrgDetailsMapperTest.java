@@ -47,6 +47,27 @@ class LegalRepOrgDetailsMapperTest {
     }
 
     @Test
+    void should_asylum_internal_case_map_correctly() {
+
+        when(caseDataMapper.getLegalRepOrgPartyId(asylumCase)).thenReturn("partyId");
+        when(caseDataMapper.getInternalCaseLegalRepCompany(asylumCase)).thenReturn("legaRepPartyName");
+        when(caseDataMapper.getLegalRepOrganisationIdentifier(asylumCase)).thenReturn("legalRepOrgId");
+        PartyDetailsModel expected = PartyDetailsModel.builder()
+            .partyID("partyId")
+            .partyType("ORG")
+            .partyRole("LGRP")
+            .organisationDetails(
+                OrganisationDetailsModel.builder()
+                    .organisationType("ORG")
+                    .name("legaRepPartyName")
+                    .cftOrganisationID("legalRepOrgId")
+                    .build())
+            .build();
+
+        assertEquals(expected, new LegalRepOrgDetailsMapper().mapInternalCaseLegalRepOrg(asylumCase, caseDataMapper));
+    }
+
+    @Test
     void should_bail_map_correctly() {
 
         when(bailCaseDataMapper.getLegalRepOrgPartyId(bailCase)).thenReturn("partyId");

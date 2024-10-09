@@ -66,12 +66,19 @@ public class PartyDetailsMapper {
         if (MapperUtils.hasSponsor(asylumCase)) {
             partyDetails.add(sponsorDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
         }
-        if (MapperUtils.isRepJourney(asylumCase)
+        if (!MapperUtils.isInternalCase(asylumCase)
+            && MapperUtils.isRepJourney(asylumCase)
             && !MapperUtils.isChangeOrganisationRequestPresent(asylumCase)) {
 
             partyDetails.add(legalRepDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
             partyDetails.add(legalRepOrgDetailsMapper.map(asylumCase, caseDataMapper));
         }
+        if (MapperUtils.isInternalCase(asylumCase) && MapperUtils.isInternalCaseHasLegalRep(asylumCase)) {
+            partyDetails.add(legalRepDetailsMapper
+                                 .mapInternalCaseLegalRep(asylumCase, caseDataMapper, persistedHearingDetails, event));
+            partyDetails.add(legalRepOrgDetailsMapper.mapInternalCaseLegalRepOrg(asylumCase, caseDataMapper));
+        }
+
         partyDetails.addAll(witnessDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
         partyDetails.addAll(interpreterDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
 
