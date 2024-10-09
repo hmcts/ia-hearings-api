@@ -74,7 +74,8 @@ public class PartyDetailsMapper {
             partyDetails.add(legalRepOrgDetailsMapper.map(asylumCase, caseDataMapper));
         }
         if (MapperUtils.isInternalCase(asylumCase) && MapperUtils.isInternalCaseHasLegalRep(asylumCase)) {
-            partyDetails.add(legalRepDetailsMapper.mapInternalCaseLegalRep(asylumCase, caseDataMapper, persistedHearingDetails, event));
+            partyDetails.add(legalRepDetailsMapper
+                                 .mapInternalCaseLegalRep(asylumCase, caseDataMapper, persistedHearingDetails, event));
             partyDetails.add(legalRepOrgDetailsMapper.mapInternalCaseLegalRepOrg(asylumCase, caseDataMapper));
         }
 

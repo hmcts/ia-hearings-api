@@ -50,6 +50,27 @@ public class LegalRepDetailsMapper {
             .build();
     }
 
+    public PartyDetailsModel map(BailCase bailCase, BailCaseDataToServiceHearingValuesMapper caseDataMapper) {
+
+        return PartyDetailsModel.builder()
+            .partyID(caseDataMapper.getLegalRepPartyId(bailCase))
+            .partyType(PartyType.IND.getPartyType())
+            .partyRole("LGRP")
+            .individualDetails(
+                IndividualDetailsModel.builder()
+                    .firstName(caseDataMapper.getStringValueByDefinition(bailCase,
+                                                                         BailCaseFieldDefinition.LEGAL_REP_NAME))
+                    .lastName(caseDataMapper.getStringValueByDefinition(bailCase,
+                                                                        BailCaseFieldDefinition.LEGAL_REP_FAMILY_NAME))
+                    .preferredHearingChannel(caseDataMapper.getHearingChannel(bailCase))
+                    .hearingChannelEmail(
+                        caseDataMapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_EMAIL))
+                    .hearingChannelPhone(
+                        caseDataMapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_PHONE))
+                    .build())
+            .build();
+    }
+
     public PartyDetailsModel mapInternalCaseLegalRep(AsylumCase asylumCase,
                                  CaseDataToServiceHearingValuesMapper caseDataMapper,
                                  HearingDetails persistedHearingDetails,
@@ -69,27 +90,6 @@ public class LegalRepDetailsMapper {
                     .hearingChannelEmail(
                         caseDataMapper.getHearingChannelEmail(asylumCase, AsylumCaseFieldDefinition.LEGAL_REP_EMAIL))
                     .hearingChannelPhone(Collections.emptyList())
-                    .build())
-            .build();
-    }
-
-    public PartyDetailsModel map(BailCase bailCase, BailCaseDataToServiceHearingValuesMapper caseDataMapper) {
-
-        return PartyDetailsModel.builder()
-            .partyID(caseDataMapper.getLegalRepPartyId(bailCase))
-            .partyType(PartyType.IND.getPartyType())
-            .partyRole("LGRP")
-            .individualDetails(
-                IndividualDetailsModel.builder()
-                    .firstName(caseDataMapper.getStringValueByDefinition(bailCase,
-                                                                         BailCaseFieldDefinition.LEGAL_REP_NAME))
-                    .lastName(caseDataMapper.getStringValueByDefinition(bailCase,
-                                                                        BailCaseFieldDefinition.LEGAL_REP_FAMILY_NAME))
-                    .preferredHearingChannel(caseDataMapper.getHearingChannel(bailCase))
-                    .hearingChannelEmail(
-                        caseDataMapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_EMAIL))
-                    .hearingChannelPhone(
-                        caseDataMapper.getHearingChannelEmailPhone(bailCase, LEGAL_REP_PHONE))
                     .build())
             .build();
     }
