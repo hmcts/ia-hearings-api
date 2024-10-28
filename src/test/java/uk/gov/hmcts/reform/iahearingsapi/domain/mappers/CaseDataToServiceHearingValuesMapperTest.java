@@ -27,6 +27,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VULNERABILITIES_ALLOWED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REPRESENTATIVE_EMAIL_ADDRESS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_COMPANY_PAPER_J;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_FAMILY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_INDIVIDUAL_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LEGAL_REP_MOBILE_PHONE_NUMBER;
@@ -353,12 +354,15 @@ class CaseDataToServiceHearingValuesMapperTest {
             .thenReturn(Optional.of("legalRepOrgPartyId"));
         when(asylumCase.read(SPONSOR_PARTY_ID, String.class))
             .thenReturn(Optional.of("sponsorPartyId"));
+        when(asylumCase.read(LEGAL_REP_COMPANY_PAPER_J, String.class))
+            .thenReturn(Optional.of("internalCaseLegalRepCompany"));
 
         assertNotNull(mapper.getAppellantPartyId(asylumCase));
         assertNotNull(mapper.getLegalRepPartyId(asylumCase));
         assertNotNull(mapper.getLegalRepOrgPartyId(asylumCase));
         assertNotNull(mapper.getSponsorPartyId(asylumCase));
         assertNotNull(mapper.getRespondentPartyId(asylumCase));
+        assertNotNull(mapper.getInternalCaseLegalRepCompany(asylumCase));
     }
 
     @Test
@@ -376,6 +380,9 @@ class CaseDataToServiceHearingValuesMapperTest {
         assertThatThrownBy(() -> mapper.getSponsorPartyId(asylumCase))
             .isExactlyInstanceOf(RequiredFieldMissingException.class)
             .hasMessage("sponsorPartyId is a required field");
+        assertThatThrownBy(() -> mapper.getInternalCaseLegalRepCompany(asylumCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("legalRepCompanyPaperJ is a required field");
     }
 
     @Test
