@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
+import static java.util.Collections.emptyList;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_ID_LIST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.IS_REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
@@ -12,12 +14,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.REF_DATA_LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_TYPE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.*;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
@@ -42,17 +39,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.*;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.ListingEvent;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
@@ -97,6 +89,18 @@ public class ListedHearingService {
         HearingCentre newHearingCentre = HandlerUtils.getLocation(hearingChannels, hearingVenueId);
         DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
 
+        String newHearingId = getHearingId(serviceData);
+
+        Optional<List<IdValue<String>>> maybeHearingIdList =
+            asylumCase.read(HEARING_ID_LIST);
+
+        final List<IdValue<String>> hearingIdList =
+            maybeHearingIdList.orElse(emptyList());
+
+        List<IdValue<String>> finalHearingIdList = appendToHearingIdList(hearingIdList, newHearingId);
+
+        asylumCase.write(HEARING_ID_LIST, finalHearingIdList);
+
         asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
         asylumCase.write(LIST_CASE_HEARING_DATE, newHearingDateTime);
         asylumCase.write(LISTING_LENGTH, new HoursMinutes(getHearingDuration(serviceData)));
@@ -116,6 +120,26 @@ public class ListedHearingService {
             log.info("updateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
                 asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
         }
+    }
+
+    public List<IdValue<String>> appendToHearingIdList(
+        List<IdValue<String>> existingHearingIdList,
+        String newHearingId
+    ) {
+//        requireNonNull(existingHearingIdList, "existingHearingIdList must not be null");
+//        requireNonNull(newHearingId, "newHearingId must not be null");
+
+        final List<IdValue<String>> allHearingIds = new ArrayList<>();
+
+        int index = existingHearingIdList.size() + 1;
+
+        for (IdValue<String> existingHearingId : existingHearingIdList) {
+            allHearingIds.add(new IdValue<>(String.valueOf(index--), existingHearingId.getValue()));
+        }
+
+        allHearingIds.add(new IdValue<>(String.valueOf(index--), newHearingId));
+
+        return allHearingIds;
     }
 
     public List<HearingChannel> getHearingChannels(ServiceData serviceData) {
@@ -155,6 +179,11 @@ public class ListedHearingService {
     public int getHearingDuration(ServiceData serviceData) {
         return serviceData.read(DURATION, Integer.class)
             .orElseThrow(() -> new IllegalStateException("duration can not be null"));
+    }
+
+    public String getHearingId(ServiceData serviceData) {
+        return serviceData.read(HEARING_ID, String.class)
+            .orElseThrow(() -> new IllegalStateException("hearing ID can not be null"));
     }
 
     public String getListingReference() {
@@ -259,9 +288,9 @@ public class ListedHearingService {
             Optional<List<HearingChannel>> previousOptionalHearingChannels = previous.read(HEARING_CHANNELS);
             Optional<List<HearingChannel>> latestOptionalHearingChannels = latest.read(HEARING_CHANNELS);
             List<HearingChannel> previousHearingChannels = previousOptionalHearingChannels
-                .orElse(Collections.emptyList());
+                .orElse(emptyList());
             List<HearingChannel> latestHearingChannels = latestOptionalHearingChannels
-                .orElse(Collections.emptyList());
+                .orElse(emptyList());
 
             return !((previousHearingChannels.size() == latestHearingChannels.size())
                      && previousHearingChannels.containsAll(latestHearingChannels));

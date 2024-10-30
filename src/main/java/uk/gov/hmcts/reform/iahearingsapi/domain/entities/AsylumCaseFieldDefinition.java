@@ -317,7 +317,10 @@ public enum AsylumCaseFieldDefinition {
     NEXT_HEARING_DETAILS("nextHearingDetails", new TypeReference<NextHearingDetails>(){}),
 
     CASE_MANAGEMENT_LOCATION_REF_DATA(
-        "caseManagementLocationRefData", new TypeReference<CaseManagementLocationRefData>(){});
+        "caseManagementLocationRefData", new TypeReference<CaseManagementLocationRefData>(){}),
+
+    HEARING_ID_LIST(
+        "hearingIdList", new TypeReference<List<IdValue<String>>>(){});
 
 
     private final String value;
