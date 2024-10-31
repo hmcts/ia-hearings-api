@@ -1,11 +1,13 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANTS_REPRESENTATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_FAMILY_NAME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_IN_UK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HAS_SPONSOR;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_ADMIN;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.AIP;
@@ -72,5 +74,14 @@ public class MapperUtils {
         }
 
         return dateTimeString.substring(0, Math.min(dateTimeString.length(), 19));
+    }
+
+    public static boolean isInternalCase(AsylumCase asylumCase) {
+        return (asylumCase.read(IS_ADMIN, YesOrNo.class)).map(isAdmin -> YesOrNo.YES == isAdmin).orElse(false);
+    }
+
+    public static boolean isInternalCaseHasLegalRep(AsylumCase asylumCase) {
+        return (asylumCase.read(APPELLANTS_REPRESENTATION, YesOrNo.class))
+            .map(isAip -> YesOrNo.NO == isAip).orElse(false);
     }
 }
