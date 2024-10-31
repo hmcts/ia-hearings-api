@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
+import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.*;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
@@ -37,6 +38,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
@@ -97,7 +99,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         boolean hearingDateTimeUpdated = tryUpdateHearingDateTime(asylumCase, serviceData, hearingId);
         boolean hearingChannelUpdated = tryUpdateHearingChannel(asylumCase, serviceData, hearingId);
         boolean hearingDurationUpdated = tryUpdateHearingDuration(asylumCase, serviceData, hearingId);
-        boolean hearingIdUpdated = tryUpdateHearingId(asylumCase, serviceData, hearingId);
+        boolean hearingIdUpdated = tryUpdateHearingIdList(asylumCase, hearingId);
 
         boolean currentChannelIsRemote = List.of(VID.name(), TEL.name()).contains(currentHearingChannel);
         boolean nextChannelIsRemote = isRemoteHearing(serviceData);
@@ -110,7 +112,8 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         boolean sendUpdate = hearingDateTimeUpdated
                              || hearingChannelUpdated
                              || hearingLocationUpdated
-                             || hearingDurationUpdated;
+                             || hearingDurationUpdated
+                             || hearingIdUpdated;
 
         // Only trigger review interpreter task if the hearing location, date or channel are updated.
         // Don not trigger when hearing channel update is remote to remote
@@ -221,9 +224,15 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         }
     }
 
-    private boolean tryUpdateHearingId(AsylumCase asylumCase, ServiceData serviceData, String hearingId) {
+    private boolean tryUpdateHearingIdList(AsylumCase asylumCase, String hearingId) {
 
-        final Optional<String> newHearingId = serviceData.read(HEARING_ID, String.class);
+        Optional<List<IdValue<String>>> maybeHearingIdList =
+            asylumCase.read(HEARING_ID_LIST);
+
+        final List<IdValue<String>> hearingIdList =
+            maybeHearingIdList.orElse(emptyList());
+
+        hearingIdList.add(new IdValue<>(String.valueOf(1), hearingId));
 
         return false;
 
