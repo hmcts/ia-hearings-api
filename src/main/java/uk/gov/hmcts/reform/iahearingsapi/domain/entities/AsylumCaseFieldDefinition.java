@@ -318,7 +318,7 @@ public enum AsylumCaseFieldDefinition {
 
     CASE_MANAGEMENT_LOCATION_REF_DATA(
         "caseManagementLocationRefData", new TypeReference<CaseManagementLocationRefData>(){}),
-  
+
     IS_ADMIN(
         "isAdmin", new TypeReference<YesOrNo>() {}),
 
@@ -335,8 +335,8 @@ public enum AsylumCaseFieldDefinition {
         "legalRepEmail", new TypeReference<String>(){}),
 
     LEGAL_REP_COMPANY_PAPER_J(
-        "legalRepCompanyPaperJ", new TypeReference<String>(){});
-  
+        "legalRepCompanyPaperJ", new TypeReference<String>(){}),
+
     HEARING_ID_LIST(
         "hearingIdList", new TypeReference<List<IdValue<String>>>(){});
 
