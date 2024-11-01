@@ -19,10 +19,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataServi
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +96,10 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         boolean hearingDateTimeUpdated = tryUpdateHearingDateTime(asylumCase, serviceData, hearingId);
         boolean hearingChannelUpdated = tryUpdateHearingChannel(asylumCase, serviceData, hearingId);
         boolean hearingDurationUpdated = tryUpdateHearingDuration(asylumCase, serviceData, hearingId);
-        boolean hearingIdUpdated = tryUpdateHearingIdList(asylumCase, hearingId);
+        boolean hearingIdUpdated = false;
+        if (hearingDateTimeUpdated || hearingChannelUpdated || hearingDurationUpdated) {
+            hearingIdUpdated = tryUpdateHearingIdList(asylumCase, hearingId);
+        }
 
         boolean currentChannelIsRemote = List.of(VID.name(), TEL.name()).contains(currentHearingChannel);
         boolean nextChannelIsRemote = isRemoteHearing(serviceData);
@@ -226,16 +226,15 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
     private boolean tryUpdateHearingIdList(AsylumCase asylumCase, String hearingId) {
 
-        Optional<List<IdValue<String>>> maybeHearingIdList =
-            asylumCase.read(HEARING_ID_LIST);
+        Optional<List<IdValue<String>>> maybeHearingIdList = asylumCase.read(HEARING_ID_LIST);
 
-        final List<IdValue<String>> hearingIdList =
-            maybeHearingIdList.orElse(emptyList());
+        final List<IdValue<String>> hearingIdList = new ArrayList<>(maybeHearingIdList.orElse(emptyList()));
 
         hearingIdList.add(new IdValue<>(String.valueOf(1), hearingId));
 
-        return false;
+        asylumCase.write(HEARING_ID_LIST, hearingIdList);
 
+        return true;
     }
 
     private void assignRefDataFields(AsylumCase asylumCase, ServiceData serviceData, String caseId) {
