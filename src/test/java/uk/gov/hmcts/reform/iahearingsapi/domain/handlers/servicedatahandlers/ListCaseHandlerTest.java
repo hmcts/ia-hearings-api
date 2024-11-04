@@ -170,8 +170,8 @@ class ListCaseHandlerTest {
             .thenReturn(Optional.of(HEARING_VENUE_ID));
         when(serviceData.read(DURATION, Integer.class))
             .thenReturn(Optional.of(150));
-        when(serviceData.read(HEARING_ID, String.class)).
-            thenReturn(Optional.of("12345"));
+        when(serviceData.read(HEARING_ID, String.class))
+            .thenReturn(Optional.of("12345"));
 
         listCaseHandler.handle(serviceData);
 
