@@ -24,7 +24,11 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataServi
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.ArrayList;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
