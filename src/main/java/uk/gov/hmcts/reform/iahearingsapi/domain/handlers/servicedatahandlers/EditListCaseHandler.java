@@ -2,7 +2,12 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.*;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_ID_LIST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
@@ -228,13 +233,27 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
         Optional<List<IdValue<String>>> maybeHearingIdList = asylumCase.read(HEARING_ID_LIST);
 
+        int originalHearingIdListLength = maybeHearingIdList.map(List::size).orElse(0);
+
         final List<IdValue<String>> hearingIdList = new ArrayList<>(maybeHearingIdList.orElse(emptyList()));
 
-        hearingIdList.add(new IdValue<>(String.valueOf(1), hearingId));
+        int newHearingIdIndex = originalHearingIdListLength == 0 ? 0 : originalHearingIdListLength + 1;
 
-        asylumCase.write(HEARING_ID_LIST, hearingIdList);
+        hearingIdList.add(new IdValue<>(String.valueOf(newHearingIdIndex), hearingId));
 
-        return true;
+        int newHearingIdListLength = hearingIdList.size();
+
+        boolean updated = originalHearingIdListLength != newHearingIdListLength;
+
+        if (updated) {
+            asylumCase.write(HEARING_ID_LIST, hearingIdList);
+            log.info("Hearing Id list updated for hearing " + hearingId);
+            return true;
+        } else {
+            log.info("Hearing Id List not updated for hearing " + hearingId);
+            return false;
+        }
+
     }
 
     private void assignRefDataFields(AsylumCase asylumCase, ServiceData serviceData, String caseId) {
