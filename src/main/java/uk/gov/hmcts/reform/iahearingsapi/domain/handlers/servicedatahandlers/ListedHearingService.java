@@ -6,7 +6,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_ID_LIST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HEARING_ID_LIST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.IS_REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
@@ -101,17 +101,17 @@ public class ListedHearingService {
         HearingCentre newHearingCentre = HandlerUtils.getLocation(hearingChannels, hearingVenueId);
         DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
 
-        String newHearingId = getHearingId(serviceData);
-
-        Optional<List<IdValue<String>>> maybeHearingIdList =
-            asylumCase.read(HEARING_ID_LIST);
-
-        final List<IdValue<String>> hearingIdList =
-            maybeHearingIdList.orElse(emptyList());
-
-        List<IdValue<String>> finalHearingIdList = appendToHearingIdList(hearingIdList, newHearingId);
-
-        asylumCase.write(HEARING_ID_LIST, finalHearingIdList);
+//        String newHearingId = getHearingId(serviceData);
+//
+//        Optional<List<IdValue<String>>> maybeHearingIdList =
+//            asylumCase.read(HEARING_ID_LIST);
+//
+//        final List<IdValue<String>> hearingIdList =
+//            maybeHearingIdList.orElse(emptyList());
+//
+//        List<IdValue<String>> finalHearingIdList = appendToHearingIdList(hearingIdList, newHearingId);
+//
+//        asylumCase.write(HEARING_ID_LIST, finalHearingIdList);
 
         asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
         asylumCase.write(LIST_CASE_HEARING_DATE, newHearingDateTime);
@@ -227,6 +227,18 @@ public class ListedHearingService {
         bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
         bailCase.write(LISTING_HEARING_DURATION, String.valueOf(getHearingDuration(serviceData)));
         bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
+
+        String newHearingId = getHearingId(serviceData);
+
+        Optional<List<IdValue<String>>> maybeHearingIdList =
+            bailCase.read(HEARING_ID_LIST);
+
+        final List<IdValue<String>> hearingIdList =
+            maybeHearingIdList.orElse(emptyList());
+
+        List<IdValue<String>> finalHearingIdList = appendToHearingIdList(hearingIdList, newHearingId);
+
+        bailCase.write(HEARING_ID_LIST, finalHearingIdList);
 
         if (isRefDataLocationEnabled) {
             bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);

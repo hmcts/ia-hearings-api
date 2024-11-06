@@ -335,10 +335,7 @@ public enum AsylumCaseFieldDefinition {
         "legalRepEmail", new TypeReference<String>(){}),
 
     LEGAL_REP_COMPANY_PAPER_J(
-        "legalRepCompanyPaperJ", new TypeReference<String>(){}),
-
-    HEARING_ID_LIST(
-        "hearingIdList", new TypeReference<List<IdValue<String>>>(){});
+        "legalRepCompanyPaperJ", new TypeReference<String>(){});
 
 
     private final String value;
