@@ -189,6 +189,7 @@ class ListedHearingServiceTest {
         serviceData.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, hearingDate);
         serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, venueId);
         serviceData.write(DURATION, 60);
+        serviceData.write(ServiceDataFieldDefinition.HEARING_ID, "12345");
 
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
         bailCase.write(LISTING_HEARING_DATE, hearingDate);
