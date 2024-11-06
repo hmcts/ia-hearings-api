@@ -139,20 +139,6 @@ public class ListedHearingService {
         return allHearingIds;
     }
 
-//    public List<IdValue<String>> writeHearingIdList(
-//        String newHearingId
-//    ) {
-//        Optional<List<IdValue<String>>> maybeHearingIdList =
-//            bailCase.read(HEARING_ID_LIST);
-//
-//        final List<IdValue<String>> hearingIdList =
-//            maybeHearingIdList.orElse(emptyList());
-//
-//        List<IdValue<String>> finalHearingIdList = appendToHearingIdList(hearingIdList, newHearingId);
-//
-//        bailCase.write(HEARING_ID_LIST, finalHearingIdList);
-//    }
-
     public List<HearingChannel> getHearingChannels(ServiceData serviceData) {
         Optional<List<HearingChannel>> optionalHearingChannels = serviceData.read(HEARING_CHANNELS);
 
