@@ -141,13 +141,12 @@ public class ListedHearingService {
 
         final List<IdValue<String>> allHearingIds = new ArrayList<>();
 
-        int index = existingHearingIdList.size() + 1;
-
+        int index = 1;
         for (IdValue<String> existingHearingId : existingHearingIdList) {
-            allHearingIds.add(new IdValue<>(String.valueOf(index--), existingHearingId.getValue()));
+            allHearingIds.add(new IdValue<>(String.valueOf(index++), existingHearingId.getValue()));
         }
 
-        allHearingIds.add(new IdValue<>(String.valueOf(index - 1), newHearingId));
+        allHearingIds.add(new IdValue<>(String.valueOf(index), newHearingId));
 
         return allHearingIds;
     }
