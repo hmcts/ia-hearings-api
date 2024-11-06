@@ -101,18 +101,6 @@ public class ListedHearingService {
         HearingCentre newHearingCentre = HandlerUtils.getLocation(hearingChannels, hearingVenueId);
         DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
 
-//        String newHearingId = getHearingId(serviceData);
-//
-//        Optional<List<IdValue<String>>> maybeHearingIdList =
-//            asylumCase.read(HEARING_ID_LIST);
-//
-//        final List<IdValue<String>> hearingIdList =
-//            maybeHearingIdList.orElse(emptyList());
-//
-//        List<IdValue<String>> finalHearingIdList = appendToHearingIdList(hearingIdList, newHearingId);
-//
-//        asylumCase.write(HEARING_ID_LIST, finalHearingIdList);
-
         asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
         asylumCase.write(LIST_CASE_HEARING_DATE, newHearingDateTime);
         asylumCase.write(LISTING_LENGTH, new HoursMinutes(getHearingDuration(serviceData)));
