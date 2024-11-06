@@ -1,13 +1,11 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
-import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_ID_LIST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
@@ -27,8 +25,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.ArrayList;
-import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -105,10 +101,6 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         boolean hearingDateTimeUpdated = tryUpdateHearingDateTime(asylumCase, serviceData, hearingId);
         boolean hearingChannelUpdated = tryUpdateHearingChannel(asylumCase, serviceData, hearingId);
         boolean hearingDurationUpdated = tryUpdateHearingDuration(asylumCase, serviceData, hearingId);
-        boolean hearingIdUpdated = false;
-        if (hearingDateTimeUpdated || hearingChannelUpdated || hearingDurationUpdated) {
-            hearingIdUpdated = tryUpdateHearingIdList(asylumCase, hearingId);
-        }
 
         boolean currentChannelIsRemote = List.of(VID.name(), TEL.name()).contains(currentHearingChannel);
         boolean nextChannelIsRemote = isRemoteHearing(serviceData);
@@ -121,8 +113,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         boolean sendUpdate = hearingDateTimeUpdated
                              || hearingChannelUpdated
                              || hearingLocationUpdated
-                             || hearingDurationUpdated
-                             || hearingIdUpdated;
+                             || hearingDurationUpdated;
 
         // Only trigger review interpreter task if the hearing location, date or channel are updated.
         // Don not trigger when hearing channel update is remote to remote
@@ -231,33 +222,6 @@ public class EditListCaseHandler extends ListedHearingService implements Service
             log.info("Hearing length not updated for hearing " + hearingId);
             return false;
         }
-    }
-
-    private boolean tryUpdateHearingIdList(AsylumCase asylumCase, String hearingId) {
-
-        Optional<List<IdValue<String>>> maybeHearingIdList = asylumCase.read(HEARING_ID_LIST);
-
-        int originalHearingIdListLength = maybeHearingIdList.map(List::size).orElse(0);
-
-        final List<IdValue<String>> hearingIdList = new ArrayList<>(maybeHearingIdList.orElse(emptyList()));
-
-        int newHearingIdIndex = originalHearingIdListLength == 0 ? 0 : originalHearingIdListLength + 1;
-
-        hearingIdList.add(new IdValue<>(String.valueOf(newHearingIdIndex), hearingId));
-
-        int newHearingIdListLength = hearingIdList.size();
-
-        boolean updated = originalHearingIdListLength != newHearingIdListLength;
-
-        if (updated) {
-            asylumCase.write(HEARING_ID_LIST, hearingIdList);
-            log.info("Hearing Id list updated for hearing " + hearingId);
-            return true;
-        } else {
-            log.info("Hearing Id List not updated for hearing " + hearingId);
-            return false;
-        }
-
     }
 
     private void assignRefDataFields(AsylumCase asylumCase, ServiceData serviceData, String caseId) {
