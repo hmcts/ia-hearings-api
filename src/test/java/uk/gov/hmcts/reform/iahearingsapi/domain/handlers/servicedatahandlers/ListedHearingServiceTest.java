@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.ArrayList;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinit
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.ListingEvent;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
@@ -332,6 +334,25 @@ class ListedHearingServiceTest {
             serviceData, partiesNotifiedResponses, targetFields).size() > 0;
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    void testAppendToHearingIdList() {
+        List<IdValue<String>> existingHearingIdList = new ArrayList<>();
+        existingHearingIdList.add(new IdValue<>("1", "12345"));
+        existingHearingIdList.add(new IdValue<>("2", "56789"));
+
+        String newHearingId = "12567";
+
+        List<IdValue<String>> result = listedHearingService.appendToHearingIdList(existingHearingIdList, newHearingId);
+
+        assertEquals(3, result.size(), "The list should contain three hearing IDs");
+        assertEquals("1", result.get(0).getId());
+        assertEquals("12345", result.get(0).getValue());
+        assertEquals("2", result.get(1).getId());
+        assertEquals("56789", result.get(1).getValue());
+        assertEquals("3", result.get(2).getId());
+        assertEquals("12567", result.get(2).getValue());
     }
 
     @ParameterizedTest
