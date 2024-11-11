@@ -191,7 +191,7 @@ class ListedHearingServiceTest {
         serviceData.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, hearingDate);
         serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, venueId);
         serviceData.write(DURATION, 60);
-        serviceData.write(ServiceDataFieldDefinition.HEARING_ID, "12345");
+        serviceData.write(HEARING_ID, "12345");
 
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
         bailCase.write(LISTING_HEARING_DATE, hearingDate);
@@ -261,6 +261,8 @@ class ListedHearingServiceTest {
         when(serviceData.read(HEARING_CHANNELS)).thenReturn(Optional.of(List.of(channel)));
         when(serviceData.read(HEARING_VENUE_ID, String.class)).thenReturn(Optional.of(venueId));
         when(serviceData.read(DURATION, Integer.class)).thenReturn(Optional.of(60));
+        when(serviceData.read(HEARING_ID, String.class)).thenReturn(Optional.of("12345"));
+
         BailCase bailCase = mock(BailCase.class);
         Set<ServiceDataFieldDefinition> fieldsToUpdate =
             Set.of(NEXT_HEARING_DATE, HEARING_CHANNELS, HEARING_VENUE_ID, DURATION);
