@@ -253,9 +253,6 @@ public class ListedHearingService {
 
         if (fieldsToUpdate.contains(HEARING_CHANNELS) || fieldsToUpdate.contains(HEARING_VENUE_ID)) {
             bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
-        }
-
-        if (fieldsToUpdate.contains(HEARING_ID)) {
             Optional<List<IdValue<String>>> maybeHearingIdList =
                 bailCase.read(HEARING_ID_LIST);
 
