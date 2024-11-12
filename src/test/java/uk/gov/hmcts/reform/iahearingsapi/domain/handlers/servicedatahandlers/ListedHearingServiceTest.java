@@ -175,60 +175,68 @@ class ListedHearingServiceTest {
             Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER,
                 "2023-12-02T10:00:00.000", HATTON_CROSS, NO, false, null,
                     new AsylumCaseHearing[] {
-                            new AsylumCaseHearing(
-                                    "2000012726",
-                                    "2023-12-02T10:00:00.000",
-                                    null
-                            )
+                        new AsylumCaseHearing(
+                            "2000012726",
+                            "2023-12-02T10:00:00.000",
+                            null
+                        )
                     }
             ),
             Arguments.of(GLASGOW_EPIMMS_ID, TEL,
                 "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true, null,
                     new AsylumCaseHearing[] {
-                            new AsylumCaseHearing(
-                                    "2000012726",
-                                    "2023-12-02T09:45:00.000",
-                                    null
-                            )
+                        new AsylumCaseHearing(
+                            "2000012726",
+                            "2023-12-02T09:45:00.000",
+                            null
+                        )
                     }
             ),
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
                 "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, NO, true, null,
                     new AsylumCaseHearing[] {
-                            new AsylumCaseHearing(
-                                    "2000012726",
-                                    "2023-12-02T09:45:00.000",
-                                    null
-                            )
+                        new AsylumCaseHearing(
+                           "2000012726",
+                           "2023-12-02T09:45:00.000",
+                           null
+                        )
                     }
             ),
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
                 "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false, null,
                     new AsylumCaseHearing[] {
-                            new AsylumCaseHearing(
-                                    "2000012726",
-                                    "2023-12-02T09:45:00.000",
-                                    null
-                            )
+                        new AsylumCaseHearing(
+                           "2000012726",
+                           "2023-12-02T09:45:00.000",
+                           null
+                        )
                     }
             ),
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
                 "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false,
                 singletonList(new AsylumCaseHearing("2000012726", "2023-12-01T09:45:00.000", null)),
                 new AsylumCaseHearing[] {
-                        new AsylumCaseHearing(
-                            "2000012726",
-                            "2023-12-02T09:45:00.000",
-                            null
-                        )
+                    new AsylumCaseHearing(
+                        "2000012726",
+                        "2023-12-02T09:45:00.000",
+                        null
+                    )
                 }
             ),
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
                 "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false,
                 singletonList(new AsylumCaseHearing("2000012725", "2023-12-01T09:45:00.000", null)),
                 new AsylumCaseHearing[]{
-                        new AsylumCaseHearing("2000012725", "2023-12-01T09:45:00.000", null),
-                        new AsylumCaseHearing("2000012726", "2023-12-02T09:45:00.000", null)
+                    new AsylumCaseHearing(
+                        "2000012725",
+                        "2023-12-01T09:45:00.000",
+                        null
+                    ),
+                    new AsylumCaseHearing(
+                        "2000012726",
+                        "2023-12-02T09:45:00.000",
+                        null
+                    )
                 }
             )
         );

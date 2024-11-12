@@ -50,7 +50,6 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("unchecked")
 class ListCaseHandlerTest {
 
     private static final String GLASGOW_EPIMMS_ID = "366559";
@@ -71,7 +70,7 @@ class ListCaseHandlerTest {
 
     private ListCaseHandler listCaseHandler;
 
-    private DynamicList hearingLocationList = new DynamicList(
+    private final DynamicList hearingLocationList = new DynamicList(
         new Value("745389", "Hendon Magistrates Court"),
         List.of(new Value("745389", "Hendon Magistrates Court")));
 
