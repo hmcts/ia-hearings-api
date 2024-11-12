@@ -135,18 +135,6 @@ public class ListedHearingService {
         asylumCase.write(HEARING_LIST, hearings);
     }
 
-    private Optional<AsylumCaseHearing> getHearingFromAsylumCase(
-            List<AsylumCaseHearing> hearings,
-            String hearingId
-    ) {
-        for (AsylumCaseHearing hearing: hearings) {
-            if (hearing.getHearingId().equals(hearingId)) {
-                return Optional.of(hearing);
-            }
-        }
-        return Optional.empty();
-    }
-
     public List<HearingChannel> getHearingChannels(ServiceData serviceData) {
         Optional<List<HearingChannel>> optionalHearingChannels = serviceData.read(HEARING_CHANNELS);
 
@@ -280,6 +268,18 @@ public class ListedHearingService {
         return targetFields.stream()
             .filter(field -> fieldUpdated(previousServiceData, serviceData, field))
             .collect(Collectors.toSet());
+    }
+
+    private Optional<AsylumCaseHearing> getHearingFromAsylumCase(
+            List<AsylumCaseHearing> hearings,
+            String hearingId
+    ) {
+        for (AsylumCaseHearing hearing: hearings) {
+            if (hearing.getHearingId().equals(hearingId)) {
+                return Optional.of(hearing);
+            }
+        }
+        return Optional.empty();
     }
 
     private boolean fieldUpdated(ServiceData previous, ServiceData latest, ServiceDataFieldDefinition field) {
