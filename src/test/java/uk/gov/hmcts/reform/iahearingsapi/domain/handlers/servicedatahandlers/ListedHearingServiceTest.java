@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -11,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LIST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
@@ -25,6 +27,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.HA
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
@@ -40,6 +43,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -48,6 +52,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
@@ -61,6 +66,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
+
+import static java.util.Collections.singletonList;
 
 class ListedHearingServiceTest {
 
@@ -107,19 +114,23 @@ class ListedHearingServiceTest {
     @MethodSource("updateListCaseHearingDetailsSource")
     void updateListCaseHearingDetails(String venueId, HearingChannel channel,
                                       String hearingDate, HearingCentre expectedHearingCentre,
-                                      YesOrNo expectedIsRemoteHearing, boolean isRefDataLocationEnabled) {
+                                      YesOrNo expectedIsRemoteHearing, boolean isRefDataLocationEnabled,
+                                      List<AsylumCaseHearing> existingHearings,
+                                      AsylumCaseHearing[] expectedNewHearings) {
         serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
             List.of(channel));
         serviceData.write(ServiceDataFieldDefinition.HEARING_TYPE, SUBSTANTIVE.getKey());
         serviceData.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, hearingDate);
         serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, venueId);
         serviceData.write(DURATION, 200);
+        serviceData.write(HEARING_ID, "2000012726");
 
         asylumCase.write(LIST_CASE_HEARING_DATE, hearingDate);
         asylumCase.write(LIST_CASE_HEARING_CENTRE, GLASGOW_TRIBUNALS_CENTRE);
         asylumCase.write(HEARING_CHANNEL, new DynamicList(
             new Value(HearingChannel.INTER.name(), HearingChannel.INTER.getLabel()),
             List.of(new Value(HearingChannel.INTER.name(), HearingChannel.INTER.getLabel()))));
+        asylumCase.write(HEARING_LIST, existingHearings);
 
         listedHearingService.updateListCaseHearingDetails(serviceData, asylumCase,
             isRefDataLocationEnabled, "caseId", courtVenueList, hearingLocationList);
@@ -152,20 +163,74 @@ class ListedHearingServiceTest {
             List.of(new Value(channel.name(), channel.getLabel())));
         assertEquals(Optional.of(newHearingChannel), asylumCase.read(HEARING_CHANNEL));
 
-
+        assertTrue(asylumCase.read(HEARING_LIST).isPresent());
+        Optional<List<AsylumCaseHearing>> newHearingsOpt = asylumCase.read(HEARING_LIST);
+        List<AsylumCaseHearing> newHearings = newHearingsOpt.get();
+        assertThat(newHearings).containsExactlyInAnyOrder(expectedNewHearings);
     }
 
     private static Stream<Arguments> updateListCaseHearingDetailsSource() {
 
         return Stream.of(
             Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER,
-                "2023-12-02T10:00:00.000", HATTON_CROSS, NO, false),
+                "2023-12-02T10:00:00.000", HATTON_CROSS, NO, false, null,
+                    new AsylumCaseHearing[] {
+                            new AsylumCaseHearing(
+                                    "2000012726",
+                                    "2023-12-02T10:00:00.000",
+                                    null
+                            )
+                    }
+            ),
             Arguments.of(GLASGOW_EPIMMS_ID, TEL,
-                "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true),
+                "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true, null,
+                    new AsylumCaseHearing[] {
+                            new AsylumCaseHearing(
+                                    "2000012726",
+                                    "2023-12-02T09:45:00.000",
+                                    null
+                            )
+                    }
+            ),
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
-                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, NO, true),
+                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, NO, true, null,
+                    new AsylumCaseHearing[] {
+                            new AsylumCaseHearing(
+                                    "2000012726",
+                                    "2023-12-02T09:45:00.000",
+                                    null
+                            )
+                    }
+            ),
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
-                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false)
+                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false, null,
+                    new AsylumCaseHearing[] {
+                            new AsylumCaseHearing(
+                                    "2000012726",
+                                    "2023-12-02T09:45:00.000",
+                                    null
+                            )
+                    }
+            ),
+            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
+                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false,
+                singletonList(new AsylumCaseHearing("2000012726", "2023-12-01T09:45:00.000", null)),
+                new AsylumCaseHearing[] {
+                        new AsylumCaseHearing(
+                            "2000012726",
+                            "2023-12-02T09:45:00.000",
+                            null
+                        )
+                }
+            ),
+            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
+                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false,
+                singletonList(new AsylumCaseHearing("2000012725", "2023-12-01T09:45:00.000", null)),
+                new AsylumCaseHearing[]{
+                        new AsylumCaseHearing("2000012725", "2023-12-01T09:45:00.000", null),
+                        new AsylumCaseHearing("2000012726", "2023-12-02T09:45:00.000", null)
+                }
+            )
         );
     }
 

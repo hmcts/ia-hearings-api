@@ -1,19 +1,15 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
-import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum AsylumCaseDecision {
+public enum AsylumCaseHearingOutcome {
     GRANTED("granted"),
-    DISMISSED("dismissed"),
-
-    @JsonEnumDefaultValue
-    NONE("none");
+    DISMISSED("dismissed");
 
     @JsonValue
     private final String id;
 
-    AsylumCaseDecision(String id) {
+    AsylumCaseHearingOutcome(String id) {
         this.id = id;
     }
 
@@ -21,5 +17,4 @@ public enum AsylumCaseDecision {
     public String toString() {
         return id;
     }
-
 }
