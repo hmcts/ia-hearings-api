@@ -13,6 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
@@ -168,7 +169,9 @@ class ListCaseHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
             .thenReturn(Optional.of(HEARING_VENUE_ID));
         when(serviceData.read(DURATION, Integer.class))
-            .thenReturn(Optional.of(150));
+                .thenReturn(Optional.of(150));
+        when(serviceData.read(HEARING_ID, String.class))
+                .thenReturn(Optional.of("2000000001"));
 
         listCaseHandler.handle(serviceData);
 
