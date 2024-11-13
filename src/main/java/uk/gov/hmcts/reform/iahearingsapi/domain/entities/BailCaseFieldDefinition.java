@@ -160,6 +160,9 @@ public enum BailCaseFieldDefinition {
     REF_DATA_LISTING_LOCATION(
         "refDataListingLocation", new TypeReference<DynamicList>() {}),
 
+    HEARING_ID_CURRENT(
+        "hearingId", new TypeReference<String>() {}),
+
     HEARING_ID_LIST(
         "hearingIdList", new TypeReference<List<IdValue<String>>>(){});
 

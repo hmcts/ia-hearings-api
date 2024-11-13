@@ -7,6 +7,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HEARING_ID_LIST;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HEARING_ID_CURRENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.IS_REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
@@ -217,6 +218,8 @@ public class ListedHearingService {
 
         String newHearingId = getHearingId(serviceData);
 
+        bailCase.write(HEARING_ID_CURRENT, newHearingId);
+
         Optional<List<IdValue<String>>> maybeHearingIdList =
             bailCase.read(HEARING_ID_LIST);
 
@@ -259,6 +262,8 @@ public class ListedHearingService {
             final List<IdValue<String>> hearingIdList = maybeHearingIdList.orElse(emptyList());
 
             String hearingId = getHearingId(serviceData);
+
+            bailCase.write(HEARING_ID_CURRENT, hearingId);
 
             final List<IdValue<String>> finalHearingIdList = appendToHearingIdList(
                 hearingIdList, hearingId);
