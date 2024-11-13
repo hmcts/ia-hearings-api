@@ -3,10 +3,13 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HEARING_ID_LIST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_LISTING_STATUS;
@@ -35,6 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -48,6 +52,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinit
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
@@ -267,12 +272,22 @@ class BailListCaseUpdateHandlerTest {
         when(serviceData.read(HEARING_VENUE_ID, String.class))
             .thenReturn(Optional.of("231596"));
 
+        List<IdValue<String>> initialHearingIdList = Collections.emptyList(); // or initial list if needed
+        when(bailCase.read(HEARING_ID_LIST)).thenReturn(Optional.of(initialHearingIdList));
+
         bailListCaseUpdateHandler.handle(serviceData);
 
         verify(bailCase).write(LISTING_EVENT, RELISTING.toString());
         verify(bailCase).write(LISTING_LOCATION, HearingCentre.REMOTE_HEARING.getValue());
         verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_HEARING_DATE, "formattedDate");
+
+        ArgumentCaptor<List<IdValue<String>>> captor = ArgumentCaptor.forClass(List.class);
+        verify(bailCase).write(eq(HEARING_ID_LIST), captor.capture());
+
+        List<IdValue<String>> updatedHearingIdList = captor.getValue();
+        assertEquals(1, updatedHearingIdList.size());
+        assertEquals(HEARING_ID, updatedHearingIdList.get(0).getValue());
 
         verify(coreCaseDataService).triggerBailSubmitEvent(CASE_LISTING, CASE_REF,
                                                            startEventResponse, bailCase);
