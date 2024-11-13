@@ -135,7 +135,8 @@ public class ListedHearingService {
 
         asylumCase.write(HEARING_LIST, hearings);
 
-        log.info("Called updateListCaseHearingDetails for  Case ID `{}`, asylumCase '{}'", caseId, asylumCase.toString());
+        log.info("Called updateListCaseHearingDetails for  Case ID `{}`, asylumCase '{}'",
+                caseId, asylumCase.toString());
     }
 
     public List<HearingChannel> getHearingChannels(ServiceData serviceData) {
