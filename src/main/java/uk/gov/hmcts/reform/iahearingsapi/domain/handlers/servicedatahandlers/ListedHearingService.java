@@ -132,7 +132,10 @@ public class ListedHearingService {
             AsylumCaseHearing newHearing = new AsylumCaseHearing(hearingId, newHearingDateTime, null);
             hearings.add(newHearing);
         }
+
         asylumCase.write(HEARING_LIST, hearings);
+
+        log.info("Called updateListCaseHearingDetails for  Case ID `{}`, asylumCase '{}'", caseId, asylumCase.toString());
     }
 
     public List<HearingChannel> getHearingChannels(ServiceData serviceData) {
@@ -270,7 +273,7 @@ public class ListedHearingService {
             .collect(Collectors.toSet());
     }
 
-    private Optional<AsylumCaseHearing> getHearingFromAsylumCase(
+    protected Optional<AsylumCaseHearing> getHearingFromAsylumCase(
             List<AsylumCaseHearing> hearings,
             String hearingId
     ) {

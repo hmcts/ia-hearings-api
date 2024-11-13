@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LIST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
@@ -25,12 +26,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
@@ -239,6 +243,23 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
         log.info("tryUpdateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
                  asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
+
+        Optional<List<AsylumCaseHearing>> hearingsOpt = asylumCase.read(AsylumCaseFieldDefinition.HEARING_LIST);
+        List<AsylumCaseHearing> hearings = hearingsOpt.orElse(null);
+        String hearingId = serviceData.read(HEARING_ID, String.class)
+                .orElseThrow(() -> new IllegalStateException("hearing id can not be null"));
+        if (hearings != null) {
+            Optional<AsylumCaseHearing> existingHearingOpt = getHearingFromAsylumCase(hearings, hearingId);
+            if (existingHearingOpt.isEmpty()) {
+                String hearingVenueId = getHearingVenueId(serviceData);
+                String hearingDateTime = formatHearingDateTime(getHearingDatetime(serviceData, hearingVenueId));
+                AsylumCaseHearing newHearing = new AsylumCaseHearing(hearingId, hearingDateTime, null);
+                hearings.add(newHearing);
+                asylumCase.write(HEARING_LIST, hearings);
+            }
+        }
+
+        log.info("Called assignRefDataFields for  Case ID `{}`, asylumCase '{}'", caseId, asylumCase.toString());
     }
 }
 
