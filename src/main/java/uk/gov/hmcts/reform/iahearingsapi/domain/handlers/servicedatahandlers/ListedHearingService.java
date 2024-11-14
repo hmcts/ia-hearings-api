@@ -90,7 +90,7 @@ public class ListedHearingService {
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
     }
 
-    public void updateListCaseHearingDetails(ServiceData serviceData, AsylumCase asylumCase,
+    protected void updateListCaseHearingDetails(ServiceData serviceData, AsylumCase asylumCase,
                                              boolean isAppealsLocationRefDataEnabled, String caseId,
                                              List<CourtVenue> courtVenues, DynamicList hearingLocationList) {
 
@@ -120,8 +120,12 @@ public class ListedHearingService {
                 asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
         }
 
+        updateHearingList(serviceData, asylumCase, caseId, newHearingDateTime);
+    }
+
+    protected void updateHearingList(ServiceData serviceData, AsylumCase asylumCase, String caseId, String newHearingDateTime) {
         Optional<List<AsylumCaseHearing>> hearingsOpt = asylumCase.read(AsylumCaseFieldDefinition.HEARING_LIST);
-        List<AsylumCaseHearing> hearings = hearingsOpt.orElse(new ArrayList<AsylumCaseHearing>());
+        List<AsylumCaseHearing> hearings = hearingsOpt.orElse(new ArrayList<>());
         String hearingId = serviceData.read(HEARING_ID, String.class)
                 .orElseThrow(() -> new IllegalStateException("hearing id can not be null"));
         Optional<AsylumCaseHearing> existingHearingOpt = getHearingFromAsylumCase(hearings, hearingId);

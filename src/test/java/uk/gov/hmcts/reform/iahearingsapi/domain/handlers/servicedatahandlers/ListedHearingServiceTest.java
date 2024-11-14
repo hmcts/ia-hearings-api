@@ -163,8 +163,8 @@ class ListedHearingServiceTest {
             List.of(new Value(channel.name(), channel.getLabel())));
         assertEquals(Optional.of(newHearingChannel), asylumCase.read(HEARING_CHANNEL));
 
-        assertTrue(asylumCase.read(HEARING_LIST).isPresent());
         Optional<List<AsylumCaseHearing>> newHearingsOpt = asylumCase.read(HEARING_LIST);
+        assertTrue(newHearingsOpt.isPresent());
         List<AsylumCaseHearing> newHearings = newHearingsOpt.get();
         assertThat(newHearings).containsExactlyInAnyOrder(expectedNewHearings);
     }
