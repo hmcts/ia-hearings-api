@@ -123,7 +123,12 @@ public class ListedHearingService {
         updateHearingList(serviceData, asylumCase, caseId, newHearingDateTime);
     }
 
-    protected void updateHearingList(ServiceData serviceData, AsylumCase asylumCase, String caseId, String newHearingDateTime) {
+    protected void updateHearingList(
+            ServiceData serviceData,
+            AsylumCase asylumCase,
+            String caseId,
+            String newHearingDateTime
+    ) {
         Optional<List<AsylumCaseHearing>> hearingsOpt = asylumCase.read(AsylumCaseFieldDefinition.HEARING_LIST);
         List<AsylumCaseHearing> hearings = hearingsOpt.orElse(new ArrayList<>());
         String hearingId = serviceData.read(HEARING_ID, String.class)
