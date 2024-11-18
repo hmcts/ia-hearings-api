@@ -6,6 +6,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseHearingOutcome.NONE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.IS_REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
@@ -49,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseHearing;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseHearingDecision;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
@@ -138,7 +140,8 @@ public class ListedHearingService {
             AsylumCaseHearing hearing = existingHearingOpt.get();
             hearing.setNextHearingDate(newHearingDateTime);
         } else {
-            AsylumCaseHearing newHearing = new AsylumCaseHearing(hearingId, newHearingDateTime, null);
+            AsylumCaseHearingDecision decision = new AsylumCaseHearingDecision("", NONE);
+            AsylumCaseHearing newHearing = new AsylumCaseHearing(hearingId, newHearingDateTime, decision);
             hearings.add(newHearing);
         }
 

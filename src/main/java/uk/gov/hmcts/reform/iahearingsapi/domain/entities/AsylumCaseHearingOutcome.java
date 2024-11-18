@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum AsylumCaseHearingOutcome {
+    NONE("none"),
     GRANTED("granted"),
     DISMISSED("dismissed");
 
