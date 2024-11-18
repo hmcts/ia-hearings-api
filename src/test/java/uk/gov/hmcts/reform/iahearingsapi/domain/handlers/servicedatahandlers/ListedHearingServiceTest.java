@@ -201,7 +201,7 @@ class ListedHearingServiceTest {
                     new AsylumCaseHearing(
                        "2000012726",
                        "2023-12-02T09:45:00.000",
-                       new AsylumCaseHearingDecision("", NONE)
+                        new AsylumCaseHearingDecision("", NONE)
                     )
                 }
             ),
