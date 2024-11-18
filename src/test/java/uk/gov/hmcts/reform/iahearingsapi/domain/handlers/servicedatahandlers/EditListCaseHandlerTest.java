@@ -21,6 +21,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseHearingOutcome.NONE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
@@ -60,6 +61,7 @@ import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseHearing;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseHearingDecision;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
@@ -524,14 +526,14 @@ class EditListCaseHandlerTest {
                 new AsylumCaseHearing(
                     "12345",
                     "2023-09-30T10:00:00.000",
-                    null
+                    new AsylumCaseHearingDecision("", NONE)
                 )
             }),
             Arguments.of(TEL, YES, YES, null, new AsylumCaseHearing[] {
                 new AsylumCaseHearing(
                     "12345",
                     "2023-09-30T10:00:00.000",
-                    null
+                    new AsylumCaseHearingDecision("", NONE)
                 )
             }),
             Arguments.of(VID, YES, YES,
@@ -539,14 +541,14 @@ class EditListCaseHandlerTest {
                     new AsylumCaseHearing(
                         "12345",
                         "2023-09-01T09:45:00.000",
-                        null
+                        new AsylumCaseHearingDecision("", NONE)
                     )
                 ),
                 new AsylumCaseHearing[] {
                     new AsylumCaseHearing(
                         "12345",
                         "2023-09-30T10:00:00.000",
-                        null
+                        new AsylumCaseHearingDecision("", NONE)
                     )
                 }
             ),
@@ -555,19 +557,19 @@ class EditListCaseHandlerTest {
                     new AsylumCaseHearing(
                         "2000012725",
                         "2023-12-01T09:45:00.000",
-                        null
+                        new AsylumCaseHearingDecision("", NONE)
                     )
                 ),
                 new AsylumCaseHearing[] {
                     new AsylumCaseHearing(
                         "2000012725",
                         "2023-12-01T09:45:00.000",
-                        null
+                        new AsylumCaseHearingDecision("", NONE)
                     ),
                     new AsylumCaseHearing(
                         "12345",
                         "2023-09-30T10:00:00.000",
-                        null
+                        new AsylumCaseHearingDecision("", NONE)
                     )
                 }
             ),
