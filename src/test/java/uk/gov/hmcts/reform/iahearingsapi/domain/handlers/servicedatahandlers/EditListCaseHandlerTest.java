@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -12,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_LIST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
@@ -19,6 +21,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseHearingOutcome.NONE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
@@ -36,6 +39,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataServi
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,12 +52,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseHearing;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseHearingDecision;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
@@ -69,9 +77,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
+import static java.util.Collections.singletonList;
+
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("unchecked")
 class EditListCaseHandlerTest {
 
 
@@ -92,10 +101,12 @@ class EditListCaseHandlerTest {
     AsylumCase asylumCase;
     @Mock
     LocationRefDataService locationRefDataService;
+    @Captor
+    private ArgumentCaptor<List<AsylumCaseHearing>> captor;
 
     private EditListCaseHandler editListCaseHandler;
 
-    private DynamicList hearingLocationList = new DynamicList(
+    private final DynamicList hearingLocationList = new DynamicList(
         new Value("231596", "Hendon Magistrates Court"),
         List.of(new Value("231596", "Hendon Magistrates Court")));
 
@@ -463,12 +474,21 @@ class EditListCaseHandlerTest {
     @ParameterizedTest
     @MethodSource("assignRefDataFieldsSource")
     void should_assign_ref_data_fields(HearingChannel hearingChannel, YesOrNo isRefDataEnabled,
-                                       YesOrNo expectedIsRemoteHearing) {
+                                       YesOrNo expectedIsRemoteHearing,
+                                       List<AsylumCaseHearing> existingHearings,
+                                       AsylumCaseHearing[] expectedNewHearings) {
         initializeServiceData();
         initializeAsylumCaseData();
 
         when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
             .thenReturn(Optional.of(isRefDataEnabled));
+        if (existingHearings == null) {
+            when(asylumCase.read(HEARING_LIST))
+                .thenReturn(Optional.empty());
+        } else {
+            when(asylumCase.read(HEARING_LIST))
+                .thenReturn(Optional.of(new ArrayList<>(existingHearings)));
+        }
 
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(hearingChannel)));
@@ -477,7 +497,7 @@ class EditListCaseHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
             .thenReturn(Optional.of("231596"));
         when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
-            .thenReturn(Optional.of(NEXT_HEARING_DATE.plusDays(1)));
+                .thenReturn(Optional.of(NEXT_HEARING_DATE.plusDays(1)));
 
         editListCaseHandler.handle(serviceData);
 
@@ -492,15 +512,68 @@ class EditListCaseHandlerTest {
             verify(asylumCase, never()).write(IS_REMOTE_HEARING, expectedIsRemoteHearing);
             verify(asylumCase, never()).write(LISTING_LOCATION, expectedRefDataListingLocation);
         }
+
+        if (isRefDataEnabled.equals(YES) || expectedIsRemoteHearing.equals(YES)) {
+            verify(asylumCase).write(eq(HEARING_LIST), captor.capture());
+            assertThat(captor.getValue()).containsExactlyInAnyOrder(expectedNewHearings);
+        }
     }
 
     private static Stream<Arguments> assignRefDataFieldsSource() {
 
         return Stream.of(
-            Arguments.of(INTER, YES, NO),
-            Arguments.of(TEL, YES, YES),
-            Arguments.of(VID, YES, YES),
-            Arguments.of(INTER, NO, NO)
+            Arguments.of(INTER, YES, NO, null, new AsylumCaseHearing[] {
+                new AsylumCaseHearing(
+                    "12345",
+                    "2023-09-30T10:00:00.000",
+                    new AsylumCaseHearingDecision("", NONE)
+                )
+            }),
+            Arguments.of(TEL, YES, YES, null, new AsylumCaseHearing[] {
+                new AsylumCaseHearing(
+                    "12345",
+                    "2023-09-30T10:00:00.000",
+                    new AsylumCaseHearingDecision("", NONE)
+                )
+            }),
+            Arguments.of(VID, YES, YES,
+                singletonList(
+                    new AsylumCaseHearing(
+                        "12345",
+                        "2023-09-01T09:45:00.000",
+                        new AsylumCaseHearingDecision("", NONE)
+                    )
+                ),
+                new AsylumCaseHearing[] {
+                    new AsylumCaseHearing(
+                        "12345",
+                        "2023-09-30T10:00:00.000",
+                        new AsylumCaseHearingDecision("", NONE)
+                    )
+                }
+            ),
+            Arguments.of(VID, YES, YES,
+                singletonList(
+                    new AsylumCaseHearing(
+                        "2000012725",
+                        "2023-12-01T09:45:00.000",
+                        new AsylumCaseHearingDecision("", NONE)
+                    )
+                ),
+                new AsylumCaseHearing[] {
+                    new AsylumCaseHearing(
+                        "2000012725",
+                        "2023-12-01T09:45:00.000",
+                        new AsylumCaseHearingDecision("", NONE)
+                    ),
+                    new AsylumCaseHearing(
+                        "12345",
+                        "2023-09-30T10:00:00.000",
+                        new AsylumCaseHearingDecision("", NONE)
+                    )
+                }
+            ),
+            Arguments.of(INTER, NO, NO, null, null)
         );
     }
 

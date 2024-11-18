@@ -25,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -239,6 +240,10 @@ public class EditListCaseHandler extends ListedHearingService implements Service
 
         log.info("tryUpdateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
                  asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
+
+        String hearingVenueId = getHearingVenueId(serviceData);
+        String newHearingDateTime = formatHearingDateTime(getHearingDatetime(serviceData, hearingVenueId));
+        updateHearingList(serviceData, asylumCase, caseId, newHearingDateTime);
     }
 }
 
