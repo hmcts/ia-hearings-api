@@ -4,4 +4,7 @@
     <cve>CVE-2023-36052</cve>
     <cve>CVE-2024-9329</cve>
   </suppress>
+  <suppress until="2023-10-30">
+    <cve>CVE-2023-4586</cve>
+  </suppress>
 </suppressions>
