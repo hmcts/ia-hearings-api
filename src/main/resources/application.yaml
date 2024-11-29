@@ -88,6 +88,7 @@ security:
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
+      - "hearingCancelled"
     caseworker-ia-caseworker:
       - "listCase"
     caseworker-ia-caseofficer:
@@ -108,13 +109,17 @@ security:
       - "decideAnApplication"
     caseworker-ia-system:
       - "handleHearingException"
-      - "triggerCmrUpdated"
+      - "cmrReListing"
       - "recordAdjournmentDetails"
       - "listCaseForFTOnly"
-      - "triggerCmrListed"
+      - "cmrListing"
       - "decisionWithoutHearingListed"
       - "listCase"
       - "editCaseListing"
+      - "updateNextHearingInfo"
+      - "hearingCancelled"
+    next-hearing-date-admin:
+      - "updateNextHearingInfo"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
