@@ -157,6 +157,8 @@ public enum BailCaseFieldDefinition {
         "hearingCentreRefData", new TypeReference<DynamicList>(){}),
     IS_REMOTE_HEARING(
         "isRemoteHearing", new TypeReference<YesOrNo>(){}),
+    CURRENT_HEARING_ID(
+        "currentHearingId", new TypeReference<String>() {}),
     REF_DATA_LISTING_LOCATION(
         "refDataListingLocation", new TypeReference<DynamicList>() {});
 

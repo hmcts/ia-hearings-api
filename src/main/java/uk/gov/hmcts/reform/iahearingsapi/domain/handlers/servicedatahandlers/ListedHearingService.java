@@ -11,6 +11,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.REF_DATA_LISTING_LOCATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CURRENT_HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
@@ -18,6 +19,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
@@ -179,15 +181,23 @@ public class ListedHearingService {
             .orElse(false);
     }
 
+    public String getHearingId(ServiceData serviceData) {
+        return serviceData.read(HEARING_ID, String.class)
+            .orElseThrow(() -> new IllegalStateException("hearing ID can not be null"));
+    }
+
     public void updateInitialBailCaseListing(ServiceData serviceData, BailCase bailCase,
                                              boolean isRefDataLocationEnabled, String caseId,
                                              List<CourtVenue> courtVenues, DynamicList hearingLocationList) {
         LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
 
+        String newHearingId = getHearingId(serviceData);
+
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
         bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
         bailCase.write(LISTING_HEARING_DURATION, String.valueOf(getHearingDuration(serviceData)));
         bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
+        bailCase.write(CURRENT_HEARING_ID, newHearingId);
 
         if (isRefDataLocationEnabled) {
             bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
@@ -236,6 +246,12 @@ public class ListedHearingService {
         }
 
         bailCase.write(LISTING_EVENT, ListingEvent.RELISTING.toString());
+
+        String newHearingId = getHearingId(serviceData);
+
+        bailCase.write(CURRENT_HEARING_ID, newHearingId);
+
+
     }
 
     public Set<ServiceDataFieldDefinition> findUpdatedServiceDataFields(
