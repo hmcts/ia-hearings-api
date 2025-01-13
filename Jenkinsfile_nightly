@@ -31,7 +31,13 @@ def secrets = [
     secret('em-stitching-enabled', 'IA_EM_STITCHING_ENABLED'),
     secret('launch-darkly-sdk-key', 'LAUNCH_DARKLY_SDK_KEY'),
     secret('app-insights-connection-string', 'app-insights-connection-string'),
-    secret('ia-config-validator-secret', 'IA_CONFIG_VALIDATOR_SECRET')
+    secret('ia-config-validator-secret', 'IA_CONFIG_VALIDATOR_SECRET'),
+
+    secret('test-law-firm-org-success-username', 'TEST_LAW_FIRM_ORG_SUCCESS_USERNAME'),
+    secret('test-law-firm-org-success-password', 'TEST_LAW_FIRM_ORG_SUCCESS_PASSWORD'),
+
+    secret('test-law-firm-org-deleted-username', 'TEST_LAW_FIRM_ORG_DELETED_USERNAME'),
+    secret('test-law-firm-org-deleted-password', 'TEST_LAW_FIRM_ORG_DELETED_PASSWORD'),
 
   ]
 ]
