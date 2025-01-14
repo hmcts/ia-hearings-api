@@ -64,6 +64,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 
 withNightlyPipeline(type, product, component) {
   env.TEST_URL = params.URL_TO_TEST
+  env.HEARINGS_API_URL = params.URL_TO_TEST
   env.Rules = params.SecurityRules
   env.SecurityRules = params.SecurityRules
 
