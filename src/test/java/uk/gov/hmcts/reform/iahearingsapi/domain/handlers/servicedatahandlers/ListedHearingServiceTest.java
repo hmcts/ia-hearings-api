@@ -65,6 +65,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 
 class ListedHearingServiceTest {
 
+    private static final String CASE_REF = "1111";
     private static final String GLASGOW_EPIMMS_ID = "366559";
     public static final String LISTING_REF = "LAI";
 
@@ -260,6 +261,7 @@ class ListedHearingServiceTest {
         when(serviceData.read(HEARING_VENUE_ID, String.class)).thenReturn(Optional.of(venueId));
         when(serviceData.read(DURATION, Integer.class)).thenReturn(Optional.of(60));
         when(serviceData.read(HEARING_ID, String.class)).thenReturn(Optional.of("12345"));
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         BailCase bailCase = mock(BailCase.class);
         Set<ServiceDataFieldDefinition> fieldsToUpdate =
             Set.of(NEXT_HEARING_DATE, HEARING_CHANNELS, HEARING_VENUE_ID, DURATION);

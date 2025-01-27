@@ -102,9 +102,17 @@ public class ListedHearingService {
         asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
         asylumCase.write(LIST_CASE_HEARING_DATE, newHearingDateTime);
         asylumCase.write(LISTING_LENGTH, new HoursMinutes(getHearingDuration(serviceData)));
-        asylumCase.write(LIST_CASE_HEARING_CENTRE,
-                         newHearingCentre);
+        asylumCase.write(LIST_CASE_HEARING_CENTRE, newHearingCentre);
         asylumCase.write(HEARING_CHANNEL, newHearingChannel);
+
+        String newHearingId = getHearingId(serviceData);
+        log.info(
+            "Writing {} {} to asylum case {}",
+            AsylumCaseFieldDefinition.CURRENT_HEARING_ID,
+            newHearingId,
+            caseId
+        );
+        asylumCase.write(AsylumCaseFieldDefinition.CURRENT_HEARING_ID, newHearingId);
 
         if (isAppealsLocationRefDataEnabled) {
             asylumCase.write(AsylumCaseFieldDefinition.IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
@@ -191,12 +199,13 @@ public class ListedHearingService {
                                              List<CourtVenue> courtVenues, DynamicList hearingLocationList) {
         LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
 
-        String newHearingId = getHearingId(serviceData);
-
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
         bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
         bailCase.write(LISTING_HEARING_DURATION, String.valueOf(getHearingDuration(serviceData)));
         bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
+
+        String newHearingId = getHearingId(serviceData);
+        log.info("Writing {} {} to bail case {}", CURRENT_HEARING_ID, newHearingId, caseId);
         bailCase.write(CURRENT_HEARING_ID, newHearingId);
 
         if (isRefDataLocationEnabled) {
@@ -248,10 +257,9 @@ public class ListedHearingService {
         bailCase.write(LISTING_EVENT, ListingEvent.RELISTING.toString());
 
         String newHearingId = getHearingId(serviceData);
-
+        String caseId = getCaseReference(serviceData);
+        log.info("Writing {} {} to bail case {}", CURRENT_HEARING_ID, newHearingId, caseId);
         bailCase.write(CURRENT_HEARING_ID, newHearingId);
-
-
     }
 
     public Set<ServiceDataFieldDefinition> findUpdatedServiceDataFields(
