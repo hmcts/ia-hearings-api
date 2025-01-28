@@ -82,7 +82,8 @@ class ListedHearingServiceTest {
             "Hatton Cross Tribunal Hearing Centre",
             "386417",
             "Y",
-            "Open"));
+            "Open")
+    );
 
     private final DynamicList hearingLocationList = new DynamicList(
         new Value("745389", "Hendon Magistrates Court"),
@@ -149,8 +150,24 @@ class ListedHearingServiceTest {
 
     }
 
-    private static Stream<Arguments> updateListCaseHearingDetailsSource() {
+    private static Stream<Arguments> updateBailListCaseHearingDetailsSource() {
+        return Stream.of(
+            Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER,
+                 "2023-12-02T10:00:00.000", HATTON_CROSS, NO, true),
+            Arguments.of(GLASGOW_EPIMMS_ID, VID,
+                 "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true),
+            Arguments.of(GLASGOW_EPIMMS_ID, TEL,
+                "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true),
+            Arguments.of(GLASGOW_EPIMMS_ID, TEL,
+                "2023-12-02T09:45:00.000", REMOTE_HEARING, null, false),
+            Arguments.of(GLASGOW_EPIMMS_ID, VID,
+                "2023-12-02T09:45:00.000", REMOTE_HEARING, null, false),
+            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
+                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false)
+        );
+    }
 
+    private static Stream<Arguments> updateListCaseHearingDetailsSource() {
         return Stream.of(
             Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER,
                 "2023-12-02T10:00:00.000", HATTON_CROSS, NO, false),
@@ -162,73 +179,6 @@ class ListedHearingServiceTest {
                 "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false)
         );
     }
-
-    @ParameterizedTest
-    @MethodSource("updateBailListCaseHearingDetailsSource")
-    void updateBailListCaseHearingDetails(String venueId, HearingChannel channel,
-                                          String hearingDate, HearingCentre expectedHearingCentre,
-                                          YesOrNo expectedIsRemoteHearing,
-                                          boolean isRefDataLocationEnabled) {
-        serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
-                          List.of(channel));
-        serviceData.write(ServiceDataFieldDefinition.HEARING_TYPE, SUBSTANTIVE.getKey());
-        serviceData.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, hearingDate);
-        serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, venueId);
-        serviceData.write(DURATION, 60);
-        serviceData.write(HEARING_ID, "12345");
-
-        bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
-        bailCase.write(LISTING_HEARING_DATE, hearingDate);
-        bailCase.write(LISTING_LOCATION, REMOTE_HEARING.getValue());
-
-        listedHearingService.updateInitialBailCaseListing(serviceData, bailCase,
-            isRefDataLocationEnabled, "caseId", courtVenueList, hearingLocationList);
-
-        assertEquals(Optional.of(hearingDate), bailCase.read(LISTING_HEARING_DATE));
-        assertEquals(Optional.of("60"), bailCase.read(LISTING_HEARING_DURATION));
-
-        if (bailCase.read(IS_REMOTE_HEARING).equals(Optional.of(YES))) {
-            assertEquals(Optional.of(REMOTE_HEARING.getValue()), bailCase.read(LISTING_LOCATION));
-        } else {
-            assertEquals(Optional.of(expectedHearingCentre.getValue()), bailCase.read(LISTING_LOCATION));
-        }
-
-        String refDataCourt = isRefDataLocationEnabled
-            ? courtVenueList.stream().filter(c -> c.getEpimmsId().equals(venueId))
-                .map(CourtVenue::getCourtName).findFirst().get()
-            : expectedHearingCentre.getValue();
-
-        DynamicList expectedRefDataListingLocation = new DynamicList(
-            new Value(venueId, refDataCourt),
-            hearingLocationList.getListItems());
-
-        if (isRefDataLocationEnabled) {
-            assertEquals(Optional.of(expectedIsRemoteHearing), bailCase.read(IS_REMOTE_HEARING));
-            assertEquals(Optional.of(expectedRefDataListingLocation), bailCase.read(REF_DATA_LISTING_LOCATION));
-        } else {
-            assertEquals(Optional.empty(), bailCase.read(IS_REMOTE_HEARING));
-        }
-
-    }
-
-    private static Stream<Arguments> updateBailListCaseHearingDetailsSource() {
-
-        return Stream.of(
-            Arguments.of(HATTON_CROSS.getEpimsId(), HearingChannel.INTER,
-                         "2023-12-02T10:00:00.000", HATTON_CROSS, NO, true),
-            Arguments.of(GLASGOW_EPIMMS_ID, VID,
-                         "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true),
-            Arguments.of(GLASGOW_EPIMMS_ID, TEL,
-                "2023-12-02T09:45:00.000", REMOTE_HEARING, YES, true),
-            Arguments.of(GLASGOW_EPIMMS_ID, TEL,
-                "2023-12-02T09:45:00.000", REMOTE_HEARING, null, false),
-            Arguments.of(GLASGOW_EPIMMS_ID, VID,
-                "2023-12-02T09:45:00.000", REMOTE_HEARING, null, false),
-            Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
-                "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false)
-        );
-    }
-
 
     @ParameterizedTest
     @MethodSource("updateBailListCaseHearingDetailsSource")
