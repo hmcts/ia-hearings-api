@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,8 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
@@ -35,15 +35,11 @@ class CancelledHearingHandlerTest {
     CoreCaseDataService coreCaseDataService;
     @Mock
     ServiceData serviceData;
-    @Mock
-    StartEventResponse startEventResponse;
-    @Mock
-    AsylumCase asylumCase;
+
     private CancelledHearingHandler cancelledHearingHandler;
 
     @BeforeEach
     public void setUp() {
-
         cancelledHearingHandler =
             new CancelledHearingHandler(coreCaseDataService);
 
@@ -62,6 +58,18 @@ class CancelledHearingHandlerTest {
 
     @Test
     void should_handle_only_if_service_data_qualifies() {
+        assertTrue(cancelledHearingHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void isSubstantiveCancelledHearing() {
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER, TEL, VID, HearingChannel.NA)));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE))
+            .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS))
+            .thenReturn(Optional.of(HmcStatus.CANCELLED));
+
         assertTrue(cancelledHearingHandler.canHandle(serviceData));
     }
 
@@ -90,5 +98,4 @@ class CancelledHearingHandlerTest {
 
         verify(coreCaseDataService).triggerReviewInterpreterBookingTask(CASE_REF);
     }
-
 }
