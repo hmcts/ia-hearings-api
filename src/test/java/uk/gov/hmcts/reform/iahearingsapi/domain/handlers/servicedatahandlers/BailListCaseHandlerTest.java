@@ -214,6 +214,7 @@ class BailListCaseHandlerTest {
                                           String hearingDate, HearingCentre expectedHearingCentre,
                                           YesOrNo expectedIsRemoteHearing,
                                           boolean isRefDataLocationEnabled) {
+        BailCase bailCaseParam = new BailCase();
         ServiceData serviceDataParam = new ServiceData();
         serviceDataParam.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
                 List.of(channel));
@@ -223,7 +224,6 @@ class BailListCaseHandlerTest {
         serviceDataParam.write(DURATION, 60);
         serviceDataParam.write(HEARING_ID, "12345");
 
-        BailCase bailCaseParam = new BailCase();
         bailCaseParam.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
         bailCaseParam.write(LISTING_HEARING_DATE, hearingDate);
         bailCaseParam.write(LISTING_LOCATION, REMOTE_HEARING.getValue());
