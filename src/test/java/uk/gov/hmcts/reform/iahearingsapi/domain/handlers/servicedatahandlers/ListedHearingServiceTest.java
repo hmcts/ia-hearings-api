@@ -97,14 +97,6 @@ class ListedHearingServiceTest {
         listedHearingService = new ListedHearingService();
     }
 
-    @Test
-    void isSubstantiveCancelledHearing() {
-        setUpForNonPaperSubstantiveHearing();
-        serviceData.write(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.CANCELLED);
-
-        assertTrue(listedHearingService.isSubstantiveCancelledHearing(serviceData));
-    }
-
     @ParameterizedTest
     @MethodSource("updateListCaseHearingDetailsSource")
     void updateListCaseHearingDetails(String venueId, HearingChannel channel,
@@ -170,12 +162,6 @@ class ListedHearingServiceTest {
             Arguments.of(GLASGOW_EPIMMS_ID, HearingChannel.INTER,
                 "2023-12-02T09:45:00.000", GLASGOW_TRIBUNALS_CENTRE, null, false)
         );
-    }
-
-    private void setUpForNonPaperSubstantiveHearing() {
-        serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
-            List.of(HearingChannel.INTER, TEL, VID, HearingChannel.NA));
-        serviceData.write(ServiceDataFieldDefinition.HEARING_TYPE, SUBSTANTIVE.getKey());
     }
 
     @ParameterizedTest

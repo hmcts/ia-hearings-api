@@ -70,11 +70,6 @@ public class ListedHearingService {
             && isHearingType(serviceData, SUBSTANTIVE);
     }
 
-    protected boolean isSubstantiveCancelledHearing(ServiceData serviceData) {
-        return isHmcStatus(serviceData, HmcStatus.CANCELLED)
-            && !isHearingChannel(serviceData, ONPPRS)
-            && isHearingType(serviceData, SUBSTANTIVE);
-    }
 
     protected boolean isBailListedHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)
