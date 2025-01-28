@@ -68,6 +68,7 @@ public class ListedHearingService {
             && isHearingType(serviceData, SUBSTANTIVE);
     }
 
+
     protected boolean isBailListedHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)
             && isHearingListingStatus(serviceData, ListingStatus.FIXED)
@@ -89,7 +90,7 @@ public class ListedHearingService {
 
         String newHearingDateTime = formatHearingDateTime(getAsylumHearingDatetime(serviceData, hearingVenueId));
         HearingCentre newHearingCentre = HandlerUtils.getLocation(hearingChannels, hearingVenueId);
-        DynamicList newHearingChannel = buildHearingChannelDynamicList(hearingChannels);
+        DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
 
         asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
         asylumCase.write(LIST_CASE_HEARING_DATE, newHearingDateTime);
@@ -132,27 +133,69 @@ public class ListedHearingService {
             .orElseThrow(() -> new IllegalStateException("hearingVenueId can not be null"));
     }
 
+    protected String formatHearingDateTime(LocalDateTime hearingDatetime) {
+        return hearingDatetime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
+    }
+
+    protected LocalDateTime getAsylumHearingDatetime(ServiceData serviceData, String hearingVenueId) {
+        LocalDateTime hearingDateTime = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
+            .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
+
+        return HandlerUtils.getHearingDateAndTime(
+            hearingDateTime.truncatedTo(ChronoUnit.MINUTES), hearingVenueId);
+    }
+
+    protected LocalDateTime getBailHearingDatetime(ServiceData serviceData) {
+        return serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
+            .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
+    }
+
     protected int getHearingDuration(ServiceData serviceData) {
         return serviceData.read(DURATION, Integer.class)
             .orElseThrow(() -> new IllegalStateException("duration can not be null"));
     }
 
-    protected DynamicList buildHearingChannelDynamicList(List<HearingChannel> hearingChannels) {
-        return new DynamicList(
-            new Value(
-                hearingChannels.get(0).name(),
-                hearingChannels.get(0).getLabel()
-            ),
-            List.of(new Value(
-                hearingChannels.get(0).name(),
-                hearingChannels.get(0).getLabel()
-            ))
-        );
+    protected DynamicList buildHearingChannelDynmicList(List<HearingChannel> hearingChannels) {
+        return new DynamicList(new Value(
+            hearingChannels.get(0).name(),
+            hearingChannels.get(0).getLabel()
+        ), List.of(new Value(
+            hearingChannels.get(0).name(),
+            hearingChannels.get(0).getLabel()
+        )));
     }
 
     protected String getHearingId(ServiceData serviceData) {
         return serviceData.read(HEARING_ID, String.class)
             .orElseThrow(() -> new IllegalStateException("hearing ID can not be null"));
+    }
+
+    protected void updateInitialBailCaseListing(ServiceData serviceData, BailCase bailCase,
+                                             boolean isRefDataLocationEnabled, String caseId,
+                                             List<CourtVenue> courtVenues, DynamicList hearingLocationList) {
+        LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
+
+        bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
+        bailCase.write(LISTING_HEARING_DATE, formatHearingDateTime(hearingDateTime));
+        bailCase.write(LISTING_HEARING_DURATION, String.valueOf(getHearingDuration(serviceData)));
+        bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
+
+        String newHearingId = getHearingId(serviceData);
+        log.info("Writing {} {} to bail case {}", CURRENT_HEARING_ID, newHearingId, caseId);
+        bailCase.write(CURRENT_HEARING_ID, newHearingId);
+
+        if (isRefDataLocationEnabled) {
+            bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
+            log.info("updateInitialBailCaseListing for Case ID `{}` serviceData contains '{}", caseId, serviceData);
+
+            bailCase.write(REF_DATA_LISTING_LOCATION,
+                new DynamicList(
+                    new Value(getHearingVenueId(serviceData), getHearingCourtName(serviceData, courtVenues)),
+                    hearingLocationList.getListItems()));
+
+            log.info("updateInitialBailCaseListing for Case ID `{}` listingLocation contains '{}'", caseId,
+                bailCase.read(REF_DATA_LISTING_LOCATION).toString());
+        }
     }
 
     protected void updateRelistingBailCaseListing(
@@ -227,23 +270,6 @@ public class ListedHearingService {
                 + getHearingVenueId(serviceData)));
     }
 
-    protected String formatHearingDateTime(LocalDateTime hearingDatetime) {
-        return hearingDatetime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
-    }
-
-    private LocalDateTime getAsylumHearingDatetime(ServiceData serviceData, String hearingVenueId) {
-        LocalDateTime hearingDateTime = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
-                .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
-
-        return HandlerUtils.getHearingDateAndTime(
-                hearingDateTime.truncatedTo(ChronoUnit.MINUTES), hearingVenueId);
-    }
-
-    protected LocalDateTime getBailHearingDatetime(ServiceData serviceData) {
-        return serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
-                .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
-    }
-
     private String getListingReference() {
         return "LAI";
     }
@@ -264,7 +290,7 @@ public class ListedHearingService {
         return !Objects.equals(previous.read(field).orElse(null), latest.read(field).orElse(null));
     }
 
-    protected HearingCentre getHearingCentre(ServiceData serviceData) {
+    private HearingCentre getHearingCentre(ServiceData serviceData) {
         return isRemoteHearing(serviceData)
                 ? REMOTE_HEARING
                 : HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData));

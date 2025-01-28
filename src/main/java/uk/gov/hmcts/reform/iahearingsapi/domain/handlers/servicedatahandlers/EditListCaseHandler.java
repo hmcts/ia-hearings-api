@@ -171,7 +171,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         if (updated) {
             asylumCase.write(
                 HEARING_CHANNEL,
-                buildHearingChannelDynamicList(nextHearingChannelList));
+                buildHearingChannelDynmicList(nextHearingChannelList));
             log.info("Hearing channel updated for hearing " + hearingId);
             return true;
         } else {
