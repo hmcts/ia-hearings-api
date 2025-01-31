@@ -104,7 +104,7 @@ sourceSets {
   }
 
   contractTest{
-    java{
+    java {
       compileClasspath += main.output
       runtimeClasspath += main.output
       srcDir file('src/contractTest/java')
