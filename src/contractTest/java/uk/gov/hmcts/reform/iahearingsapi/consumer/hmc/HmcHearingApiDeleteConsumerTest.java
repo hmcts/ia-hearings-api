@@ -47,7 +47,7 @@ public class HmcHearingApiDeleteConsumerTest extends HmcHearingApiConsumerTestBa
     @PactTestFor(pactMethod = "deleteHearing")
     public void shouldDeleteHearing() throws JsonProcessingException {
         ResponseEntity<HmcHearingResponse> response = hmcHearingApi
-            .deleteHearing(authToken, serviceAuthToken, 12345L, deleteHearingRequest);
+            .deleteHearing(authToken, serviceAuthToken, null, 12345L, deleteHearingRequest);
 
         HmcHearingResponse expected = getExpectedResponse(
             hmcHearingResponse.toString(), HmcHearingResponse.class);
