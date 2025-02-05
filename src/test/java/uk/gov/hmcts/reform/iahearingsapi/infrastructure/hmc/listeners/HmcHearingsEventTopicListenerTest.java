@@ -54,6 +54,8 @@ class HmcHearingsEventTopicListenerTest {
 
         ReflectionTestUtils.setField(
             hmcHearingsEventTopicListenerWithDeploymentFilterDisabled, "objectMapper", mockObjectMapper);
+        ReflectionTestUtils.setField(
+            hmcHearingsEventTopicListenerWithDeploymentFilterEnabled, "objectMapper", mockObjectMapper);
     }
 
     @ParameterizedTest
@@ -109,10 +111,26 @@ class HmcHearingsEventTopicListenerTest {
     }
 
     @Test
-    public void processesMessagesForThisDeployment() throws Exception {
+    public void processesMessagesForThisDeploymentWhenDeploymentIdsMatch() throws Exception {
         given(mockJmsBytesMessage.getStringProperty(HMCTS_DEPLOYMENT_ID)).willReturn("ia");
         HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, LISTED);
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
+        given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
+
+        hmcHearingsEventTopicListenerWithDeploymentFilterEnabled.onMessage(mockJmsBytesMessage);
+
+        verify(hmcMessageProcessor, times(1)).processMessage(any(HmcMessage.class));
+    }
+
+    @Test
+    public void processMessagesForThisDeploymentWhenNoDeploymentIdsConfigured() throws Exception {
+        ReflectionTestUtils.setField(
+            hmcHearingsEventTopicListenerWithDeploymentFilterEnabled, "hmctsDeploymentId", "");
+        given(mockJmsBytesMessage.getStringProperty(HMCTS_DEPLOYMENT_ID)).willReturn(null);
+        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, LISTED);
+        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
         given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
 
         hmcHearingsEventTopicListenerWithDeploymentFilterEnabled.onMessage(mockJmsBytesMessage);
