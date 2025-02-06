@@ -58,6 +58,31 @@ class LegalRepDetailsMapperTest {
     }
 
     @Test
+    void should_map_asylum_internal_case_correctly() {
+
+        when(caseDataMapper.getLegalRepPartyId(asylumCase)).thenReturn("partyId");
+        when(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
+            .thenReturn("hearingChannel");
+
+        IndividualDetailsModel individualDetails = IndividualDetailsModel.builder()
+            .hearingChannelEmail(Collections.emptyList())
+            .hearingChannelPhone(Collections.emptyList())
+            .preferredHearingChannel("hearingChannel")
+            .build();
+        PartyDetailsModel expected = PartyDetailsModel.builder()
+            .individualDetails(individualDetails)
+            .partyID("partyId")
+            .partyType("IND")
+            .partyRole("LGRP")
+            .build();
+
+        assertEquals(expected, new LegalRepDetailsMapper().mapInternalCaseLegalRep(asylumCase,
+                                                               caseDataMapper,
+                                                               persistedHearingDetails,
+                                                               event));
+    }
+
+    @Test
     void should_map_bail_correctly() {
 
         when(bailCaseDataMapper.getLegalRepPartyId(bailCase)).thenReturn("partyId");
