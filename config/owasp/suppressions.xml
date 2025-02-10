@@ -3,5 +3,7 @@
   <suppress>
     <cve>CVE-2023-36052</cve>
     <cve>CVE-2024-9329</cve>
+    <cve>CVE-2024-38820</cve>
+    <cve>CVE-2023-52428</cve>
   </suppress>
 </suppressions>
