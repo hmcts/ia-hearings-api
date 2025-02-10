@@ -229,7 +229,8 @@ flags:
   hmc-to-hearings-api:
     enabled: ${HMC_HEARINGS_LISTENING_ENABLED:true}
   deployment-filter:
-    enabled: ${DEPLOYMENT_FILTER_ENABLED:false}
+    # Once the env var is available then this should default to false
+    enabled: ${DEPLOYMENT_FILTER_ENABLED:true}
 
 pactbroker:
   url: ${PACT_BROKER_FULL_URL:http://localhost:80}
