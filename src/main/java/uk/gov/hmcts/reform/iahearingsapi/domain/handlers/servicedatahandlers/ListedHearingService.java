@@ -81,10 +81,14 @@ public class ListedHearingService {
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
     }
 
-    protected void updateListCaseHearingDetails(ServiceData serviceData, AsylumCase asylumCase,
-                                             boolean isAppealsLocationRefDataEnabled, String caseId,
-                                             List<CourtVenue> courtVenues, DynamicList hearingLocationList) {
-
+    protected void updateListCaseHearingDetails(
+        ServiceData serviceData,
+        AsylumCase asylumCase,
+        boolean isAppealsLocationRefDataEnabled,
+        String caseId,
+        List<CourtVenue> courtVenues,
+        DynamicList hearingLocationList
+    ) {
         List<HearingChannel> hearingChannels = getHearingChannels(serviceData);
         String hearingVenueId = getHearingVenueId(serviceData);
 
@@ -114,7 +118,9 @@ public class ListedHearingService {
             asylumCase.write(AsylumCaseFieldDefinition.LISTING_LOCATION,
                 new DynamicList(
                     new Value(getHearingVenueId(serviceData), getHearingCourtName(serviceData, courtVenues)),
-                    hearingLocationList.getListItems()));
+                    hearingLocationList.getListItems()
+                )
+            );
 
             log.info("updateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
                 asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
@@ -170,9 +176,14 @@ public class ListedHearingService {
             .orElseThrow(() -> new IllegalStateException("hearing ID can not be null"));
     }
 
-    protected void updateInitialBailCaseListing(ServiceData serviceData, BailCase bailCase,
-                                             boolean isRefDataLocationEnabled, String caseId,
-                                             List<CourtVenue> courtVenues, DynamicList hearingLocationList) {
+    protected void updateInitialBailCaseListing(
+        ServiceData serviceData,
+        BailCase bailCase,
+        boolean isRefDataLocationEnabled,
+        String caseId,
+        List<CourtVenue> courtVenues,
+        DynamicList hearingLocationList
+    ) {
         LocalDateTime hearingDateTime = getBailHearingDatetime(serviceData);
 
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
@@ -244,8 +255,8 @@ public class ListedHearingService {
     protected Set<ServiceDataFieldDefinition> findUpdatedServiceDataFields(
         ServiceData serviceData,
         List<PartiesNotifiedResponse> partiesNotifiedResponses,
-        Set<ServiceDataFieldDefinition> targetFields) {
-
+        Set<ServiceDataFieldDefinition> targetFields
+    ) {
         ServiceData previousServiceData = partiesNotifiedResponses.stream()
             .max(Comparator.comparing(PartiesNotifiedResponse::getResponseReceivedDateTime, LocalDateTime::compareTo))
             .map(PartiesNotifiedResponse::getServiceData)
@@ -274,17 +285,21 @@ public class ListedHearingService {
         return "LAI";
     }
 
-    private boolean fieldUpdated(ServiceData previous, ServiceData latest, ServiceDataFieldDefinition field) {
+    private boolean fieldUpdated(
+        ServiceData previous,
+        ServiceData latest,
+        ServiceDataFieldDefinition field
+    ) {
         if (field == HEARING_CHANNELS) {
             Optional<List<HearingChannel>> previousOptionalHearingChannels = previous.read(HEARING_CHANNELS);
             Optional<List<HearingChannel>> latestOptionalHearingChannels = latest.read(HEARING_CHANNELS);
             List<HearingChannel> previousHearingChannels = previousOptionalHearingChannels
-                    .orElse(Collections.emptyList());
+                .orElse(Collections.emptyList());
             List<HearingChannel> latestHearingChannels = latestOptionalHearingChannels
-                    .orElse(Collections.emptyList());
+                .orElse(Collections.emptyList());
 
             return !((previousHearingChannels.size() == latestHearingChannels.size())
-                    && previousHearingChannels.containsAll(latestHearingChannels));
+                && previousHearingChannels.containsAll(latestHearingChannels));
         }
 
         return !Objects.equals(previous.read(field).orElse(null), latest.read(field).orElse(null));
@@ -292,7 +307,7 @@ public class ListedHearingService {
 
     private HearingCentre getHearingCentre(ServiceData serviceData) {
         return isRemoteHearing(serviceData)
-                ? REMOTE_HEARING
-                : HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData));
+            ? REMOTE_HEARING
+            : HearingCentre.getHearingCentreByEpimsId(getHearingVenueId(serviceData));
     }
 }
