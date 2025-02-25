@@ -251,6 +251,7 @@ project.ext {
 project.tasks['check'].dependsOn integration
 
 sonarqube {
+  maxHeapSize = "2g"
   properties {
     property "sonar.projectName", "Reform :: Immigration & Asylum Hearings Api"
     property "sonar.projectKey", "IAHEARINGSAPI"
