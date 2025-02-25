@@ -61,6 +61,15 @@ mainClassName = 'uk.gov.hmcts.reform.iahearingsapi.Application'
 group = 'uk.gov.hmcts.reform'
 version = '1.0.0'
 
+tasks.withType(Test).configureEach {
+  maxHeapSize = "2g"
+  jvmArgs = ["-XX:MaxMetaspaceSize=512m"]
+}
+
+tasks.withType(JavaExec).configureEach {
+  jvmArgs = ["-Xmx2g", "-XX:MaxMetaspaceSize=512m"]
+}
+
 compileJava {
   options.compilerArgs << '-parameters' << '-Xlint:deprecation' << "-Xlint:unchecked" << "-Werror"
 }
@@ -251,7 +260,6 @@ project.ext {
 project.tasks['check'].dependsOn integration
 
 sonarqube {
-  maxHeapSize = "2g"
   properties {
     property "sonar.projectName", "Reform :: Immigration & Asylum Hearings Api"
     property "sonar.projectKey", "IAHEARINGSAPI"
