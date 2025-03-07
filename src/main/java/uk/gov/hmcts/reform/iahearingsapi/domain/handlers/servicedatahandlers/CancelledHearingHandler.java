@@ -7,8 +7,15 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingChannel;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingType;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHmcStatus;
 
 @Slf4j
 @Component
@@ -23,8 +30,7 @@ public class CancelledHearingHandler extends ListedHearingService
         return DispatchPriority.EARLY;
     }
 
-    public boolean canHandle(ServiceData serviceData
-    ) {
+    public boolean canHandle(ServiceData serviceData) {
         requireNonNull(serviceData, "serviceData must not be null");
 
         return isSubstantiveCancelledHearing(serviceData);
@@ -42,4 +48,9 @@ public class CancelledHearingHandler extends ListedHearingService
         return new ServiceDataResponse<>(serviceData);
     }
 
+    private boolean isSubstantiveCancelledHearing(ServiceData serviceData) {
+        return isHmcStatus(serviceData, HmcStatus.CANCELLED)
+                && !isHearingChannel(serviceData, ONPPRS)
+                && isHearingType(serviceData, SUBSTANTIVE);
+    }
 }
