@@ -1,6 +1,10 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.*;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_INSTRUCTIONS_TRIBUNAL_RESPONSE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.DETAINED_INDIVIDUAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
@@ -30,7 +34,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.PartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlag;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.*;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 
 @Service
 @RequiredArgsConstructor
