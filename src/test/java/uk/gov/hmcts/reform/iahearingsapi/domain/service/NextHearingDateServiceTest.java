@@ -207,7 +207,7 @@ class NextHearingDateServiceTest {
     void getNextHearingDetails_should_return_null_when_hearing_datetime_in_the_past() {
 
         LocalDateTime hearingRequestDateTime = LocalDateTime.now();
-        LocalDateTime hearingDateTime = hearingRequestDateTime.minusHours(1);
+        LocalDateTime hearingDateTime = hearingRequestDateTime.minusDays(1);
         List<HearingDaySchedule> daySchedules = List.of(
             HearingDaySchedule.builder().hearingStartDateTime(hearingDateTime).build());
         CaseHearing hearing = CaseHearing.builder()
