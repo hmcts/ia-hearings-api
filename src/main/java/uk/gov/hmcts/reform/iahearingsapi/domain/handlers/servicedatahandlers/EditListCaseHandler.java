@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.RE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.DECISION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.FINAL_BUNDLING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PRE_HEARING;
@@ -66,7 +67,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         String caseId = getCaseReference(serviceData);
         State caseState = coreCaseDataService
             .getCaseState(caseId);
-        List<State> targetStates = Arrays.asList(PREPARE_FOR_HEARING, FINAL_BUNDLING, PRE_HEARING);
+        List<State> targetStates = Arrays.asList(PREPARE_FOR_HEARING, FINAL_BUNDLING, PRE_HEARING, DECISION);
 
         return isSubstantiveListedHearing(serviceData) && targetStates.contains(caseState);
     }
