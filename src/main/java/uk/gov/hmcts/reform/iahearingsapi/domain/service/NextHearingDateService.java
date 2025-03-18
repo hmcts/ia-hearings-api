@@ -5,6 +5,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_ACTUALS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_REQUESTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UPDATE_SUBMITTED;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -47,7 +48,7 @@ public class NextHearingDateService {
 
     private boolean isTargetHearingForDateCalculation(CaseHearing hearing) {
         LocalDateTime hearingDateTime = getHearingDateTime(hearing);
-        return List.of(LISTED, UPDATE_REQUESTED, AWAITING_ACTUALS).contains(hearing.getHmcStatus())
+        return List.of(LISTED, UPDATE_REQUESTED, UPDATE_SUBMITTED, AWAITING_ACTUALS).contains(hearing.getHmcStatus())
                && List.of(SUBSTANTIVE.getKey(), CASE_MANAGEMENT_REVIEW.getKey()).contains(hearing.getHearingType())
                && hearingDateTime != null
                && !hearingDateTime.isBefore(LocalDate.now().atStartOfDay())

@@ -117,6 +117,59 @@ class NextHearingDateServiceTest {
     }
 
     @Test
+    void getNextHearingDetails_should_return_next_hearing_details_with_nearest_hearing_date_and_hmc_status() {
+
+        LocalDateTime hearingRequestDateTime = LocalDateTime.now();
+
+        LocalDateTime hearingDateTime1 = hearingRequestDateTime.minusDays(4);
+        LocalDateTime hearingDateTime3 = hearingRequestDateTime.plusDays(2);
+        LocalDateTime hearingDateTime4 = hearingRequestDateTime.plusDays(3);
+
+        List<HearingDaySchedule> daySchedules1 = List.of(
+            HearingDaySchedule.builder().hearingStartDateTime(hearingDateTime1).build());
+        List<HearingDaySchedule> daySchedules3 = List.of(
+            HearingDaySchedule.builder().hearingStartDateTime(hearingDateTime3).build());
+        List<HearingDaySchedule> daySchedules4 = List.of(
+            HearingDaySchedule.builder().hearingStartDateTime(hearingDateTime4).build());
+
+        CaseHearing hearing1 = CaseHearing.builder()
+            .hearingRequestId("hearingId1")
+            .hmcStatus(HmcStatus.AWAITING_ACTUALS)
+            .hearingType("BFA1-CMR")
+            .hearingRequestDateTime(hearingRequestDateTime)
+            .hearingDaySchedule(daySchedules1).build();
+        CaseHearing hearing2 = CaseHearing.builder()
+            .hearingRequestId("hearingId2")
+            .hmcStatus(HmcStatus.AWAITING_LISTING)
+            .hearingType("BFA1-CMR")
+            .hearingRequestDateTime(hearingRequestDateTime).build();
+        CaseHearing hearing3 = CaseHearing.builder()
+            .hearingRequestId("hearingId3")
+            .hmcStatus(HmcStatus.CANCELLED)
+            .hearingType("BFA1-CMR")
+            .hearingRequestDateTime(hearingRequestDateTime)
+            .hearingDaySchedule(daySchedules3).build();
+        CaseHearing hearing4 = CaseHearing.builder()
+            .hearingRequestId("hearingId4")
+            .hmcStatus(HmcStatus.UPDATE_SUBMITTED)
+            .hearingType("BFA1-CMR")
+            .hearingRequestDateTime(hearingRequestDateTime)
+            .hearingDaySchedule(daySchedules4).build();
+        HearingsGetResponse hearingsGetResponse = HearingsGetResponse.builder()
+            .caseHearings(List.of(hearing1, hearing2, hearing3, hearing4)).build();
+
+        when(hearingService.getHearings(caseId)).thenReturn(hearingsGetResponse);
+
+        NextHearingDetails expected = NextHearingDetails.builder()
+            .hearingId("hearingId4")
+            .hearingDateTime(hearingDateTime4.toString()).build();
+
+        NextHearingDetails actual = nextHearingDateService.getNextHearingDetails(caseId);
+        assertEquals(expected.getHearingId(), actual.getHearingId());
+        assertEquals(expected.getHearingDateTime(), actual.getHearingDateTime());
+    }
+
+    @Test
     void getNextHearingDetails_should_return_next_hearing_details_with_nearest_hearing_request_datetime() {
 
         LocalDateTime hearingRequestDateTime1 = LocalDateTime.now().plusDays(2);
