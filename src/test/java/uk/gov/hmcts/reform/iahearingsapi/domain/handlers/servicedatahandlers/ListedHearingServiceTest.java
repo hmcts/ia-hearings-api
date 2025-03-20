@@ -27,6 +27,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
@@ -58,12 +59,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.ListingEvent;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 class ListedHearingServiceTest {
 
+    private static final String CASE_REF = "1111";
     private static final String GLASGOW_EPIMMS_ID = "366559";
     public static final String LISTING_REF = "LAI";
 
@@ -95,14 +96,6 @@ class ListedHearingServiceTest {
         listedHearingService = new ListedHearingService();
     }
 
-    @Test
-    void isSubstantiveCancelledHearing() {
-        setUpForNonPaperSubstantiveHearing();
-        serviceData.write(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.CANCELLED);
-
-        assertTrue(listedHearingService.isSubstantiveCancelledHearing(serviceData));
-    }
-
     @ParameterizedTest
     @MethodSource("updateListCaseHearingDetailsSource")
     void updateListCaseHearingDetails(String venueId, HearingChannel channel,
@@ -114,6 +107,7 @@ class ListedHearingServiceTest {
         serviceData.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, hearingDate);
         serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, venueId);
         serviceData.write(DURATION, 200);
+        serviceData.write(HEARING_ID, "12345");
 
         asylumCase.write(LIST_CASE_HEARING_DATE, hearingDate);
         asylumCase.write(LIST_CASE_HEARING_CENTRE, GLASGOW_TRIBUNALS_CENTRE);
@@ -169,12 +163,6 @@ class ListedHearingServiceTest {
         );
     }
 
-    private void setUpForNonPaperSubstantiveHearing() {
-        serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
-            List.of(HearingChannel.INTER, TEL, VID, HearingChannel.NA));
-        serviceData.write(ServiceDataFieldDefinition.HEARING_TYPE, SUBSTANTIVE.getKey());
-    }
-
     @ParameterizedTest
     @MethodSource("updateBailListCaseHearingDetailsSource")
     void updateBailListCaseHearingDetails(String venueId, HearingChannel channel,
@@ -187,6 +175,7 @@ class ListedHearingServiceTest {
         serviceData.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, hearingDate);
         serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, venueId);
         serviceData.write(DURATION, 60);
+        serviceData.write(HEARING_ID, "12345");
 
         bailCase.write(LISTING_EVENT, ListingEvent.INITIAL_LISTING.toString());
         bailCase.write(LISTING_HEARING_DATE, hearingDate);
@@ -256,6 +245,8 @@ class ListedHearingServiceTest {
         when(serviceData.read(HEARING_CHANNELS)).thenReturn(Optional.of(List.of(channel)));
         when(serviceData.read(HEARING_VENUE_ID, String.class)).thenReturn(Optional.of(venueId));
         when(serviceData.read(DURATION, Integer.class)).thenReturn(Optional.of(60));
+        when(serviceData.read(HEARING_ID, String.class)).thenReturn(Optional.of("12345"));
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         BailCase bailCase = mock(BailCase.class);
         Set<ServiceDataFieldDefinition> fieldsToUpdate =
             Set.of(NEXT_HEARING_DATE, HEARING_CHANNELS, HEARING_VENUE_ID, DURATION);

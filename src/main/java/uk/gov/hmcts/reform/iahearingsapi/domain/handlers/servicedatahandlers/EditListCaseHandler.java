@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
+
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
@@ -58,8 +60,7 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         return DispatchPriority.EARLY;
     }
 
-    public boolean canHandle(ServiceData serviceData
-    ) {
+    public boolean canHandle(ServiceData serviceData) {
         requireNonNull(serviceData, "serviceData must not be null");
 
         String caseId = getCaseReference(serviceData);
@@ -123,6 +124,10 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         }
 
         assignRefDataFields(asylumCase, serviceData, caseId);
+
+        String newHearingId = getHearingId(serviceData);
+        log.info("Writing {} {} to bail case {}", CURRENT_HEARING_ID, newHearingId, caseId);
+        asylumCase.write(CURRENT_HEARING_ID, newHearingId);
 
         return sendUpdate;
     }

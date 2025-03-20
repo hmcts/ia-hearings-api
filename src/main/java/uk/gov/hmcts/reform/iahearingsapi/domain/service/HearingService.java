@@ -185,7 +185,7 @@ public class HearingService {
     }
 
     public HearingGetResponse getHearing(String hearingId) throws HmcException {
-        log.info("Sending GetHearings request with Hearing ID {}", hearingId);
+        log.info("Sending GetHearing request with Hearing ID {}", hearingId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
@@ -203,9 +203,7 @@ public class HearingService {
         }
     }
 
-    public HearingsGetResponse getHearings(
-        Long caseReference
-    ) throws HmcException {
+    public HearingsGetResponse getHearings(Long caseReference) throws HmcException {
         requireNonNull(caseReference, "Case Reference must not be null");
         log.debug("Sending Get Hearings for caseReference {}", caseReference);
         try {
