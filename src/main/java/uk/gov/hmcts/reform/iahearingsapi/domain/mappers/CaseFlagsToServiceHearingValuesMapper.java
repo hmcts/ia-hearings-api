@@ -39,12 +39,16 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 
 @Service
 @RequiredArgsConstructor
 public class CaseFlagsToServiceHearingValuesMapper {
 
+    public static final String RRO_SUPPRESSION_FEATURE = "rro-suppression";
+
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
+    private final FeatureToggler featureToggler;
     private static final String caseLevelFlags = "Case level flags";
     private static final String caseLevelFlagsPartyID = "Caselevelflags";
 
@@ -56,7 +60,9 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
         AppealType appealType = asylumCase.read(APPEAL_TYPE, AppealType.class)
             .orElseThrow(() -> new RequiredFieldMissingException("AppealType cannot be missing"));
-        if (appealType.equals(AppealType.RP) || appealType.equals(AppealType.PA)) {
+
+        if ( featureToggler.getValue(RRO_SUPPRESSION_FEATURE, false) &&
+                (appealType.equals(AppealType.RP) || appealType.equals(AppealType.PA))) {
             return "Reporting Restriction Apply";
         } else if (hasActiveAnonymityFlag) {
             return caseReference;

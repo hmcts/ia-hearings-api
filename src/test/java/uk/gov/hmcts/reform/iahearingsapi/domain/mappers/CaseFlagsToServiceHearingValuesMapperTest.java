@@ -36,6 +36,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -50,11 +52,13 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CaseFlagsToServiceHearingValuesMapperTest {
 
+    public static final String RRO_SUPPRESSION_FEATURE = "rro-suppression";
     private static final String caseLevelFlags = "Case level flags";
     private static final String caseLevelFlagsPartyID = "Caselevelflags";
     public static final String DATE_TIME_CREATED = "2024-04-11T13:43:15.044Z";
@@ -71,9 +75,12 @@ class CaseFlagsToServiceHearingValuesMapperTest {
     @Mock
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
 
+    @Mock
+    private FeatureToggler featureToggler;
+
     @BeforeEach
     void setup() {
-        mapper = new CaseFlagsToServiceHearingValuesMapper(caseDataMapper);
+        mapper = new CaseFlagsToServiceHearingValuesMapper(caseDataMapper, featureToggler);
     }
 
     @Test
@@ -100,13 +107,20 @@ class CaseFlagsToServiceHearingValuesMapperTest {
         assertEquals(mapper.getPublicCaseName(asylumCase, caseReference), appellantFullName);
     }
 
-    @Test
-    void getPublicCaseName_should_return_reporting_restriction_apply() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void getPublicCaseName_should_return_reporting_restriction_apply(boolean rroSuppressionFeature) {
+
+        when(featureToggler.getValue(RRO_SUPPRESSION_FEATURE, false)).thenReturn(rroSuppressionFeature);
 
         when(asylumCase.read(APPELLANT_NAME_FOR_DISPLAY, String.class)).thenReturn(Optional.of("John Doe"));
         when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(AppealType.PA));
 
-        assertEquals(mapper.getPublicCaseName(asylumCase, caseReference), "Reporting Restriction Apply");
+        if (rroSuppressionFeature) {
+            assertEquals(mapper.getPublicCaseName(asylumCase, caseReference), "Reporting Restriction Apply");
+        } else {
+            assertEquals(mapper.getPublicCaseName(asylumCase, caseReference), "John Doe");
+        }
     }
 
     @Test
