@@ -61,8 +61,8 @@ public class CaseFlagsToServiceHearingValuesMapper {
         AppealType appealType = asylumCase.read(APPEAL_TYPE, AppealType.class)
             .orElseThrow(() -> new RequiredFieldMissingException("AppealType cannot be missing"));
 
-        if ( featureToggler.getValue(RRO_SUPPRESSION_FEATURE, false) &&
-                (appealType.equals(AppealType.RP) || appealType.equals(AppealType.PA))) {
+        if (featureToggler.getValue(RRO_SUPPRESSION_FEATURE, false)
+            && (appealType.equals(AppealType.RP) || appealType.equals(AppealType.PA))) {
             return "Reporting Restriction Apply";
         } else if (hasActiveAnonymityFlag) {
             return caseReference;
