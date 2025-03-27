@@ -5,5 +5,8 @@
     <cve>CVE-2024-9329</cve>
     <cve>CVE-2023-52428</cve>
     <cve>CVE-2024-38820</cve>
+    <cve>CVE-2024-38286</cve>
+    <cve>CVE-2025-25193</cve>
+    <cve>CVE-2025-24813</cve>
   </suppress>
 </suppressions>
