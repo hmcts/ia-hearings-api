@@ -53,6 +53,7 @@ public class HmcPartiesNotifiedApiUpdateConsumerTest extends HmcHearingApiConsum
     public void shouldUpdatePartiesNotified() {
         hmcHearingApi.updatePartiesNotifiedRequest(authToken,
                                                    serviceAuthToken,
+                                                   null,
                                                    partiesNotified,
                                                    "2000000057",
                                                    1,
