@@ -62,6 +62,11 @@ public class HearingService {
     private String serviceId;
     @Value("${hmc.deploymentId}")
     private String hmctsDeploymentId;
+    @Value("${core_case_data.api.url:#{null}}")
+    private String dataStoreUrl;
+    @Value("${role-assignment.api.url:#{null}}")
+    private String roleAssignmentUrl;
+
 
     public HmcHearingResponse createHearing(CreateHearingRequest hearingPayload) {
         try {
@@ -74,7 +79,8 @@ public class HearingService {
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
             return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken,
-                                                      hmctsDeploymentId, hearingPayload);
+                                                      hmctsDeploymentId, dataStoreUrl,
+                    roleAssignmentUrl, hearingPayload);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new IllegalStateException("Service could not complete request to create hearing", e);
@@ -194,7 +200,9 @@ public class HearingService {
                 serviceUserToken,
                 serviceAuthToken,
                 hmctsDeploymentId,
-                hearingId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
+                    hearingId,
                 null
             );
         } catch (FeignException ex) {
@@ -212,6 +220,8 @@ public class HearingService {
             return hmcHearingApi.getHearingsRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
                 hmctsDeploymentId,
                 caseReference.toString()
             );
@@ -239,6 +249,8 @@ public class HearingService {
                 serviceUserToken,
                 serviceAuthToken,
                 hmctsDeploymentId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
                 updateHearingRequest,
                 hearingId
             );
@@ -258,6 +270,8 @@ public class HearingService {
                 serviceUserToken,
                 serviceAuthToken,
                 hmctsDeploymentId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
                 hearingId
             );
         } catch (FeignException e) {
@@ -276,6 +290,8 @@ public class HearingService {
                 serviceUserToken,
                 serviceAuthToken,
                 hmctsDeploymentId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
                 payload,
                 hearingId,
                 requestVersion,
@@ -297,6 +313,8 @@ public class HearingService {
                 serviceUserToken,
                 serviceAuthToken,
                 hmctsDeploymentId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
                 hearingId,
                 new DeleteHearingRequest(Arrays.asList(cancellationReason))
             );
@@ -316,6 +334,8 @@ public class HearingService {
             return hmcHearingApi.getUnNotifiedHearings(serviceUserToken,
                                                        serviceAuthToken,
                                                        hmctsDeploymentId,
+                                                        dataStoreUrl,
+                                                        roleAssignmentUrl,
                                                        hearingStartDateFrom,
                                                        null,
                                                        hearingStatus.stream().map(HmcStatus::name).toList(),

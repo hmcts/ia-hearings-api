@@ -43,12 +43,16 @@ public interface HmcHearingApi {
     String PARTIES_NOTIFIED_ENDPOINT = "/partiesNotified";
     String UN_NOTIFIED_HEARINGS_ENDPOINT = "/unNotifiedHearings";
     String HMCTS_DEPLOYMENT_ID = "hmctsDeploymentId";
+    String ROLE_ASSIGNMENT_URL = "Role-Assignment-Url";
+    String DATA_STORE_URL = "Data-Store-Url";
 
     @PostMapping(value = HEARING_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE)
     HmcHearingResponse createHearingRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
+        @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
+        @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
         @RequestBody CreateHearingRequest hearingPayload
     );
 
@@ -57,6 +61,8 @@ public interface HmcHearingApi {
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
+        @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
+        @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
         @PathVariable String id,
         @RequestParam(name = "isValid", required = false) Boolean isValid
     );
@@ -65,6 +71,8 @@ public interface HmcHearingApi {
     HearingsGetResponse getHearingsRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
+        @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @PathVariable String id
     );
@@ -74,7 +82,8 @@ public interface HmcHearingApi {
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
-
+        @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
+        @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
         @RequestBody UpdateHearingRequest updateHearingRequest,
         @PathVariable String id
     );
@@ -84,6 +93,8 @@ public interface HmcHearingApi {
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
+        @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
+        @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
         @PathVariable("id") String id
     );
 
@@ -92,6 +103,8 @@ public interface HmcHearingApi {
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
+        @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
+        @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
         @RequestBody PartiesNotified partiesNotified,
         @PathVariable("id") String hearingId,
         @RequestParam("version") long requestVersion,
@@ -105,6 +118,8 @@ public interface HmcHearingApi {
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
+        @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
+        @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
         @PathVariable("id") Long hearingId,
         @RequestBody @Valid DeleteHearingRequest deleteRequest
     );
@@ -114,6 +129,8 @@ public interface HmcHearingApi {
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
+        @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
+        @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
         @RequestParam(name = "hearing_start_date_from")
         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime hearingStartDateFrom,
         @RequestParam(name = "hearing_start_date_to", required = false)

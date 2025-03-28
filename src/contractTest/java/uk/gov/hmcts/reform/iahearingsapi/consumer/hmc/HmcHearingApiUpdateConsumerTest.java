@@ -52,7 +52,7 @@ public class HmcHearingApiUpdateConsumerTest extends HmcHearingApiConsumerTestBa
     @PactTestFor(pactMethod = "updateHearing")
     public void shouldUpdateHearing() throws JsonProcessingException {
         HearingGetResponse response = hmcHearingApi
-            .updateHearingRequest(authToken, serviceAuthToken, null, updateHearingRequest, "2000000057");
+            .updateHearingRequest(authToken, serviceAuthToken, null, null, null, updateHearingRequest, "2000000057");
 
         HearingGetResponse expected = getExpectedResponse(
             hearingGetResponseDsl.toString(), HearingGetResponse.class);

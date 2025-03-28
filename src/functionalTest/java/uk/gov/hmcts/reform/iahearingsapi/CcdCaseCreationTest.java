@@ -144,7 +144,9 @@ public class CcdCaseCreationTest {
             systemUserToken,
             s2sToken,
             null,
-            caseReference
+                null,
+                null,
+                caseReference
         );
     }
 
