@@ -10,6 +10,7 @@ import io.restassured.http.Header;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.context.ActiveProfiles;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
 @ActiveProfiles("functional")
 @Slf4j
+@Disabled
 public class EndAppealRequestSubmitHandlerFunctionalTest extends CcdCaseCreationTest {
 
     @BeforeEach

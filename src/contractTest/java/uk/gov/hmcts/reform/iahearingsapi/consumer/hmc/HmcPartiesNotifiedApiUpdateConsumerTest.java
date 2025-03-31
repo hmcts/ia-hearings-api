@@ -53,7 +53,10 @@ public class HmcPartiesNotifiedApiUpdateConsumerTest extends HmcHearingApiConsum
     public void shouldUpdatePartiesNotified() {
         hmcHearingApi.updatePartiesNotifiedRequest(authToken,
                                                    serviceAuthToken,
-                                                   partiesNotified,
+                                                   null,
+                null,
+                null,
+                partiesNotified,
                                                    "2000000057",
                                                    1,
                                                    LocalDateTime.parse("2024-09-20T10:09:19"));

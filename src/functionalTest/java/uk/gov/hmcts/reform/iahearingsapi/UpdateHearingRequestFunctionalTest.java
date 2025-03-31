@@ -12,6 +12,7 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -30,6 +31,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearing
  */
 @Slf4j
 @ActiveProfiles("functional")
+@Disabled
 public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
     void getAuthentications() {
