@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.NextHearingDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
@@ -53,8 +54,11 @@ public class NextHearingInfoHandler implements PreSubmitCallbackHandler<AsylumCa
 
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
 
+        NextHearingDetails nextHearingDetails = nextHearingDateService.getNextHearingDetails(callback.getCaseDetails().getId());
+        log.info("Next hearing date calculated for case ID {} hearing date {}, hearingID {}",
+                 callback.getCaseDetails().getId(), nextHearingDetails.getHearingDateTime(), nextHearingDetails.getHearingId());
         asylumCase.write(
-            NEXT_HEARING_DETAILS, nextHearingDateService.getNextHearingDetails(callback.getCaseDetails().getId()));
+            NEXT_HEARING_DETAILS, nextHearingDetails);
 
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
