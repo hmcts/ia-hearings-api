@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
@@ -68,6 +70,18 @@ class SubstantiveHearingCancelledHandlerTest {
 
     @Test
     void should_handle_only_if_service_data_qualifies() {
+        assertTrue(substantiveHearingCancelledHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void isSubstantiveCancelledHearing() {
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER, TEL, VID, HearingChannel.NA)));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE))
+            .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS))
+            .thenReturn(Optional.of(HmcStatus.CANCELLED));
+
         assertTrue(substantiveHearingCancelledHandler.canHandle(serviceData));
     }
 

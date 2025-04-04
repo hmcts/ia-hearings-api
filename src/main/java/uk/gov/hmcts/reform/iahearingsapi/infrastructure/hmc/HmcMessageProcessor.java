@@ -37,10 +37,10 @@ public class HmcMessageProcessor {
     private final HearingService hearingService;
 
     public void processMessage(HmcMessage hmcMessage) {
-
         log.info(
             "Processing HMC hearing update message for Hearing ID `{}` and Case ID `{}` and HmcStatus `{}`",
-            hmcMessage.getHearingId(), hmcMessage.getCaseId(), hmcMessage.getHearingUpdate().getHmcStatus());
+            hmcMessage.getHearingId(), hmcMessage.getCaseId(), hmcMessage.getHearingUpdate().getHmcStatus()
+        );
 
         ServiceData serviceData = new ServiceData();
 

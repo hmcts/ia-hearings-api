@@ -26,8 +26,7 @@ public class SubstantiveHearingCancelledHandler extends ListedHearingService
         return DispatchPriority.EARLY;
     }
 
-    public boolean canHandle(ServiceData serviceData
-    ) {
+    public boolean canHandle(ServiceData serviceData) {
         requireNonNull(serviceData, "serviceData must not be null");
 
         return isSubstantiveCancelledHearing(serviceData);
