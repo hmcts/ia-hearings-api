@@ -116,10 +116,10 @@ security:
       - "decisionWithoutHearingListed"
       - "listCase"
       - "editCaseListing"
-      - "updateNextHearingInfo"
+      - "UpdateNextHearingInfo"
       - "hearingCancelled"
     next-hearing-date-admin:
-      - "updateNextHearingInfo"
+      - "UpdateNextHearingInfo"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}

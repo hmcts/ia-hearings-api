@@ -26,7 +26,7 @@ public enum Event {
     REVIEW_HEARING_REQUIREMENTS("reviewHearingRequirements"),
     DECISION_AND_REASONS_STARTED("decisionAndReasonsStarted"),
     RESTORE_STATE_FROM_ADJOURN("restoreStateFromAdjourn"),
-    UPDATE_NEXT_HEARING_INFO("updateNextHearingInfo"),
+    UPDATE_NEXT_HEARING_INFO("UpdateNextHearingInfo"),
     HEARING_CANCELLED("hearingCancelled"),
 
     @JsonEnumDefaultValue
