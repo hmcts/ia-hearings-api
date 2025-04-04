@@ -72,7 +72,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
-class EditListCaseHandlerTest {
+class SubstantiveHearingEditedHandlerTest {
 
 
     private static final String GLASGOW_EPIMMS_ID = "366559";
@@ -93,7 +93,7 @@ class EditListCaseHandlerTest {
     @Mock
     LocationRefDataService locationRefDataService;
 
-    private EditListCaseHandler editListCaseHandler;
+    private SubstantiveHearingEditedHandler substantiveHearingEditedHandler;
 
     private DynamicList hearingLocationList = new DynamicList(
         new Value("231596", "Hendon Magistrates Court"),
@@ -102,7 +102,8 @@ class EditListCaseHandlerTest {
     @BeforeEach
     public void setUp() {
 
-        editListCaseHandler = new EditListCaseHandler(coreCaseDataService, locationRefDataService);
+        substantiveHearingEditedHandler = new SubstantiveHearingEditedHandler(
+            coreCaseDataService, locationRefDataService);
         when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERENCE));
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -128,40 +129,40 @@ class EditListCaseHandlerTest {
 
     @Test
     void should_have_early_dispatch_priority() {
-        assertEquals(DispatchPriority.EARLY, editListCaseHandler.getDispatchPriority());
+        assertEquals(DispatchPriority.EARLY, substantiveHearingEditedHandler.getDispatchPriority());
     }
 
     @Test
     void should_handle_only_if_service_data_qualifies() {
-        assertTrue(editListCaseHandler.canHandle(serviceData));
+        assertTrue(substantiveHearingEditedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hearing_type_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(COSTS.getKey()));
-        assertFalse(editListCaseHandler.canHandle(serviceData));
+        assertFalse(substantiveHearingEditedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hmc_status_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.CLOSED));
-        assertFalse(editListCaseHandler.canHandle(serviceData));
+        assertFalse(substantiveHearingEditedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hearing_channels_on_papers() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS, List.class))
             .thenReturn(Optional.of(List.of(HearingChannel.ONPPRS)));
-        assertFalse(editListCaseHandler.canHandle(serviceData));
+        assertFalse(substantiveHearingEditedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hearing_listing_status_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.class))
             .thenReturn(Optional.of(ListingStatus.DRAFT));
-        assertFalse(editListCaseHandler.canHandle(serviceData));
+        assertFalse(substantiveHearingEditedHandler.canHandle(serviceData));
     }
 
     @Test
@@ -169,7 +170,7 @@ class EditListCaseHandlerTest {
         when(coreCaseDataService.getCaseState(CASE_REFERENCE))
             .thenReturn(APPEAL_SUBMITTED);
 
-        assertFalse(editListCaseHandler.canHandle(serviceData));
+        assertFalse(substantiveHearingEditedHandler.canHandle(serviceData));
     }
 
     @Test
@@ -177,7 +178,7 @@ class EditListCaseHandlerTest {
         when(coreCaseDataService.getCaseState(CASE_REFERENCE))
             .thenReturn(APPEAL_SUBMITTED);
 
-        assertThrows(IllegalStateException.class, () -> editListCaseHandler.handle(serviceData));
+        assertThrows(IllegalStateException.class, () -> substantiveHearingEditedHandler.handle(serviceData));
     }
 
     @Test
@@ -187,7 +188,7 @@ class EditListCaseHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
             .thenReturn(Optional.of(NEXT_HEARING_DATE.plusDays(1)));
 
-        editListCaseHandler.handle(serviceData);
+        substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(
             LIST_CASE_HEARING_DATE,
@@ -208,7 +209,7 @@ class EditListCaseHandlerTest {
         when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
             .thenReturn(Optional.of(listCaseHearingDate));
 
-        editListCaseHandler.handle(serviceData);
+        substantiveHearingEditedHandler.handle(serviceData);
 
         Map<String, Object> caseData = getCaseDataMapping();
         caseData.put(LIST_CASE_HEARING_CENTRE.value(), HearingCentre.BRADFORD);
@@ -232,7 +233,7 @@ class EditListCaseHandlerTest {
         when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
             .thenReturn(Optional.of(listCaseHearingDate));
 
-        editListCaseHandler.handle(serviceData);
+        substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(LISTING_LENGTH, new HoursMinutes(100));
         verify(coreCaseDataService).triggerSubmitEvent(
@@ -255,7 +256,7 @@ class EditListCaseHandlerTest {
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class))
             .thenReturn(Optional.of(new DynamicList(currentChannel)));
 
-        editListCaseHandler.handle(serviceData);
+        substantiveHearingEditedHandler.handle(serviceData);
 
         String dateTimeAtTen = LocalDateTime.of(2023, 9, 29, 10, 0)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
@@ -314,7 +315,7 @@ class EditListCaseHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(ONPPRS)));
 
-        editListCaseHandler.handle(serviceData);
+        substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(
             HEARING_CHANNEL, new DynamicList(new Value(
@@ -338,7 +339,7 @@ class EditListCaseHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(VID)));
 
-        editListCaseHandler.handle(serviceData);
+        substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(
             HEARING_CHANNEL, new DynamicList(new Value(
@@ -365,7 +366,7 @@ class EditListCaseHandlerTest {
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class))
             .thenReturn(Optional.of(new DynamicList(VID.name())));
 
-        editListCaseHandler.handle(serviceData);
+        substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(
             HEARING_CHANNEL, new DynamicList(new Value(
@@ -394,7 +395,7 @@ class EditListCaseHandlerTest {
         when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
             .thenReturn(Optional.of(listCaseHearingDate));
 
-        editListCaseHandler.handle(serviceData);
+        substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase, never()).write(eq(LIST_CASE_HEARING_CENTRE), any());
         verify(asylumCase, never()).write(eq(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK), anyBoolean());
@@ -414,7 +415,7 @@ class EditListCaseHandlerTest {
         when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
             .thenReturn(Optional.of(listCaseHearingDate));
 
-        editListCaseHandler.handle(serviceData);
+        substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(
             HEARING_CHANNEL, new DynamicList(new Value(
@@ -443,7 +444,7 @@ class EditListCaseHandlerTest {
         when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
             .thenReturn(Optional.of(listCaseHearingDate));
 
-        editListCaseHandler.handle(serviceData);
+        substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(
             HEARING_CHANNEL, new DynamicList(new Value(
@@ -479,7 +480,7 @@ class EditListCaseHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
             .thenReturn(Optional.of(NEXT_HEARING_DATE.plusDays(1)));
 
-        editListCaseHandler.handle(serviceData);
+        substantiveHearingEditedHandler.handle(serviceData);
 
         DynamicList expectedRefDataListingLocation = new DynamicList(
             new Value("231596", COURT_NAME),
