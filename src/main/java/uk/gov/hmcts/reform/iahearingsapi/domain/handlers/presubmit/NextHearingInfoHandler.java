@@ -56,10 +56,6 @@ public class NextHearingInfoHandler implements PreSubmitCallbackHandler<AsylumCa
 
         NextHearingDetails nextHearingDetails
             = nextHearingDateService.getNextHearingDetails(callback.getCaseDetails().getId());
-        log.info("Next hearing date calculated for case ID {} hearing date {}, hearingID {}",
-                 callback.getCaseDetails().getId(),
-                 nextHearingDetails.getHearingDateTime(),
-                 nextHearingDetails.getHearingId());
         asylumCase.write(
             NEXT_HEARING_DETAILS, nextHearingDetails);
 
