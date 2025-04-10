@@ -124,7 +124,7 @@ class NextHearingInfoHandlerTest {
 
                 boolean canHandle = nextHearingDateHandler.canHandle(callbackStage, callback);
 
-                if (event == UPDATE_NEXT_HEARING_INFO
+                if ((event == UPDATE_NEXT_HEARING_INFO && callbackStage == ABOUT_TO_START)
                     || (List.of(LIST_CASE, EDIT_CASE_LISTING, CMR_LISTING, CMR_RE_LISTING, HEARING_CANCELLED)
                     .contains(event) && callbackStage == ABOUT_TO_SUBMIT)) {
 

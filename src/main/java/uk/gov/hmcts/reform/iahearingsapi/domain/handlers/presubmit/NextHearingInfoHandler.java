@@ -8,6 +8,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_NEXT_HEARING_INFO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_START;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 
 import java.util.List;
@@ -37,7 +38,7 @@ public class NextHearingInfoHandler implements PreSubmitCallbackHandler<AsylumCa
         requireNonNull(callback,
                        "callback must not be null");
 
-        return callback.getEvent() == UPDATE_NEXT_HEARING_INFO
+        return (callbackStage == ABOUT_TO_START && callback.getEvent() == UPDATE_NEXT_HEARING_INFO)
             || (callbackStage == ABOUT_TO_SUBMIT
             && List.of(LIST_CASE, EDIT_CASE_LISTING, CMR_LISTING, CMR_RE_LISTING, HEARING_CANCELLED)
             .contains(callback.getEvent()));
