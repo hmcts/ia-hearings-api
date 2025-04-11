@@ -331,6 +331,9 @@ public class HearingService {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
+            log.info("Role Assignment ULR {} and Data Store URL {}",
+            roleAssignmentUrl, dataStoreUrl);
+            
             return hmcHearingApi.getUnNotifiedHearings(serviceUserToken,
                                                        serviceAuthToken,
                                                        hmctsDeploymentId,
