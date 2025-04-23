@@ -33,7 +33,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
 @Slf4j
 @ActiveProfiles("functional")
-@Disabled
 public class AutoRequestHearingFunctionalTest extends CcdCaseCreationTest {
 
     @BeforeEach
