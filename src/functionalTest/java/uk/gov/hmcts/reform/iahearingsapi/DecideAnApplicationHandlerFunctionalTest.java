@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.context.ActiveProfiles;
@@ -23,7 +22,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 
 @ActiveProfiles("functional")
 @Slf4j
-@Disabled
 public class DecideAnApplicationHandlerFunctionalTest  extends CcdCaseCreationTest {
 
     @BeforeEach
