@@ -50,7 +50,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @PactTestFor(pactMethod = "getHearingRequest")
     public void shouldGetHearingRequest() throws JsonProcessingException {
         HearingGetResponse result =
-            hmcHearingApi.getHearingRequest(authToken, serviceAuthToken, "2000000056", null);
+            hmcHearingApi.getHearingRequest(authToken, serviceAuthToken, null, null, null, "2000000056", null);
 
         HearingGetResponse expected = getExpectedResponse(
             hearingGetResponseDsl.toString(), HearingGetResponse.class);
@@ -76,7 +76,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @PactTestFor(pactMethod = "getHearingsRequest")
     public void shouldGetHearingsRequest() throws JsonProcessingException {
         HearingsGetResponse result =
-            hmcHearingApi.getHearingsRequest(authToken, serviceAuthToken, "2000000056");
+            hmcHearingApi.getHearingsRequest(authToken, serviceAuthToken, null,null, null,  "2000000056");
 
         HearingsGetResponse expected = getExpectedResponse(
             hearingsGetResponseDsl.toString(), HearingsGetResponse.class);
@@ -103,7 +103,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @PactTestFor(pactMethod = "getPartiesNotified")
     public void verifyGetPartiesNotified() throws JsonProcessingException {
         PartiesNotifiedResponses hearingGetResponse =
-            hmcHearingApi.getPartiesNotifiedRequest(authToken, serviceAuthToken, "2000000056");
+            hmcHearingApi.getPartiesNotifiedRequest(authToken, serviceAuthToken, null, null, null, "2000000056");
 
         PartiesNotifiedResponses expected = getExpectedResponse(
             getPartiesNotifiedRequestDsl.toString(), PartiesNotifiedResponses.class);
@@ -136,7 +136,10 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
             hmcHearingApi.getUnNotifiedHearings(
                 authToken,
                 serviceAuthToken,
-                fromDate,
+                null,
+                    null,
+                    null,
+                    fromDate,
                 toDate,
                 List.of("LISTED", "CANCELLED"),
                 "BFA1");
