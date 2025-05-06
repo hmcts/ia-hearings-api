@@ -6,7 +6,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LI
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import javax.jms.JMSException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.qpid.jms.message.JmsBytesMessage;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
@@ -27,10 +29,20 @@ public class HmcHearingsEventTopicListener {
     private final String hmctsServiceId;
 
     private final HmcMessageProcessor hmcMessageProcessor;
+    private final String hmctsDeploymentId;
+    private final boolean isDeploymentFilterEnabled;
 
-    public HmcHearingsEventTopicListener(@Value("${ia.hmctsServiceId}") String hmctsServiceId,
-                                         HmcMessageProcessor hmcMessageProcessor) {
+    private static final String HMCTS_DEPLOYMENT_ID = "hmctsDeploymentId";
+
+    public HmcHearingsEventTopicListener(
+        @Value("${ia.hmctsServiceId}") String hmctsServiceId,
+        @Value("${hmc.deploymentId}") String hmctsDeploymentId,
+        @Value("${flags.deployment-filter.enabled}") boolean isDeploymentFilterEnabled,
+        HmcMessageProcessor hmcMessageProcessor) {
+
         this.hmctsServiceId = hmctsServiceId;
+        this.hmctsDeploymentId = hmctsDeploymentId;
+        this.isDeploymentFilterEnabled = isDeploymentFilterEnabled;
         this.hmcMessageProcessor = hmcMessageProcessor;
         this.objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
@@ -41,10 +53,25 @@ public class HmcHearingsEventTopicListener {
         subscription = "${azure.service-bus.hmc-to-hearings-api.subscriptionName}",
         containerFactory = "hmcHearingsEventTopicContainerFactory"
     )
+    public void onMessage(JmsBytesMessage message) throws HmcEventProcessingException, JMSException {
 
-    public void onMessage(byte[] message) throws HmcEventProcessingException {
+        log.info("isDeploymentFilterEnabled && deploymentId ------------------------> , {}, {}",
+                 isDeploymentFilterEnabled, message.getStringProperty(HMCTS_DEPLOYMENT_ID));
 
-        String stringMessage = new String(message, StandardCharsets.UTF_8);
+        if (isDeploymentFilterEnabled && !isMessageRelevantForDeployment(message)) {
+            return;
+        }
+
+        String stringMessage;
+        try {
+            long length = message.getBodyLength();
+            byte[] data = new byte[(int) length];
+            message.readBytes(data);
+            stringMessage = new String(data, StandardCharsets.UTF_8);
+        } catch (JMSException e) {
+            throw new RuntimeException(e);
+        }
+
         log.info("Message received: {}", stringMessage);
 
         try {
@@ -77,5 +104,15 @@ public class HmcHearingsEventTopicListener {
 
     private boolean isMessageRelevantForService(HmcMessage hmcMessage) {
         return hmctsServiceId.equals(hmcMessage.getHmctsServiceCode());
+    }
+
+    private boolean isMessageRelevantForDeployment(JmsBytesMessage message) throws JMSException {
+        var messageDeploymentId = message.getStringProperty(HMCTS_DEPLOYMENT_ID);
+
+        var noDeploymentIdsSet = hmctsDeploymentId.isEmpty() && messageDeploymentId == null;
+        var messageHasDeploymentIdAndMatchesServiceDeploymentId = messageDeploymentId != null
+            && messageDeploymentId.equals(hmctsDeploymentId);
+
+        return noDeploymentIdsSet || messageHasDeploymentIdAndMatchesServiceDeploymentId;
     }
 }
