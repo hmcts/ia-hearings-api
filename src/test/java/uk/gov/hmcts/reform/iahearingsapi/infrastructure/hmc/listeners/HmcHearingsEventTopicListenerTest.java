@@ -7,11 +7,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.HEARING_REQUESTED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
-import static uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi.HMCTS_DEPLOYMENT_ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.qpid.jms.message.JmsBytesMessage;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,9 +28,7 @@ class HmcHearingsEventTopicListenerTest {
 
     private static final String SERVICE_CODE = "BFA1";
 
-    private HmcHearingsEventTopicListener hmcHearingsEventTopicListenerWithDeploymentFilterDisabled;
-
-    private HmcHearingsEventTopicListener hmcHearingsEventTopicListenerWithDeploymentFilterEnabled;
+    private HmcHearingsEventTopicListener hmcHearingsEventTopicListener;
 
     @Mock
     private HmcMessageProcessor hmcMessageProcessor;
@@ -40,22 +36,13 @@ class HmcHearingsEventTopicListenerTest {
     @Mock
     private ObjectMapper mockObjectMapper;
 
-    @Mock
-    private JmsBytesMessage mockJmsBytesMessage;
-
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @BeforeEach
     public void setUp() {
-        hmcHearingsEventTopicListenerWithDeploymentFilterDisabled = new HmcHearingsEventTopicListener(
-            SERVICE_CODE, "ia", false, hmcMessageProcessor);
-        hmcHearingsEventTopicListenerWithDeploymentFilterEnabled = new HmcHearingsEventTopicListener(
-            SERVICE_CODE, "ia", true, hmcMessageProcessor);
-
-        ReflectionTestUtils.setField(
-            hmcHearingsEventTopicListenerWithDeploymentFilterDisabled, "objectMapper", mockObjectMapper);
-        ReflectionTestUtils.setField(
-            hmcHearingsEventTopicListenerWithDeploymentFilterEnabled, "objectMapper", mockObjectMapper);
+        hmcHearingsEventTopicListener = new HmcHearingsEventTopicListener(SERVICE_CODE, hmcMessageProcessor);
+        ReflectionTestUtils.setField(hmcHearingsEventTopicListener, "objectMapper", mockObjectMapper);
+        ReflectionTestUtils.setField(hmcHearingsEventTopicListener, "hmctsServiceId", SERVICE_CODE);
     }
 
     @ParameterizedTest
@@ -64,11 +51,11 @@ class HmcHearingsEventTopicListenerTest {
         HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, hmcStatus);
 
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
 
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
 
-        hmcHearingsEventTopicListenerWithDeploymentFilterDisabled.onMessage(mockJmsBytesMessage);
+        hmcHearingsEventTopicListener.onMessage(message);
 
         verify(hmcMessageProcessor, times(1)).processMessage(any(HmcMessage.class));
     }
@@ -77,11 +64,10 @@ class HmcHearingsEventTopicListenerTest {
     public void testOnMessageWithIrrelevantMessage() throws Exception {
         HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode", HEARING_REQUESTED);
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
 
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
-
-        hmcHearingsEventTopicListenerWithDeploymentFilterDisabled.onMessage(mockJmsBytesMessage);
+        hmcHearingsEventTopicListener.onMessage(message);
 
         verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
     }
@@ -92,49 +78,11 @@ class HmcHearingsEventTopicListenerTest {
     public void testOnMessageWithIrrelevantHmcStatuses(HmcStatus hmcStatus) throws Exception {
         HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode", hmcStatus);
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        byte[] message = StandardCharsets.UTF_8.encode(stringMessage).array();
 
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
-
-        hmcHearingsEventTopicListenerWithDeploymentFilterDisabled.onMessage(mockJmsBytesMessage);
+        hmcHearingsEventTopicListener.onMessage(message);
 
         verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
-    }
-
-    @Test
-    public void doesntProcessMessageNotForThisDeployment() throws Exception {
-        given(mockJmsBytesMessage.getStringProperty(HMCTS_DEPLOYMENT_ID)).willReturn("some-non-ia-deployment-id");
-
-        hmcHearingsEventTopicListenerWithDeploymentFilterEnabled.onMessage(mockJmsBytesMessage);
-
-        verify(hmcMessageProcessor, never()).processMessage(any(HmcMessage.class));
-    }
-
-    @Test
-    public void processesMessagesForThisDeploymentWhenDeploymentIdsMatch() throws Exception {
-        given(mockJmsBytesMessage.getStringProperty(HMCTS_DEPLOYMENT_ID)).willReturn("ia");
-        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, LISTED);
-        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
-        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
-
-        hmcHearingsEventTopicListenerWithDeploymentFilterEnabled.onMessage(mockJmsBytesMessage);
-
-        verify(hmcMessageProcessor, times(1)).processMessage(any(HmcMessage.class));
-    }
-
-    @Test
-    public void processMessagesForThisDeploymentWhenNoDeploymentIdsConfigured() throws Exception {
-        ReflectionTestUtils.setField(
-            hmcHearingsEventTopicListenerWithDeploymentFilterEnabled, "hmctsDeploymentId", "");
-        given(mockJmsBytesMessage.getStringProperty(HMCTS_DEPLOYMENT_ID)).willReturn(null);
-        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, LISTED);
-        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
-        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
-
-        hmcHearingsEventTopicListenerWithDeploymentFilterEnabled.onMessage(mockJmsBytesMessage);
-
-        verify(hmcMessageProcessor, times(1)).processMessage(any(HmcMessage.class));
     }
 }
