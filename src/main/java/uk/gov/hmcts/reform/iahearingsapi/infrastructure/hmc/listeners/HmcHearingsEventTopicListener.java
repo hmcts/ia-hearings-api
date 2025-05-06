@@ -18,6 +18,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcEventProcessingException;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
 
+import java.nio.charset.StandardCharsets;
+
 @Slf4j
 @Component
 @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
@@ -62,7 +64,10 @@ public class HmcHearingsEventTopicListener {
 
         String stringMessage;
         try {
-            stringMessage = message.getBody(String.class);
+            long length = message.getBodyLength();
+            byte[] data = new byte[(int) length];
+            message.readBytes(data);
+            stringMessage = new String(data, StandardCharsets.UTF_8);
         } catch (JMSException e) {
             throw new RuntimeException(e);
         }

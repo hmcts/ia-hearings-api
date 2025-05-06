@@ -25,6 +25,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
 
+import javax.jms.JMSException;
+import java.nio.charset.StandardCharsets;
+
 @ExtendWith(MockitoExtension.class)
 class HmcHearingsEventTopicListenerTest {
 
@@ -65,8 +68,8 @@ class HmcHearingsEventTopicListenerTest {
 
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
 
+        mocksToReadJmsByteMessage(stringMessage);
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
 
         hmcHearingsEventTopicListenerWithDeploymentFilterDisabled.onMessage(mockJmsBytesMessage);
 
@@ -78,8 +81,8 @@ class HmcHearingsEventTopicListenerTest {
         HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode", HEARING_REQUESTED);
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
 
+        mocksToReadJmsByteMessage(stringMessage);
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
 
         hmcHearingsEventTopicListenerWithDeploymentFilterDisabled.onMessage(mockJmsBytesMessage);
 
@@ -93,8 +96,8 @@ class HmcHearingsEventTopicListenerTest {
         HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode", hmcStatus);
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
 
+        mocksToReadJmsByteMessage(stringMessage);
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
 
         hmcHearingsEventTopicListenerWithDeploymentFilterDisabled.onMessage(mockJmsBytesMessage);
 
@@ -115,8 +118,8 @@ class HmcHearingsEventTopicListenerTest {
         given(mockJmsBytesMessage.getStringProperty(HMCTS_DEPLOYMENT_ID)).willReturn("ia");
         HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, LISTED);
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        mocksToReadJmsByteMessage(stringMessage);
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
 
         hmcHearingsEventTopicListenerWithDeploymentFilterEnabled.onMessage(mockJmsBytesMessage);
 
@@ -130,11 +133,22 @@ class HmcHearingsEventTopicListenerTest {
         given(mockJmsBytesMessage.getStringProperty(HMCTS_DEPLOYMENT_ID)).willReturn(null);
         HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, LISTED);
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        mocksToReadJmsByteMessage(stringMessage);
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
-        given(mockJmsBytesMessage.getBody(String.class)).willReturn(stringMessage);
 
         hmcHearingsEventTopicListenerWithDeploymentFilterEnabled.onMessage(mockJmsBytesMessage);
 
         verify(hmcMessageProcessor, times(1)).processMessage(any(HmcMessage.class));
+    }
+
+    private void mocksToReadJmsByteMessage(String stringMessage) throws JMSException {
+        byte[] byteMessage = stringMessage.getBytes(StandardCharsets.UTF_8);
+
+        given(mockJmsBytesMessage.getBodyLength()).willReturn((long) byteMessage.length);
+        given(mockJmsBytesMessage.readBytes(any(byte[].class))).willAnswer(invocation -> {
+            byte[] buffer = invocation.getArgument(0);
+            System.arraycopy(byteMessage, 0, buffer, 0, byteMessage.length);
+            return byteMessage.length;
+        });
     }
 }
