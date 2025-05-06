@@ -48,6 +48,6 @@ public class HmcHearingApiPostConsumerTest extends HmcHearingApiConsumerTestBase
     @Test
     @PactTestFor(pactMethod = "createHearingRequest")
     public void shouldCreateHearingRequest() {
-        hmcHearingApi.createHearingRequest(authToken, serviceAuthToken, createHearingRequest);
+        hmcHearingApi.createHearingRequest(authToken, serviceAuthToken, null, null, null, createHearingRequest);
     }
 }

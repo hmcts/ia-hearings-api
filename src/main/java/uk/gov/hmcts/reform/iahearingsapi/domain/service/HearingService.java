@@ -57,8 +57,16 @@ public class HearingService {
     private final ServiceHearingValuesProvider serviceHearingValuesProvider;
     private final CoreCaseDataService coreCaseDataService;
     private final IaCcdConvertService iaCcdConvertService;
-    @Value("${hearingValues.hmctsServiceId}") String serviceId;
     private final CreateHearingPayloadService createHearingPayloadService;
+    @Value("${hearingValues.hmctsServiceId}")
+    private String serviceId;
+    @Value("${hmc.deploymentId}")
+    private String hmctsDeploymentId;
+    @Value("${core_case_data.api.url:#{null}}")
+    private String dataStoreUrl;
+    @Value("${role-assignment.api.url:#{null}}")
+    private String roleAssignmentUrl;
+
 
     public HmcHearingResponse createHearing(CreateHearingRequest hearingPayload) {
         try {
@@ -70,7 +78,9 @@ public class HearingService {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
-            return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken, hearingPayload);
+            return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken,
+                                                      hmctsDeploymentId, dataStoreUrl,
+                    roleAssignmentUrl, hearingPayload);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new IllegalStateException("Service could not complete request to create hearing", e);
@@ -189,7 +199,10 @@ public class HearingService {
             return hmcHearingApi.getHearingRequest(
                 serviceUserToken,
                 serviceAuthToken,
-                hearingId,
+                hmctsDeploymentId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
+                    hearingId,
                 null
             );
         } catch (FeignException ex) {
@@ -207,6 +220,9 @@ public class HearingService {
             return hmcHearingApi.getHearingsRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
+                hmctsDeploymentId,
                 caseReference.toString()
             );
         } catch (FeignException ex) {
@@ -232,6 +248,9 @@ public class HearingService {
             return hmcHearingApi.updateHearingRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
                 updateHearingRequest,
                 hearingId
             );
@@ -250,6 +269,9 @@ public class HearingService {
             return hmcHearingApi.getPartiesNotifiedRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
                 hearingId
             );
         } catch (FeignException e) {
@@ -267,6 +289,9 @@ public class HearingService {
             hmcHearingApi.updatePartiesNotifiedRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
                 payload,
                 hearingId,
                 requestVersion,
@@ -287,6 +312,9 @@ public class HearingService {
             return hmcHearingApi.deleteHearing(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
                 hearingId,
                 new DeleteHearingRequest(Arrays.asList(cancellationReason))
             );
@@ -302,9 +330,12 @@ public class HearingService {
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
-
+            
             return hmcHearingApi.getUnNotifiedHearings(serviceUserToken,
                                                        serviceAuthToken,
+                                                       hmctsDeploymentId,
+                                                        dataStoreUrl,
+                                                        roleAssignmentUrl,
                                                        hearingStartDateFrom,
                                                        null,
                                                        hearingStatus.stream().map(HmcStatus::name).toList(),
@@ -315,6 +346,7 @@ public class HearingService {
         }
     }
 
+    // TODO: look at better ways to test this class other than including setters solely for test (constructor injection)
     public void setServiceId(String serviceId) {
         this.serviceId = serviceId;
     }
