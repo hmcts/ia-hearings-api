@@ -181,7 +181,7 @@ idam:
 #HMC
 hmc:
   baseUrl: ${HMC_API_URL:http://127.0.0.1:4561}
-  deploymentId: ${HMC_DEPLOYMENT_ID:null}
+  deploymentId: ${HMC_DEPLOYMENT_ID:}
 
 prof.ref.data.url: ${PROF_REF_DATA_URL:http://localhost:8991}
 prof.ref.data.path.org.users: ${PROF_REF_DATA_ORG_USERS_PATH:/refdata/external/v1/organisations/users}
