@@ -99,6 +99,7 @@ class UpdateHearingPayloadServiceTest {
     private final Integer persistedHearingDuration = 120;
     private final String reasonCode = ReasonCodes.OTHER.toString();
     private final Long caseReference = Long.parseLong("1717667659221764");
+    private final String caseDeepLink = "/cases/case-details/1717667659221764#Overview";
     private final List<HearingLocationModel> hearingLocations = List.of(HearingLocationModel
                                                                             .builder()
                                                                             .locationId(
@@ -134,6 +135,7 @@ class UpdateHearingPayloadServiceTest {
 
         when(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase)).thenReturn(true);
         when(asylumCase.read(HMCTS_CASE_NAME_INTERNAL, String.class)).thenReturn(Optional.of("internalCaseName"));
+        when(caseDataMapper.getCaseDeepLink(caseReference.toString())).thenReturn(caseDeepLink);
 
         updateHearingPayloadService = new UpdateHearingPayloadService(
             caseDataMapper,
