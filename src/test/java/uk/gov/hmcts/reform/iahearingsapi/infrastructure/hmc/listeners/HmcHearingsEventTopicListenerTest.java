@@ -67,6 +67,7 @@ class HmcHearingsEventTopicListenerTest {
         HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, hmcStatus);
 
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+
         mocksToReadJmsByteMessage(stringMessage);
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
 
@@ -78,6 +79,9 @@ class HmcHearingsEventTopicListenerTest {
     @Test
     public void testOnMessageWithIrrelevantMessage() throws Exception {
         HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode", HEARING_REQUESTED);
+        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+
+        mocksToReadJmsByteMessage(stringMessage);
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
 
         hmcHearingsEventTopicListenerWithDeploymentFilterDisabled.onMessage(mockJmsBytesMessage);
@@ -90,6 +94,9 @@ class HmcHearingsEventTopicListenerTest {
         "UPDATE_SUBMITTED", "CANCELLATION_REQUESTED", "CANCELLATION_SUBMITTED", "CLOSED", "EXCEPTION"})
     public void testOnMessageWithIrrelevantHmcStatuses(HmcStatus hmcStatus) throws Exception {
         HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode", hmcStatus);
+        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+
+        mocksToReadJmsByteMessage(stringMessage);
         given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
 
         hmcHearingsEventTopicListenerWithDeploymentFilterDisabled.onMessage(mockJmsBytesMessage);
