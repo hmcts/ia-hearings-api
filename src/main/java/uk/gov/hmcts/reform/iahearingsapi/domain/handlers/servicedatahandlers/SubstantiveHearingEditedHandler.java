@@ -51,7 +51,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class EditListCaseHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
+public class SubstantiveHearingEditedHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
     private final LocationRefDataService locationRefDataService;
@@ -137,16 +137,15 @@ public class EditListCaseHandler extends ListedHearingService implements Service
         final LocalDateTime nextHearingDateTime = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
             .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
 
-        final LocalDateTime currentHearingDateTime = LocalDateTime.parse(asylumCase.read(
-            LIST_CASE_HEARING_DATE,
-            String.class
-        ).orElseThrow(() -> new IllegalStateException("listCaseHearingDate can not be null")));
+        final LocalDateTime currentHearingDateTime = asylumCase.read(LIST_CASE_HEARING_DATE, String.class)
+            .map(LocalDateTime::parse)
+            .orElse(null);
 
         // the nextHearingDateTime has to be recalculated according to the actual physical venue (Glasgow / non-Glasgow)
         final String physicalNextHearingVenueId = getHearingVenueId(serviceData);
         final LocalDateTime calculatedNextHearingDateTime = getHearingDateAndTime(nextHearingDateTime,
                                                                                   physicalNextHearingVenueId);
-        boolean updated =  !currentHearingDateTime.equals(calculatedNextHearingDateTime);
+        boolean updated =  !Objects.equals(currentHearingDateTime, calculatedNextHearingDateTime);
 
         if (updated) {
             asylumCase.write(
