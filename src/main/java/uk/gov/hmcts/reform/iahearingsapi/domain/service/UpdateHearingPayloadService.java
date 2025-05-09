@@ -139,7 +139,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         caseDetails.setCaseAdditionalSecurityFlag(caseFlagsMapper.getCaseAdditionalSecurityFlag(asylumCase));
         caseDetails.setCaseCategories(getCaseCategoriesValue(asylumCase));
         caseDetails.setCaseManagementLocationCode(caseDataMapper.getCaseManagementLocationCode(asylumCase));
-        caseDetails.setCaseDeepLink(caseDataMapper.getCaseDeepLink(caseReference.toString()));
+        caseDetails.setCaseDeepLink(baseUrl.concat(caseDataMapper.getCaseDeepLink(caseReference.toString())));
 
         return caseDetails;
     }
