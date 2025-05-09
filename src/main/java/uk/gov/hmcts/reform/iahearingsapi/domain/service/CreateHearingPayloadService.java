@@ -42,8 +42,8 @@ public class CreateHearingPayloadService {
     protected final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
     protected final PartyDetailsMapper partyDetailsMapper;
     protected final ListingCommentsMapper listingCommentsMapper;
+    protected String baseUrl;
     private String serviceId;
-    private String baseUrl;
 
     public CreateHearingPayloadService(CaseDataToServiceHearingValuesMapper caseDataMapper,
                                        CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
