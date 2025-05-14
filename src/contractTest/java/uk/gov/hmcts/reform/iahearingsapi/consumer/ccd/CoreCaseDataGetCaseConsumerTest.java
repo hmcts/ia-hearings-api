@@ -1,21 +1,24 @@
 package uk.gov.hmcts.reform.iahearingsapi.consumer.ccd;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.PactDslBuilderForCaseDetailsList.buildSubmittedCaseDetailsPactDsl;
-
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import java.util.Map;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.CcdConsumerTestBase;
+
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.PactDslBuilderForCaseDetailsList.buildGetCaseDetailsPactDsl;
+import static uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.PactDslBuilderForCaseDetailsList.buildSubmittedCaseDetailsPactDsl;
 
 public class CoreCaseDataGetCaseConsumerTest extends CcdConsumerTestBase {
 
@@ -30,8 +33,9 @@ public class CoreCaseDataGetCaseConsumerTest extends CcdConsumerTestBase {
             .matchHeader(SERVICE_AUTHORIZATION_HEADER, SERVICE_AUTH_TOKEN)
             .matchHeader(EXPERIMENTAL, "true")
             .willRespondWith()
+            .matchHeader(CONTENT_TYPE, CASE_CONTENT_TYPE_EXPRESSION, CASE_CONTENT_TYPE)
             .status(200)
-            .body(buildSubmittedCaseDetailsPactDsl(CASE_ID))
+            .body(buildGetCaseDetailsPactDsl(CASE_ID))
             .toPact();
     }
 
