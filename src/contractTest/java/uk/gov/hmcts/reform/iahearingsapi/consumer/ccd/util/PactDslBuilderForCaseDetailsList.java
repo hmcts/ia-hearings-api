@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
-
 import au.com.dius.pact.consumer.dsl.DslPart;
 import io.pactfoundation.consumer.dsl.LambdaDslObject;
+
+import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
 
 public final class PactDslBuilderForCaseDetailsList {
 
@@ -21,11 +21,22 @@ public final class PactDslBuilderForCaseDetailsList {
                 .object("case_details", cd -> {
                     cd.numberType("id", 2000);
                     cd.stringMatcher("jurisdiction", ALPHABETIC_REGEX, "IA");
-                    cd.stringMatcher("case_type", ALPHABETIC_REGEX, "Asylum");
+                    cd.stringMatcher("case_type_id", ALPHABETIC_REGEX, "Asylum");
                     cd.stringValue("state", "appealStarted");
-                    cd.stringValue("securityClassification", "PUBLIC");
+                    cd.stringValue("security_classification", "PUBLIC");
                     cd.object("case_data", PactDslBuilderForCaseDetailsList::getCaseDataPactDsl);
                 })).build();
+    }
+
+    public static DslPart buildGetCaseDetailsPactDsl(Long caseId) {
+        return newJsonBody(
+            o -> o.stringType("id", String.valueOf(caseId))
+                .stringType("jurisdiction", "IA")
+                .stringValue("case_type", "Asylum")
+                .stringValue("state", "appealStarted")
+                .stringValue("security_classification", "PUBLIC")
+                .stringValue("callback_response_status", "CALLBACK_COMPLETED")
+                .object("data", PactDslBuilderForCaseDetailsList::getCaseDataPactDsl)).build();
     }
 
     public static DslPart buildSubmittedCaseDetailsPactDsl(Long caseId) {
@@ -34,8 +45,8 @@ public final class PactDslBuilderForCaseDetailsList {
                 .stringType("jurisdiction", "IA")
                 .stringValue("case_type_id", "Asylum")
                 .stringValue("state", "appealStarted")
-                .stringValue("securityClassification", "PUBLIC")
-                .stringValue("callbackResponseStatus", "CALLBACK_COMPLETED")
+                .stringValue("security_classification", "PUBLIC")
+                .stringValue("callback_response_status", "CALLBACK_COMPLETED")
                 .object("case_data", PactDslBuilderForCaseDetailsList::getCaseDataPactDsl)).build();
     }
 
