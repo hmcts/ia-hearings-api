@@ -18,7 +18,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.PactDslBuilderForCaseDetailsList.buildGetCaseDetailsPactDsl;
-import static uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.PactDslBuilderForCaseDetailsList.buildSubmittedCaseDetailsPactDsl;
 
 public class CoreCaseDataGetCaseConsumerTest extends CcdConsumerTestBase {
 
