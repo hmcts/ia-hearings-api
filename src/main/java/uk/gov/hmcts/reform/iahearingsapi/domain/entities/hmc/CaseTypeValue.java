@@ -18,7 +18,27 @@ public enum CaseTypeValue {
     EAF("BFA1-EAF"),
     EUF("BFA1-EUF"),
     HUF("BFA1-HUF"),
-    DCF("BFA1-DCF")
+    DCF("BFA1-DCF"),
+    PADEX("BFA1-PADEX"),
+    RPDEX("BFA1-RPDEX"),
+    EADEX("BFA1-EADEX"),
+    EUDEX("BFA1-EUDEX"),
+    HUDEX("BFA1-HUDEX"),
+    DCDEX("BFA1-DCDEX"),
+    PADED("BFA1-PADED"),
+    RPDED("BFA1-RPDED"),
+    EADED("BFA1-EADED"),
+    EUDED("BFA1-EUDED"),
+    HUDED("BFA1-HUDED"),
+    DCDED("BFA1-DCDED"),
+    PADEV("BFA1-PADEV"),
+    EADEV("BFA1-EADEV"),
+    EUDEV("BFA1-EUDEV"),
+    HUDEV("BFA1-HUDEV"),
+    PADEVF("BFA1-PADEVF"),
+    EADEVF("BFA1-EADEVF"),
+    EUDEVF("BFA1-EUDEVF"),
+    HUDEVF("BFA1-HUDEVF")
     ;
 
     private final String value;
