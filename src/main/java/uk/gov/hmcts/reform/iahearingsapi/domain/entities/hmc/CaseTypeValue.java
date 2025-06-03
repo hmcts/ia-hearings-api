@@ -30,15 +30,7 @@ public enum CaseTypeValue {
     EADED("BFA1-EADED"),
     EUDED("BFA1-EUDED"),
     HUDED("BFA1-HUDED"),
-    DCDED("BFA1-DCDED"),
-    PADEV("BFA1-PADEV"),
-    EADEV("BFA1-EADEV"),
-    EUDEV("BFA1-EUDEV"),
-    HUDEV("BFA1-HUDEV"),
-    PADEVF("BFA1-PADEVF"),
-    EADEVF("BFA1-EADEVF"),
-    EUDEVF("BFA1-EUDEVF"),
-    HUDEVF("BFA1-HUDEVF")
+    DCDED("BFA1-DCDED")
     ;
 
     private final String value;
