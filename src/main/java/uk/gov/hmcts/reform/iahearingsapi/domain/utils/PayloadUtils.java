@@ -83,96 +83,51 @@ public class PayloadUtils {
 
         return switch (appealType) {
             case HU -> {
-                if (!hasDeportationOrder && !isSuitableToFloat && !appellantInDetention) {
-                    yield HUX;
-                } else if (hasDeportationOrder && !appellantInDetention) {
-                    yield HUD;
-                } else if (!hasDeportationOrder && isSuitableToFloat && !appellantInDetention) {
-                    yield HUF;
-                } else if (!hasDeportationOrder && !isSuitableToFloat && appellantInDetention) {
-                    yield HUDEX;
-                } else {
-                    yield HUDED;
-                }
-                // the logic for HUDED is (hasDeportationOrder && !isSuitableToFloat && appellantInDetention) but the
-                // compiler requires that we handle all cases so else is used
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  HUD, HUF, HUDEX, HUDED, HUX);
             }
             case EA -> {
-                if (!hasDeportationOrder && !isSuitableToFloat && !appellantInDetention) {
-                    yield EAX;
-                } else if (hasDeportationOrder && !appellantInDetention) {
-                    yield EAD;
-                } else if (!hasDeportationOrder && isSuitableToFloat && !appellantInDetention) {
-                    yield EAF;
-                } else if (!hasDeportationOrder && !isSuitableToFloat && appellantInDetention) {
-                    yield EADEX;
-                } else {
-                    yield EADED;
-                }
-                // the logic for EADED is (hasDeportationOrder && !isSuitableToFloat && appellantInDetention) but the
-                // compiler requires that we handle all cases so else is used
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  EAD, EAF, EADEX, EADED, EAX);
             }
             case EU -> {
-                if (!hasDeportationOrder && !isSuitableToFloat && !appellantInDetention) {
-                    yield EUX;
-                } else if (hasDeportationOrder && !appellantInDetention) {
-                    yield EUD;
-                } else if (!hasDeportationOrder && isSuitableToFloat && !appellantInDetention) {
-                    yield EUF;
-                } else if (!hasDeportationOrder && !isSuitableToFloat && appellantInDetention) {
-                    yield EUDEX;
-                } else {
-                    yield EUDED;
-                }
-                // the logic for EUDED is (hasDeportationOrder && !isSuitableToFloat && appellantInDetention) but the
-                // compiler requires that we handle all cases so else is used
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  EUD, EUF, EUDEX, EUDED, EUX);
             }
             case DC -> {
-                if (!hasDeportationOrder && !isSuitableToFloat && !appellantInDetention) {
-                    yield DCX;
-                } else if (hasDeportationOrder && !appellantInDetention) {
-                    yield DCD;
-                } else if (!hasDeportationOrder && isSuitableToFloat && !appellantInDetention) {
-                    yield DCF;
-                } else if (!hasDeportationOrder && !isSuitableToFloat && appellantInDetention) {
-                    yield DCDEX;
-                } else {
-                    yield DCDED;
-                }
-                // the logic for DCDED is (hasDeportationOrder && !isSuitableToFloat && appellantInDetention) but the
-                // compiler requires that we handle all cases so else is used
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  DCD, DCF, DCDEX, DCDED, DCX);
             }
             case PA -> {
-                if (!hasDeportationOrder && !isSuitableToFloat && !appellantInDetention) {
-                    yield PAX;
-                } else if (hasDeportationOrder && !appellantInDetention) {
-                    yield PAD;
-                } else if (!hasDeportationOrder && isSuitableToFloat && !appellantInDetention) {
-                    yield PAF;
-                } else if (!hasDeportationOrder && !isSuitableToFloat && appellantInDetention) {
-                    yield PADEX;
-                } else {
-                    yield PADED;
-                }
-                // the logic for PADED is (hasDeportationOrder && !isSuitableToFloat && appellantInDetention) but the
-                // compiler requires that we handle all cases so else is used
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  PAD, PAF, PADEX, PADED, PAX);
             }
             case RP -> {
-                if (!hasDeportationOrder && !isSuitableToFloat && !appellantInDetention) {
-                    yield RPX;
-                } else if (hasDeportationOrder && !appellantInDetention) {
-                    yield RPD;
-                } else if (!hasDeportationOrder && isSuitableToFloat && !appellantInDetention) {
-                    yield RPF;
-                } else if (!hasDeportationOrder && !isSuitableToFloat && appellantInDetention) {
-                    yield RPDEX;
-                } else {
-                    yield RPDED;
-                }
-                // the logic for RPDED is (hasDeportationOrder && !isSuitableToFloat && appellantInDetention) but the
-                // compiler requires that we handle all cases so else is used
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  RPD, RPF, RPDEX, RPDED, RPX);
             }
         };
+    }
+
+    private static CaseTypeValue getCaseType(boolean hasDeportationOrder, boolean isSuitableToFloat,
+                                             boolean appellantInDetention, CaseTypeValue deportationCaseType,
+                                             CaseTypeValue floatCaseType, CaseTypeValue detainedCaseType,
+                                             CaseTypeValue deportationDetainedCaseType, CaseTypeValue defaultCaseType) {
+        CaseTypeValue caseType;
+
+        if (hasDeportationOrder && !appellantInDetention) {
+            caseType = deportationCaseType;
+        } else if (!hasDeportationOrder && isSuitableToFloat && !appellantInDetention) {
+            caseType = floatCaseType;
+        } else if (!hasDeportationOrder && !isSuitableToFloat && appellantInDetention) {
+            caseType = detainedCaseType;
+        } else if (hasDeportationOrder && !isSuitableToFloat && appellantInDetention) {
+            caseType = deportationDetainedCaseType;
+        } else {
+            caseType = defaultCaseType;
+        }
+
+        return caseType;
     }
 
     public static Integer getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {
