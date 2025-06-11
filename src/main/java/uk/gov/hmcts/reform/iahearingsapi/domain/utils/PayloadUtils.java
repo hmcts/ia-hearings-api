@@ -1,24 +1,37 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.utils;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_IN_DETENTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DEPORTATION_ORDER_OPTIONS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_APPEAL_SUITABLE_TO_FLOAT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCDED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCDEX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.DCX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EAD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EADED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EADEX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EAF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EAX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EUD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EUDED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EUDEX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EUF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.EUX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.HUD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.HUDED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.HUDEX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.HUF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.HUX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.PAD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.PADED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.PADEX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.PAF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.PAX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPDED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPDEX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue.RPX;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.INTER;
@@ -61,17 +74,60 @@ public class PayloadUtils {
             .map(deportation -> deportation == YesOrNo.YES)
             .orElse(false);
 
+        boolean appellantInDetention = asylumCase.read(APPELLANT_IN_DETENTION, YesOrNo.class)
+            .map(detention -> detention == YesOrNo.YES)
+            .orElse(false);
+
         AppealType appealType = asylumCase.read(APPEAL_TYPE, AppealType.class)
             .orElseThrow(() -> new RequiredFieldMissingException("Appeal Type is a required field"));
 
         return switch (appealType) {
-            case HU -> hasDeportationOrder ? HUD : isSuitableToFloat ? HUF : HUX;
-            case EA -> hasDeportationOrder ? EAD : isSuitableToFloat ? EAF : EAX;
-            case EU -> hasDeportationOrder ? EUD : isSuitableToFloat ? EUF : EUX;
-            case DC -> hasDeportationOrder ? DCD : isSuitableToFloat ? DCF : DCX;
-            case PA -> hasDeportationOrder ? PAD : isSuitableToFloat ? PAF : PAX;
-            case RP -> hasDeportationOrder ? RPD : isSuitableToFloat ? RPF : RPX;
+            case HU -> {
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  HUD, HUF, HUDEX, HUDED, HUX);
+            }
+            case EA -> {
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  EAD, EAF, EADEX, EADED, EAX);
+            }
+            case EU -> {
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  EUD, EUF, EUDEX, EUDED, EUX);
+            }
+            case DC -> {
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  DCD, DCF, DCDEX, DCDED, DCX);
+            }
+            case PA -> {
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  PAD, PAF, PADEX, PADED, PAX);
+            }
+            case RP -> {
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
+                                  RPD, RPF, RPDEX, RPDED, RPX);
+            }
         };
+    }
+
+    private static CaseTypeValue getCaseType(boolean hasDeportationOrder, boolean isSuitableToFloat,
+                                             boolean appellantInDetention, CaseTypeValue deportationCaseType,
+                                             CaseTypeValue floatCaseType, CaseTypeValue detainedCaseType,
+                                             CaseTypeValue deportationDetainedCaseType, CaseTypeValue defaultCaseType) {
+        CaseTypeValue caseType;
+
+        if (hasDeportationOrder && !appellantInDetention) {
+            caseType = deportationCaseType;
+        } else if (!hasDeportationOrder && isSuitableToFloat && !appellantInDetention) {
+            caseType = floatCaseType;
+        } else if (!hasDeportationOrder && !isSuitableToFloat && appellantInDetention) {
+            caseType = detainedCaseType;
+        } else if (hasDeportationOrder && !isSuitableToFloat && appellantInDetention) {
+            caseType = deportationDetainedCaseType;
+        } else {
+            caseType = defaultCaseType;
+        }
+
+        return caseType;
     }
 
     public static Integer getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {
