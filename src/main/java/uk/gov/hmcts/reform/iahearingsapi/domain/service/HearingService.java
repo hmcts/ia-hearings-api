@@ -83,7 +83,7 @@ public class HearingService {
                     roleAssignmentUrl, hearingPayload);
         } catch (Exception e) {
             log.error(e.getMessage());
-            throw new IllegalStateException("Service could not complete request to create hearing", e);
+            throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
@@ -330,7 +330,7 @@ public class HearingService {
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
-            
+
             return hmcHearingApi.getUnNotifiedHearings(serviceUserToken,
                                                        serviceAuthToken,
                                                        hmctsDeploymentId,
