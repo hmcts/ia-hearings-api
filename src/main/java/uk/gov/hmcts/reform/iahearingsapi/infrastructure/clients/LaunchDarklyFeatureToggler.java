@@ -41,7 +41,7 @@ public class LaunchDarklyFeatureToggler implements FeatureToggler {
 
     public boolean getValueAsServiceUser(String key, Boolean defaultValue) {
 
-        UserInfo serviceUser = idamService.getUserInfo();
+        UserInfo serviceUser = idamService.getUserInfo(idamService.getServiceUserToken());
         LDContext context = LDContext.builder(serviceUser.getUid())
             .set("firstName", serviceUser.getGivenName())
             .set("lastName", serviceUser.getFamilyName())

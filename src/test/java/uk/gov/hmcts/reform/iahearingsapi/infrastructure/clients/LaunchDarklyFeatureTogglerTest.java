@@ -19,7 +19,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.IdamService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
 
-
 @ExtendWith(MockitoExtension.class)
 class LaunchDarklyFeatureTogglerTest {
 
@@ -101,6 +100,7 @@ class LaunchDarklyFeatureTogglerTest {
 
     @Test
     void getValueAsServiceUser() {
+        String authToken = "auth-token";
         UserInfo serviceUser = new UserInfo(
             "email",
             "id",
@@ -110,7 +110,8 @@ class LaunchDarklyFeatureTogglerTest {
             "surname"
         );
 
-        when(idamService.getUserInfo()).thenReturn(serviceUser);
+        when(idamService.getServiceUserToken()).thenReturn(authToken);
+        when(idamService.getUserInfo(authToken)).thenReturn(serviceUser);
 
         String existingKey = "existing-key";
 
