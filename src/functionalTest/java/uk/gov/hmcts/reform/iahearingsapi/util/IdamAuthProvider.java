@@ -18,8 +18,7 @@ public class IdamAuthProvider {
     @Value("${idam.redirectUrl}")
     protected String idamRedirectUri;
 
-    @Value("${idam.scope}") 
-    protected String userScope;
+    protected String userScope = "openid profile roles";
 
     @Value("${spring.security.oauth2.client.registration.oidc.client-id}")
     protected String idamClientId;
@@ -47,11 +46,27 @@ public class IdamAuthProvider {
         }
     }
 
+    @Cacheable(value = "systemUserTokenCache")
+    public String getSystemUserToken() {
+        return getUserToken(
+            System.getenv("IA_SYSTEM_USERNAME"),
+            System.getenv("IA_SYSTEM_PASSWORD")
+        );
+    }
+
     @Cacheable(value = "legalRepATokenCache")
     public String getLegalRepToken() {
         return getUserToken(
-            System.getenv("TEST_LAW_FIRM_A_USERNAME"),
-            System.getenv("TEST_LAW_FIRM_A_PASSWORD")
+            System.getenv("TEST_LAW_FIRM_ORG_SUCCESS_USERNAME"),
+            System.getenv("TEST_LAW_FIRM_ORG_SUCCESS_PASSWORD")
+        );
+    }
+
+    @Cacheable(value = "bailsLegalRepTokenCache")
+    public String getBailsLegalRepToken() {
+        return getUserToken(
+            System.getenv("TEST_LAW_FIRM_BAILS_USERNAME"),
+            System.getenv("TEST_LAW_FIRM_BAILS_PASSWORD")
         );
     }
 
@@ -68,22 +83,6 @@ public class IdamAuthProvider {
         return getUserToken(
             System.getenv("TEST_CITIZEN_USERNAME"),
             System.getenv("TEST_CITIZEN_PASSWORD")
-        );
-    }
-
-    @Cacheable(value = "systemTokenCache")
-    public String getSystemUserToken() {
-        return getUserToken(
-            System.getenv("IA_SYSTEM_USERNAME"),
-            System.getenv("IA_SYSTEM_PASSWORD")
-        );
-    }
-
-    @Cacheable(value = "bailsLegalRepTokenCache")
-    public String getBailsLegalRepToken() {
-        return getUserToken(
-            System.getenv("TEST_LAW_FIRM_BAILS_USERNAME"),
-            System.getenv("TEST_LAW_FIRM_BAILS_PASSWORD")
         );
     }
 

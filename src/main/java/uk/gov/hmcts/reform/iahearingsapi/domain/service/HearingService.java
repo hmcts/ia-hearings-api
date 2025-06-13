@@ -83,7 +83,7 @@ public class HearingService {
                     roleAssignmentUrl, hearingPayload);
         } catch (Exception e) {
             log.error(e.getMessage());
-            throw new IllegalStateException(e.getMessage(), e);
+            throw new IllegalStateException("Service could not complete request to create hearing", e);
         }
     }
 

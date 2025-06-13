@@ -30,7 +30,7 @@ feign:
 
 spring:
   cache:
-    cache-names: userInfoCache, accessTokenCache, legalRepATokenCache, caseOfficerTokenCache, citizenTokenCache, systemTokenCache, bailsLegalRepTokenCache
+    cache-names: userInfoCache, accessTokenCache, legalRepATokenCache, caseOfficerTokenCache, citizenTokenCache, systemTokenCache, bailsLegalRepTokenCache, systemUserTokenCache
     caffeine:
       spec: expireAfterAccess=3600s
   security:
