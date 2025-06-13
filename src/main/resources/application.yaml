@@ -28,6 +28,10 @@ health:
       response: '"status":"UP"'
 
 spring:
+  cache:
+    cache-names: userInfoCache, accessTokenCache
+    caffeine:
+      spec: expireAfterAccess=3600s
   cloud:
     bootstrap:
       enabled: true
