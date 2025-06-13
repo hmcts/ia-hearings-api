@@ -355,6 +355,10 @@ dependencies {
   implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.3.0'
 
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
+
+  implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine'
+
   implementation group: 'com.github.hmcts', name:'service-auth-provider-java-client', version: versions.serviceTokenGenerator
   implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'

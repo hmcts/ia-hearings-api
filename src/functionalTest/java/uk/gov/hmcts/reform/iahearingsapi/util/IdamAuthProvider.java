@@ -26,8 +26,7 @@ public class IdamAuthProvider {
     @Value("${spring.security.oauth2.client.registration.oidc.client-secret}")
     protected String idamClientSecret;
 
-    @Autowired
-    private IdamApi idamApi;
+    @Autowired private IdamApi idamApi;
 
     public String getUserToken(String username, String password) {
 
@@ -92,7 +91,7 @@ public class IdamAuthProvider {
             UserInfo userInfo = idamApi.userInfo(token);
             return userInfo.getUid();
         } catch (FeignException ex) {
-            throw new IdentityManagerResponseException("Could not get system user token from IDAM", ex);
+            throw new IdentityManagerResponseException("Could not get user token from IDAM", ex);
         }
     }
 }
