@@ -52,8 +52,8 @@ public class IdamService {
         return "Bearer " + idamApi.token(idamAuthDetails).getAccessToken();
     }
 
-    public UserInfo getUserInfo() {
-        return idamApi.userInfo(getServiceUserToken());
+    @Cacheable(value = "userInfoCache")
+    public UserInfo getUserInfo(String accessToken) {
+        return idamApi.userInfo(accessToken);
     }
-
 }

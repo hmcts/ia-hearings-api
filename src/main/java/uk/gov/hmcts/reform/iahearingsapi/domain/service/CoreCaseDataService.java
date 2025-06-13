@@ -212,8 +212,10 @@ public class CoreCaseDataService {
 
     private String getUid(Event event, String caseId) {
         String uid;
+        String token;
         try {
-            uid = idamService.getUserInfo().getUid();
+            token = idamService.getServiceUserToken();
+            uid = idamService.getUserInfo(token).getUid();
             log.info("System user id has been fetched for event: {}, caseId: {}.", event, caseId);
 
         } catch (IdentityManagerResponseException ex) {

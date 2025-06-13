@@ -12,9 +12,9 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserI
 @Service
 public class LaunchDarklyFeatureToggler implements FeatureToggler {
 
-    private LDClientInterface ldClient;
-    private UserDetails userDetails;
-    private IdamService idamService;
+    private final LDClientInterface ldClient;
+    private final UserDetails userDetails;
+    private final IdamService idamService;
 
     public LaunchDarklyFeatureToggler(LDClientInterface ldClient,
                                       UserDetails userDetails,
@@ -40,8 +40,8 @@ public class LaunchDarklyFeatureToggler implements FeatureToggler {
     }
 
     public boolean getValueAsServiceUser(String key, Boolean defaultValue) {
-
-        UserInfo serviceUser = idamService.getUserInfo();
+        String token = idamService.getServiceUserToken();
+        UserInfo serviceUser = idamService.getUserInfo(token);
         LDContext context = LDContext.builder(serviceUser.getUid())
             .set("firstName", serviceUser.getGivenName())
             .set("lastName", serviceUser.getFamilyName())
