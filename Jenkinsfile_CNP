@@ -18,6 +18,7 @@ def secrets = [
 
     secret('idam-client-id', 'IA_IDAM_CLIENT_ID'),
     secret('idam-secret', 'IA_IDAM_SECRET'),
+    secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
     secret('s2s-secret', 'IA_S2S_SECRET'),
     secret('s2s-microservice', 'IA_S2S_MICROSERVICE'),
     secret('prof-ref-data-url', 'PROF_REF_DATA_URL'),
@@ -77,7 +78,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 withPipeline(type, product, component) {
 
   env.IA_HOME_OFFICE_INTEGRATION_API_URL = "http://ia-home-office-integration-api-aat.service.core-compute-aat.internal/"
-  env.IA_IDAM_REDIRECT_URI = "https://ia-hearings-api-aat.service.core-compute-aat.internal/oauth2/callback"
+//  env.IA_IDAM_REDIRECT_URI = "https://ia-hearings-api-pr-${CHANGE_ID}.preview.platform.hmcts.net/oauth2/callback"
   env.CCD_URL = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
   env.CCD_GW_URL = "http://dm-store-aat.service.core-compute-aat.internal"
   env.DM_URL = "http://dm-store-aat.service.core-compute-aat.internal"
@@ -86,7 +87,7 @@ withPipeline(type, product, component) {
   env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
   env.PACT_BROKER_FULL_URL = "https://pact-broker.platform.hmcts.net"
   env.HMC_API_URL = "http://hmc-cft-hearing-service-aat.service.core-compute-aat.internal"
-  env.HEARINGS_API_URL = "http://ia-hearings-api-aat.service.core-compute-aat.internal"
+  env.HEARINGS_API_URL = "https://ia-hearings-api-pr-${CHANGE_ID}.preview.platform.hmcts.net"
   env.LOCATION_REF_DATA_URL = "http://rd-location-ref-api-aat.service.core-compute-aat.internal"
 
   env.PACT_BROKER_URL = "pact-broker.platform.hmcts.net"
