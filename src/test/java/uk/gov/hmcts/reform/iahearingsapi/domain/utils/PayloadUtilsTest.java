@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -72,7 +71,6 @@ public class PayloadUtilsTest {
 
     @ParameterizedTest
     @MethodSource("caseTypeValueTestCases")
-    @Disabled
     void testGetCaseTypeValue(YesOrNo hasDeportationOrder, YesOrNo isSuitableToFloat, YesOrNo isVirtualHearing,
                               AppealType appealType, CaseTypeValue expectedValue) {
 
@@ -90,11 +88,13 @@ public class PayloadUtilsTest {
             Arguments.of(
                 YesOrNo.YES,
                 YesOrNo.NO,
+                YesOrNo.NO,
                 AppealType.HU,
                 CaseTypeValue.HUD
             ),
             Arguments.of(
                 YesOrNo.YES,
+                YesOrNo.NO,
                 YesOrNo.NO,
                 AppealType.EA,
                 CaseTypeValue.EAD
@@ -102,11 +102,13 @@ public class PayloadUtilsTest {
             Arguments.of(
                 YesOrNo.YES,
                 YesOrNo.NO,
+                YesOrNo.NO,
                 AppealType.EU,
                 CaseTypeValue.EUD
             ),
             Arguments.of(
                 YesOrNo.YES,
+                YesOrNo.NO,
                 YesOrNo.NO,
                 AppealType.DC,
                 CaseTypeValue.DCD
@@ -114,16 +116,19 @@ public class PayloadUtilsTest {
             Arguments.of(
                 YesOrNo.YES,
                 YesOrNo.NO,
+                YesOrNo.NO,
                 AppealType.PA,
                 CaseTypeValue.PAD
             ),
             Arguments.of(
                 YesOrNo.YES,
                 YesOrNo.NO,
+                YesOrNo.NO,
                 RP,
                 CaseTypeValue.RPD
             ),
             Arguments.of(
+                YesOrNo.NO,
                 YesOrNo.NO,
                 YesOrNo.NO,
                 AppealType.HU,
@@ -132,10 +137,12 @@ public class PayloadUtilsTest {
             Arguments.of(
                 YesOrNo.NO,
                 YesOrNo.NO,
+                YesOrNo.NO,
                 AppealType.EA,
                 CaseTypeValue.EAX
             ),
             Arguments.of(
+                YesOrNo.NO,
                 YesOrNo.NO,
                 YesOrNo.NO,
                 AppealType.EU,
@@ -144,10 +151,12 @@ public class PayloadUtilsTest {
             Arguments.of(
                 YesOrNo.NO,
                 YesOrNo.NO,
+                YesOrNo.NO,
                 AppealType.DC,
                 CaseTypeValue.DCX
             ),
             Arguments.of(
+                YesOrNo.NO,
                 YesOrNo.NO,
                 YesOrNo.NO,
                 AppealType.PA,
@@ -156,78 +165,91 @@ public class PayloadUtilsTest {
             Arguments.of(
                 YesOrNo.NO,
                 YesOrNo.NO,
+                YesOrNo.NO,
                 RP,
                 CaseTypeValue.RPX
             ),
             Arguments.of(
                 YesOrNo.YES,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.HU,
                 CaseTypeValue.HUD
             ),
             Arguments.of(
                 YesOrNo.YES,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.EA,
                 CaseTypeValue.EAD
             ),
             Arguments.of(
                 YesOrNo.YES,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.EU,
                 CaseTypeValue.EUD
             ),
             Arguments.of(
                 YesOrNo.YES,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.DC,
                 CaseTypeValue.DCD
             ),
             Arguments.of(
                 YesOrNo.YES,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.PA,
                 CaseTypeValue.PAD
             ),
             Arguments.of(
                 YesOrNo.YES,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 RP,
                 CaseTypeValue.RPD
             ),
             Arguments.of(
                 YesOrNo.NO,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.HU,
                 CaseTypeValue.HUF
             ),
             Arguments.of(
                 YesOrNo.NO,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.EA,
                 CaseTypeValue.EAF
             ),
             Arguments.of(
                 YesOrNo.NO,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.EU,
                 CaseTypeValue.EUF
             ),
             Arguments.of(
                 YesOrNo.NO,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.DC,
                 CaseTypeValue.DCF
             ),
             Arguments.of(
                 YesOrNo.NO,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 AppealType.PA,
                 CaseTypeValue.PAF
             ),
             Arguments.of(
                 YesOrNo.NO,
                 YesOrNo.YES,
+                YesOrNo.NO,
                 RP,
                 CaseTypeValue.RPF
             )
