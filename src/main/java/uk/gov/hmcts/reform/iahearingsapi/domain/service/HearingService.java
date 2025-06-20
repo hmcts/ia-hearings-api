@@ -330,7 +330,7 @@ public class HearingService {
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
-            
+
             return hmcHearingApi.getUnNotifiedHearings(serviceUserToken,
                                                        serviceAuthToken,
                                                        hmctsDeploymentId,
