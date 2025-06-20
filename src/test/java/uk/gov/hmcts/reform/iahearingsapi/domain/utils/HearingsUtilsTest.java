@@ -112,7 +112,15 @@ public class HearingsUtilsTest {
     }
 
     @Test
-    void isVirtualHearingAppeal_should_return_true_when_virtual_hearing_centre_selected() {
+    void isVirtualHearingAppeal_should_return_false_when_virtual_hearing_centre_selected() {
+        when(asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.NO));
+
+        assertFalse(HearingsUtils.isVirtualHearing(asylumCase));
+    }
+
+    @Test
+    void isVirtualHearingAppeal_should_return_true_when_virtual_hearing_is_not_selected() {
         when(asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
 
@@ -120,10 +128,10 @@ public class HearingsUtilsTest {
     }
 
     @Test
-    void isVirtualHearingAppeal_should_return_false_when_virtual_hearing_is_not_selected() {
+    void isVirtualHearingAppeal_should_return_false_when_is_virtual_hearing_is_empty() {
         when(asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class))
-            .thenReturn(Optional.of(YesOrNo.YES));
+            .thenReturn(Optional.empty());
 
-        assertTrue(HearingsUtils.isVirtualHearing(asylumCase));
+        assertFalse(HearingsUtils.isVirtualHearing(asylumCase));
     }
 }
