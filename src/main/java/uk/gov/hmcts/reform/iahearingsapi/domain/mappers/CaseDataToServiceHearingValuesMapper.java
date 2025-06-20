@@ -122,7 +122,7 @@ public class CaseDataToServiceHearingValuesMapper {
             return List.of(HearingChannel.ONPPRS.name());
         }
 
-        if(HearingsUtils.isVirtualHearing(asylumCase)) {
+        if (HearingsUtils.isVirtualHearing(asylumCase)) {
             return List.of(HearingChannel.VID.name());
         }
 
