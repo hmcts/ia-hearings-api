@@ -89,7 +89,7 @@ public class CoreCaseDataServiceTest {
     void setup() {
         when(authTokenGenerator.generate()).thenReturn(SERVICE_TOKEN);
         when(idamService.getServiceUserToken()).thenReturn(AUTH_TOKEN);
-        when(idamService.getUserInfo()).thenReturn(userInfo);
+        when(idamService.getUserInfo(AUTH_TOKEN)).thenReturn(userInfo);
         when(userInfo.getUid()).thenReturn(USER_ID);
 
         Map<String, Object> data = new HashMap<>();
@@ -130,7 +130,7 @@ public class CoreCaseDataServiceTest {
 
         State caseState = coreCaseDataService.getCaseState(CASE_ID);
 
-        assertEquals(caseState, LISTING);
+        assertEquals(LISTING, caseState);
     }
 
     @ParameterizedTest
