@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -23,6 +21,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.GetLinkedCasesResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.LinkedCasesApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_NEXT_HEARING_INFO;
 
 @Slf4j
 @Service
@@ -232,17 +232,6 @@ public class CoreCaseDataService {
         return null;
     }
 
-    public void triggerReviewInterpreterBookingTask(String caseId) {
-        StartEventResponse startEventResponse = startCaseEvent(
-            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId, CASE_TYPE_ASYLUM);
-
-        AsylumCase asylumCase = getCaseFromStartedEvent(startEventResponse);
-
-        log.info("Sending `{}` event for  Case ID `{}`", TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId);
-        triggerSubmitEvent(
-            TRIGGER_REVIEW_INTERPRETER_BOOKING_TASK, caseId, startEventResponse, asylumCase);
-    }
-
     public GetLinkedCasesResponse getLinkedCases(String caseReference) {
         return linkedCasesApi.getLinkedCases(
             idamService.getServiceUserToken(),
@@ -250,5 +239,27 @@ public class CoreCaseDataService {
             caseReference,
             "1",
             "100");
+    }
+
+    public void updateNextHearingInfo(String caseId) {
+        StartEventResponse startEventResponse = startCaseEvent(
+            UPDATE_NEXT_HEARING_INFO, caseId, CASE_TYPE_ASYLUM);
+
+        AsylumCase asylumCase = getCaseFromStartedEvent(startEventResponse);
+
+        log.info("Sending `{}` event for  Case ID `{}`", UPDATE_NEXT_HEARING_INFO, caseId);
+        triggerSubmitEvent(
+            UPDATE_NEXT_HEARING_INFO, caseId, startEventResponse, asylumCase);
+    }
+
+    public void hearingCancelledTask(String caseId) {
+        StartEventResponse startEventResponse = startCaseEvent(
+            HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
+
+        AsylumCase asylumCase = getCaseFromStartedEvent(startEventResponse);
+
+        log.info("Sending `{}`an event for  Case ID `{}`", HEARING_CANCELLED, caseId);
+        triggerSubmitEvent(
+            HEARING_CANCELLED, caseId, startEventResponse, asylumCase);
     }
 }
