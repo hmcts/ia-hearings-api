@@ -4,7 +4,6 @@ module "servicebus-subscription" {
   name                  = "hmc-ia-subs-to-cft-${var.env}"
   namespace_id          = "hmc-servicebus-${var.env}"
   topic_name            = "hmc-to-cft-${var.env}"
-  resource_group_name   = "hmc-shared-${var.env}"
 }
 
 # Create a subscription rule for the HMC to IA hearings API
