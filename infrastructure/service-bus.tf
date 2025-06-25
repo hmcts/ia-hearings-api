@@ -1,3 +1,8 @@
+data "azurerm_servicebus_namespace" "hmc_servicebus_namespace" {
+  name                = join("-", ["hmc-servicebus", var.env])
+  resource_group_name = join("-", ["hmc-shared", var.env])
+}
+
 #HMC to hearings API
 module "servicebus-subscription" {
   source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=4.x"
