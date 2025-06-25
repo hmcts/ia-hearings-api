@@ -51,7 +51,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
-class ListCaseHandlerTest {
+class SubstantiveHearingListedHandlerTest {
 
     private static final String GLASGOW_EPIMMS_ID = "366559";
     private static final String LISTING_REFERENCE = "LAI";
@@ -69,7 +69,7 @@ class ListCaseHandlerTest {
     @Mock
     AsylumCase asylumCase;
 
-    private ListCaseHandler listCaseHandler;
+    private SubstantiveHearingListedHandler substantiveHearingListedHandler;
 
     private DynamicList hearingLocationList = new DynamicList(
         new Value("745389", "Hendon Magistrates Court"),
@@ -78,8 +78,8 @@ class ListCaseHandlerTest {
     @BeforeEach
     public void setUp() {
 
-        listCaseHandler =
-            new ListCaseHandler(coreCaseDataService, locationRefDataService);
+        substantiveHearingListedHandler =
+            new SubstantiveHearingListedHandler(coreCaseDataService, locationRefDataService);
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -106,47 +106,47 @@ class ListCaseHandlerTest {
 
     @Test
     void should_have_early_dispatch_priority() {
-        assertEquals(DispatchPriority.EARLY, listCaseHandler.getDispatchPriority());
+        assertEquals(DispatchPriority.EARLY, substantiveHearingListedHandler.getDispatchPriority());
     }
 
     @Test
     void should_handle_only_if_service_data_qualifies() {
-        assertTrue(listCaseHandler.canHandle(serviceData));
+        assertTrue(substantiveHearingListedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hearing_type_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(COSTS.getKey()));
-        assertFalse(listCaseHandler.canHandle(serviceData));
+        assertFalse(substantiveHearingListedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hmc_status_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.CLOSED));
-        assertFalse(listCaseHandler.canHandle(serviceData));
+        assertFalse(substantiveHearingListedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hearing_channels_on_papers() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS, List.class))
             .thenReturn(Optional.of(List.of(HearingChannel.ONPPRS)));
-        assertFalse(listCaseHandler.canHandle(serviceData));
+        assertFalse(substantiveHearingListedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hearing_listing_status_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.class))
             .thenReturn(Optional.of(ListingStatus.DRAFT));
-        assertFalse(listCaseHandler.canHandle(serviceData));
+        assertFalse(substantiveHearingListedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_list_assist_case_status_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
             .thenReturn(Optional.of(ListAssistCaseStatus.CASE_CLOSED));
-        assertFalse(listCaseHandler.canHandle(serviceData));
+        assertFalse(substantiveHearingListedHandler.canHandle(serviceData));
     }
 
     @Test
@@ -154,7 +154,7 @@ class ListCaseHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
             .thenReturn(Optional.of(ListAssistCaseStatus.CASE_CLOSED));
 
-        assertThrows(IllegalStateException.class, () -> listCaseHandler.handle(serviceData));
+        assertThrows(IllegalStateException.class, () -> substantiveHearingListedHandler.handle(serviceData));
     }
 
     @Test
@@ -173,7 +173,7 @@ class ListCaseHandlerTest {
         when(serviceData.read(HEARING_ID, String.class))
                 .thenReturn(Optional.of("12345"));
 
-        listCaseHandler.handle(serviceData);
+        substantiveHearingListedHandler.handle(serviceData);
 
         verify(asylumCase).write(ARIA_LISTING_REFERENCE, LISTING_REFERENCE);
         verify(asylumCase).write(LIST_CASE_HEARING_DATE,
