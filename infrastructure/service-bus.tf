@@ -1,10 +1,14 @@
+data "azurerm_servicebus_namespace" "hmc_servicebus_namespace" {
+  name                = join("-", ["hmc-servicebus", var.env])
+  resource_group_name = join("-", ["hmc-shared", var.env])
+}
+
 #HMC to hearings API
 module "servicebus-subscription" {
-  source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=master"
+  source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=4.x"
   name                  = "hmc-ia-subs-to-cft-${var.env}"
-  namespace_name        = "hmc-servicebus-${var.env}"
+  namespace_id          = data.azurerm_servicebus_namespace.hmc_servicebus_namespace.id
   topic_name            = "hmc-to-cft-${var.env}"
-  resource_group_name   = "hmc-shared-${var.env}"
 }
 
 # Create a subscription rule for the HMC to IA hearings API
