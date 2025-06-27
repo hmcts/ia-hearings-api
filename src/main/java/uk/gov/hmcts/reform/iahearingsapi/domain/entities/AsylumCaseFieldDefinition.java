@@ -27,6 +27,8 @@ public enum AsylumCaseFieldDefinition {
         "listingLength", new TypeReference<HoursMinutes>() {}),
     LIST_CASE_HEARING_CENTRE(
         "listCaseHearingCentre", new TypeReference<HearingCentre>(){}),
+    IS_VIRTUAL_HEARING(
+        "isVirtualHearing", new TypeReference<YesOrNo>(){}),
     APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {
     }),
     WITNESS_LEVEL_FLAGS(

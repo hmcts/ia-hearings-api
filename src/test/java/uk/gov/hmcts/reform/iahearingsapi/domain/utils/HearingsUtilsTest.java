@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_DECISION_WITHOUT_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VIRTUAL_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HEARING_CENTRE_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
@@ -108,5 +109,29 @@ public class HearingsUtilsTest {
             .thenReturn(Optional.of(YesOrNo.YES));
 
         assertFalse(HearingsUtils.isDecisionWithoutHearingAppeal(asylumCase));
+    }
+
+    @Test
+    void isVirtualHearingAppeal_should_return_false_when_virtual_hearing_centre_selected() {
+        when(asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.NO));
+
+        assertFalse(HearingsUtils.isVirtualHearing(asylumCase));
+    }
+
+    @Test
+    void isVirtualHearingAppeal_should_return_true_when_virtual_hearing_is_not_selected() {
+        when(asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+
+        assertTrue(HearingsUtils.isVirtualHearing(asylumCase));
+    }
+
+    @Test
+    void isVirtualHearingAppeal_should_return_false_when_is_virtual_hearing_is_empty() {
+        when(asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class))
+            .thenReturn(Optional.empty());
+
+        assertFalse(HearingsUtils.isVirtualHearing(asylumCase));
     }
 }
