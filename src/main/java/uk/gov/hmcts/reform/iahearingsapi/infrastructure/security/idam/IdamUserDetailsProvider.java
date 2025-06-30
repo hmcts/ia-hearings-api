@@ -30,7 +30,9 @@ public class IdamUserDetailsProvider implements UserDetailsProvider {
         try {
             response = idamApi.userInfo(accessToken);
             log.info("User details retrieved successfully from IDAM. Roles are:");
-            log.info(String.join(", ", response.getRoles()));
+            if (response.getRoles() != null) {
+                log.info(String.join(", ", response.getRoles()));
+            }
         } catch (FeignException ex) {
             throw new IdentityManagerResponseException(
                 "Could not get user details with IDAM",
