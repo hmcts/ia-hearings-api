@@ -13,9 +13,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HMC_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_CATEGORY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils.convertFromUTC;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
@@ -29,7 +34,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 @Component
 public class UnNotifiedHearingsProcessor implements Runnable {
 
-    private HmcUpdateDispatcher<ServiceData> dispatcher;
+    private final HmcUpdateDispatcher<ServiceData> dispatcher;
     private final HearingService hearingService;
 
     public UnNotifiedHearingsProcessor(HmcUpdateDispatcher<ServiceData> dispatcher,
@@ -46,14 +51,20 @@ public class UnNotifiedHearingsProcessor implements Runnable {
 
     public void processUnNotifiedHearings() {
 
-        UnNotifiedHearingsResponse unNotifiedHearings = hearingService.getUnNotifiedHearings(LocalDateTime.now());
+        UnNotifiedHearingsResponse unNotifiedHearings = hearingService.getUnNotifiedHearings(
+            LocalDateTime.now().minusDays(3), List.of(LISTED, CANCELLED));
 
         unNotifiedHearings.getHearingIds().forEach(unNotifiedHearingId -> {
+            try {
+                log.info("UnNotifiedHearingsProcessor processing hearing " + unNotifiedHearingId);
+                HearingGetResponse hearing = hearingService.getHearing(unNotifiedHearingId);
+                ServiceData serviceData = mapHearingFieldsToServiceDataFields(hearing, unNotifiedHearingId);
 
-            HearingGetResponse hearing = hearingService.getHearing(unNotifiedHearingId);
-            ServiceData serviceData = mapHearingFieldsToServiceDataFields(hearing, unNotifiedHearingId);
-
-            dispatcher.dispatch(serviceData);
+                dispatcher.dispatch(serviceData);
+            } catch (Exception ex) {
+                log.info("Hearing " + unNotifiedHearingId
+                    + "failed to be process by UnNotifiedHearingsProcessor. Reason: " + ex.getMessage());
+            }
         });
     }
 
@@ -65,13 +76,15 @@ public class UnNotifiedHearingsProcessor implements Runnable {
         serviceData.write(CASE_REF, hearing.getCaseDetails().getCaseRef());
         serviceData.write(HMCTS_SERVICE_CODE, hearing.getCaseDetails().getHmctsServiceCode());
         serviceData.write(HEARING_ID, unNotifiedHearingId);
-
+        serviceData.write(CASE_CATEGORY, hearing.getCaseDetails().getCaseCategories());
         HearingDaySchedule hearingDaySchedule = hearing.getHearingResponse().getHearingDaySchedule()
             .stream().min(Comparator.comparing(HearingDaySchedule::getHearingStartDateTime))
             .orElse(null);
 
         if (null != hearingDaySchedule) {
-            serviceData.write(NEXT_HEARING_DATE, hearingDaySchedule.getHearingStartDateTime());
+            if (hearingDaySchedule.getHearingStartDateTime() != null) {
+                serviceData.write(NEXT_HEARING_DATE, convertFromUTC(hearingDaySchedule.getHearingStartDateTime()));
+            }
             serviceData.write(HEARING_VENUE_ID, hearingDaySchedule.getHearingVenueId());
         }
 

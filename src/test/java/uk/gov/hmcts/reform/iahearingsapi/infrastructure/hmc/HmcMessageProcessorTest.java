@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -8,6 +9,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_CATEGORY;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +24,9 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
@@ -59,6 +64,8 @@ class HmcMessageProcessorTest {
     private HearingGetResponse hearingGetResponse;
     @Mock
     private HearingDetails hearingDetails;
+    @Mock
+    private CaseDetailsHearing caseDetailsHearing;
 
     private HmcMessageProcessor processor;
 
@@ -69,6 +76,11 @@ class HmcMessageProcessorTest {
 
     @Test
     void should_not_process_hmc_message_when_hmc_status_not_exception() {
+        CaseCategoryModel caseCategoryModel = new CaseCategoryModel();
+        caseCategoryModel.setCategoryType(CategoryType.CASE_TYPE);
+        caseCategoryModel.setCategoryValue("BFA1-BLS");
+        caseCategoryModel.setCategoryParent("");
+        List<CaseCategoryModel> caseCategoryModelList = List.of(caseCategoryModel);
 
         when(hmcMessage.getCaseId()).thenReturn(CASE_ID);
         when(hmcMessage.getHmctsServiceCode()).thenReturn(HMCTS_SERVICE_CODE);
@@ -85,7 +97,8 @@ class HmcMessageProcessorTest {
         when(hearingDetails.getHearingChannels()).thenReturn(List.of("INTER"));
         when(hearingDetails.getHearingType()).thenReturn("SUBSTANTIVE");
         when(hearingDetails.getDuration()).thenReturn(150);
-
+        when(hearingGetResponse.getCaseDetails()).thenReturn(caseDetailsHearing);
+        when(caseDetailsHearing.getCaseCategories()).thenReturn(caseCategoryModelList);
         processor.processMessage(hmcMessage);
 
         ServiceData serviceData = new ServiceData();
@@ -102,6 +115,7 @@ class HmcMessageProcessorTest {
         serviceData.write(HEARING_CHANNELS, List.of(HearingChannel.INTER));
         serviceData.write(HEARING_TYPE, HearingType.SUBSTANTIVE.getKey());
         serviceData.write(DURATION, 150);
+        serviceData.write(CASE_CATEGORY, caseCategoryModelList);
 
         ArgumentCaptor<ServiceData> serviceDataArgumentCaptor = ArgumentCaptor.forClass(ServiceData.class);
         verify(dispatcher, times(1)).dispatch(serviceDataArgumentCaptor.capture());
@@ -117,17 +131,29 @@ class HmcMessageProcessorTest {
                                              ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME.value(),
                                              HEARING_CHANNELS.value(),
                                              HEARING_TYPE.value(),
-                                             DURATION.value())));
+                                             DURATION.value(),
+                                             CASE_CATEGORY.value())));
+
+        assertEquals(LocalDateTime.of(2023, 9, 29, 13, 0),
+            argument.get("nextHearingDate"));
     }
 
     @Test
     void should_process_hmc_message_when_hmc_status_exception() {
+        CaseCategoryModel caseCategoryModel = new CaseCategoryModel();
+        caseCategoryModel.setCategoryType(CategoryType.CASE_TYPE);
+        caseCategoryModel.setCategoryValue("BFA1-BLS");
+        caseCategoryModel.setCategoryParent("");
+        List<CaseCategoryModel> caseCategoryModelList = List.of(caseCategoryModel);
 
         when(hmcMessage.getCaseId()).thenReturn(CASE_ID);
         when(hmcMessage.getHmctsServiceCode()).thenReturn(HMCTS_SERVICE_CODE);
         when(hmcMessage.getHearingId()).thenReturn(HEARING_ID);
         when(hmcMessage.getHearingUpdate()).thenReturn(hearingUpdate);
         when(hearingUpdate.getHmcStatus()).thenReturn(HMC_STATUS_EXCEPTION);
+        when(hearingService.getHearing(HEARING_ID)).thenReturn(hearingGetResponse);
+        when(hearingGetResponse.getCaseDetails()).thenReturn(caseDetailsHearing);
+        when(caseDetailsHearing.getCaseCategories()).thenReturn(caseCategoryModelList);
 
         processor.processMessage(hmcMessage);
 
@@ -138,7 +164,8 @@ class HmcMessageProcessorTest {
         assertTrue(argument.keySet().containsAll(Set.of(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE.value(),
                                                         ServiceDataFieldDefinition.HEARING_ID.value(),
                                                         ServiceDataFieldDefinition.HMC_STATUS.value(),
-                                                        CASE_REF.value())));
+                                                        CASE_REF.value(),
+                                                        CASE_CATEGORY.value())));
     }
 
 }

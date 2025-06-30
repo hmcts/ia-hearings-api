@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -45,24 +46,30 @@ public class UpdateInterpreterDetailsHandler implements PreSubmitCallbackHandler
         log.info("Updating interpreter details for case {}", callback.getCaseDetails().getId());
         try {
             HearingsGetResponse hearings = hearingService.getHearings(callback.getCaseDetails().getId());
-            CaseHearing latestSubstantiveHearing =
+            Optional<CaseHearing> latestSubstantiveHearingOptional =
                 hearings.getCaseHearings()
                     .stream()
                     .filter(hearing -> hearing.getHearingType().equals(HearingType.SUBSTANTIVE.getKey()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("No Substantive hearing was found."));
+                    .findFirst();
 
-            log.info("Updating hearing details for hearing {}", latestSubstantiveHearing.getHearingRequestId());
-            hearingService.updateHearing(
-                updateHearingPayloadService.createUpdateHearingPayload(
-                    asylumCase,
-                    latestSubstantiveHearing.getHearingRequestId(),
-                    ReasonCodes.OTHER.toString(),
-                    false,
-                    null
-                ),
-                latestSubstantiveHearing.getHearingRequestId()
-            );
+            if (latestSubstantiveHearingOptional.isPresent()) {
+
+                CaseHearing latestSubstantiveHearing = latestSubstantiveHearingOptional.get();
+
+                log.info("Updating hearing details for hearing {}", latestSubstantiveHearing.getHearingRequestId());
+
+                hearingService.updateHearing(
+                    updateHearingPayloadService.createUpdateHearingPayload(
+                        asylumCase,
+                        latestSubstantiveHearing.getHearingRequestId(),
+                        ReasonCodes.OTHER.toString(),
+                        callback.getEvent(),
+                        callback.getCaseDetails().getId()
+                    ),
+                    latestSubstantiveHearing.getHearingRequestId()
+                );
+            }
+
         } catch (Exception ex) {
             log.error(ex.getMessage());
             throw new IllegalStateException(ex.getMessage());

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ReasonCodes {
 
-    OTHER("no-interpreter-available"),
+    OTHER("other"),
     ;
 
     @JsonValue

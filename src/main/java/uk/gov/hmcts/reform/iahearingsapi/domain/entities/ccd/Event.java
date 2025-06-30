@@ -8,6 +8,7 @@ public enum Event {
     LIST_CASE("listCase"),
     UPDATE_HEARING_REQUEST("updateHearingRequest"),
     HANDLE_HEARING_EXCEPTION("handleHearingException"),
+    CMR_RE_LISTING("cmrReListing"),
     RECORD_ADJOURNMENT_DETAILS("recordAdjournmentDetails"),
     END_APPEAL("endAppeal"),
     EDIT_CASE_LISTING("editCaseListing"),
@@ -17,6 +18,16 @@ public enum Event {
     LIST_CASE_FOR_FT_ONLY("listCaseForFTOnly"),
     UPDATE_INTERPRETER_DETAILS("updateInterpreterDetails"),
     UPDATE_INTERPRETER_BOOKING_STATUS("updateInterpreterBookingStatus"),
+    CMR_LISTING("cmrListing"),
+    DECIDE_AN_APPLICATION("decideAnApplication"),
+    CASE_LISTING("caseListing"),
+    LIST_CASE_WITHOUT_HEARING_REQUIREMENTS("listCaseWithoutHearingRequirements"),
+    DECISION_WITHOUT_HEARING_LISTED("decisionWithoutHearingListed"),
+    REVIEW_HEARING_REQUIREMENTS("reviewHearingRequirements"),
+    DECISION_AND_REASONS_STARTED("decisionAndReasonsStarted"),
+    RESTORE_STATE_FROM_ADJOURN("restoreStateFromAdjourn"),
+    UPDATE_NEXT_HEARING_INFO("UpdateNextHearingInfo"),
+    HEARING_CANCELLED("hearingCancelled"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");

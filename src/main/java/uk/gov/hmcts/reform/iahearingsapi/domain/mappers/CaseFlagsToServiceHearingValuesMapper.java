@@ -4,20 +4,18 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.AUDIO_VIDEO_EVIDENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.DETAINED_INDIVIDUAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.FOREIGN_NATIONAL_OFFENDER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LACKING_CAPACITY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LITIGATION_FRIEND;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.PRESIDENTIAL_PANEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCOMPANIED_MINOR;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.URGENT_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.VULNERABLE_USER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils.parseDateTimeStringWithoutNanos;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagValue;
@@ -39,12 +38,19 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 
 @Service
 @RequiredArgsConstructor
 public class CaseFlagsToServiceHearingValuesMapper {
 
+    public static final String RRO_SUPPRESSION_FEATURE = "rro-suppression";
+
     private final CaseDataToServiceHearingValuesMapper caseDataMapper;
+    private final FeatureToggler featureToggler;
+    private static final String caseLevelFlags = "Case level flags";
+    private static final String caseLevelFlagsPartyID = "Caselevelflags";
 
     public String getPublicCaseName(AsylumCase asylumCase, String caseReference) {
 
@@ -52,7 +58,13 @@ public class CaseFlagsToServiceHearingValuesMapper {
             .map(List::of).orElse(Collections.emptyList());
         boolean hasActiveAnonymityFlag = hasOneOrMoreActiveFlagsOfType(caseFlags, List.of(ANONYMITY));
 
-        if (hasActiveAnonymityFlag) {
+        AppealType appealType = asylumCase.read(APPEAL_TYPE, AppealType.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("AppealType cannot be missing"));
+
+        if (featureToggler.getValue(RRO_SUPPRESSION_FEATURE, false)
+            && (appealType.equals(AppealType.RP) || appealType.equals(AppealType.PA))) {
+            return "Reporting Restriction Apply";
+        } else if (hasActiveAnonymityFlag) {
             return caseReference;
         }
 
@@ -65,25 +77,6 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
         return hasOneOrMoreActiveFlagsOfType(appellantCaseFlags,
             List.of(UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR, FOREIGN_NATIONAL_OFFENDER));
-    }
-
-    public boolean getAutoListFlag(AsylumCase asylumCase) {
-        List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
-            .map(List::of).orElse(Collections.emptyList());
-        boolean isDecisionWithoutHearingAppeal = caseDataMapper.isDecisionWithoutHearingAppeal(asylumCase);
-        List<StrategicCaseFlagType> appellantCaseFlagTypes = List.of(
-            SIGN_LANGUAGE_INTERPRETER,
-            FOREIGN_NATIONAL_OFFENDER,
-            AUDIO_VIDEO_EVIDENCE,
-            LITIGATION_FRIEND,
-            LACKING_CAPACITY);
-        boolean hasOneOrMoreActiveAppellantCaseFlags =
-            hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, appellantCaseFlagTypes);
-        List<StrategicCaseFlag> caseFlags = asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
-            .map(List::of).orElse(Collections.emptyList());
-        boolean hasActiveCaseFlag = hasOneOrMoreActiveFlagsOfType(caseFlags, List.of(PRESIDENTIAL_PANEL));
-
-        return !(hasOneOrMoreActiveAppellantCaseFlags || hasActiveCaseFlag || isDecisionWithoutHearingAppeal);
     }
 
     public PriorityType getHearingPriorityType(AsylumCase asylumCase) {
@@ -222,7 +215,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
     public List<PartyFlagsModel> getCaseLevelFlags(AsylumCase asylumCase) {
         return asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
-            .map(flag -> buildCaseFlags(flag.getDetails(), null, flag.getPartyName()))
+            .map(flag -> buildCaseFlags(flag.getDetails(), caseLevelFlagsPartyID, caseLevelFlags))
             .orElse(Collections.emptyList());
     }
 
@@ -257,8 +250,20 @@ public class CaseFlagsToServiceHearingValuesMapper {
                 .partyName(partyName)
                 .flagId(detail.getCaseFlagValue().getFlagCode())
                 .flagStatus(detail.getCaseFlagValue().getStatus())
-                .flagDescription(detail.getCaseFlagValue().getName())
+                .flagDescription(getFlagDescription(detail))
+                .dateTimeCreated(parseDateTimeStringWithoutNanos(detail.getCaseFlagValue().getDateTimeCreated()))
+                .dateTimeModified(parseDateTimeStringWithoutNanos(detail.getCaseFlagValue().getDateTimeModified()))
                 .build()).collect(Collectors.toList());
+    }
+
+    private static String getFlagDescription(CaseFlagDetail detail) {
+        String flagCode = detail.getCaseFlagValue().getFlagCode();
+        if (LANGUAGE_INTERPRETER.getFlagCode().equals(flagCode)
+            || SIGN_LANGUAGE_INTERPRETER.getFlagCode().equals(flagCode)) {
+            return detail.getCaseFlagValue().getSubTypeValue();
+        }
+
+        return detail.getCaseFlagValue().getFlagComment();
     }
 
     private boolean hasOneOrMoreActiveFlagsOfType(

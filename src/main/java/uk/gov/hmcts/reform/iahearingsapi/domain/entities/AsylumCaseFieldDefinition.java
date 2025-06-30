@@ -2,10 +2,12 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ContactPreference;
 
 public enum AsylumCaseFieldDefinition {
 
@@ -21,8 +23,8 @@ public enum AsylumCaseFieldDefinition {
         "hearingChannel", new TypeReference<DynamicList>(){}),
     HMCTS_CASE_NAME_INTERNAL(
         "hmctsCaseNameInternal", new TypeReference<String>() {}),
-    LIST_CASE_HEARING_LENGTH(
-        "listCaseHearingLength", new TypeReference<String>() {}),
+    LISTING_LENGTH(
+        "listingLength", new TypeReference<HoursMinutes>() {}),
     LIST_CASE_HEARING_CENTRE(
         "listCaseHearingCentre", new TypeReference<HearingCentre>(){}),
     APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {
@@ -39,7 +41,10 @@ public enum AsylumCaseFieldDefinition {
         "legalRepresentativeEmailAddress", new TypeReference<String>(){}),
     LEGAL_REP_MOBILE_PHONE_NUMBER(
         "legalRepMobilePhoneNumber", new TypeReference<String>(){}),
+    LEGAL_REP_COMPANY("legalRepCompany", new TypeReference<String>(){}),
     LEGAL_REP_COMPANY_NAME("legalRepCompanyName", new TypeReference<String>(){}),
+    LOCAL_AUTHORITY_POLICY(
+        "localAuthorityPolicy", new TypeReference<OrganisationPolicy>(){}),
     APPELLANT_TITLE(
         "appellantTitle", new TypeReference<String>(){}),
     APPELLANT_GIVEN_NAMES(
@@ -130,8 +135,8 @@ public enum AsylumCaseFieldDefinition {
         "changeHearingType", new TypeReference<String>(){}),
     CHANGE_HEARING_TYPE_YES_NO(
         "changeHearingTypeYesNo", new TypeReference<String>(){}),
-    CHANGE_HEARING_LOCATION(
-        "changeHearingLocation", new TypeReference<String>(){}),
+    CHANGE_HEARING_VENUE(
+        "changeHearingVenue", new TypeReference<String>(){}),
     CHANGE_HEARING_LOCATION_YES_NO(
         "changeHearingLocationYesNo", new TypeReference<String>(){}),
     CHANGE_HEARING_DATE(
@@ -160,16 +165,18 @@ public enum AsylumCaseFieldDefinition {
         "manualCanHearingRequired", new TypeReference<YesOrNo>(){}),
     MANUAL_UPDATE_HEARING_REQUIRED(
         "manualUpdHearingRequired", new TypeReference<YesOrNo>(){}),
+    MANUAL_CREATE_HEARINGS_REQUIRED(
+        "manualCreHearingRequired", new TypeReference<YesOrNo>(){}),
     HEARING_ADJOURNMENT_WHEN(
         "hearingAdjournmentWhen", new TypeReference<HearingAdjournmentDay>(){}),
     RELIST_CASE_IMMEDIATELY(
         "relistCaseImmediately", new TypeReference<YesOrNo>(){}),
     UPDATE_HMC_REQUEST_SUCCESS(
         "updateHmcRequestSuccess", new TypeReference<YesOrNo>() {}),
-    HEARING_CANCELLATION_REASON(
-        "hearingCancellationReason", new TypeReference<String>(){}),
-    HEARING_RELISTED_UPDATE_REASON(
-        "hearingRelistedUpdateReason", new TypeReference<String>(){}),
+    HEARING_REASON_TO_CANCEL(
+        "hearingReasonToCancel", new TypeReference<DynamicList>(){}),
+    HEARING_REASON_TO_UPDATE(
+        "hearingReasonToUpdate", new TypeReference<DynamicList>(){}),
     DEPORTATION_ORDER_OPTIONS(
         "deportationOrderOptions", new TypeReference<YesOrNo>(){}),
     APPEAL_TYPE(
@@ -251,6 +258,12 @@ public enum AsylumCaseFieldDefinition {
 
     NEXT_HEARING_DATE_RANGE_LATEST(
         "nextHearingDateRangeLatest", new TypeReference<String>(){}),
+    NEXT_HEARING_FORMAT(
+        "nextHearingFormat", new TypeReference<DynamicList>(){}),
+    NEXT_HEARING_DURATION(
+        "nextHearingDuration", new TypeReference<String>(){}),
+    NEXT_HEARING_VENUE(
+        "nextHearingVenue", new TypeReference<DynamicList>(){}),
 
     IS_APPEAL_SUITABLE_TO_FLOAT(
         "isAppealSuitableToFloat", new TypeReference<YesOrNo>() {}),
@@ -259,7 +272,73 @@ public enum AsylumCaseFieldDefinition {
         "caseLinks", new TypeReference<List<IdValue<CaseLink>>>(){}),
 
     DECISION_HEARING_FEE_OPTION(
-        "decisionHearingFeeOption", new TypeReference<String>(){});
+        "decisionHearingFeeOption", new TypeReference<String>(){}),
+
+    MAKE_AN_APPLICATION_DECISION_REASON(
+        "makeAnApplicationDecisionReason", new TypeReference<String>(){}),
+
+    CHANGE_ORGANISATION_REQUEST_FIELD(
+        "changeOrganisationRequestField", new TypeReference<ChangeOrganisationRequest>(){}),
+
+    SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK(
+        "shouldTriggerReviewInterpreterTask", new TypeReference<YesOrNo>(){}),
+
+    DECISION_WITHOUT_HEARING_LISTED(
+        "decisionWithoutHearingListed", new TypeReference<YesOrNo>(){}),
+
+    IS_HEARING_LINKED("isHearingLinked", new TypeReference<YesOrNo>(){}),
+
+    REQUEST_HEARING_CHANNEL(
+        "requestHearingChannel", new TypeReference<DynamicList>(){}),
+
+    HEARING_LOCATION("hearingLocation", new TypeReference<DynamicList>(){}),
+
+    REQUEST_HEARING_LENGTH(
+        "requestHearingLength", new TypeReference<String>() {}),
+
+    REQUEST_HEARING_DATE_1(
+        "requestHearingDate1", new TypeReference<String>(){}),
+
+    ADDITIONAL_INSTRUCTIONS_DESCRIPTION("additionalInstructionsDescription", new TypeReference<String>(){}),
+
+    LISTING_LOCATION(
+        "listingLocation", new TypeReference<DynamicList>(){}),
+
+    IS_REMOTE_HEARING(
+        "isRemoteHearing", new TypeReference<YesOrNo>(){}),
+
+    IS_CASE_USING_LOCATION_REF_DATA(
+        "isCaseUsingLocationRefData", new TypeReference<YesOrNo>(){}),
+
+    IS_DECISION_WITHOUT_HEARING("isDecisionWithoutHearing", new TypeReference<YesOrNo>(){}),
+
+    CONTACT_PREFERENCE("contactPreference", new TypeReference<ContactPreference>(){}),
+
+    NEXT_HEARING_DETAILS("nextHearingDetails", new TypeReference<NextHearingDetails>(){}),
+
+    CASE_MANAGEMENT_LOCATION_REF_DATA(
+        "caseManagementLocationRefData", new TypeReference<CaseManagementLocationRefData>(){}),
+
+    IS_ADMIN(
+        "isAdmin", new TypeReference<YesOrNo>() {}),
+
+    APPELLANTS_REPRESENTATION(
+        "appellantsRepresentation", new TypeReference<YesOrNo>(){}),
+
+    LEGAL_REP_GIVEN_NAME(
+        "legalRepGivenName", new TypeReference<String>(){}),
+
+    LEGAL_REP_FAMILY_NAME_PAPER_J(
+        "legalRepFamilyNamePaperJ", new TypeReference<String>(){}),
+
+    LEGAL_REP_EMAIL(
+        "legalRepEmail", new TypeReference<String>(){}),
+
+    LEGAL_REP_COMPANY_PAPER_J(
+        "legalRepCompanyPaperJ", new TypeReference<String>(){}),
+
+    CURRENT_HEARING_ID(
+        "currentHearingId", new TypeReference<String>() {});
 
     private final String value;
     private final TypeReference typeReference;

@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_LINKS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
 import feign.FeignException;
 import java.time.LocalDateTime;
@@ -19,21 +21,28 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseLink;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLinkData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ServiceHearingValuesModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.CaseLinkDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.CaseLinkInfo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.GetLinkedCasesResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.Reason;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
@@ -47,9 +56,19 @@ public class HearingService {
     private final IdamService idamService;
     private final ServiceHearingValuesProvider serviceHearingValuesProvider;
     private final CoreCaseDataService coreCaseDataService;
-    @Value("${hearingValues.hmctsServiceId}") String serviceId;
+    private final IaCcdConvertService iaCcdConvertService;
+    private final CreateHearingPayloadService createHearingPayloadService;
+    @Value("${hearingValues.hmctsServiceId}")
+    private String serviceId;
+    @Value("${hmc.deploymentId}")
+    private String hmctsDeploymentId;
+    @Value("${core_case_data.api.url:#{null}}")
+    private String dataStoreUrl;
+    @Value("${role-assignment.api.url:#{null}}")
+    private String roleAssignmentUrl;
 
-    public HmcHearingResponse createHearing(HmcHearingRequestPayload hearingPayload) {
+
+    public HmcHearingResponse createHearing(CreateHearingRequest hearingPayload) {
         try {
             log.debug(
                 "Creating Hearing for Case ID {} and request:\n{}",
@@ -59,8 +78,10 @@ public class HearingService {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
-            return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken, hearingPayload);
+            return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken,
+                                                  hmctsDeploymentId, dataStoreUrl, roleAssignmentUrl, hearingPayload);
         } catch (Exception e) {
+            log.error(e.getMessage());
             throw new IllegalStateException("Service could not complete request to create hearing", e);
         }
     }
@@ -69,18 +90,39 @@ public class HearingService {
         String caseReference = payload.getCaseReference();
         requireNonNull(caseReference, "Case Reference must not be null");
 
-        AsylumCase asylumCase = coreCaseDataService.getCase(payload.getCaseReference());
+        CaseDetails caseDetails = coreCaseDataService.getCaseDetails(payload.getCaseReference());
 
-        return serviceHearingValuesProvider.provideServiceHearingValues(asylumCase, caseReference);
+        if (caseDetails.getCaseTypeId().equals(CASE_TYPE_ASYLUM)) {
+            return serviceHearingValuesProvider
+                .provideAsylumServiceHearingValues(iaCcdConvertService.convertToAsylumCaseDetails(caseDetails));
+        } else if (caseDetails.getCaseTypeId().equals(CASE_TYPE_BAIL)) {
+            return serviceHearingValuesProvider
+                .provideBailServiceHearingValues(iaCcdConvertService.convertToBailCaseData(caseDetails.getData()),
+                                                 caseReference);
+        } else {
+            throw new IllegalStateException("Service could not handle case type: " + caseDetails.getCaseTypeId());
+        }
     }
 
     public List<HearingLinkData> getHearingLinkData(@NotNull HearingRequestPayload payload) {
-        AsylumCase asylumCase = coreCaseDataService.getCase(payload.getCaseReference());
+
+        String caseReference = payload.getCaseReference();
+
+        List<HearingLinkData> serviceLinkedCases = new ArrayList<>();
+        serviceLinkedCases.addAll(getChildCasesThisCaseLinkedTo(caseReference));
+        serviceLinkedCases.addAll(getParentCasesThisCaseLinkedFrom(caseReference));
+
+        return serviceLinkedCases;
+    }
+
+    private List<HearingLinkData> getChildCasesThisCaseLinkedTo(String caseReference) {
+
+        AsylumCase asylumCase = coreCaseDataService.getCase(caseReference);
 
         Optional<List<IdValue<CaseLink>>> caseLinksOptional = asylumCase.read(CASE_LINKS);
         List<IdValue<CaseLink>> caseLinkIdValues = caseLinksOptional.orElse(Collections.emptyList());
 
-        List<HearingLinkData> serviceLinkedCases = new ArrayList<>();
+        List<HearingLinkData> hearingLinkDataList = new ArrayList<>();
 
         if (!caseLinkIdValues.isEmpty()) {
 
@@ -103,16 +145,53 @@ public class HearingService {
                             .reasonsForLink(reasonList)
                             .caseName(caseName)
                             .build();
-                    serviceLinkedCases.add(hearingLinkData);
+                    hearingLinkDataList.add(hearingLinkData);
                 }
             }
         }
 
-        return serviceLinkedCases;
+        return hearingLinkDataList;
+    }
+
+    private List<HearingLinkData> getParentCasesThisCaseLinkedFrom(String caseReference) {
+
+        GetLinkedCasesResponse getLinkedCasesResponse = coreCaseDataService.getLinkedCases(caseReference);
+        List<CaseLinkInfo> parentCasesThisCaseLinkedFrom = getLinkedCasesResponse.getLinkedCases();
+
+        List<HearingLinkData> hearingLinkDataList = new ArrayList<>();
+
+        for (CaseLinkInfo caseLinkInfo : parentCasesThisCaseLinkedFrom) {
+
+            List<CaseLinkDetails> linkDetails = caseLinkInfo.getLinkDetails();
+
+            if (!linkDetails.isEmpty() && !linkDetails.get(0).getReasons().isEmpty()) {
+
+                CaseLinkDetails caseLinkDetails = linkDetails.get(0);
+
+                List<String> reasonList =
+                    caseLinkDetails.getReasons().stream()
+                        .map(Reason::getReasonCode)
+                        .collect(Collectors.toList());
+
+                AsylumCase linkedCase = coreCaseDataService.getCase(caseLinkInfo.getCaseReference());
+                String caseName = linkedCase.read(APPELLANT_NAME_FOR_DISPLAY, String.class).orElse("");
+
+                HearingLinkData hearingLinkData =
+                    HearingLinkData.hearingLinkDataWith()
+                        .caseReference(caseLinkInfo.getCaseReference())
+                        .reasonsForLink(reasonList)
+                        .caseName(caseName)
+                        .build();
+                hearingLinkDataList.add(hearingLinkData);
+            }
+        }
+
+        return hearingLinkDataList;
     }
 
     public HearingGetResponse getHearing(String hearingId) throws HmcException {
-        log.info("Sending GetHearings request with Hearing ID {}", hearingId);
+        log.info("Sending GetHearing request with Hearing ID {}, hmctsDeploymentId: '{}'",
+                 hearingId, hmctsDeploymentId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
@@ -120,6 +199,9 @@ public class HearingService {
             return hmcHearingApi.getHearingRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
+                dataStoreUrl,
+                roleAssignmentUrl,
                 hearingId,
                 null
             );
@@ -129,17 +211,19 @@ public class HearingService {
         }
     }
 
-    public HearingsGetResponse getHearings(
-        Long caseReference
-    ) throws HmcException {
+    public HearingsGetResponse getHearings(Long caseReference) throws HmcException {
         requireNonNull(caseReference, "Case Reference must not be null");
-        log.debug("Sending Get Hearings for caseReference {}", caseReference);
+        log.info("Sending Get Hearings for caseReference {}, hmctsDeploymentId: '{}'",
+                  caseReference, hmctsDeploymentId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
             return hmcHearingApi.getHearingsRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                dataStoreUrl,
+                roleAssignmentUrl,
+                hmctsDeploymentId,
                 caseReference.toString()
             );
         } catch (FeignException ex) {
@@ -152,24 +236,23 @@ public class HearingService {
         UpdateHearingRequest updateHearingRequest,
         String hearingId
     ) throws HmcException {
-        log.debug(
-            "Update Hearing for Case ID {}, hearing ID {} and request:\n{}",
+        log.info(
+            "Update Hearing for Case ID {}, hearing ID {}, hmctsDeploymentId: '{}' and request:\n{}",
             updateHearingRequest.getCaseDetails().getCaseRef(),
             hearingId,
+            hmctsDeploymentId,
             updateHearingRequest
         );
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
-            log.info("PUT updateHearingRequest by user with name: {}, uuid: {}, userRoles: {}",
-                     idamService.getUserInfo().getName(),
-                     idamService.getUserInfo().getUid(),
-                     idamService.getUserInfo().getRoles());
-
             return hmcHearingApi.updateHearingRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
+                dataStoreUrl,
+                roleAssignmentUrl,
                 updateHearingRequest,
                 hearingId
             );
@@ -180,7 +263,8 @@ public class HearingService {
     }
 
     public PartiesNotifiedResponses getPartiesNotified(String hearingId) {
-        log.debug("Requesting Get Parties Notified with Hearing ID {}", hearingId);
+        log.info("Requesting Get Parties Notified with Hearing ID {}, hmctsDeploymentId: '{}'",
+                  hearingId, hmctsDeploymentId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
@@ -188,6 +272,9 @@ public class HearingService {
             return hmcHearingApi.getPartiesNotifiedRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
+                dataStoreUrl,
+                roleAssignmentUrl,
                 hearingId
             );
         } catch (FeignException e) {
@@ -205,6 +292,9 @@ public class HearingService {
             hmcHearingApi.updatePartiesNotifiedRequest(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
                 payload,
                 hearingId,
                 requestVersion,
@@ -225,6 +315,9 @@ public class HearingService {
             return hmcHearingApi.deleteHearing(
                 serviceUserToken,
                 serviceAuthToken,
+                hmctsDeploymentId,
+                    dataStoreUrl,
+                    roleAssignmentUrl,
                 hearingId,
                 new DeleteHearingRequest(Arrays.asList(cancellationReason))
             );
@@ -234,7 +327,8 @@ public class HearingService {
         }
     }
 
-    public UnNotifiedHearingsResponse getUnNotifiedHearings(LocalDateTime hearingStartDateFrom) {
+    public UnNotifiedHearingsResponse getUnNotifiedHearings(
+        LocalDateTime hearingStartDateFrom, List<HmcStatus> hearingStatus) {
         log.debug("Retrieving UnNotified hearings");
         try {
             String serviceUserToken = idamService.getServiceUserToken();
@@ -242,8 +336,12 @@ public class HearingService {
 
             return hmcHearingApi.getUnNotifiedHearings(serviceUserToken,
                                                        serviceAuthToken,
+                                                       hmctsDeploymentId,
+                                                        dataStoreUrl,
+                                                        roleAssignmentUrl,
                                                        hearingStartDateFrom,
                                                        null,
+                                                       hearingStatus.stream().map(HmcStatus::name).toList(),
                                                        serviceId);
         } catch (FeignException e) {
             log.error("Failed to retrieve unNotified hearings");
@@ -251,7 +349,21 @@ public class HearingService {
         }
     }
 
+    // TODO: look at better ways to test this class other than including setters solely for test (constructor injection)
     public void setServiceId(String serviceId) {
         this.serviceId = serviceId;
+    }
+
+    public void createHearingWithPayload(Callback<AsylumCase> callback) {
+
+        log.info("Handling {} and creating new hearing for case {}",
+            callback.getEvent().toString(), callback.getCaseDetails().getId());
+
+        CreateHearingRequest hmcHearingRequestPayload = createHearingPayloadService
+            .buildCreateHearingRequest(callback.getCaseDetails());
+
+        log.info("Sending request to HMC to create a hearing for case {}", callback.getCaseDetails().getId());
+        createHearing(hmcHearingRequestPayload);
+
     }
 }

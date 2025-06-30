@@ -7,14 +7,19 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @Component
 public class SponsorDetailsMapper {
 
-    public PartyDetailsModel map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
+    public PartyDetailsModel map(AsylumCase asylumCase,
+                                 CaseDataToServiceHearingValuesMapper caseDataMapper,
+                                 HearingDetails persistedHearingDetails,
+                                 Event event) {
 
         return PartyDetailsModel.builder()
             .partyID(caseDataMapper.getSponsorPartyId(asylumCase))
@@ -24,7 +29,9 @@ public class SponsorDetailsMapper {
                 IndividualDetailsModel.builder()
                     .firstName(caseDataMapper.getName(asylumCase, SPONSOR_GIVEN_NAMES))
                     .lastName(caseDataMapper.getName(asylumCase, SPONSOR_FAMILY_NAME))
-                    .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
+                    .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase,
+                                                                              persistedHearingDetails,
+                                                                              event))
                     .hearingChannelEmail(
                         caseDataMapper.getHearingChannelEmail(asylumCase, SPONSOR_EMAIL))
                     .hearingChannelPhone(

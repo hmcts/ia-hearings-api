@@ -15,6 +15,6 @@ public class ListingCommentsMapper {
 
 
         return (caseFlagsMapper.getListingComments(asylumCase)
-            + caseDataMapper.getListingCommentsFromHearingRequest(asylumCase));
+            + caseDataMapper.getListingComments(asylumCase));
     }
 }

@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.DoW;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
@@ -12,13 +14,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityDayOfWeekModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityRangeModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityType;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.CaseDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingRequestPayload;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.PartyDetails;
 
 public class HearingRequestGenerator {
 
@@ -26,8 +27,8 @@ public class HearingRequestGenerator {
 
     }
 
-    public static HmcHearingRequestPayload generateTestHearingRequest(String caseReference) {
-        HmcHearingRequestPayload request = new HmcHearingRequestPayload();
+    public static CreateHearingRequest generateTestHearingRequest(String caseReference) {
+        CreateHearingRequest request = new CreateHearingRequest();
 
         request.setHearingDetails(hearingDetails());
         request.setCaseDetails(caseDetails(caseReference));
@@ -76,17 +77,18 @@ public class HearingRequestGenerator {
         return hearingDetails;
     }
 
-    protected static CaseDetails caseDetails(String caseReference) {
-        CaseDetails caseDetails = new CaseDetails();
+    protected static CaseDetailsHearing caseDetails(String caseReference) {
+        CaseDetailsHearing caseDetails = new CaseDetailsHearing();
         caseDetails.setHmctsServiceCode("BBA3");
         caseDetails.setCaseRef(caseReference);
+        caseDetails.setHmctsInternalCaseName("Jane Doe");
         caseDetails.setExternalCaseReference("EXT/REF123");
         caseDetails.setCaseDeepLink("https://www.google.com");
         caseDetails.setHmctsInternalCaseName("Jane Doe vs DWP");
         caseDetails.setPublicCaseName("Jane Doe vs DWP");
         caseDetails.setCaseManagementLocationCode("219164");
         caseDetails.setCaseRestrictedFlag(false);
-        caseDetails.setCaseSlaStartDate("2030-08-20");
+        caseDetails.setCaseSlaStartDate(LocalDate.of(2030,8,20));
         CaseCategoryModel cat1 = new CaseCategoryModel();
         cat1.setCategoryType(CategoryType.CASE_TYPE);
         cat1.setCategoryValue("BBA3-001");
@@ -98,8 +100,8 @@ public class HearingRequestGenerator {
         return caseDetails;
     }
 
-    protected static List<PartyDetails> partyDetails() {
-        ArrayList<PartyDetails> partyDetailsArrayList = new ArrayList<>();
+    protected static List<PartyDetailsModel> partyDetails() {
+        ArrayList<PartyDetailsModel> partyDetailsArrayList = new ArrayList<>();
         partyDetailsArrayList.add(createPartyDetails(
             "P1", "IND", "BBA3-appellant", createIndividualDetails(), null));
         partyDetailsArrayList.add(createPartyDetails(
@@ -136,18 +138,18 @@ public class HearingRequestGenerator {
             .build();
     }
 
-    private static PartyDetails createPartyDetails(String partyID, String partyType, String partyRole,
+    private static PartyDetailsModel createPartyDetails(String partyID, String partyType, String partyRole,
                                                    IndividualDetailsModel individualDetails,
                                                    OrganisationDetailsModel organisationDetails) {
-        PartyDetails partyDetails = new PartyDetails();
-        partyDetails.setPartyID(partyID);
-        partyDetails.setPartyType(partyType);
-        partyDetails.setPartyRole(partyRole);
-        partyDetails.setIndividualDetails(individualDetails);
-        partyDetails.setOrganisationDetails(organisationDetails);
-        partyDetails.setUnavailabilityRanges(createUnavailableDateRanges());
-        partyDetails.setUnavailabilityDayOfWeek(createUnavailabilityDows());
-        return partyDetails;
+        return PartyDetailsModel.builder()
+            .partyID(partyID)
+            .partyType(partyType)
+            .partyRole(partyRole)
+            .individualDetails(individualDetails)
+            .organisationDetails(organisationDetails)
+            .unavailabilityRanges(createUnavailableDateRanges())
+            .unavailabilityDOW(createUnavailabilityDows())
+            .build();
     }
 
     private static List<UnavailabilityDayOfWeekModel> createUnavailabilityDows() {

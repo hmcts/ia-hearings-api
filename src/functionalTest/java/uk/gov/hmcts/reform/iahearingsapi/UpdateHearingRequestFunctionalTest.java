@@ -12,7 +12,6 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -21,16 +20,16 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
+import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestPreparer;
 
 /**
  * This functional test class covers all callback handlers in relation to Update Hearing including.
  * {@link uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestHandler}
  * {@link uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestSubmit}
- * {@link uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.HearingsDynamicListPreparer}
+ * {@link UpdateHearingRequestPreparer}
  */
 @Slf4j
 @ActiveProfiles("functional")
-@Disabled
 public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
     void getAuthentications() {

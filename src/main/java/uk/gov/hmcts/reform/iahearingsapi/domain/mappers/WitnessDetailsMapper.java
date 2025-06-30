@@ -15,10 +15,12 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.WitnessDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @Component
 @AllArgsConstructor
@@ -26,7 +28,10 @@ public class WitnessDetailsMapper {
 
     private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
 
-    public List<PartyDetailsModel> map(AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
+    public List<PartyDetailsModel> map(AsylumCase asylumCase,
+                                       CaseDataToServiceHearingValuesMapper caseDataMapper,
+                                       HearingDetails persistedHearingDetails,
+                                       Event event) {
 
         Optional<List<IdValue<WitnessDetails>>> witnessDetailsOptional = asylumCase.read(WITNESS_DETAILS);
         List<IdValue<WitnessDetails>> witnessDetailsList = witnessDetailsOptional.orElse(Collections.emptyList());
@@ -45,11 +50,13 @@ public class WitnessDetailsMapper {
                         IndividualDetailsModel.builder()
                             .firstName(witnessDetails.getWitnessName())
                             .lastName(witnessDetails.getWitnessFamilyName())
-                            .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase))
+                            .preferredHearingChannel(caseDataMapper.getHearingChannel(asylumCase,
+                                                                                      persistedHearingDetails,
+                                                                                      event))
                             .build())
                     .build();
 
-                languageAndAdjustmentsMapper.processPartyCaseFlags(asylumCase, witnessPartyDetailsModel);
+                languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(asylumCase, witnessPartyDetailsModel);
 
                 int index = witnessDetailsMap.get(witnessDetailsIdValue);
                 appendWitnessBookingStatus(asylumCase, index, witnessPartyDetailsModel);

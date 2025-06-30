@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import static java.lang.Long.parseLong;
 import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,7 +19,6 @@ import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,13 +33,16 @@ import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.util.IdamAuthProvider;
 import uk.gov.hmcts.reform.iahearingsapi.util.MapValueExpander;
 
 @Slf4j
 @SpringBootTest()
 @ActiveProfiles("functional")
-@Disabled
 public class CcdCaseCreationTest {
 
     @Value("classpath:templates/start-appeal-aip.json")
@@ -47,6 +50,9 @@ public class CcdCaseCreationTest {
 
     @Value("classpath:templates/start-appeal-legalrep.json")
     protected Resource startLegalRepAppeal;
+
+    @Value("classpath:templates/start-bail-legalrep.json")
+    protected Resource startBailApplication;
 
     @Autowired
     protected IdamAuthProvider idamAuthProvider;
@@ -57,13 +63,17 @@ public class CcdCaseCreationTest {
     @Autowired
     private MapValueExpander mapValueExpander;
 
+    @Autowired
+    private HmcHearingApi hmcHearingApi;
+
     private static long legalRepCaseId;
     private static long aipCaseId;
     private static long caseId;
+    private static long bailCaseId;
     private static Map<String, JsonNode> legalRepAppealCaseData;
     private static Map<String, JsonNode> aipAppealCaseData;
+    private static Map<String, JsonNode> bailCaseData;
     protected static RequestSpecification hearingsSpecification;
-    protected static RequestSpecification hmcApiSpecification;
     protected Map<String, Object> caseData;
     protected static String s2sToken;
     protected static String legalRepToken;
@@ -72,9 +82,12 @@ public class CcdCaseCreationTest {
     protected static String citizenToken;
     protected String citizenUserId;
     protected static String caseOfficerToken;
+    protected static String bailsLegalRepToken;
+    private String bailsLegalRepUserId;
 
     private static final String jurisdiction = "IA";
-    private static final String caseType = "Asylum";
+    private static final String ASYLUM_CASE_TYPE = "Asylum";
+    private static final String BAIL_CASE_TYPE = "Bail";
     protected static final String AUTHORIZATION = "Authorization";
     protected static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
 
@@ -99,15 +112,22 @@ public class CcdCaseCreationTest {
         submitAppealAsCitizen();
     }
 
+    protected void setupForBail() {
+        startBailApplication();
+        submitBailApplication();
+    }
+
     protected void fetchTokensAndUserIds() {
         s2sToken = s2sAuthTokenGenerator.generate();
 
         legalRepToken = idamAuthProvider.getLegalRepToken();
+        bailsLegalRepToken = idamAuthProvider.getBailsLegalRepToken();
         citizenToken = idamAuthProvider.getCitizenToken();
         caseOfficerToken = idamAuthProvider.getCaseOfficerToken();
 
         citizenUserId = idamAuthProvider.getUserId(citizenToken);
         legalRepUserId = idamAuthProvider.getUserId(legalRepToken);
+        bailsLegalRepUserId = idamAuthProvider.getUserId(bailsLegalRepToken);
 
         hearingsSpecification = new RequestSpecBuilder()
             .setBaseUri(targetInstance)
@@ -115,6 +135,83 @@ public class CcdCaseCreationTest {
             .build();
 
         log.info("targetInstance: " + targetInstance);
+    }
+
+    protected HearingsGetResponse getHearingForCase(String caseReference) {
+        return hmcHearingApi.getHearingsRequest(
+            systemUserToken,
+            s2sToken,
+            null,
+                null,
+                null,
+                caseReference
+        );
+    }
+
+    private void startBailApplication() {
+        Map<String, Object> data = getStartAppealData(startBailApplication);
+
+        mapValueExpander.expandValues(data);
+
+        String eventId = "startApplication";
+        StartEventResponse startEventDetails =
+            coreCaseDataApi.startForCaseworker(
+                bailsLegalRepToken,
+                s2sToken,
+                bailsLegalRepUserId,
+                jurisdiction, BAIL_CASE_TYPE, eventId);
+
+        Event event = Event.builder().id(eventId).build();
+
+        CaseDataContent content = CaseDataContent.builder()
+            .caseReference(null)
+            .data(data)
+            .event(event)
+            .eventToken(startEventDetails.getToken())
+            .ignoreWarning(true)
+            .build();
+
+        CaseDetails caseDetails =
+            coreCaseDataApi.submitForCaseworker(
+                bailsLegalRepToken,
+                s2sToken,
+                bailsLegalRepUserId,
+                jurisdiction, BAIL_CASE_TYPE, true, content);
+
+        bailCaseId = caseDetails.getId();
+    }
+
+    private void submitBailApplication() {
+        caseData = new HashMap<>();
+        mapValueExpander.expandValues(caseData);
+
+        String eventId = "submitApplication";
+        StartEventResponse startEventDetails =
+            coreCaseDataApi.startEventForCaseWorker(
+                bailsLegalRepToken,
+                s2sToken,
+                bailsLegalRepUserId,
+                jurisdiction,
+                BAIL_CASE_TYPE,
+                String.valueOf(bailCaseId),
+                eventId);
+
+        Event event = Event.builder().id(eventId).build();
+        CaseDataContent content = CaseDataContent.builder()
+            .caseReference(String.valueOf(bailCaseId))
+            .data(caseData)
+            .event(event)
+            .eventToken(startEventDetails.getToken())
+            .ignoreWarning(true)
+            .build();
+
+        CaseResource caseResource = coreCaseDataApi.createEvent(
+            bailsLegalRepToken,
+            s2sToken,
+            String.valueOf(bailCaseId),
+            content);
+
+        bailCaseData = caseResource.getData();
     }
 
     private void startAppealAsLegalRep() {
@@ -129,7 +226,7 @@ public class CcdCaseCreationTest {
                 legalRepToken,
                 s2sToken,
                 legalRepUserId,
-                jurisdiction, caseType, eventId);
+                jurisdiction, ASYLUM_CASE_TYPE, eventId);
 
         Event event = Event.builder().id(eventId).build();
 
@@ -146,7 +243,7 @@ public class CcdCaseCreationTest {
                 legalRepToken,
                 s2sToken,
                 legalRepUserId,
-                jurisdiction, caseType, true, content);
+                jurisdiction, ASYLUM_CASE_TYPE, true, content);
 
         legalRepCaseId = caseDetails.getId();
 
@@ -155,7 +252,6 @@ public class CcdCaseCreationTest {
     private void submitAppealAsLegalRep() {
         caseData = new HashMap<>();
         caseData.put("decisionHearingFeeOption", "decisionWithHearing");
-        caseData.put("hmctsCaseNameInternal", "testCase");
 
         mapValueExpander.expandValues(caseData);
 
@@ -166,7 +262,7 @@ public class CcdCaseCreationTest {
                 s2sToken,
                 legalRepUserId,
                 jurisdiction,
-                caseType,
+                ASYLUM_CASE_TYPE,
                 String.valueOf(legalRepCaseId),
                 eventId);
 
@@ -199,7 +295,7 @@ public class CcdCaseCreationTest {
                 citizenToken,
                 s2sToken,
                 citizenUserId,
-                jurisdiction, caseType, eventId);
+                jurisdiction, ASYLUM_CASE_TYPE, eventId);
 
         Event event = Event.builder().id(eventId).build();
 
@@ -216,7 +312,7 @@ public class CcdCaseCreationTest {
                 citizenToken,
                 s2sToken,
                 citizenUserId,
-                jurisdiction, caseType, true, content);
+                jurisdiction, ASYLUM_CASE_TYPE, true, content);
 
         aipCaseId = caseDetails.getId();
 
@@ -225,6 +321,8 @@ public class CcdCaseCreationTest {
     private void submitAppealAsCitizen() {
         caseData = new HashMap<>();
         caseData.put("decisionHearingFeeOption", "decisionWithHearing");
+        caseData.put("appellantPhoneNumber", "07444445555");
+        caseData.put("sponsorMobileNumber", "07444445555");
 
         String eventId = "submitAppeal";
         StartEventResponse startEventDetails =
@@ -233,7 +331,7 @@ public class CcdCaseCreationTest {
                 s2sToken,
                 citizenUserId,
                 jurisdiction,
-                caseType,
+                ASYLUM_CASE_TYPE,
                 String.valueOf(aipCaseId),
                 eventId);
 
@@ -262,8 +360,10 @@ public class CcdCaseCreationTest {
     protected void listCaseWithRequiredFields() {
         systemUserToken = idamAuthProvider.getSystemUserToken();
 
-        caseData.put("listCaseHearingLength", "120");
+        caseData.put("listingLength", "120");
         caseData.put("appealType", "protection");
+        caseData.put("hearingChannel", "INTER");
+        caseData.put("hmctsCaseNameInternal", "Talha Awan");
 
         String eventId = "listCaseForFTOnly";
         StartEventResponse startEventDetails =
@@ -314,9 +414,7 @@ public class CcdCaseCreationTest {
     private AsylumCase getLegalRepCase() {
         AsylumCase asylumCase = new AsylumCase();
 
-        for (Map.Entry<String, JsonNode> entry : legalRepAppealCaseData.entrySet()) {
-            asylumCase.put(entry.getKey(), entry.getValue());
-        }
+        asylumCase.putAll(legalRepAppealCaseData);
 
         return asylumCase;
     }
@@ -324,19 +422,25 @@ public class CcdCaseCreationTest {
     private AsylumCase getAipCase() {
         AsylumCase asylumCase = new AsylumCase();
 
-        for (Map.Entry<String, JsonNode> entry : aipAppealCaseData.entrySet()) {
-            asylumCase.put(entry.getKey(), entry.getValue());
-        }
+        asylumCase.putAll(aipAppealCaseData);
 
         return asylumCase;
     }
 
-    protected record Case(Long caseId, AsylumCase caseData) {
+    private BailCase getBailCase() {
+        BailCase bailCase = new BailCase();
+
+        bailCase.putAll(bailCaseData);
+
+        return bailCase;
+    }
+
+    protected record  Case(Long caseId, CaseData caseData) {
         protected Long getCaseId() {
             return caseId;
         }
 
-        protected AsylumCase getCaseData() {
+        protected CaseData getCaseData() {
             return caseData;
         }
     }
@@ -354,8 +458,14 @@ public class CcdCaseCreationTest {
             caseId = parseLong(getLegalRepCaseId());
         }
 
-        Case result = new Case(caseId, caseData);
+        caseData.put("hmctsCaseNameInternal", "Talha Awan");
 
-        return result;
+        return new Case(caseId, caseData);
+    }
+
+    @NotNull
+    protected Case createAndGetBailCase() {
+        setupForBail();
+        return new Case(bailCaseId, getBailCase());
     }
 }
