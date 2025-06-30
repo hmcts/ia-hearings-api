@@ -60,15 +60,10 @@ public class HandlerUtils {
     }
 
     public static LocalDateTime getHearingDateAndTime(LocalDateTime hearingDateTime,
-                                                      List<HearingChannel> hearingChannels,
                                                       String venueId) {
-        if (hearingChannels.contains(INTER)) {
-            return StringUtils.equals(venueId, GLASGOW_EPIMMS_ID)
-                ? hearingDateTime.with(LocalTime.of(9, 45))
-                : hearingDateTime.with(LocalTime.of(10, 0));
-        } else {
-            return hearingDateTime;
-        }
+        return StringUtils.equals(venueId, GLASGOW_EPIMMS_ID)
+            ? hearingDateTime.with(LocalTime.of(9, 45))
+            : hearingDateTime.with(LocalTime.of(10, 0));
     }
 
     public static HearingCentre getLocation(List<HearingChannel> hearingChannels, String venueId) {

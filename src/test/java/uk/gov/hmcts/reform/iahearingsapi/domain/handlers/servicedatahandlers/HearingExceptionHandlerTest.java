@@ -8,8 +8,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HANDLE_HEARING_EXCEPTION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
-import com.github.dockerjava.api.exception.NotFoundException;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +25,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 
@@ -45,6 +50,12 @@ class HearingExceptionHandlerTest {
 
     @BeforeEach
     public void setUp() {
+        CaseCategoryModel caseCategoryModel = new CaseCategoryModel();
+        caseCategoryModel.setCategoryType(CategoryType.CASE_TYPE);
+        caseCategoryModel.setCategoryValue(CaseTypeValue.RPD.getValue());
+        caseCategoryModel.setCategoryParent("");
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_CATEGORY))
+            .thenReturn(Optional.of(List.of(caseCategoryModel)));
         hearingExceptionHandler = new HearingExceptionHandler(coreCaseDataService);
     }
 
@@ -82,7 +93,8 @@ class HearingExceptionHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class))
             .thenReturn(Optional.of(CASE_REF));
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
-        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF)).thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
 
         hearingExceptionHandler.handle(serviceData);
 
@@ -97,14 +109,27 @@ class HearingExceptionHandlerTest {
             .thenReturn(Optional.of(HmcStatus.EXCEPTION));
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class))
             .thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF))
-            .thenThrow(new NotFoundException("Case not found"));
+        when(coreCaseDataService.startCaseEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, CASE_TYPE_BAIL))
+            .thenThrow(new IllegalArgumentException("Case not found"));
 
         hearingExceptionHandler.handle(serviceData);
 
         verify(coreCaseDataService, never()).triggerSubmitEvent(HANDLE_HEARING_EXCEPTION, CASE_REF, startEventResponse,
                                                                 asylumCase
         );
+    }
+
+    @Test
+    void should_not_handle_if_case_type_is_bails() {
+        CaseCategoryModel caseCategoryModel = new CaseCategoryModel();
+        caseCategoryModel.setCategoryType(CategoryType.CASE_TYPE);
+        caseCategoryModel.setCategoryValue("BFA1-BLS");
+        caseCategoryModel.setCategoryParent("");
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_CATEGORY))
+            .thenReturn(Optional.of(List.of(caseCategoryModel)));
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
+            .thenReturn(Optional.of(HmcStatus.EXCEPTION));
+        assertFalse(hearingExceptionHandler.canHandle(serviceData));
     }
 }
 

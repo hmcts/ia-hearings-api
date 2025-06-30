@@ -10,10 +10,9 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_FLAGS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DECISION_HEARING_FEE_OPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.AUDIO_VIDEO_EVIDENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.DETAINED_INDIVIDUAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.FOREIGN_NATIONAL_OFFENDER;
@@ -37,6 +36,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -47,14 +48,23 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.PartyFlagIdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlag;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyFlagsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PriorityType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.FeatureToggler;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CaseFlagsToServiceHearingValuesMapperTest {
 
+    public static final String RRO_SUPPRESSION_FEATURE = "rro-suppression";
+    private static final String caseLevelFlags = "Case level flags";
+    private static final String caseLevelFlagsPartyID = "Caselevelflags";
+    public static final String DATE_TIME_CREATED = "2024-04-11T13:43:15.044Z";
+    public static final String DATE_TIME_MODIFIED = "2024-04-15T16:23:10.044Z";
+    public static final String DATE_TIME_CREATED_NO_NANOS = "2024-04-11T13:43:15";
+    public static final String DATE_TIME_MODIFIED_NO_NANOS = "2024-04-15T16:23:10";
     private final String caseReference = "caseReference";
     private final String flagAmendUrl = "/cases/case-details/" + caseReference + "#Case%20flags";
     private CaseFlagsToServiceHearingValuesMapper mapper;
@@ -65,9 +75,12 @@ class CaseFlagsToServiceHearingValuesMapperTest {
     @Mock
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
 
+    @Mock
+    private FeatureToggler featureToggler;
+
     @BeforeEach
     void setup() {
-        mapper = new CaseFlagsToServiceHearingValuesMapper(caseDataMapper);
+        mapper = new CaseFlagsToServiceHearingValuesMapper(caseDataMapper, featureToggler);
     }
 
     @Test
@@ -79,6 +92,7 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                 .status("Active")
                 .build())));
         when(asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)).thenReturn(Optional.of(caseLevelFlag));
+        when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(AppealType.EU));
 
         assertEquals(caseReference, mapper.getPublicCaseName(asylumCase, caseReference));
     }
@@ -88,8 +102,25 @@ class CaseFlagsToServiceHearingValuesMapperTest {
 
         String appellantFullName = "John Doe";
         when(asylumCase.read(APPELLANT_NAME_FOR_DISPLAY, String.class)).thenReturn(Optional.of(appellantFullName));
+        when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(AppealType.EU));
 
         assertEquals(mapper.getPublicCaseName(asylumCase, caseReference), appellantFullName);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void getPublicCaseName_should_return_reporting_restriction_apply(boolean rroSuppressionFeature) {
+
+        when(featureToggler.getValue(RRO_SUPPRESSION_FEATURE, false)).thenReturn(rroSuppressionFeature);
+
+        when(asylumCase.read(APPELLANT_NAME_FOR_DISPLAY, String.class)).thenReturn(Optional.of("John Doe"));
+        when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(AppealType.PA));
+
+        if (rroSuppressionFeature) {
+            assertEquals(mapper.getPublicCaseName(asylumCase, caseReference), "Reporting Restriction Apply");
+        } else {
+            assertEquals(mapper.getPublicCaseName(asylumCase, caseReference), "John Doe");
+        }
     }
 
     @Test
@@ -129,81 +160,6 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .thenReturn(Optional.of(appellantFlags));
 
         assertFalse(mapper.getCaseAdditionalSecurityFlag(asylumCase));
-    }
-
-    @Test
-    void getAutoListFlag_should_return_false() {
-
-        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
-        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
-            .status("Active")
-            .build()));
-        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
-
-        assertFalse(mapper.getAutoListFlag(asylumCase));
-
-        caseFlagDetails.addAll(Arrays.asList(new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
-            .status("Active")
-            .build()), new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(FOREIGN_NATIONAL_OFFENDER.getFlagCode())
-            .status("Active")
-            .build()), new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(AUDIO_VIDEO_EVIDENCE.getFlagCode())
-            .status("Active")
-            .build()), new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(LITIGATION_FRIEND.getFlagCode())
-            .status("Active")
-            .build()), new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(LACKING_CAPACITY.getFlagCode())
-            .status("Active")
-            .build())));
-        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
-        when(asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag(
-                List.of(new CaseFlagDetail(
-                    "id1",
-                    CaseFlagValue.builder()
-                        .flagCode(PRESIDENTIAL_PANEL.getFlagCode())
-                        .status("Active")
-                        .build())))));
-
-        assertFalse(mapper.getAutoListFlag(asylumCase));
-    }
-
-    @Test
-    void getAutoListFlag_should_return_true() {
-
-        assertTrue(mapper.getAutoListFlag(asylumCase));
-
-        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
-        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
-            .status("Inactive")
-            .build()));
-        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
-
-        assertTrue(mapper.getAutoListFlag(asylumCase));
-    }
-
-    @Test
-    void getAutoListFlag_should_return_false_for_decision_without_hearing_appeal() {
-
-        List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
-        caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
-            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
-            .status("Inactive")
-            .build()));
-        when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
-        when(asylumCase.read(DECISION_HEARING_FEE_OPTION, String.class))
-            .thenReturn(Optional.of("decisionWithoutHearing"));
-
-        assertTrue(mapper.getAutoListFlag(asylumCase));
     }
 
     @Test
@@ -419,6 +375,9 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .name(ANONYMITY.getName())
                     .status("Active")
                     .hearingRelevant(YesOrNo.YES)
+                    .flagComment("test comment")
+                    .dateTimeCreated(DATE_TIME_CREATED)
+                    .dateTimeModified(DATE_TIME_MODIFIED)
                     .build())))));
 
 
@@ -426,11 +385,13 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .flagAmendUrl(flagAmendUrl)
             .flags(List.of(
                 PartyFlagsModel.builder()
-                    .partyId(null)
-                    .partyName(null)
+                    .partyId(caseLevelFlagsPartyID)
+                    .partyName(caseLevelFlags)
                     .flagId(ANONYMITY.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(ANONYMITY.getName())
+                    .flagDescription("test comment")
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
                     .build()
             )).build();
 
@@ -450,18 +411,43 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                 .name(LITIGATION_FRIEND.getName())
                 .status("Active")
                 .hearingRelevant(YesOrNo.YES)
+                .flagComment("test comment")
+                .dateTimeCreated(DATE_TIME_CREATED)
+                .dateTimeModified(DATE_TIME_MODIFIED)
                 .build()),
             new CaseFlagDetail("id5", CaseFlagValue.builder()
                 .flagCode(HEARING_LOOP.getFlagCode())
                 .name(HEARING_LOOP.getName())
                 .status("Inactive")
                 .hearingRelevant(YesOrNo.YES)
+                .dateTimeCreated(DATE_TIME_CREATED)
+                .dateTimeModified(DATE_TIME_MODIFIED)
                 .build()),
             new CaseFlagDetail("id6", CaseFlagValue.builder()
                 .flagCode(LACKING_CAPACITY.getFlagCode())
                 .name(LACKING_CAPACITY.getName())
                 .status("Active")
                 .hearingRelevant(YesOrNo.NO)
+                .dateTimeCreated(DATE_TIME_CREATED)
+                .dateTimeModified(DATE_TIME_MODIFIED)
+                .build()),
+            new CaseFlagDetail("id7", CaseFlagValue.builder()
+                .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+                .name(LANGUAGE_INTERPRETER.getName())
+                .status("Active")
+                .hearingRelevant(YesOrNo.YES)
+                .subTypeValue("French")
+                .dateTimeCreated(DATE_TIME_CREATED)
+                .dateTimeModified(DATE_TIME_MODIFIED)
+                .build()),
+            new CaseFlagDetail("id8", CaseFlagValue.builder()
+                .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
+                .name(SIGN_LANGUAGE_INTERPRETER.getName())
+                .status("Active")
+                .hearingRelevant(YesOrNo.YES)
+                .subTypeValue("International Sign (IS)")
+                .dateTimeCreated(DATE_TIME_CREATED)
+                .dateTimeModified(DATE_TIME_MODIFIED)
                 .build()));
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(
@@ -477,6 +463,8 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                                       .flagCode(HEARING_LOOP.getFlagCode())
                                       .name(HEARING_LOOP.getName())
                                       .status("Active")
+                                      .dateTimeCreated(DATE_TIME_CREATED)
+                                      .dateTimeModified(DATE_TIME_MODIFIED)
                                       .hearingRelevant(YesOrNo.YES).build())))));
         when(asylumCase.read(WITNESS_LEVEL_FLAGS))
             .thenReturn(Optional.of(witnessCaseFlag));
@@ -489,21 +477,43 @@ class CaseFlagsToServiceHearingValuesMapperTest {
                     .partyName("appellant1")
                     .flagId(LITIGATION_FRIEND.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(LITIGATION_FRIEND.getName())
+                    .flagDescription("test comment")
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
                     .build(),
                 PartyFlagsModel.builder()
                     .partyId("appellantPartyId")
                     .partyName("appellant1")
                     .flagId(LACKING_CAPACITY.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(LACKING_CAPACITY.getName())
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
+                    .build(),
+                PartyFlagsModel.builder()
+                    .partyId("appellantPartyId")
+                    .partyName("appellant1")
+                    .flagId(LANGUAGE_INTERPRETER.getFlagCode())
+                    .flagStatus("Active")
+                    .flagDescription("French")
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
+                    .build(),
+                PartyFlagsModel.builder()
+                    .partyId("appellantPartyId")
+                    .partyName("appellant1")
+                    .flagId(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
+                    .flagStatus("Active")
+                    .flagDescription("International Sign (IS)")
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
                     .build(),
                 PartyFlagsModel.builder()
                     .partyId("witnessPartyId")
                     .partyName("witness3")
                     .flagId(HEARING_LOOP.getFlagCode())
                     .flagStatus("Active")
-                    .flagDescription(HEARING_LOOP.getName())
+                    .dateTimeCreated(DATE_TIME_CREATED_NO_NANOS)
+                    .dateTimeModified(DATE_TIME_MODIFIED_NO_NANOS)
                     .build()
             )).build();
 

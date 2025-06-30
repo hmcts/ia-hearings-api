@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,9 +15,14 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Classification;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.GetLinkedCasesResponse;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.LinkedCasesApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_NEXT_HEARING_INFO;
 
 @Slf4j
 @Service
@@ -23,21 +30,23 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityMa
 public class CoreCaseDataService {
 
     private static final String JURISDICTION_ID = "IA";
-    private static final String CASE_TYPE = "Asylum";
+    public static final String CASE_TYPE_ASYLUM = "Asylum";
+    public static final String CASE_TYPE_BAIL = "Bail";
 
     private final AuthTokenGenerator serviceAuthTokenGenerator;
     private final IdamService idamService;
     private final CoreCaseDataApi coreCaseDataApi;
     private final IaCcdConvertService iaCcdConvertService;
+    private final LinkedCasesApi linkedCasesApi;
 
-    public StartEventResponse startCaseEvent(Event event, String caseId) {
+    public StartEventResponse startCaseEvent(Event event, String caseId, String caseType) {
         try {
             return coreCaseDataApi.startEventForCaseWorker(
                 getUserToken(event, caseId),
                 getS2sToken(event, caseId),
                 getUid(event, caseId),
                 JURISDICTION_ID,
-                CASE_TYPE,
+                caseType,
                 caseId,
                 event.toString()
             );
@@ -52,13 +61,13 @@ public class CoreCaseDataService {
     public AsylumCase getCaseFromStartedEvent(StartEventResponse startEventResponse) {
         CaseDetails caseDetails = startEventResponse.getCaseDetails();
         if (caseDetails != null) {
-            return iaCcdConvertService.getCaseData(caseDetails.getData());
+            return iaCcdConvertService.convertToAsylumCaseData(caseDetails.getData());
         }
         return null;
     }
 
     public AsylumCase getCase(String caseId) {
-        return iaCcdConvertService.getCaseData(getCaseDetails(caseId).getData());
+        return iaCcdConvertService.convertToAsylumCaseData(getCaseDetails(caseId).getData());
     }
 
     public State getCaseState(String caseId) {
@@ -78,7 +87,34 @@ public class CoreCaseDataService {
             asylumCase,
             event,
             true,
-            startEventResponse.getToken()
+            startEventResponse.getToken(),
+            startEventResponse.getCaseDetails().getLastModified(),
+            CASE_TYPE_ASYLUM
+        );
+
+        log.info("Event {} triggered for case {}, Status: {}", event, caseId,
+                 caseDetails.getCallbackResponseStatus()
+        );
+
+        return caseDetails;
+    }
+
+    public CaseDetails triggerBailSubmitEvent(Event event,
+                                          String caseId,
+                                          StartEventResponse startEventResponse,
+                                          BailCase bailCase) {
+        log.info("Case details found for the caseId: {}", caseId);
+        CaseDetails caseDetails = submitEventForCaseWorker(
+            getUserToken(event, caseId),
+            getS2sToken(event, caseId),
+            getUid(event, caseId),
+            caseId,
+            bailCase,
+            event,
+            true,
+            startEventResponse.getToken(),
+            startEventResponse.getCaseDetails().getLastModified(),
+            CASE_TYPE_BAIL
         );
 
         log.info("Event {} triggered for case {}, Status: {}", event, caseId,
@@ -103,6 +139,10 @@ public class CoreCaseDataService {
         throw new IllegalArgumentException(errorMessage);
     }
 
+    public String getCaseType(String caseId) {
+        return getCaseDetails(caseId).getCaseTypeId();
+    }
+
     private uk.gov.hmcts.reform.ccd.client.model.CaseDetails submitEventForCaseWorker(String userToken,
                                                                                       String s2sToken,
                                                                                       String userId,
@@ -110,7 +150,17 @@ public class CoreCaseDataService {
                                                                                       Map<String, Object> data,
                                                                                       Event event,
                                                                                       boolean ignoreWarning,
-                                                                                      String eventToken) {
+                                                                                      String eventToken,
+                                                                                      LocalDateTime lastModified,
+                                                                                      String caseType) {
+
+        StartEventResponse startEventResponse = startCaseEvent(event, caseId, caseType);
+        // Ensure we are not updating old version of case details
+        if (startEventResponse.getCaseDetails().getLastModified().truncatedTo(ChronoUnit.MILLIS)
+            .isAfter(lastModified)) {
+            throw new ConcurrentModificationException(
+                String.format("Case with ID %s cannot be updated: case details out of date", caseId));
+        }
 
         CaseDataContent request = CaseDataContent.builder()
             .event(uk.gov.hmcts.reform.ccd.client.model.Event.builder()
@@ -129,7 +179,7 @@ public class CoreCaseDataService {
             s2sToken,
             userId,
             JURISDICTION_ID,
-            CASE_TYPE,
+            caseType,
             caseId,
             ignoreWarning,
             request
@@ -163,7 +213,7 @@ public class CoreCaseDataService {
     private String getUid(Event event, String caseId) {
         String uid;
         try {
-            uid = idamService.getUserInfo().getUid();
+            uid = idamService.getUserInfo(idamService.getServiceUserToken()).getUid();
             log.info("System user id has been fetched for event: {}, caseId: {}.", event, caseId);
 
         } catch (IdentityManagerResponseException ex) {
@@ -174,4 +224,42 @@ public class CoreCaseDataService {
         return uid;
     }
 
+    public BailCase getBailCaseFromStartedEvent(StartEventResponse startEventResponse) {
+        CaseDetails caseDetails = startEventResponse.getCaseDetails();
+        if (caseDetails != null) {
+            return iaCcdConvertService.convertToBailCaseData(caseDetails.getData());
+        }
+        return null;
+    }
+
+    public GetLinkedCasesResponse getLinkedCases(String caseReference) {
+        return linkedCasesApi.getLinkedCases(
+            idamService.getServiceUserToken(),
+            serviceAuthTokenGenerator.generate(),
+            caseReference,
+            "1",
+            "100");
+    }
+
+    public void updateNextHearingInfo(String caseId) {
+        StartEventResponse startEventResponse = startCaseEvent(
+            UPDATE_NEXT_HEARING_INFO, caseId, CASE_TYPE_ASYLUM);
+
+        AsylumCase asylumCase = getCaseFromStartedEvent(startEventResponse);
+
+        log.info("Sending `{}` event for  Case ID `{}`", UPDATE_NEXT_HEARING_INFO, caseId);
+        triggerSubmitEvent(
+            UPDATE_NEXT_HEARING_INFO, caseId, startEventResponse, asylumCase);
+    }
+
+    public void hearingCancelledTask(String caseId) {
+        StartEventResponse startEventResponse = startCaseEvent(
+            HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
+
+        AsylumCase asylumCase = getCaseFromStartedEvent(startEventResponse);
+
+        log.info("Sending `{}`an event for  Case ID `{}`", HEARING_CANCELLED, caseId);
+        triggerSubmitEvent(
+            HEARING_CANCELLED, caseId, startEventResponse, asylumCase);
+    }
 }

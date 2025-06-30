@@ -29,6 +29,10 @@ feign:
         readTimeout: 160000000
 
 spring:
+  cache:
+    cache-names: userInfoCache, accessTokenCache, legalRepATokenCache, caseOfficerTokenCache, citizenTokenCache, systemTokenCache, bailsLegalRepTokenCache, systemUserTokenCache
+    caffeine:
+      spec: expireAfterAccess=3600s
   security:
     oauth2:
       client:
@@ -43,3 +47,6 @@ spring:
         jwt:
           jwk-set-uri: ${OPEN_ID_IDAM_URL:http://sidam-simulator:5000}/o/jwks
 
+flags:
+  hmc-to-hearings-api:
+    enabled: false

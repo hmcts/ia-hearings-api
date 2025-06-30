@@ -5,7 +5,13 @@
   "appellantGivenNames": "Talha",
   "appellantFamilyName": "Awan",
   "appellantDateOfBirth": "1978-11-11",
-  "appellantHasFixedAddress": "No",
+  "appellantHasFixedAddress": "Yes",
+  "appellantAddress": {
+    "PostCode": "B1 1BA"
+  },
+  "legalRepMobilePhoneNumber": "07444445555",
+  "legalRepCompany": "Fake company",
+  "mobileNumber": "07444445555",
   "appealType": "protection",
   "hasNewMatters": "No",
   "hasOtherAppeals": "No",
@@ -24,5 +30,6 @@
   ],
   "legalRepReferenceNumber": "CASE001",
   "legalRepresentativeEmailAddress": "ia-law-firm-org-sc@fake.hmcts.net",
-  "paymentReference": "RC-1627-5070-9329-7815"
+  "paymentReference": "RC-1627-5070-9329-7815",
+  "appellantInUk": "Yes"
 }

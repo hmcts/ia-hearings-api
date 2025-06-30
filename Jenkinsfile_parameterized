@@ -53,6 +53,9 @@ def secrets = [
 
     secret('test-law-firm-org-deleted-username', 'TEST_LAW_FIRM_ORG_DELETED_USERNAME'),
     secret('test-law-firm-org-deleted-password', 'TEST_LAW_FIRM_ORG_DELETED_PASSWORD'),
+
+    secret('test-law-firm-noc-b-bails-username', 'TEST_LAW_FIRM_BAILS_USERNAME'),
+    secret('test-law-firm-noc-b-bails-password', 'TEST_LAW_FIRM_BAILS_PASSWORD'),
   ]
 ]
 
@@ -75,6 +78,7 @@ withParameterizedPipeline(params.TYPE, params.PRODUCT_NAME, params.APP, params.E
   env.OPEN_ID_IDAM_URL = "https://idam-web-public.aat.platform.hmcts.net"
   env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
   env.HMC_API_URL = "http://hmc-cft-hearing-service-aat.service.core-compute-aat.internal"
+  env.LOCATION_REF_DATA_URL = "http://rd-location-ref-api-aat.service.core-compute-aat.internal"
 
   loadVaultSecrets(secrets)
 

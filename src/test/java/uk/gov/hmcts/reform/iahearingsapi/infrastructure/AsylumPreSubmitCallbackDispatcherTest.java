@@ -17,9 +17,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPr
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
-import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.HearingsDynamicListPreparer;
+import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestPreparer;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.CcdEventAuthorizor;
 
 import java.util.Arrays;
@@ -268,13 +269,13 @@ public class AsylumPreSubmitCallbackDispatcherTest {
 
     @Test
     public void should_sort_handlers_by_name() {
-        PreSubmitCallbackHandler<AsylumCase> h1 = new HearingsDynamicListPreparer(
+        PreSubmitCallbackHandler<AsylumCase> h1 = new UpdateHearingRequestPreparer(
             mock(HearingService.class)
         );
 
 
         PreSubmitCallbackHandler<AsylumCase> h3 = new UpdateHearingRequestHandler(
-            mock(HearingService.class)
+            mock(HearingService.class), mock(LocationRefDataService.class)
         );
 
         PreSubmitCallbackDispatcher<AsylumCase> dispatcher = new AsylumPreSubmitCallbackDispatcher(
@@ -293,7 +294,7 @@ public class AsylumPreSubmitCallbackDispatcherTest {
 
         assert sortedDispatcher != null;
         assertEquals(2, sortedDispatcher.size());
-        assertEquals(h1, sortedDispatcher.get(0));
-        assertEquals(h3, sortedDispatcher.get(1));
+        assertEquals(h3, sortedDispatcher.get(0));
+        assertEquals(h1, sortedDispatcher.get(1));
     }
 }

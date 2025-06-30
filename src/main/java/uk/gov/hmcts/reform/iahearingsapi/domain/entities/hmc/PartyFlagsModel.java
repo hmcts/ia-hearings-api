@@ -17,4 +17,6 @@ public class PartyFlagsModel {
     private String flagId;
     private String flagDescription;
     private String flagStatus;
+    private String dateTimeCreated;
+    private String dateTimeModified;
 }

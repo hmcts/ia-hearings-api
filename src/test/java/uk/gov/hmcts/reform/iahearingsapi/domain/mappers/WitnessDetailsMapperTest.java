@@ -20,9 +20,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.WitnessDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @ExtendWith(MockitoExtension.class)
 class WitnessDetailsMapperTest {
@@ -33,11 +35,16 @@ class WitnessDetailsMapperTest {
     private CaseDataToServiceHearingValuesMapper caseDataMapper;
     @Mock
     private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
+    @Mock
+    private HearingDetails persistedHearingDetails;
+    @Mock
+    Event event;
 
     @Test
     void should_map_correctly() {
 
-        when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn("hearingChannel");
+        when(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
+            .thenReturn("hearingChannel");
 
         final List<IdValue<WitnessDetails>> witnessDetails = List.of(
             new IdValue<>(
@@ -57,12 +64,15 @@ class WitnessDetailsMapperTest {
             .partyRole("WITN")
             .build();
         List<PartyDetailsModel> expected = List.of(expectedParty);
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(expectedParty);
 
         expected.get(0).getIndividualDetails().setOtherReasonableAdjustmentDetails("");
 
-        assertEquals(expected, new WitnessDetailsMapper(languageAndAdjustmentsMapper).map(asylumCase, caseDataMapper));
+        assertEquals(expected, new WitnessDetailsMapper(languageAndAdjustmentsMapper).map(asylumCase,
+                                                                                          caseDataMapper,
+                                                                                          persistedHearingDetails,
+                                                                                          event));
     }
 
     @ParameterizedTest
@@ -73,7 +83,8 @@ class WitnessDetailsMapperTest {
         when(asylumCase.read(WITNESS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS_1, InterpreterBookingStatus.class))
             .thenReturn(Optional.empty());
 
-        when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn("hearingChannel");
+        when(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
+            .thenReturn("hearingChannel");
 
         final List<IdValue<WitnessDetails>> witnessDetails = List.of(
             new IdValue<>(
@@ -92,7 +103,7 @@ class WitnessDetailsMapperTest {
             .partyType("IND")
             .partyRole("WITN")
             .build();
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(witnessPartyDetailsModel);
 
         String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED
@@ -104,7 +115,7 @@ class WitnessDetailsMapperTest {
                                "") + status).trim());
 
         assertEquals(List.of(witnessPartyDetailsModel), new WitnessDetailsMapper(languageAndAdjustmentsMapper)
-            .map(asylumCase, caseDataMapper));
+            .map(asylumCase, caseDataMapper, persistedHearingDetails, event));
     }
 
     @ParameterizedTest
@@ -115,7 +126,8 @@ class WitnessDetailsMapperTest {
         when(asylumCase.read(WITNESS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS_1, InterpreterBookingStatus.class))
             .thenReturn(Optional.of(bookingStatus));
 
-        when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn("hearingChannel");
+        when(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
+            .thenReturn("hearingChannel");
 
         final List<IdValue<WitnessDetails>> witnessDetails = List.of(
             new IdValue<>(
@@ -134,7 +146,7 @@ class WitnessDetailsMapperTest {
             .partyType("IND")
             .partyRole("WITN")
             .build();
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(witnessPartyDetailsModel);
 
         String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED
@@ -146,7 +158,7 @@ class WitnessDetailsMapperTest {
                                 "") + status).trim());
 
         assertEquals(List.of(witnessPartyDetailsModel), new WitnessDetailsMapper(languageAndAdjustmentsMapper)
-            .map(asylumCase, caseDataMapper));
+            .map(asylumCase, caseDataMapper, persistedHearingDetails, event));
     }
 
     @ParameterizedTest
@@ -157,7 +169,8 @@ class WitnessDetailsMapperTest {
         when(asylumCase.read(WITNESS_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS_1, InterpreterBookingStatus.class))
             .thenReturn(Optional.of(bookingStatus));
 
-        when(caseDataMapper.getHearingChannel(asylumCase)).thenReturn("hearingChannel");
+        when(caseDataMapper.getHearingChannel(asylumCase, persistedHearingDetails, event))
+            .thenReturn("hearingChannel");
 
         final List<IdValue<WitnessDetails>> witnessDetails = List.of(
             new IdValue<>(
@@ -176,7 +189,7 @@ class WitnessDetailsMapperTest {
             .partyType("IND")
             .partyRole("WITN")
             .build();
-        when(languageAndAdjustmentsMapper.processPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
+        when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(witnessPartyDetailsModel);
 
         String status = bookingStatus != InterpreterBookingStatus.NOT_REQUESTED
@@ -188,7 +201,7 @@ class WitnessDetailsMapperTest {
                                 "") + status).trim());
 
         assertEquals(List.of(witnessPartyDetailsModel), new WitnessDetailsMapper(languageAndAdjustmentsMapper)
-            .map(asylumCase, caseDataMapper));
+            .map(asylumCase, caseDataMapper, persistedHearingDetails, event));
     }
 
 }

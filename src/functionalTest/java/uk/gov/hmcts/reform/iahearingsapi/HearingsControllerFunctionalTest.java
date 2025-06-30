@@ -8,7 +8,6 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -21,7 +20,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ActiveProfiles("functional")
-@Disabled
 class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
     @BeforeEach
     void getAuthentications() {
@@ -50,6 +48,9 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .extract().response();
 
         assertEquals(200, response.getStatusCode());
+        log.info("aipCaseId: " + getAipCaseId());
+        log.info("legalRepCaseId: " + getLegalRepCaseId());
+        log.info("test: should_create_hearing_successfully");
     }
 
     @Test
@@ -108,10 +109,14 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .assertThat().body("leadJudgeContractType", notNullValue())
             .assertThat().body("judiciary", notNullValue())
             .assertThat().body("parties", notNullValue())
-            .assertThat().body("caseflags", notNullValue())
+            .assertThat().body("caseFlags", notNullValue())
             .assertThat().body("vocabulary", notNullValue())
             .assertThat().body("hearingChannels", notNullValue())
             .assertThat().body("hearingLevelParticipantAttendance", notNullValue());
+
+        log.info("aipCaseId: " + getAipCaseId());
+        log.info("legalRepCaseId: " + getLegalRepCaseId());
+        log.info("test: should_get_hearings_values_successfully");
     }
 
     @Test
@@ -133,5 +138,47 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
             .log().all(true)
             .statusCode(HttpStatus.SC_BAD_REQUEST);
     }
+
+
+    @Test
+    @Order(5)
+    void should_get_hearings_values_successfully_for_bail() {
+        Case result = createAndGetBailCase();
+
+        HearingRequestPayload payload = HearingRequestPayload.builder()
+            .caseReference(Long.toString(result.getCaseId()))
+            .hearingId("hearingId")
+            .build();
+
+        given(hearingsSpecification)
+            .when()
+            .contentType("application/json")
+            .header(new Header(AUTHORIZATION, legalRepToken))
+            .header(new Header(SERVICE_AUTHORIZATION, s2sToken))
+            .body(payload)
+            .post("/serviceHearingValues")
+            .then()
+            .statusCode(HttpStatus.SC_OK)
+            .log().all(true)
+            .assertThat().body("hmctsServiceID", notNullValue())
+            .assertThat().body("hmctsInternalCaseName", notNullValue())
+            .assertThat().body("publicCaseName", notNullValue())
+            .assertThat().body("caseCategories", notNullValue())
+            .assertThat().body("caseDeepLink", notNullValue())
+            .assertThat().body("hearingPriorityType", notNullValue())
+            .assertThat().body("hearingLocations", notNullValue())
+            .assertThat().body("facilitiesRequired", notNullValue())
+            .assertThat().body("listingComments", notNullValue())
+            .assertThat().body("hearingRequester", notNullValue())
+            .assertThat().body("leadJudgeContractType", notNullValue())
+            .assertThat().body("judiciary", notNullValue())
+            .assertThat().body("parties", notNullValue())
+            .assertThat().body("caseFlags", notNullValue())
+            .assertThat().body("vocabulary", notNullValue())
+            .assertThat().body("hearingChannels", notNullValue())
+            .assertThat().body("hearingLevelParticipantAttendance", notNullValue());
+    }
+
+
 
 }

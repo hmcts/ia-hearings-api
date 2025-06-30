@@ -28,6 +28,10 @@ health:
       response: '"status":"UP"'
 
 spring:
+  cache:
+    cache-names: userInfoCache, accessTokenCache, systemTokenCache
+    caffeine:
+      spec: expireAfterWrite=3600s
   cloud:
     bootstrap:
       enabled: true
@@ -81,25 +85,45 @@ security:
       - "submitAppeal"
     caseworker-ia-admofficer:
       - "listCase"
+      - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
+      - "restoreStateFromAdjourn"
+      - "hearingCancelled"
     caseworker-ia-caseworker:
       - "listCase"
     caseworker-ia-caseofficer:
+      - "listCase"
+      - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
+      - "decideAnApplication"
+      - "listCaseWithoutHearingRequirements"
+      - "reviewHearingRequirements"
+      - "decisionAndReasonsStarted"
+      - "restoreStateFromAdjourn"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
+      - "decideAnApplication"
     caseworker-ia-system:
       - "handleHearingException"
+      - "cmrReListing"
       - "recordAdjournmentDetails"
       - "listCaseForFTOnly"
+      - "cmrListing"
+      - "decisionWithoutHearingListed"
+      - "listCase"
+      - "editCaseListing"
+      - "UpdateNextHearingInfo"
+      - "hearingCancelled"
+    next-hearing-date-admin:
+      - "UpdateNextHearingInfo"
 
 ### dependency configuration
 ccdGatewayUrl: ${CCD_GW_URL:http://localhost:3453}
@@ -107,12 +131,15 @@ core_case_data:
   api:
     url: ${CCD_URL:http://127.0.0.1:4452}
 
+role-assignment:
+  api:
+    url: ${ROLE_ASSIGNMENT_API_URL:http://127.0.0.1:4096}
+
 xui:
   api:
     baseUrl: ${XUI_URL:http://localhost:3002}
 
 hearingValues:
-  screenFlowJsonFilePath: ${SCREEN_FLOW_JSON_FILE_PATH:/screenFlowNoPanel.json}
   caseCategories: "BFA1-TST"
   hmctsServiceId: "BFA1"
 
@@ -126,8 +153,8 @@ feign:
   client:
     config:
       default:
-        connectTimeout: 5000
-        readTimeout: 5000
+        connectTimeout: 160000000
+        readTimeout: 160000000
         loggerLevel: full
 
 
@@ -142,7 +169,7 @@ hystrix:
 
 #OpenID
 idam:
-  baseUrl: ${OPEN_ID_IDAM_URL:http://127.0.0.1:5000}
+  baseUrl: ${IDAM_URL:http://127.0.0.1:5000}
   redirectUrl: ${IA_IDAM_REDIRECT_URI:http://localhost:3002/oauth2/callback}
   s2s-auth:
     totp_secret: ${IA_S2S_SECRET:AAAAAAAAAAAAAAAC}
@@ -158,10 +185,13 @@ idam:
 #HMC
 hmc:
   baseUrl: ${HMC_API_URL:http://127.0.0.1:4561}
+  deploymentId: ${HMC_DEPLOYMENT_ID:}
 
 prof.ref.data.url: ${PROF_REF_DATA_URL:http://localhost:8991}
 prof.ref.data.path.org.users: ${PROF_REF_DATA_ORG_USERS_PATH:/refdata/external/v1/organisations/users}
 prof.ref.data.path.org.organisation: ${PROF_REF_DATA_ORG_ORGANISATION_PATH:/refdata/external/v1/organisations}
+
+location.ref.data.url: ${LOCATION_REF_DATA_URL:http://localhost:8991}
 
 featureFlag:
   exampleFeatureFlag: ${EXAMPLE_FEATURE_FLAG:true}
@@ -190,8 +220,8 @@ azure:
     connection-postfix: ${HMC_RESPONSE_TOPIC_CONNECTION_POSTFIX:.servicebus.windows.net}
     hmc-to-hearings-api:
       namespace: ${HMC_HEARINGS_TOPIC_NAMESPACE:hmc-servicebus-demo}
-      topicName: ${HMC_HEARINGS_TOPIC_NAME:}
-      subscriptionName: ${HMC_HEARINGS_TOPIC_SUBSCRIPTION_NAME:}
+      topicName: ${HMC_HEARINGS_TOPIC_NAME:hmc-to-cft-demo}
+      subscriptionName: ${HMC_HEARINGS_TOPIC_SUBSCRIPTION_NAME:hmc-ia-subs-to-cft-demo}
       receiveTimeout: ${HMC_HEARINGS_TOPIC_RECEIVE_TIMEOUT:1}
       idleTimeout: ${HMC_HEARINGS_TOPIC_IDLE_TIMEOUT:3600000}
       username: ${HMC_HEARINGS_TOPIC_POLICY_NAME:}
@@ -203,3 +233,17 @@ iaCaseApi:
   aboutToSubmitPath: "/asylum/ccdAboutToSubmit"
   midEventPath: "/asylum/ccdMidEvent"
   ccdSubmittedPath: "/asylum/ccdSubmitted"
+
+bail:
+  hearingValues:
+    caseCategories: "BFA1-BLS"
+
+flags:
+  hmc-to-hearings-api:
+    enabled: ${HMC_HEARINGS_LISTENING_ENABLED:true}
+  deployment-filter:
+    # Once the env var is available then this should default to false
+    enabled: ${DEPLOYMENT_FILTER_ENABLED:false}
+
+pactbroker:
+  url: ${PACT_BROKER_FULL_URL:http://localhost:80}
