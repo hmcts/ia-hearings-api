@@ -79,8 +79,7 @@ public class HearingService {
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
             return hmcHearingApi.createHearingRequest(serviceUserToken, serviceAuthToken,
-                                                      hmctsDeploymentId, dataStoreUrl,
-                    roleAssignmentUrl, hearingPayload);
+                                                  hmctsDeploymentId, dataStoreUrl, roleAssignmentUrl, hearingPayload);
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new IllegalStateException("Service could not complete request to create hearing", e);
@@ -191,7 +190,8 @@ public class HearingService {
     }
 
     public HearingGetResponse getHearing(String hearingId) throws HmcException {
-        log.info("Sending GetHearing request with Hearing ID {}", hearingId);
+        log.info("Sending GetHearing request with Hearing ID {}, hmctsDeploymentId: '{}'",
+                 hearingId, hmctsDeploymentId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
@@ -200,9 +200,9 @@ public class HearingService {
                 serviceUserToken,
                 serviceAuthToken,
                 hmctsDeploymentId,
-                    dataStoreUrl,
-                    roleAssignmentUrl,
-                    hearingId,
+                dataStoreUrl,
+                roleAssignmentUrl,
+                hearingId,
                 null
             );
         } catch (FeignException ex) {
@@ -213,15 +213,16 @@ public class HearingService {
 
     public HearingsGetResponse getHearings(Long caseReference) throws HmcException {
         requireNonNull(caseReference, "Case Reference must not be null");
-        log.debug("Sending Get Hearings for caseReference {}", caseReference);
+        log.info("Sending Get Hearings for caseReference {}, hmctsDeploymentId: '{}'",
+                  caseReference, hmctsDeploymentId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
             return hmcHearingApi.getHearingsRequest(
                 serviceUserToken,
                 serviceAuthToken,
-                    dataStoreUrl,
-                    roleAssignmentUrl,
+                dataStoreUrl,
+                roleAssignmentUrl,
                 hmctsDeploymentId,
                 caseReference.toString()
             );
@@ -235,10 +236,11 @@ public class HearingService {
         UpdateHearingRequest updateHearingRequest,
         String hearingId
     ) throws HmcException {
-        log.debug(
-            "Update Hearing for Case ID {}, hearing ID {} and request:\n{}",
+        log.info(
+            "Update Hearing for Case ID {}, hearing ID {}, hmctsDeploymentId: '{}' and request:\n{}",
             updateHearingRequest.getCaseDetails().getCaseRef(),
             hearingId,
+            hmctsDeploymentId,
             updateHearingRequest
         );
         try {
@@ -249,8 +251,8 @@ public class HearingService {
                 serviceUserToken,
                 serviceAuthToken,
                 hmctsDeploymentId,
-                    dataStoreUrl,
-                    roleAssignmentUrl,
+                dataStoreUrl,
+                roleAssignmentUrl,
                 updateHearingRequest,
                 hearingId
             );
@@ -261,7 +263,8 @@ public class HearingService {
     }
 
     public PartiesNotifiedResponses getPartiesNotified(String hearingId) {
-        log.debug("Requesting Get Parties Notified with Hearing ID {}", hearingId);
+        log.info("Requesting Get Parties Notified with Hearing ID {}, hmctsDeploymentId: '{}'",
+                  hearingId, hmctsDeploymentId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
@@ -270,8 +273,8 @@ public class HearingService {
                 serviceUserToken,
                 serviceAuthToken,
                 hmctsDeploymentId,
-                    dataStoreUrl,
-                    roleAssignmentUrl,
+                dataStoreUrl,
+                roleAssignmentUrl,
                 hearingId
             );
         } catch (FeignException e) {
