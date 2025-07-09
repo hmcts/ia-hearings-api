@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.iahearingsapi.domain.UserDetailsProvider;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.IdamApi;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.IdamService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.AccessTokenProvider;
 
@@ -11,15 +11,15 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.AccessTokenProv
 public class IdamUserDetailsProvider implements UserDetailsProvider {
 
     private final AccessTokenProvider accessTokenProvider;
-    private final IdamApi idamApi;
+    private final IdamService idamService;
 
     public IdamUserDetailsProvider(
         AccessTokenProvider accessTokenProvider,
-        IdamApi idamApi
+        IdamService idamService
     ) {
 
         this.accessTokenProvider = accessTokenProvider;
-        this.idamApi = idamApi;
+        this.idamService = idamService;
     }
 
     public IdamUserDetails getUserDetails() {
@@ -28,14 +28,14 @@ public class IdamUserDetailsProvider implements UserDetailsProvider {
         UserInfo response;
 
         try {
-            response = idamApi.userInfo(accessToken);
+            response = idamService.getUserInfo(accessToken);
             log.info("User details retrieved successfully from IDAM. Roles are:");
             if (response.getRoles() != null) {
                 log.info(String.join(", ", response.getRoles()));
             }
         } catch (FeignException ex) {
             throw new IdentityManagerResponseException(
-                "Could not get user details with IDAM",
+                "Could not get user details with IDAM or Role Assignment Service",
                 ex
             );
         }
