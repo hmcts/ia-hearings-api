@@ -5,7 +5,8 @@
     <cve>CVE-2024-38820</cve>
     <cve>CVE-2024-22259</cve>
     <cve>CVE-2024-38808</cve>
-    <!--Requires azure-service-bus upgrade to v8+-->
+    <!--Requires qpid-jms-client and azure-service-bus upgrades that depend on Netty v4.1.118.Final+-->
+    <!--These have not been released as of 15/07/2025-->
     <cve>CVE-2025-25193</cve>
   </suppress>
 </suppressions>
