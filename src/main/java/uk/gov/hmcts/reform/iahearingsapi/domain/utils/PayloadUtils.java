@@ -71,7 +71,7 @@ public class PayloadUtils {
             .orElse(false);
 
         boolean isVirtualHearing = asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class)
-            .map(deportation -> deportation == YesOrNo.YES)
+            .map(virtual -> virtual == YesOrNo.YES)
             .orElse(false);
 
         AppealType appealType = asylumCase.read(APPEAL_TYPE, AppealType.class)

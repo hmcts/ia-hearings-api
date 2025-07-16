@@ -597,6 +597,40 @@ class UpdateHearingPayloadServiceTest {
     }
 
     @Test
+    void should_return_requested_update_hearing_value_when_the_event_is_update_hearing_request_for_virtual() {
+        when(asylumCase.read(HEARING_LOCATION, DynamicList.class)).thenReturn(
+            Optional.of(new DynamicList("999970")));
+        when(asylumCase.read(CHANGE_HEARING_LOCATION_YES_NO, String.class)).thenReturn(Optional.of(YES.toString()));
+        when(asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, String.class)).thenReturn(Optional.of(YES.toString()));
+        when(updateHearingPayloadService.getHearingDuration(asylumCase, UPDATE_HEARING_REQUEST)).thenReturn(120);
+
+        UpdateHearingRequest updateHearingRequest = updateHearingPayloadService.createUpdateHearingPayload(
+            asylumCase,
+            updateHearingsCode,
+            reasonCode,
+            false,
+            null,
+            UPDATE_HEARING_REQUEST,
+            caseReference
+        );
+
+        verify(hearingService, times(1)).getHearing(updateHearingsCode);
+
+        assertEquals(
+            "999970",
+            updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId());
+
+        assertEquals(
+            120,
+            updateHearingRequest.getHearingDetails().getDuration());
+
+        assertTrue(
+            updateHearingRequest.getHearingDetails().getHearingChannels().contains(HearingChannel.VID.getLabel()));
+
+        assertEqualsHearingDetails(updateHearingRequest);
+    }
+
+    @Test
     void should_return_next_hearing_value_when_the_event_is_record_adjournment_details() {
 
         when(asylumCase.read(NEXT_HEARING_VENUE, DynamicList.class)).thenReturn(

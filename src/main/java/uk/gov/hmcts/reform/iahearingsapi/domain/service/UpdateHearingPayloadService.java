@@ -26,8 +26,10 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -231,14 +233,22 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         if (event == Event.UPDATE_HEARING_REQUEST) {
             boolean updateHearingChannel = asylumCase.read(CHANGE_HEARING_TYPE_YES_NO, String.class)
                 .map(changeType -> equalsIgnoreCase(YES.toString(), changeType)).orElse(false);
+            log.info("updateHearingRequest: updateHearingChannel - {}", updateHearingChannel);
             if (updateHearingChannel) {
                 hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
+                log.info("updateHearingRequest: hearing channels - {}",
+                         String.join(", ",  hearingsDetailsUpdate.getHearingChannels()));
             }
             boolean updateHearingLocation = asylumCase.read(CHANGE_HEARING_LOCATION_YES_NO, String.class)
                 .map(changeLocation -> equalsIgnoreCase(YES.toString(), changeLocation)).orElse(false);
+            log.info("updateHearingRequest: updateHearingLocation - {}", updateHearingLocation);
             if (updateHearingLocation) {
-                hearingDetails.setHearingLocations(hearingsDetailsUpdate.getHearingLocations());
+                List<HearingLocationModel> hearingLocations = hearingsDetailsUpdate.getHearingLocations();
+                hearingDetails.setHearingLocations(hearingLocations);
+                // set VR hearing channel
+                setHearingChannelsForVirtualRegion(hearingDetails, hearingsDetailsUpdate, hearingLocations);
             }
+
             boolean updateHearingDuration = asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, String.class)
                 .map(changeDuration -> equalsIgnoreCase(YES.toString(), changeDuration)).orElse(false);
             if (updateHearingDuration) {
@@ -254,6 +264,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                 }
             }
         } else {
+            log.info("NOT hearing request update");
             hearingDetails.setHearingChannels(hearingsDetailsUpdate.getHearingChannels());
             hearingDetails.setHearingLocations(hearingsDetailsUpdate.getHearingLocations());
             hearingDetails.setDuration(hearingsDetailsUpdate.getDuration());
@@ -274,6 +285,22 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         hearingDetails.setPrivateHearingRequiredFlag(caseFlagsMapper.getPrivateHearingRequiredFlag(asylumCase));
 
         return hearingDetails;
+    }
+
+    private static void setHearingChannelsForVirtualRegion(
+        HearingDetails hearingDetails,
+        HearingDetails hearingsDetailsUpdate,
+        List<HearingLocationModel> hearingLocations
+    ) {
+        boolean hasVirtualRegion = hearingLocations.stream().anyMatch(
+            location -> HearingCentre.IAC_NATIONAL_VIRTUAL.getEpimsId().equals(location.getLocationId()));
+        boolean hasVideoChannel = hearingsDetailsUpdate.getHearingChannels().contains(HearingChannel.VID.getLabel());
+
+        if (hasVirtualRegion && !hasVideoChannel) {
+            List<String> hearingChannels = new ArrayList<>(hearingsDetailsUpdate.getHearingChannels());
+            hearingChannels.add(HearingChannel.VID.getLabel());
+            hearingDetails.setHearingChannels(hearingChannels);
+        }
     }
 
     private List<String> getFacilitiesRequired(AsylumCase asylumCase, List<String> facilities) {
