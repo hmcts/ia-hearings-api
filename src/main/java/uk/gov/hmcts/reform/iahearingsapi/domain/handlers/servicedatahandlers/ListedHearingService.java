@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.REF_DATA_LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CURRENT_HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.IAC_NATIONAL_VIRTUAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
@@ -291,7 +292,10 @@ public class ListedHearingService {
 
     protected boolean isRemoteHearing(ServiceData serviceData) {
         final String nextHearingChannel = getHearingChannels(serviceData).get(0).name();
-        return nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
+        final String hearingVenue = getHearingVenueId(serviceData);
+
+        return !hearingVenue.equals(IAC_NATIONAL_VIRTUAL.getEpimsId())
+            && (nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name()));
     }
 
     protected String getHearingCourtName(ServiceData serviceData, List<CourtVenue> courtVenues) {
