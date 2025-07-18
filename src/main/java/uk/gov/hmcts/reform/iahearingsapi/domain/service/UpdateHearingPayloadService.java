@@ -26,10 +26,8 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseDetailsHearing;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingLocationModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
@@ -246,7 +244,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                 List<HearingLocationModel> hearingLocations = hearingsDetailsUpdate.getHearingLocations();
                 hearingDetails.setHearingLocations(hearingLocations);
                 // set VR hearing channel
-                setHearingChannelsForVirtualRegion(hearingDetails, hearingsDetailsUpdate, hearingLocations);
+                // setHearingChannelsForVirtualRegion(hearingDetails, hearingsDetailsUpdate, hearingLocations);
             }
 
             boolean updateHearingDuration = asylumCase.read(CHANGE_HEARING_DURATION_YES_NO, String.class)
@@ -287,6 +285,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         return hearingDetails;
     }
 
+    /*
     private static void setHearingChannelsForVirtualRegion(
         HearingDetails hearingDetails,
         HearingDetails hearingsDetailsUpdate,
@@ -301,7 +300,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
             hearingChannels.add(HearingChannel.VID.getLabel());
             hearingDetails.setHearingChannels(hearingChannels);
         }
-    }
+    } */
 
     private List<String> getFacilitiesRequired(AsylumCase asylumCase, List<String> facilities) {
         List<String> filteredFacilities = new ArrayList<>(facilities);

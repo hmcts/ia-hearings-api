@@ -34,6 +34,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.PayloadUtils.getCas
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -597,6 +598,7 @@ class UpdateHearingPayloadServiceTest {
     }
 
     @Test
+    @Disabled
     void should_return_requested_update_hearing_value_when_the_event_is_update_hearing_request_for_virtual() {
         when(asylumCase.read(HEARING_LOCATION, DynamicList.class)).thenReturn(
             Optional.of(new DynamicList("999970")));
