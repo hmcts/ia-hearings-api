@@ -43,7 +43,7 @@ def versions = [
   pact_version          : '4.1.7',
   restAssured           : '5.4.0',
   serviceTokenGenerator : '4.1.2',
-  qpidJmsClient         : '1.11.0'
+  qpidJmsClient         : '1.13.0'
 ]
 
 ext.libraries = [
@@ -355,6 +355,8 @@ dependencies {
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.11'
 
   implementation group: 'org.apache.qpid', name: 'qpid-jms-client', version: versions.qpidJmsClient
+
+  implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '9.37.3'
 
   implementation group: 'com.google.guava', name: 'guava', version: '32.1.2-jre'
   implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
