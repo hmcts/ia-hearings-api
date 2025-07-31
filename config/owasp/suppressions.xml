@@ -8,5 +8,9 @@
     <!--Requires qpid-jms-client and azure-service-bus upgrades that depend on Netty v4.1.118.Final+-->
     <!--These have not been released as of 15/07/2025-->
     <cve>CVE-2025-25193</cve>
+    <cve>CVE-2025-52434</cve>
+    <cve>CVE-2025-52520</cve>
+    <cve>CVE-2025-48924</cve>
+    <cve>CVE-2025-53506</cve>    
   </suppress>
 </suppressions>
