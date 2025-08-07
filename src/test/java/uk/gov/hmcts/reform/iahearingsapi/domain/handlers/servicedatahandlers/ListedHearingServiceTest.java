@@ -328,7 +328,20 @@ class ListedHearingServiceTest {
         serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
             List.of(HearingChannel.from(hearingChannel).get()));
 
+        serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, "999960");
+
         assertTrue(listedHearingService.isRemoteHearing(serviceData));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"Telephone", "Video"})
+    void isRemoteHearing_false_for_virtual_hearing_centre(String hearingChannel) {
+        serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
+            List.of(HearingChannel.from(hearingChannel).get()));
+
+        serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, "999970");
+
+        assertFalse(listedHearingService.isRemoteHearing(serviceData));
     }
 
     @ParameterizedTest
@@ -336,7 +349,7 @@ class ListedHearingServiceTest {
     void isRemoteHearing_false(String hearingChannel) {
         serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS,
             List.of(HearingChannel.from(hearingChannel).get()));
-
+        serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, "999960");
         assertFalse(listedHearingService.isRemoteHearing(serviceData));
     }
 

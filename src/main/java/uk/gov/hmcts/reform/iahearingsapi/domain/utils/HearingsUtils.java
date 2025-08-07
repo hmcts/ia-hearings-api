@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.utils;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_DECISION_WITHOUT_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VIRTUAL_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.HEARING_CENTRE_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.DECISION_WITHOUT_HEARING;
@@ -71,5 +72,10 @@ public final class HearingsUtils {
         }
         return asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class)
             .map(hearingCentre -> DECISION_WITHOUT_HEARING == hearingCentre).orElse(false);
+    }
+
+    public static boolean isVirtualHearing(AsylumCase asylumCase) {
+        return asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class)
+            .map(yesOrNo -> YES == yesOrNo).orElse(false);
     }
 }

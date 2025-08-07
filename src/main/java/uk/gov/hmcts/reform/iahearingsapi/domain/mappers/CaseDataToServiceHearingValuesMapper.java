@@ -121,6 +121,10 @@ public class CaseDataToServiceHearingValuesMapper {
             return List.of(HearingChannel.ONPPRS.name());
         }
 
+        if (HearingsUtils.isVirtualHearing(asylumCase)) {
+            return List.of(HearingChannel.VID.name());
+        }
+
         Optional<DynamicList> hearingChannelOptional = asylumCase.read(HEARING_CHANNEL, DynamicList.class);
         if (persistedHearingDetails != null && event != null) {
             switch (event) {
