@@ -83,7 +83,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
 
         String pageId = callback.getPageId();
 
-        if (StringUtils.equals(pageId, UPDATE_HEARING_LIST_PAGE_ID)) {
+        if (Objects.equals(pageId, UPDATE_HEARING_LIST_PAGE_ID)) {
             Optional<DynamicList> selectedHearingOptional = asylumCase.read(CHANGE_HEARINGS, DynamicList.class);
             if (selectedHearingOptional.isPresent()) {
                 DynamicList selectedHearing = selectedHearingOptional.get();

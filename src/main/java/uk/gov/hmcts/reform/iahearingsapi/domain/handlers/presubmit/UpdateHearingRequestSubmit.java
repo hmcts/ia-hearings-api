@@ -212,7 +212,7 @@ public class UpdateHearingRequestSubmit implements PreSubmitCallbackHandler<Asyl
     }
 
     private boolean isYes(String yesOrNo) {
-        return StringUtils.equalsIgnoreCase(yesOrNo, "Yes");
+        return Objects.equalsIgnoreCase(yesOrNo, "Yes");
     }
 
     private String getReason(AsylumCase asylumCase) {

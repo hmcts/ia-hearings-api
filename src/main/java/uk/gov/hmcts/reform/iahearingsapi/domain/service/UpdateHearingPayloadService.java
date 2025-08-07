@@ -178,8 +178,9 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
     private Integer getDuration(AsylumCase asylumCase,
                                 HearingGetResponse persistedHearing,
                                 Event event) {
-        return defaultIfNull(getHearingDuration(asylumCase, event),
-            persistedHearing.getHearingDetails().getDuration());
+        Integer hearingDuration = getHearingDuration(asylumCase, event);
+        Integer persistedDuration = persistedHearing.getHearingDetails().getDuration();
+        return (hearingDuration != null) ? hearingDuration : persistedDuration;
     }
 
     public Integer getHearingDuration(AsylumCase asylumCase, Event event) {

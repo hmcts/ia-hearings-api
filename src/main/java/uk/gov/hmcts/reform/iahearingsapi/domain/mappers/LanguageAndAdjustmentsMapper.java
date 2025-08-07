@@ -52,9 +52,9 @@ public class LanguageAndAdjustmentsMapper {
         if (individualDetails != null) {
             String partyRole = partyDetails.getPartyRole();
 
-            List<StrategicCaseFlag> caseFlags = StringUtils.equals(partyRole, PARTY_ROLE_APPELLANT)
+            List<StrategicCaseFlag> caseFlags = Objects.equals(partyRole, PARTY_ROLE_APPELLANT)
                 ? getAppellantCaseFlags(asylumCase)
-                : StringUtils.equals(partyRole, PARTY_ROLE_WITNESS)
+                : Objects.equals(partyRole, PARTY_ROLE_WITNESS)
                 ? getWitnessCaseFlags(asylumCase, partyDetails.getPartyID())
                 : Collections.emptyList();
 
@@ -73,7 +73,7 @@ public class LanguageAndAdjustmentsMapper {
         if (individualDetails != null) {
             String partyRole = partyDetails.getPartyRole();
 
-            List<BailStrategicCaseFlag> caseFlags = StringUtils.equals(partyRole, PARTY_ROLE_APPLICANT)
+            List<BailStrategicCaseFlag> caseFlags = Objects.equals(partyRole, PARTY_ROLE_APPLICANT)
                 ? getApplicantCaseFlags(bailCase)
                 : StringUtils.equals(partyRole, PARTY_ROLE_FCS)
                 ? getFcsCaseFlags(bailCase, partyDetails.getPartyID())

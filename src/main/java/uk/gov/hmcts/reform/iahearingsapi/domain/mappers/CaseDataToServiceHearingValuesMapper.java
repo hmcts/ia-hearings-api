@@ -256,7 +256,9 @@ public class CaseDataToServiceHearingValuesMapper {
             .map(OrganisationPolicy::getOrganisation)
             .orElse(null);
 
-        return organisation == null ? "" : defaultIfNull(organisation.getOrganisationID(), "");
+        return (organisation == null || organisation.getOrganisationID() == null)
+            ? ""
+            : organisation.getOrganisationID();
     }
 
     public List<UnavailabilityRangeModel> getUnavailabilityRanges(AsylumCase asylumCase) {

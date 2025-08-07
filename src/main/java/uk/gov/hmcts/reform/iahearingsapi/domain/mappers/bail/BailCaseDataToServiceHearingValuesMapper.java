@@ -142,7 +142,9 @@ public class BailCaseDataToServiceHearingValuesMapper {
             .map(OrganisationPolicy::getOrganisation)
             .orElse(null);
 
-        return organisation == null ? "" : defaultIfNull(organisation.getOrganisationID(), "");
+        return (organisation == null || organisation.getOrganisationID() == null)
+            ? ""
+            : organisation.getOrganisationID();
     }
 
     public String getCaseManagementLocationCode(BailCase bailCase) {

@@ -64,7 +64,7 @@ public class LocationRefDataService {
 
 
     private boolean isOpenHearingLocation(CourtVenue courtVenue) {
-        return StringUtils.equals(courtVenue.getCourtStatus(), OPEN)
-               && StringUtils.equals(courtVenue.getIsHearingLocation(), Y);
+        return Objects.equals(courtVenue.getCourtStatus(), OPEN)
+               && Objects.equals(courtVenue.getIsHearingLocation(), Y);
     }
 }

@@ -61,7 +61,7 @@ public class HandlerUtils {
 
     public static LocalDateTime getHearingDateAndTime(LocalDateTime hearingDateTime,
                                                       String venueId) {
-        return StringUtils.equals(venueId, GLASGOW_EPIMMS_ID)
+        return Objects.equals(venueId, GLASGOW_EPIMMS_ID)
             ? hearingDateTime.with(LocalTime.of(9, 45))
             : hearingDateTime.with(LocalTime.of(10, 0));
     }
