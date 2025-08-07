@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode
