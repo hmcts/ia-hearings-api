@@ -17,7 +17,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
@@ -52,9 +51,9 @@ public class LanguageAndAdjustmentsMapper {
         if (individualDetails != null) {
             String partyRole = partyDetails.getPartyRole();
 
-            List<StrategicCaseFlag> caseFlags = StringUtils.equals(partyRole, PARTY_ROLE_APPELLANT)
+            List<StrategicCaseFlag> caseFlags = Objects.equals(partyRole, PARTY_ROLE_APPELLANT)
                 ? getAppellantCaseFlags(asylumCase)
-                : StringUtils.equals(partyRole, PARTY_ROLE_WITNESS)
+                : Objects.equals(partyRole, PARTY_ROLE_WITNESS)
                 ? getWitnessCaseFlags(asylumCase, partyDetails.getPartyID())
                 : Collections.emptyList();
 
@@ -73,9 +72,9 @@ public class LanguageAndAdjustmentsMapper {
         if (individualDetails != null) {
             String partyRole = partyDetails.getPartyRole();
 
-            List<BailStrategicCaseFlag> caseFlags = StringUtils.equals(partyRole, PARTY_ROLE_APPLICANT)
+            List<BailStrategicCaseFlag> caseFlags = Objects.equals(partyRole, PARTY_ROLE_APPLICANT)
                 ? getApplicantCaseFlags(bailCase)
-                : StringUtils.equals(partyRole, PARTY_ROLE_FCS)
+                : Objects.equals(partyRole, PARTY_ROLE_FCS)
                 ? getFcsCaseFlags(bailCase, partyDetails.getPartyID())
                 : Collections.emptyList();
 
