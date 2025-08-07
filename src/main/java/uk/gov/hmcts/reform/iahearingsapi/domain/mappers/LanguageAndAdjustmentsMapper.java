@@ -75,7 +75,7 @@ public class LanguageAndAdjustmentsMapper {
 
             List<BailStrategicCaseFlag> caseFlags = Objects.equals(partyRole, PARTY_ROLE_APPLICANT)
                 ? getApplicantCaseFlags(bailCase)
-                : StringUtils.equals(partyRole, PARTY_ROLE_FCS)
+                : Objects.equals(partyRole, PARTY_ROLE_FCS)
                 ? getFcsCaseFlags(bailCase, partyDetails.getPartyID())
                 : Collections.emptyList();
 

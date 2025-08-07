@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.refdata.LocationRefDataApi;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.List;
 
 @Service
