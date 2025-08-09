@@ -9,4 +9,7 @@
     <!--These have not been released as of 15/07/2025-->
     <cve>CVE-2025-25193</cve>
   </suppress>
+  <suppress until="2023-10-30">
+    <cve>CVE-2023-4586</cve>
+  </suppress>
 </suppressions>
