@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_INSTRUCTIONS_DESCRIPTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
@@ -260,7 +259,9 @@ public class CaseDataToServiceHearingValuesMapper {
             .map(OrganisationPolicy::getOrganisation)
             .orElse(null);
 
-        return organisation == null ? "" : defaultIfNull(organisation.getOrganisationID(), "");
+        return (organisation == null || organisation.getOrganisationID() == null)
+            ? ""
+            : organisation.getOrganisationID();
     }
 
     public List<UnavailabilityRangeModel> getUnavailabilityRanges(AsylumCase asylumCase) {
