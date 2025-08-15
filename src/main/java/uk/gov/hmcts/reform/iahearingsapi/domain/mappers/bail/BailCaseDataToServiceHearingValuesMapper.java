@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY1;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DISABILITY_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.APPLICANT_DOCUMENTS_WITH_METADATA;
@@ -142,7 +141,9 @@ public class BailCaseDataToServiceHearingValuesMapper {
             .map(OrganisationPolicy::getOrganisation)
             .orElse(null);
 
-        return organisation == null ? "" : defaultIfNull(organisation.getOrganisationID(), "");
+        return (organisation == null || organisation.getOrganisationID() == null)
+            ? ""
+            : organisation.getOrganisationID();
     }
 
     public String getCaseManagementLocationCode(BailCase bailCase) {
