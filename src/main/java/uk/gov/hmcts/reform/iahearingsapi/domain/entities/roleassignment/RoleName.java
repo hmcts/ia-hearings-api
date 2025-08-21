@@ -1,19 +1,17 @@
-package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
+package uk.gov.hmcts.reform.iahearingsapi.domain.entities.roleassignment;
 
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
 @Getter
-public enum UserRole {
-
+public enum RoleName {
+    CASE_MANAGER("case-manager"),
     // caseworker-ia-caseofficer
-    CASE_OFFICER("caseworker-ia-caseofficer"),
     TRIBUNAL_CASEWORKER("tribunal-caseworker"),
     CHALLENGED_ACCESS_LEGAL_OPERATIONS("challenged-access-legal-operations"),
     SENIOR_TRIBUNAL_CASEWORKER("senior-tribunal-caseworker"),
     // caseworker-ia-admofficer
-    ADMIN_OFFICER("caseworker-ia-admofficer"),
     HEARING_CENTRE_ADMIN("hearing-centre-admin"),
     CTSC("ctsc"),
     CTSC_TEAM_LEADER("ctsc-team-leader"),
@@ -21,8 +19,6 @@ public enum UserRole {
     CHALLENGED_ACCESS_CTSC("challenged-access-ctsc"),
     CHALLENGED_ACCESS_ADMIN("challenged-access-admin"),
     // caseworker-ia-iacjudge
-    IDAM_JUDGE("caseworker-ia-iacjudge"),
-    JUDICIARY("caseworker-ia-judiciary"),
     JUDGE("judge"),
     SENIOR_JUDGE("senior-judge"),
     LEADERSHIP_JUDGE("leadership-judge"),
@@ -32,26 +28,21 @@ public enum UserRole {
     FTPA_JUDGE("ftpa-judge"),
     HEARING_PANEL_JUDGE("hearing-panel-judge"),
     CHALLENGED_ACCESS_JUDICIARY("challenged-access-judiciary"),
-
-    LEGAL_REPRESENTATIVE("caseworker-ia-legalrep-solicitor"),
-    SYSTEM("caseworker-ia-system"),
-    HOME_OFFICE_APC("caseworker-ia-homeofficeapc"),
-    HOME_OFFICE_LART("caseworker-ia-homeofficelart"),
-    HOME_OFFICE_POU("caseworker-ia-homeofficepou"),
-    HOME_OFFICE_GENERIC("caseworker-ia-respondentofficer"),
-    CITIZEN("citizen"),
+    // caseworker-ia-legalrep-solicitor
+    LEGAL_REPRESENTATIVE("[LEGALREPRESENTATIVE]"),
+    CREATOR("[CREATOR]"),
     @JsonEnumDefaultValue
     UNKNOWN("unknown");
 
     @JsonValue
-    private final String id;
+    private final String value;
 
-    UserRole(String id) {
-        this.id = id;
+    RoleName(String value) {
+        this.value = value;
     }
 
     @Override
     public String toString() {
-        return id;
+        return value;
     }
 }
