@@ -97,28 +97,28 @@ public class PayloadUtils {
 
         return switch (appealType) {
             case HU -> {
-                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
-                        isVirtualHearing,  HUD, HUF, HUDEX, HUDED, HUV, HUVF, HUX);
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, isVirtualHearing,
+                        appellantInDetention,  HUD, HUF, HUDEX, HUDED, HUV, HUVF, HUX);
             }
             case EA -> {
-                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
-                        isVirtualHearing, EAD, EAF, EADEX, EADED, EAV, EAVF, EAX);
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, isVirtualHearing,
+                        appellantInDetention, EAD, EAF, EADEX, EADED, EAV, EAVF, EAX);
             }
             case EU -> {
-                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
-                        isVirtualHearing, EUD, EUF, EUDEX, EUDED, EUV, EUVF, EUX);
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, isVirtualHearing,
+                        appellantInDetention, EUD, EUF, EUDEX, EUDED, EUV, EUVF, EUX);
             }
             case DC -> {
-                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
-                        isVirtualHearing, DCD, DCF, DCDEX, DCDED, DCX, DCX, DCX);
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, isVirtualHearing,
+                        appellantInDetention, DCD, DCF, DCDEX, DCDED, DCX, DCX, DCX);
             }
             case PA -> {
-                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
-                        isVirtualHearing, PAD, PAF, PADEX, PADED, PAV, PAVF, PAX);
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, isVirtualHearing,
+                        appellantInDetention, PAD, PAF, PADEX, PADED, PAV, PAVF, PAX);
             }
             case RP -> {
-                yield getCaseType(hasDeportationOrder, isSuitableToFloat, appellantInDetention,
-                        isVirtualHearing, RPD, RPF, RPDEX, RPDED, RPX, RPX, RPX);
+                yield getCaseType(hasDeportationOrder, isSuitableToFloat, isVirtualHearing,
+                        appellantInDetention, RPD, RPF, RPDEX, RPDED, RPX, RPX, RPX);
             }
         };
     }
