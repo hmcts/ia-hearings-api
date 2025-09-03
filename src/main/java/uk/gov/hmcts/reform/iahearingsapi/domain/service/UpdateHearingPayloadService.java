@@ -276,6 +276,23 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
         return hearingDetails;
     }
 
+    /*
+    private static void setHearingChannelsForVirtualRegion(
+        HearingDetails hearingDetails,
+        HearingDetails hearingsDetailsUpdate,
+        List<HearingLocationModel> hearingLocations
+    ) {
+        boolean hasVirtualRegion = hearingLocations.stream().anyMatch(
+            location -> HearingCentre.IAC_NATIONAL_VIRTUAL.getEpimsId().equals(location.getLocationId()));
+        boolean hasVideoChannel = hearingsDetailsUpdate.getHearingChannels().contains(HearingChannel.VID.getLabel());
+
+        if (hasVirtualRegion && !hasVideoChannel) {
+            List<String> hearingChannels = new ArrayList<>(hearingsDetailsUpdate.getHearingChannels());
+            hearingChannels.add(HearingChannel.VID.getLabel());
+            hearingDetails.setHearingChannels(hearingChannels);
+        }
+    } */
+
     private List<String> getFacilitiesRequired(AsylumCase asylumCase, List<String> facilities) {
         List<String> filteredFacilities = new ArrayList<>(facilities);
         if (MapperUtils.isS94B(asylumCase)
