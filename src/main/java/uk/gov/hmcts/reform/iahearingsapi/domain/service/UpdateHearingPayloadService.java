@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static com.microsoft.applicationinsights.web.dependencies.apachecommons.lang3.StringUtils.equalsIgnoreCase;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DURATION_YES_NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_LOCATION_YES_NO;
@@ -178,8 +177,9 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
     private Integer getDuration(AsylumCase asylumCase,
                                 HearingGetResponse persistedHearing,
                                 Event event) {
-        return defaultIfNull(getHearingDuration(asylumCase, event),
-            persistedHearing.getHearingDetails().getDuration());
+        Integer hearingDuration = getHearingDuration(asylumCase, event);
+        Integer persistedDuration = persistedHearing.getHearingDetails().getDuration();
+        return (hearingDuration != null) ? hearingDuration : persistedDuration;
     }
 
     public Integer getHearingDuration(AsylumCase asylumCase, Event event) {
@@ -275,6 +275,23 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
 
         return hearingDetails;
     }
+
+    /*
+    private static void setHearingChannelsForVirtualRegion(
+        HearingDetails hearingDetails,
+        HearingDetails hearingsDetailsUpdate,
+        List<HearingLocationModel> hearingLocations
+    ) {
+        boolean hasVirtualRegion = hearingLocations.stream().anyMatch(
+            location -> HearingCentre.IAC_NATIONAL_VIRTUAL.getEpimsId().equals(location.getLocationId()));
+        boolean hasVideoChannel = hearingsDetailsUpdate.getHearingChannels().contains(HearingChannel.VID.getLabel());
+
+        if (hasVirtualRegion && !hasVideoChannel) {
+            List<String> hearingChannels = new ArrayList<>(hearingsDetailsUpdate.getHearingChannels());
+            hearingChannels.add(HearingChannel.VID.getLabel());
+            hearingDetails.setHearingChannels(hearingChannels);
+        }
+    } */
 
     private List<String> getFacilitiesRequired(AsylumCase asylumCase, List<String> facilities) {
         List<String> filteredFacilities = new ArrayList<>(facilities);

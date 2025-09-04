@@ -33,6 +33,7 @@ public enum HearingCentre {
     LEEDS_MAGS("leedsMags", "569737"),
     ALLOA_SHERRIF("alloaSherrif", "999971"),
     REMOTE_HEARING("remoteHearing", ""),
+    IAC_NATIONAL_VIRTUAL("iacNationalVirtual", "999970"),
     DECISION_WITHOUT_HEARING("decisionWithoutHearing", "");
 
     @JsonValue
