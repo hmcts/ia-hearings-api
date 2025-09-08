@@ -1,29 +1,25 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
-
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.ONPPRS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingChannel;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingType;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHmcStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.NextHearingDateService;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CancelledHearingHandler extends ListedHearingService
+public class SubstantiveHearingCancelledHandler extends ListedHearingService
     implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
+    private final NextHearingDateService nextHearingDateService;
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -42,15 +38,14 @@ public class CancelledHearingHandler extends ListedHearingService
         }
 
         String caseId = getCaseReference(serviceData);
-        log.info("CancelledHearingHandler triggered for case " + caseId);
-        coreCaseDataService.triggerReviewInterpreterBookingTask(caseId);
+
+        if (nextHearingDateService.enabled()) {
+            log.info("Trigger hearing cancelled event for case ID " + caseId);
+            coreCaseDataService.hearingCancelledTask(caseId);
+        } else {
+            log.info("Next hearing date not enabled for case {}", caseId);
+        }
 
         return new ServiceDataResponse<>(serviceData);
-    }
-
-    private boolean isSubstantiveCancelledHearing(ServiceData serviceData) {
-        return isHmcStatus(serviceData, HmcStatus.CANCELLED)
-                && !isHearingChannel(serviceData, ONPPRS)
-                && isHearingType(serviceData, SUBSTANTIVE);
     }
 }

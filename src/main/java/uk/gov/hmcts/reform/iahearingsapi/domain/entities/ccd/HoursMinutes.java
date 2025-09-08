@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode
@@ -15,8 +13,8 @@ public class HoursMinutes {
     }
 
     public HoursMinutes(Integer hours, Integer minutes) {
-        int hrs = defaultIfNull(hours, 0);
-        int mins = defaultIfNull(minutes, 0);
+        int hrs = (hours != null) ? hours : 0;
+        int mins = (minutes != null) ? minutes : 0;
         this.hours = hrs + (mins / 60);
         this.minutes = mins % 60;
     }

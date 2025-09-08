@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.REF_DATA_LISTING_LOCATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.CURRENT_HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.IAC_NATIONAL_VIRTUAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.CASE_REF;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
@@ -25,6 +26,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChann
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingChannel;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingListingStatus;
@@ -68,6 +70,17 @@ public class ListedHearingService {
             && isHearingType(serviceData, SUBSTANTIVE);
     }
 
+    protected boolean isSubstantiveCancelledHearing(ServiceData serviceData) {
+        return isHmcStatus(serviceData, HmcStatus.CANCELLED)
+            && !isHearingChannel(serviceData, ONPPRS)
+            && isHearingType(serviceData, SUBSTANTIVE);
+    }
+
+    protected boolean isCmrCancelledHearing(ServiceData serviceData) {
+        return isHmcStatus(serviceData, HmcStatus.CANCELLED)
+               && !isHearingChannel(serviceData, ONPPRS)
+               && isHearingType(serviceData, CASE_MANAGEMENT_REVIEW);
+    }
 
     protected boolean isBailListedHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.LISTED)
@@ -143,6 +156,10 @@ public class ListedHearingService {
         return hearingDatetime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"));
     }
 
+    public String formatHearingDate(LocalDateTime hearingDatetime) {
+        return hearingDatetime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
+
     protected LocalDateTime getAsylumHearingDatetime(ServiceData serviceData, String hearingVenueId) {
         LocalDateTime hearingDateTime = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
             .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
@@ -174,6 +191,12 @@ public class ListedHearingService {
     protected String getHearingId(ServiceData serviceData) {
         return serviceData.read(HEARING_ID, String.class)
             .orElseThrow(() -> new IllegalStateException("hearing ID can not be null"));
+    }
+
+    protected boolean isCaseManagementReview(ServiceData serviceData) {
+        return isHmcStatus(serviceData, HmcStatus.LISTED)
+            && !isHearingChannel(serviceData, ONPPRS)
+            && isHearingType(serviceData, CASE_MANAGEMENT_REVIEW);
     }
 
     protected void updateInitialBailCaseListing(
@@ -269,7 +292,10 @@ public class ListedHearingService {
 
     protected boolean isRemoteHearing(ServiceData serviceData) {
         final String nextHearingChannel = getHearingChannels(serviceData).get(0).name();
-        return nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name());
+        final String hearingVenue = getHearingVenueId(serviceData);
+
+        return !hearingVenue.equals(IAC_NATIONAL_VIRTUAL.getEpimsId())
+            && (nextHearingChannel.equals(VID.name()) || nextHearingChannel.equals(TEL.name()));
     }
 
     protected String getHearingCourtName(ServiceData serviceData, List<CourtVenue> courtVenues) {
@@ -278,7 +304,7 @@ public class ListedHearingService {
             .map(CourtVenue::getCourtName)
             .findFirst()
             .orElseThrow(() -> new NoSuchElementException("No matching ref data court venue found for epims id "
-                + getHearingVenueId(serviceData)));
+                                                              + getHearingVenueId(serviceData)));
     }
 
     private String getListingReference() {

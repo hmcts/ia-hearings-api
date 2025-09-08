@@ -27,7 +27,6 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -83,7 +82,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
 
         String pageId = callback.getPageId();
 
-        if (StringUtils.equals(pageId, UPDATE_HEARING_LIST_PAGE_ID)) {
+        if (Objects.equals(pageId, UPDATE_HEARING_LIST_PAGE_ID)) {
             Optional<DynamicList> selectedHearingOptional = asylumCase.read(CHANGE_HEARINGS, DynamicList.class);
             if (selectedHearingOptional.isPresent()) {
                 DynamicList selectedHearing = selectedHearingOptional.get();
