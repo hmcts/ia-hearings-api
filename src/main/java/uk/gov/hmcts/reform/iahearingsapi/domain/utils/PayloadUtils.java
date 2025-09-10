@@ -93,7 +93,7 @@ public class PayloadUtils {
 
         AppealType appealType = asylumCase.read(APPEAL_TYPE, AppealType.class)
             .orElseThrow(() -> new RequiredFieldMissingException("Appeal Type is a required field"));
-
+      
 
         return switch (appealType) {
             case HU -> {
