@@ -45,12 +45,14 @@ class BailHearingCompletedHandlerTest {
         bailHearingCompletedHandler =
             new BailHearingCompletedHandler(coreCaseDataService);
 
-        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class))
+            .thenReturn(Optional.of(CASE_REF));
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.COMPLETED));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(BAIL.getKey()));
-        when(serviceData.read(HEARING_LISTING_STATUS, ListingStatus.class)).thenReturn(Optional.of(ListingStatus.FIXED));
+        when(serviceData.read(HEARING_LISTING_STATUS, ListingStatus.class))
+            .thenReturn(Optional.of(ListingStatus.FIXED));
     }
 
     @Test
