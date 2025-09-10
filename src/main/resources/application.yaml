@@ -122,6 +122,7 @@ security:
       - "editCaseListing"
       - "UpdateNextHearingInfo"
       - "hearingCancelled"
+      - "hearingCompleted"
     next-hearing-date-admin:
       - "UpdateNextHearingInfo"
 
