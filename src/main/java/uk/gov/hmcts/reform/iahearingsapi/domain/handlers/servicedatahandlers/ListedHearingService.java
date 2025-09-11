@@ -89,6 +89,12 @@ public class ListedHearingService {
             && isHearingType(serviceData, BAIL);
     }
 
+    protected boolean isBailHearingCompleted(ServiceData serviceData) {
+        return isHmcStatus(serviceData, HmcStatus.COMPLETED)
+            && isHearingListingStatus(serviceData, ListingStatus.FIXED)
+            && isHearingType(serviceData, BAIL);
+    }
+
     protected String getCaseReference(ServiceData serviceData) {
         return serviceData.read(CASE_REF, String.class)
             .orElseThrow(() -> new IllegalStateException("Case reference can not be null"));
