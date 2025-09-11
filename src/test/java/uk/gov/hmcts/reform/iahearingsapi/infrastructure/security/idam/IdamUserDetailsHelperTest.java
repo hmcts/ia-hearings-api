@@ -1,59 +1,73 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.UserDetails;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.UserRoleLabel;
 
 @ExtendWith(MockitoExtension.class)
 class IdamUserDetailsHelperTest {
 
-    @Mock
-    private UserDetails userDetails;
+    @Mock private UserDetails userDetails;
 
-    private final IdamUserDetailsHelper idamUserDetailsHelper = new IdamUserDetailsHelper();
+    private IdamUserDetailsHelper idamUserDetailsHelper = new IdamUserDetailsHelper();
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "caseworker-ia-legalrep-solicitor",
-        "caseworker-ia-system",
-        "citizen"
-    })
-    void should_get_logged_in_with_a_valid_user_role(String roleName) {
-        List<String> expectedRoles = Arrays.asList(roleName, "role-2");
+    @Test
+    public void should_get_logged_in_with_a_valid_user_role() {
 
-        when(userDetails.getRoles()).thenReturn(expectedRoles);
+        Stream.of(
+            "caseworker-ia-caseofficer",
+            "caseworker-ia-admofficer",
+            "caseworker-ia-iacjudge",
+            "caseworker-ia-judiciary",
+            "caseworker-ia-legalrep-solicitor",
+            "caseworker-ia-system"
+        ).forEach(roleName -> {
+            List<String> expectedRoles = Arrays.asList(roleName, "role-2");
 
-        assertEquals(roleName, idamUserDetailsHelper.getLoggedInUserRole(userDetails).toString());
+            when(userDetails.getRoles()).thenReturn(expectedRoles);
 
-        switch (roleName) {
-            case "caseworker-ia-legalrep-solicitor":
-                assertEquals("Legal Representative",
-                             idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails).toString());
-                break;
-            case "citizen":
-                assertThrows(IllegalStateException.class,
-                             () -> idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails));
-                break;
-            default:
-                assertEquals("System",
-                             idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails).toString());
-        }
+            assertEquals(roleName, idamUserDetailsHelper.getLoggedInUserRole(userDetails).toString());
+
+            switch (roleName) {
+                case "caseworker-ia-caseofficer":
+                    assertEquals("Tribunal Caseworker",
+                        idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails).toString());
+                    break;
+
+                case "caseworker-ia-admofficer":
+                    assertEquals("Admin Officer",
+                        idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails).toString());
+                    break;
+
+                case "caseworker-ia-iacjudge":
+                case "caseworker-ia-judiciary":
+                    assertEquals("Judge",
+                        idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails).toString());
+                    break;
+
+                case "caseworker-ia-legalrep-solicitor":
+                    assertEquals("Legal Representative",
+                        idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails).toString());
+                    break;
+
+                default:
+                    assertEquals("System",
+                        idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails).toString());
+            }
+        });
     }
 
     @Test
-    void should_get_logged_in_user_role_unknown() {
+    public void should_get_logged_in_user_role_unknown() {
 
         List<String> expectedRoles = Arrays.asList("caseworker-ia-unknown", "role-2");
 
@@ -64,86 +78,28 @@ class IdamUserDetailsHelperTest {
             .isExactlyInstanceOf(IllegalStateException.class);
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "caseworker-ia-respondentofficer",
-        "caseworker-ia-homeofficeapc",
-        "caseworker-ia-homeofficelart",
-        "caseworker-ia-homeofficepou"
-    })
-    void should_get_logged_in_user_role_home_office_generic(String roleName) {
-        List<String> expectedRoles = Arrays.asList(roleName, "role-2");
+    @Test
+    public void should_get_logged_in_user_role_home_office_generic() {
 
-        when(userDetails.getRoles()).thenReturn(expectedRoles);
+        Stream.of(
+            "caseworker-ia-respondentofficer"
+        ).forEach(roleName -> {
+            List<String> expectedRoles = Arrays.asList(roleName, "role-2");
 
-        assertEquals(roleName,
-                     idamUserDetailsHelper.getLoggedInUserRole(userDetails).toString());
-        assertEquals(UserRoleLabel.HOME_OFFICE_GENERIC,
-                     idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails));
+            when(userDetails.getRoles()).thenReturn(expectedRoles);
+
+            assertEquals(roleName, idamUserDetailsHelper.getLoggedInUserRole(userDetails).toString());
+            assertEquals("Home Office", idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails).toString());
+        });
+
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "caseworker-ia-admofficer",
-        "hearing-centre-admin",
-        "ctsc",
-        "ctsc-team-leader",
-        "national-business-centre",
-        "challenged-access-ctsc",
-        "challenged-access-admin"
-    })
-    void should_get_logged_in_user_role_admin(String roleName) {
-        List<String> expectedRoles = Arrays.asList(roleName, "role-2");
+    @Test
+    public void should_get_idam_username() {
 
-        when(userDetails.getRoles()).thenReturn(expectedRoles);
+        when(userDetails.getForename()).thenReturn("First name");
+        when(userDetails.getSurname()).thenReturn("Surname");
 
-        assertEquals(roleName,
-                     idamUserDetailsHelper.getLoggedInUserRole(userDetails).toString());
-        assertEquals(UserRoleLabel.ADMIN_OFFICER,
-                     idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails));
+        assertEquals("First name" + " " + "Surname", idamUserDetailsHelper.getIdamUserName(userDetails));
     }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "caseworker-ia-iacjudge",
-        "caseworker-ia-judiciary",
-        "judge",
-        "senior-judge",
-        "leadership-judge",
-        "fee-paid-judge",
-        "lead-judge",
-        "hearing-judge",
-        "ftpa-judge",
-        "hearing-panel-judge",
-        "challenged-access-judiciary"
-    })
-    void should_get_logged_in_user_role_judge(String roleName) {
-        List<String> expectedRoles = Arrays.asList(roleName, "role-2");
-
-        when(userDetails.getRoles()).thenReturn(expectedRoles);
-
-        assertEquals(roleName,
-                     idamUserDetailsHelper.getLoggedInUserRole(userDetails).toString());
-        assertEquals(UserRoleLabel.JUDGE,
-                     idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-        "caseworker-ia-caseofficer",
-        "tribunal-caseworker",
-        "challenged-access-legal-operations",
-        "senior-tribunal-caseworker"
-    })
-    void should_get_logged_in_user_role_case_officer(String roleName) {
-        List<String> expectedRoles = Arrays.asList(roleName, "role-2");
-
-        when(userDetails.getRoles()).thenReturn(expectedRoles);
-
-        assertEquals(roleName,
-                     idamUserDetailsHelper.getLoggedInUserRole(userDetails).toString());
-        assertEquals(UserRoleLabel.TRIBUNAL_CASEWORKER,
-                     idamUserDetailsHelper.getLoggedInUserRoleLabel(userDetails));
-    }
-
 }

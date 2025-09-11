@@ -12,7 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.IdamService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.IdamApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 
 @Component
@@ -22,10 +22,10 @@ public class IdamAuthoritiesConverter implements Converter<Jwt, Collection<Grant
 
     static final String TOKEN_NAME = "tokenName";
 
-    private final IdamService idamService;
+    private final IdamApi idamApi;
 
-    public IdamAuthoritiesConverter(IdamService idamService) {
-        this.idamService = idamService;
+    public IdamAuthoritiesConverter(IdamApi idamApi) {
+        this.idamApi = idamApi;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class IdamAuthoritiesConverter implements Converter<Jwt, Collection<Grant
 
         try {
 
-            UserInfo userInfo = idamService.getUserInfo("Bearer " + authorization);
+            UserInfo userInfo = idamApi.userInfo("Bearer " + authorization);
 
             return userInfo
                 .getRoles()
