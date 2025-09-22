@@ -83,6 +83,7 @@ public class PayloadUtilsTest {
         assertEquals(expectedValue.getValue(),
                      PayloadUtils.getCaseCategoriesValue(asylumCase).get(0).getCategoryValue());
     }
+   
 
     private static Stream<Arguments> caseTypeValueTestCases() {
         return Stream.of(
