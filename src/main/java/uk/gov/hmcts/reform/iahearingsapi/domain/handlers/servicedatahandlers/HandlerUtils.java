@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
-import org.apache.commons.lang3.StringUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
@@ -61,7 +60,7 @@ public class HandlerUtils {
 
     public static LocalDateTime getHearingDateAndTime(LocalDateTime hearingDateTime,
                                                       String venueId) {
-        return StringUtils.equals(venueId, GLASGOW_EPIMMS_ID)
+        return Objects.equals(venueId, GLASGOW_EPIMMS_ID)
             ? hearingDateTime.with(LocalTime.of(9, 45))
             : hearingDateTime.with(LocalTime.of(10, 0));
     }

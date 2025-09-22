@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -12,6 +11,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.refdata.LocationRefDataApi;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.List;
 
 @Service
@@ -64,7 +64,7 @@ public class LocationRefDataService {
 
 
     private boolean isOpenHearingLocation(CourtVenue courtVenue) {
-        return StringUtils.equals(courtVenue.getCourtStatus(), OPEN)
-               && StringUtils.equals(courtVenue.getIsHearingLocation(), Y);
+        return Objects.equals(courtVenue.getCourtStatus(), OPEN)
+               && Objects.equals(courtVenue.getIsHearingLocation(), Y);
     }
 }
