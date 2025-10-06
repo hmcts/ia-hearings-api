@@ -83,7 +83,61 @@ security:
       - "startAppeal"
       - "editAppeal"
       - "submitAppeal"
+    # Bails events below should be removed once Bails service is undergoing IDAM to AM migration - see DIAC-855
     caseworker-ia-admofficer:
+      - "updateInterpreterDetails"
+      - "updateInterpreterBookingStatus"
+    hearing-centre-admin:
+      - "listCase"
+      - "editCaseListing"
+      - "updateHearingRequest"
+      - "recordAdjournmentDetails"
+      - "endAppeal"
+      - "updateInterpreterDetails"
+      - "updateInterpreterBookingStatus"
+      - "restoreStateFromAdjourn"
+      - "hearingCancelled"
+    ctsc:
+      - "listCase"
+      - "editCaseListing"
+      - "updateHearingRequest"
+      - "recordAdjournmentDetails"
+      - "endAppeal"
+      - "updateInterpreterDetails"
+      - "updateInterpreterBookingStatus"
+      - "restoreStateFromAdjourn"
+      - "hearingCancelled"
+    ctsc-team-leader:
+      - "listCase"
+      - "editCaseListing"
+      - "updateHearingRequest"
+      - "recordAdjournmentDetails"
+      - "endAppeal"
+      - "updateInterpreterDetails"
+      - "updateInterpreterBookingStatus"
+      - "restoreStateFromAdjourn"
+      - "hearingCancelled"
+    national-business-centre:
+      - "listCase"
+      - "editCaseListing"
+      - "updateHearingRequest"
+      - "recordAdjournmentDetails"
+      - "endAppeal"
+      - "updateInterpreterDetails"
+      - "updateInterpreterBookingStatus"
+      - "restoreStateFromAdjourn"
+      - "hearingCancelled"
+    challenged-access-ctsc:
+      - "listCase"
+      - "editCaseListing"
+      - "updateHearingRequest"
+      - "recordAdjournmentDetails"
+      - "endAppeal"
+      - "updateInterpreterDetails"
+      - "updateInterpreterBookingStatus"
+      - "restoreStateFromAdjourn"
+      - "hearingCancelled"
+    challenged-access-admin:
       - "listCase"
       - "editCaseListing"
       - "updateHearingRequest"
@@ -95,7 +149,33 @@ security:
       - "hearingCancelled"
     caseworker-ia-caseworker:
       - "listCase"
-    caseworker-ia-caseofficer:
+    tribunal-caseworker:
+      - "listCase"
+      - "editCaseListing"
+      - "updateHearingRequest"
+      - "recordAdjournmentDetails"
+      - "endAppeal"
+      - "updateInterpreterDetails"
+      - "updateInterpreterBookingStatus"
+      - "decideAnApplication"
+      - "listCaseWithoutHearingRequirements"
+      - "reviewHearingRequirements"
+      - "decisionAndReasonsStarted"
+      - "restoreStateFromAdjourn"
+    challenged-access-legal-operations:
+      - "listCase"
+      - "editCaseListing"
+      - "updateHearingRequest"
+      - "recordAdjournmentDetails"
+      - "endAppeal"
+      - "updateInterpreterDetails"
+      - "updateInterpreterBookingStatus"
+      - "decideAnApplication"
+      - "listCaseWithoutHearingRequirements"
+      - "reviewHearingRequirements"
+      - "decisionAndReasonsStarted"
+      - "restoreStateFromAdjourn"
+    senior-tribunal-caseworker:
       - "listCase"
       - "editCaseListing"
       - "updateHearingRequest"
@@ -109,7 +189,23 @@ security:
       - "decisionAndReasonsStarted"
       - "restoreStateFromAdjourn"
     caseworker-ia-respondentofficer:
-    caseworker-ia-iacjudge:
+    judge:
+      - "decideAnApplication"
+    senior-judge:
+      - "decideAnApplication"
+    leadership-judge:
+      - "decideAnApplication"
+    fee-paid-judge:
+      - "decideAnApplication"
+    lead-judge:
+      - "decideAnApplication"
+    hearing-judge:
+      - "decideAnApplication"
+    ftpa-judge:
+      - "decideAnApplication"
+    hearing-panel-judge:
+      - "decideAnApplication"
+    challenged-access-judiciary:
       - "decideAnApplication"
     caseworker-ia-system:
       - "handleHearingException"
