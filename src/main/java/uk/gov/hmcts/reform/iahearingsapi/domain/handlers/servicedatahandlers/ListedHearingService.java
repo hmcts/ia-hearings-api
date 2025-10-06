@@ -90,7 +90,7 @@ public class ListedHearingService {
     }
 
     protected boolean isBailHearingCompleted(ServiceData serviceData) {
-        return isHmcStatus(serviceData, HmcStatus.COMPLETED)
+        return (isHmcStatus(serviceData, HmcStatus.COMPLETED) || isHmcStatus(serviceData, HmcStatus.CANCELLED))
             && isHearingListingStatus(serviceData, ListingStatus.FIXED)
             && isHearingType(serviceData, BAIL);
     }
