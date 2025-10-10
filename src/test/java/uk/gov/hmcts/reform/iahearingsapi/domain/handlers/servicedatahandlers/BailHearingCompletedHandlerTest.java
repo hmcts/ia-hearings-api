@@ -5,12 +5,11 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_LISTING_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HMC_STATUS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_COMPLETED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_COMPLETED_OR_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +26,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 
 class BailHearingCompletedHandlerTest {
     private static final String CASE_REF = "1111";
-    private static final LocalDateTime NEXT_HEARING_DATE = LocalDateTime.of(2023, 9, 29, 12, 0);
     @Mock
     private CoreCaseDataService coreCaseDataService;
     @Mock
@@ -87,14 +85,14 @@ class BailHearingCompletedHandlerTest {
     }
 
     @Test
-    void should_trigger_hearing_completed() {
-        when(coreCaseDataService.startCaseEvent(HEARING_COMPLETED, CASE_REF, CASE_TYPE_BAIL))
+    void should_trigger_hearing_completedOrCancelled() {
+        when(coreCaseDataService.startCaseEvent(HEARING_COMPLETED_OR_CANCELLED, CASE_REF, CASE_TYPE_BAIL))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse)).thenReturn(bailCase);
 
         bailHearingCompletedHandler.handle(serviceData);
 
-        verify(coreCaseDataService).triggerBailSubmitEvent(HEARING_COMPLETED, CASE_REF,
+        verify(coreCaseDataService).triggerBailSubmitEvent(HEARING_COMPLETED_OR_CANCELLED, CASE_REF,
                                                            startEventResponse, bailCase);
     }
 
