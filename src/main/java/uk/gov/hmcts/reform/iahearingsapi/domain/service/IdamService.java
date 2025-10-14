@@ -66,9 +66,9 @@ public class IdamService {
     public UserInfo getUserInfo(String accessToken) {
         UserInfo userInfo = idamApi.userInfo(accessToken);
         List<String> amRoles = Collections.emptyList();
-        List<String> idamRoles = userInfo.getRoles() == null ?
-            Collections.emptyList() :
-            userInfo.getRoles();
+        List<String> idamRoles = userInfo.getRoles() == null
+            ? Collections.emptyList()
+            : userInfo.getRoles();
         try {
             amRoles = roleAssignmentService.getAmRolesFromUser(userInfo.getUid(), accessToken);
         } catch (Exception e) {
