@@ -56,7 +56,6 @@ public class SubstantiveHearingListedHandler extends ListedHearingService implem
 
         StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(LIST_CASE, caseId, CASE_TYPE_ASYLUM);
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
-        log.info("asylumCase for  Case ID `{}` contains '{}'", caseId, asylumCase.toString());
 
         boolean isAppealsLocationRefDataEnabled = HearingsUtils.isAppealsLocationRefDataEnabled(asylumCase);
 
