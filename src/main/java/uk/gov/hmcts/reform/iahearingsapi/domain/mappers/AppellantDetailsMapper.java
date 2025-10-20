@@ -1,16 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_EMAIL_ADDRESS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_FAMILY_NAME;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_GIVEN_NAMES;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_PHONE_NUMBER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CONTACT_PREFERENCE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.EMAIL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_SINGLE_SEX_COURT_ALLOWED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MOBILE_NUMBER;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SINGLE_SEX_COURT_TYPE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.*;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.SingleSexType.MALE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper.appendBookingStatus;
@@ -24,6 +14,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ContactPreference;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
@@ -43,14 +34,6 @@ public class AppellantDetailsMapper {
         HearingDetails persistedHearingDetails,
         Event event) {
 
-        AsylumCaseFieldDefinition emailFieldDef = MapperUtils.isAipJourney(asylumCase)
-            ? APPELLANT_EMAIL_ADDRESS
-            : EMAIL;
-
-        AsylumCaseFieldDefinition phoneFieldDef = MapperUtils.isAipJourney(asylumCase)
-            ? APPELLANT_PHONE_NUMBER
-            : MOBILE_NUMBER;
-
         StringBuilder singleSexCourtResponse = new StringBuilder();
         if (GRANTED.getValue().equals(asylumCase.read(IS_SINGLE_SEX_COURT_ALLOWED, String.class).orElse(""))) {
             singleSexCourtResponse.append("Single sex court: ");
@@ -61,6 +44,14 @@ public class AppellantDetailsMapper {
             }
             singleSexCourtResponse.append(";");
         }
+
+        AsylumCaseFieldDefinition emailFieldDef = MapperUtils.isInternalCase(asylumCase)
+            ? INTERNAL_APPELLANT_EMAIL
+            : (MapperUtils.isAipJourney(asylumCase) ? APPELLANT_EMAIL_ADDRESS : EMAIL);
+
+        AsylumCaseFieldDefinition phoneFieldDef = MapperUtils.isInternalCase(asylumCase)
+            ? INTERNAL_APPELLANT_MOBILE_NUMBER
+            : (MapperUtils.isAipJourney(asylumCase) ? APPELLANT_PHONE_NUMBER : MOBILE_NUMBER);
 
         List<String> hearingChannelEmailValue = asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class)
             .map(c -> c.equals(ContactPreference.WANTS_EMAIL)

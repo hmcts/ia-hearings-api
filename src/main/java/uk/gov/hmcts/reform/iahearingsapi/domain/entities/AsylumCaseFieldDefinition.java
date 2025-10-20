@@ -55,8 +55,10 @@ public enum AsylumCaseFieldDefinition {
         "appellantFamilyName", new TypeReference<String>(){}),
     APPELLANT_EMAIL_ADDRESS("appellantEmailAddress", new TypeReference<String>(){}),
     EMAIL("email", new TypeReference<String>(){}),
+    INTERNAL_APPELLANT_EMAIL("internalAppellantEmail", new TypeReference<String>(){}),
     APPELLANT_PHONE_NUMBER("appellantPhoneNumber", new TypeReference<String>(){}),
     MOBILE_NUMBER("mobileNumber", new TypeReference<String>(){}),
+    INTERNAL_APPELLANT_MOBILE_NUMBER("internalAppellantMobileNumber", new TypeReference<String>(){}),
     APPELLANT_NAME_FOR_DISPLAY(
         "appellantNameForDisplay", new TypeReference<String>(){}),
     ADDITIONAL_INSTRUCTIONS_TRIBUNAL_RESPONSE(
