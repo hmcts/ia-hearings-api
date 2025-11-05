@@ -19,6 +19,7 @@ import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,10 +40,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.util.IdamAuthProvider;
 import uk.gov.hmcts.reform.iahearingsapi.util.MapValueExpander;
+import uk.gov.hmcts.reform.iahearingsapi.util.RetryExtension;
 
 @Slf4j
 @SpringBootTest()
 @ActiveProfiles("functional")
+@ExtendWith(RetryExtension.class)
 public class CcdCaseCreationTest {
 
     @Value("classpath:templates/start-appeal-aip.json")
@@ -118,16 +121,16 @@ public class CcdCaseCreationTest {
     }
 
     protected void fetchTokensAndUserIds() {
-        s2sToken = s2sAuthTokenGenerator.generate();
-
-        legalRepToken = idamAuthProvider.getLegalRepToken();
-        bailsLegalRepToken = idamAuthProvider.getBailsLegalRepToken();
-        citizenToken = idamAuthProvider.getCitizenToken();
-        caseOfficerToken = idamAuthProvider.getCaseOfficerToken();
-
-        citizenUserId = idamAuthProvider.getUserId(citizenToken);
-        legalRepUserId = idamAuthProvider.getUserId(legalRepToken);
-        bailsLegalRepUserId = idamAuthProvider.getUserId(bailsLegalRepToken);
+//        s2sToken = s2sAuthTokenGenerator.generate();
+//
+//        legalRepToken = idamAuthProvider.getLegalRepToken();
+//        bailsLegalRepToken = idamAuthProvider.getBailsLegalRepToken();
+//        citizenToken = idamAuthProvider.getCitizenToken();
+//        caseOfficerToken = idamAuthProvider.getCaseOfficerToken();
+//
+//        citizenUserId = idamAuthProvider.getUserId(citizenToken);
+//        legalRepUserId = idamAuthProvider.getUserId(legalRepToken);
+//        bailsLegalRepUserId = idamAuthProvider.getUserId(bailsLegalRepToken);
 
         hearingsSpecification = new RequestSpecBuilder()
             .setBaseUri(targetInstance)

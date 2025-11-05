@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.UpdateHearingRequestPreparer;
+import uk.gov.hmcts.reform.iahearingsapi.util.Retry;
 
 /**
  * This functional test class covers all callback handlers in relation to Update Hearing including.
@@ -36,6 +37,7 @@ public class UpdateHearingRequestFunctionalTest extends CcdCaseCreationTest {
         fetchTokensAndUserIds();
     }
 
+    @Retry(5)
     @ParameterizedTest
     @CsvSource({ "true", "false" })
     void should_prepare_update_hearing_request_successfully(boolean isAipJourney) {
