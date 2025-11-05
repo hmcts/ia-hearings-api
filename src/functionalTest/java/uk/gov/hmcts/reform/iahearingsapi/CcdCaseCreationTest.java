@@ -121,16 +121,16 @@ public class CcdCaseCreationTest {
     }
 
     protected void fetchTokensAndUserIds() {
-//        s2sToken = s2sAuthTokenGenerator.generate();
-//
-//        legalRepToken = idamAuthProvider.getLegalRepToken();
-//        bailsLegalRepToken = idamAuthProvider.getBailsLegalRepToken();
-//        citizenToken = idamAuthProvider.getCitizenToken();
-//        caseOfficerToken = idamAuthProvider.getCaseOfficerToken();
-//
-//        citizenUserId = idamAuthProvider.getUserId(citizenToken);
-//        legalRepUserId = idamAuthProvider.getUserId(legalRepToken);
-//        bailsLegalRepUserId = idamAuthProvider.getUserId(bailsLegalRepToken);
+        s2sToken = s2sAuthTokenGenerator.generate();
+
+        legalRepToken = idamAuthProvider.getLegalRepToken();
+        bailsLegalRepToken = idamAuthProvider.getBailsLegalRepToken();
+        citizenToken = idamAuthProvider.getCitizenToken();
+        caseOfficerToken = idamAuthProvider.getCaseOfficerToken();
+
+        citizenUserId = idamAuthProvider.getUserId(citizenToken);
+        legalRepUserId = idamAuthProvider.getUserId(legalRepToken);
+        bailsLegalRepUserId = idamAuthProvider.getUserId(bailsLegalRepToken);
 
         hearingsSpecification = new RequestSpecBuilder()
             .setBaseUri(targetInstance)

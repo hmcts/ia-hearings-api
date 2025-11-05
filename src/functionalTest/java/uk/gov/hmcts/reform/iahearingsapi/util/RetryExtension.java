@@ -13,13 +13,13 @@ public class RetryExtension implements InvocationInterceptor {
     public void interceptTestMethod(Invocation<Void> invocation,
                                     ReflectiveInvocationContext<Method> invocationContext,
                                     ExtensionContext extensionContext) throws Throwable {
-        int MAX_RETRIES = 0;
+        int maxRetries = 0;
 
         Throwable testException = null;
         int retries = extensionContext.getElement()
             .map(el -> el.getAnnotation(Retry.class))
             .map(Retry::value)
-            .orElse(MAX_RETRIES);
+            .orElse(maxRetries);
         if (retries < 1) {
             invocation.proceed();
             return;
