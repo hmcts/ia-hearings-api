@@ -116,7 +116,7 @@ additional information where necessary.
 
 *In case of problems*
 
-1. Get in touch with your Technical Lead and inform them, so they can adjust the git hooks accordingly
+1. Get in touch with your Technical Lead and inform them, so they can adjust the git hooks accordingly.
 2. Instruct IntelliJ not to use Git Hooks for that commit or use git's `--no-verify` option if you are using the command-line
 3. If the rare eventuality that the above is not possible, you can disable enforcement of conventions using the following command
 
