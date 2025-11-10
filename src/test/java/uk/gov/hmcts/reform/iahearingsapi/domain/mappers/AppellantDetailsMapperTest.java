@@ -295,18 +295,13 @@ class AppellantDetailsMapperTest {
 
     @ParameterizedTest
     @CsvSource({
-        "YES, WANTS_EMAIL",
-        "YES, WANTS_SMS",
-        "NO,  WANTS_EMAIL",
-        "NO,  WANTS_SMS"
+        "YES",
+        "NO"
     })
-    void should_set_internal_email_and_phone_based_on_internal_case(YesOrNo isAdmin,
-                                                                              ContactPreference contactPreference) {
+    void should_set_internal_email_and_phone_based_on_internal_case(YesOrNo isAdmin) {
 
         when(asylumCase.read(IS_ADMIN, YesOrNo.class))
             .thenReturn(Optional.of(isAdmin));
-        when(asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class))
-            .thenReturn(Optional.of(contactPreference));
 
         when(asylumCase.read(JOURNEY_TYPE, String.class)).thenReturn(Optional.of(REP.getValue()));
 
@@ -318,10 +313,10 @@ class AppellantDetailsMapperTest {
         when(caseDataMapper.getHearingChannelPhone(asylumCase, INTERNAL_APPELLANT_MOBILE_NUMBER))
             .thenReturn(List.of(mobileNumber));
 
-        List<String> expectedEmail = contactPreference.equals(WANTS_EMAIL) && isAdmin.equals(YES)
+        List<String> expectedEmail = isAdmin.equals(YES)
             ? List.of(email)
             : Collections.emptyList();
-        List<String> expectedPhone = contactPreference.equals(WANTS_SMS) && isAdmin.equals(YES)
+        List<String> expectedPhone = isAdmin.equals(YES)
             ? List.of(mobileNumber)
             : Collections.emptyList();
 

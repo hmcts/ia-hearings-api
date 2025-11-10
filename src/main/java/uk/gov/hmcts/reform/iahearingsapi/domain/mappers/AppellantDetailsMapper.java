@@ -56,25 +56,34 @@ public class AppellantDetailsMapper {
             singleSexCourtResponse.append(";");
         }
 
-        AsylumCaseFieldDefinition emailFieldDef = MapperUtils.isInternalCase(asylumCase)
+        boolean isInternalCase = MapperUtils.isInternalCase(asylumCase);
+
+        AsylumCaseFieldDefinition emailFieldDef = isInternalCase
             ? INTERNAL_APPELLANT_EMAIL
             : (MapperUtils.isAipJourney(asylumCase) ? APPELLANT_EMAIL_ADDRESS : EMAIL);
 
-        AsylumCaseFieldDefinition phoneFieldDef = MapperUtils.isInternalCase(asylumCase)
+        AsylumCaseFieldDefinition phoneFieldDef = isInternalCase
             ? INTERNAL_APPELLANT_MOBILE_NUMBER
             : (MapperUtils.isAipJourney(asylumCase) ? APPELLANT_PHONE_NUMBER : MOBILE_NUMBER);
 
-        List<String> hearingChannelEmailValue = asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class)
-            .map(c -> c.equals(ContactPreference.WANTS_EMAIL)
-                ? caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef)
-                : Collections.<String>emptyList())
-            .orElse(Collections.emptyList());
+        List<String> hearingChannelEmailValue;
+        List<String> hearingChannelPhoneValue;
+        if (isInternalCase) {
+            hearingChannelEmailValue = caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef);
+            hearingChannelPhoneValue = caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef);
+        } else {
+            hearingChannelEmailValue = asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class)
+                .map(c -> c.equals(ContactPreference.WANTS_EMAIL)
+                    ? caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef)
+                    : Collections.<String>emptyList())
+                .orElse(Collections.emptyList());
 
-        List<String> hearingChannelPhoneValue = asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class)
-            .map(c -> c.equals(ContactPreference.WANTS_SMS)
-                ? caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef)
-                : Collections.<String>emptyList())
-            .orElse(Collections.emptyList());
+            hearingChannelPhoneValue = asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class)
+                .map(c -> c.equals(ContactPreference.WANTS_SMS)
+                    ? caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef)
+                    : Collections.<String>emptyList())
+                .orElse(Collections.emptyList());
+        }
 
         IndividualDetailsModel individualDetails =
             IndividualDetailsModel.builder()
