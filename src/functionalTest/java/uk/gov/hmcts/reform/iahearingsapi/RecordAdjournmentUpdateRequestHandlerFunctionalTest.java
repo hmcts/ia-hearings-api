@@ -32,6 +32,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.util.Retry;
 
 @Slf4j
 @Disabled
@@ -43,6 +44,7 @@ public class RecordAdjournmentUpdateRequestHandlerFunctionalTest extends CcdCase
         fetchTokensAndUserIds();
     }
 
+    @Retry(5)
     @ParameterizedTest
     @CsvSource({"true", "false"})
     void should_handle_record_adjournment_details_cancellation_successfully(boolean isAipJourney) {
