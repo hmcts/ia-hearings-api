@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.GetLink
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.LinkedCasesApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_COMPLETED_OR_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_NEXT_HEARING_INFO;
 
 @Slf4j
@@ -261,5 +262,16 @@ public class CoreCaseDataService {
         log.info("Sending `{}`an event for  Case ID `{}`", HEARING_CANCELLED, caseId);
         triggerSubmitEvent(
             HEARING_CANCELLED, caseId, startEventResponse, asylumCase);
+    }
+
+    public void hearingCompletedOrCancelledTask(String caseId) {
+        StartEventResponse startEventResponse = startCaseEvent(
+            HEARING_COMPLETED_OR_CANCELLED, caseId, CASE_TYPE_BAIL);
+
+        BailCase bailCase = getBailCaseFromStartedEvent(startEventResponse);
+
+        log.info("Sending `{}`an event for  Case ID `{}`", HEARING_COMPLETED_OR_CANCELLED, caseId);
+        triggerBailSubmitEvent(
+            HEARING_COMPLETED_OR_CANCELLED, caseId, startEventResponse, bailCase);
     }
 }
