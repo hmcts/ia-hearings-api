@@ -393,6 +393,8 @@ class BailCaseFlagsToServiceHearingValuesMapperTest {
 
         assertTrue(mapper.getVulnerableFlag(bailCase));
 
+        caseFlagDetails.clear();
+
         caseFlagDetails.add(new CaseFlagDetail("id2", CaseFlagValue.builder()
             .flagCode(UNACCOMPANIED_MINOR.getFlagCode())
             .status("Active")
@@ -424,13 +426,18 @@ class BailCaseFlagsToServiceHearingValuesMapperTest {
         List<CaseFlagDetail> caseFlagDetails = new ArrayList<>();
         final String vulnerableUser = "Vulnerable user";
         final String unaccompaniedMinor = "Unaccompanied minor";
+
+        StringBuilder appellantFlags = new StringBuilder();
+
         caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
             .flagCode(VULNERABLE_USER.getFlagCode()).status("Active")
             .flagComment(vulnerableUser).build()));
         when(bailCase.read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class))
             .thenReturn(Optional.of(new BailStrategicCaseFlag(caseFlagDetails)));
 
-        assertEquals(vulnerableUser, mapper.getVulnerableDetails(bailCase));
+        appellantFlags.append(vulnerableUser);
+
+        assertEquals(appellantFlags.toString(), mapper.getVulnerableDetails(bailCase));
 
         caseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
             .flagCode(UNACCOMPANIED_MINOR.getFlagCode())
@@ -440,7 +447,10 @@ class BailCaseFlagsToServiceHearingValuesMapperTest {
         when(bailCase.read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class))
             .thenReturn(Optional.of(new BailStrategicCaseFlag(caseFlagDetails)));
 
-        assertEquals(vulnerableUser, mapper.getVulnerableDetails(bailCase));
+        appellantFlags.append(";");
+        appellantFlags.append(unaccompaniedMinor);
+
+        assertEquals(appellantFlags.toString(), mapper.getVulnerableDetails(bailCase));
     }
 
     @Test
