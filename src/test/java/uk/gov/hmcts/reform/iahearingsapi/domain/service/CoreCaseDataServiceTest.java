@@ -10,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_COMPLETED_OR_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.UPDATE_NEXT_HEARING_INFO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
@@ -293,5 +294,19 @@ public class CoreCaseDataServiceTest {
             .startCaseEvent(eq(HEARING_CANCELLED), eq(CASE_ID), eq(CASE_TYPE_ASYLUM));
         verify(coreCaseDataService).triggerSubmitEvent(
             HEARING_CANCELLED, CASE_ID, startEventResponse, asylumCase);
+    }
+
+    @Test
+    public void hearing_completed_or_cancelled_task() {
+        when(coreCaseDataService.startCaseEvent(HEARING_COMPLETED_OR_CANCELLED, CASE_ID, CASE_TYPE_BAIL))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse)).thenReturn(bailCase);
+
+        coreCaseDataService.hearingCompletedOrCancelledTask(CASE_ID);
+
+        verify(coreCaseDataService, times(3))
+            .startCaseEvent(HEARING_COMPLETED_OR_CANCELLED, CASE_ID, CASE_TYPE_BAIL);
+        verify(coreCaseDataService).triggerBailSubmitEvent(
+            HEARING_COMPLETED_OR_CANCELLED, CASE_ID, startEventResponse, bailCase);
     }
 }
