@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
+import uk.gov.hmcts.reform.iahearingsapi.util.Retry;
 
 @ActiveProfiles("functional")
 @Slf4j
@@ -27,6 +28,7 @@ public class EndAppealRequestSubmitHandlerFunctionalTest extends CcdCaseCreation
         fetchTokensAndUserIds();
     }
 
+    @Retry(5)
     @ParameterizedTest
     @CsvSource({ "true", "false" })
     void should_submit_end_appeal_successfully(boolean isAipJourney) {

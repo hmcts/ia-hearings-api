@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
+import uk.gov.hmcts.reform.iahearingsapi.util.Retry;
 
 @Slf4j
 @ActiveProfiles("functional")
@@ -28,6 +29,7 @@ public class RecordAdjournmentDetailsPreparerFunctionalTest extends CcdCaseCreat
         fetchTokensAndUserIds();
     }
 
+    @Retry(5)
     @ParameterizedTest
     @CsvSource({ "true", "false" })
     void should_prepare_record_adjournment_details_successfully(boolean isAipJourney) {

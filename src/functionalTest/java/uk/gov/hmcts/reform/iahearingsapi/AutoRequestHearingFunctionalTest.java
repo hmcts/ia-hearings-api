@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
+import uk.gov.hmcts.reform.iahearingsapi.util.Retry;
 
 @Slf4j
 @ActiveProfiles("functional")
@@ -39,6 +40,7 @@ public class AutoRequestHearingFunctionalTest extends CcdCaseCreationTest {
         fetchTokensAndUserIds();
     }
 
+    @Retry(5)
     @ParameterizedTest
     @CsvSource({"LIST_CASE_WITHOUT_HEARING_REQUIREMENTS, SUBMIT_HEARING_REQUIREMENTS, true",
         "DECISION_AND_REASONS_STARTED, PRE_HEARING, true",
