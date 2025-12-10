@@ -7,6 +7,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFla
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.UNACCOMPANIED_MINOR;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.URGENT_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.VULNERABLE_USER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.MapperUtils.parseDateTimeStringWithoutNanos;
@@ -113,11 +114,11 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
             bailCase.read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class)
                 .map(List::of).orElse(Collections.emptyList());
 
-        return hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(VULNERABLE_USER));
+        return hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(VULNERABLE_USER, UNACCOMPANIED_MINOR));
     }
 
     public String getVulnerableDetails(BailCase bailCase) {
-        List<String> targetCaseFlagCodes = Stream.of(VULNERABLE_USER)
+        List<String> targetCaseFlagCodes = Stream.of(VULNERABLE_USER, UNACCOMPANIED_MINOR)
             .map(StrategicCaseFlagType::getFlagCode).toList();
         List<String> vulnerabilityDetails =  bailCase.read(APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class)
             .map(BailStrategicCaseFlag::getDetails)
