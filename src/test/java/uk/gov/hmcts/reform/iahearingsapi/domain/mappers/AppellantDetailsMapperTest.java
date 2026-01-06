@@ -328,6 +328,44 @@ class AppellantDetailsMapperTest {
         assertEquals(expectedPhone, actualIndividualDetails.getHearingChannelPhone());
     }
 
+
+    @ParameterizedTest
+    @CsvSource({
+        "YES, \"\", 01283849397",
+        "NO, test@test.com, \"\""
+    })
+    void should_set_internal_email_or_phone_and_value_based_on_internal_case(
+        YesOrNo isAdmin,
+        String email,
+        String mobileNumber
+    ) {
+
+        when(asylumCase.read(IS_ADMIN, YesOrNo.class))
+            .thenReturn(Optional.of(isAdmin));
+
+        when(asylumCase.read(JOURNEY_TYPE, String.class)).thenReturn(Optional.of(REP.getValue()));
+
+        when(caseDataMapper.getHearingChannelEmail(asylumCase, INTERNAL_APPELLANT_EMAIL))
+            .thenReturn(List.of(email));
+
+        when(caseDataMapper.getHearingChannelPhone(asylumCase, INTERNAL_APPELLANT_MOBILE_NUMBER))
+            .thenReturn(List.of(mobileNumber));
+
+        List<String> expectedEmail = isAdmin.equals(YES)
+            ? List.of(email)
+            : Collections.emptyList();
+        List<String> expectedPhone = isAdmin.equals(YES)
+            ? List.of(mobileNumber)
+            : Collections.emptyList();
+
+        IndividualDetailsModel actualIndividualDetails = new AppellantDetailsMapper(languageAndAdjustmentsMapper)
+            .map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event)
+            .getIndividualDetails();
+
+        assertEquals(expectedEmail, actualIndividualDetails.getHearingChannelEmail());
+        assertEquals(expectedPhone, actualIndividualDetails.getHearingChannelPhone());
+    }
+
     @ParameterizedTest
     @CsvSource({
         "rep, WANTS_EMAIL",
