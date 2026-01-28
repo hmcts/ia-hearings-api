@@ -69,8 +69,21 @@ public class AppellantDetailsMapper {
         List<String> hearingChannelEmailValue;
         List<String> hearingChannelPhoneValue;
         if (isInternalCase) {
-            hearingChannelEmailValue = caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef);
-            hearingChannelPhoneValue = caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef);
+            List<String> hearingChannelEmailTempValue =
+                caseDataMapper.getHearingChannelEmail(asylumCase, emailFieldDef);
+            List<String> hearingChannelPhoneTempValue =
+                caseDataMapper.getHearingChannelPhone(asylumCase, phoneFieldDef);
+
+            hearingChannelEmailValue =
+                hearingChannelEmailTempValue
+                    .stream()
+                    .allMatch(String::isBlank) ? Collections.emptyList() : hearingChannelEmailTempValue;
+
+            hearingChannelPhoneValue =
+                hearingChannelPhoneTempValue
+                    .stream()
+                    .allMatch(String::isBlank) ? Collections.emptyList() : hearingChannelPhoneTempValue;
+
         } else {
             hearingChannelEmailValue = asylumCase.read(CONTACT_PREFERENCE, ContactPreference.class)
                 .map(c -> c.equals(ContactPreference.WANTS_EMAIL)
