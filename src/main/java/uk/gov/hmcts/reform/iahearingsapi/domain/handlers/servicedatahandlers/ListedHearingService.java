@@ -38,6 +38,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -74,6 +75,12 @@ public class ListedHearingService {
         return isHmcStatus(serviceData, HmcStatus.CANCELLED)
             && !isHearingChannel(serviceData, ONPPRS)
             && isHearingType(serviceData, SUBSTANTIVE);
+    }
+
+    protected boolean isBailHearingCompletedOrCancelled(ServiceData serviceData) {
+        return (isHmcStatus(serviceData, HmcStatus.COMPLETED) || isHmcStatus(serviceData, HmcStatus.CANCELLED))
+            && !isHearingChannel(serviceData, ONPPRS)
+            && isHearingType(serviceData, BAIL);
     }
 
     protected boolean isCmrCancelledHearing(ServiceData serviceData) {
@@ -325,7 +332,7 @@ public class ListedHearingService {
                 .orElse(Collections.emptyList());
 
             return !((previousHearingChannels.size() == latestHearingChannels.size())
-                && previousHearingChannels.containsAll(latestHearingChannels));
+                && new HashSet<>(previousHearingChannels).containsAll(latestHearingChannels));
         }
 
         return !Objects.equals(previous.read(field).orElse(null), latest.read(field).orElse(null));
