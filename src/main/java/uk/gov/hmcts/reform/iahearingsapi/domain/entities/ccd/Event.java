@@ -21,6 +21,7 @@ public enum Event {
     CMR_LISTING("cmrListing"),
     DECIDE_AN_APPLICATION("decideAnApplication"),
     CASE_LISTING("caseListing"),
+    HEARING_COMPLETED_OR_CANCELLED("hearingCompletedOrCancelled"),
     LIST_CASE_WITHOUT_HEARING_REQUIREMENTS("listCaseWithoutHearingRequirements"),
     DECISION_WITHOUT_HEARING_LISTED("decisionWithoutHearingListed"),
     REVIEW_HEARING_REQUIREMENTS("reviewHearingRequirements"),

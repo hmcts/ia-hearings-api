@@ -33,10 +33,11 @@ public class EventTest {
         assertEquals("restoreStateFromAdjourn", Event.RESTORE_STATE_FROM_ADJOURN.toString());
         assertEquals("UpdateNextHearingInfo", Event.UPDATE_NEXT_HEARING_INFO.toString());
         assertEquals("hearingCancelled", Event.HEARING_CANCELLED.toString());
+        assertEquals("hearingCompletedOrCancelled", Event.HEARING_COMPLETED_OR_CANCELLED.toString());
     }
 
     @Test
     void fail_if_changes_needed_after_modifying_class() {
-        assertEquals(24, Event.values().length);
+        assertEquals(25, Event.values().length);
     }
 }
