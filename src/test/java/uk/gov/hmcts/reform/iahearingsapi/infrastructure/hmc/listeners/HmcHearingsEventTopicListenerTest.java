@@ -62,7 +62,7 @@ class HmcHearingsEventTopicListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = HmcStatus.class, names = { "LISTED", "CANCELLED" })
+    @EnumSource(value = HmcStatus.class, names = { "LISTED", "CANCELLED", "EXCEPTION" })
     public void testOnMessageWithRelevantMessage(HmcStatus hmcStatus) throws Exception {
         HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, hmcStatus);
 
