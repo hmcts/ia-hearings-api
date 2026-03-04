@@ -5,13 +5,16 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HMC_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +25,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
@@ -65,7 +69,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
             } else {
                 boolean cmrHearingUpdated = isCmrUpdated(serviceData, partiesNotifiedResponses.getResponses());
                 if (cmrHearingUpdated) {
-                    handleCmrReListing(caseId);
+                    handleCmrReListing(caseId, serviceData);
                     log.info("cmrRelistingHandler triggered for hearing " + hearingId);
                 } else {
                     log.info("Hearing date, channel, duration and location not updated");
@@ -73,7 +77,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
                 }
             }
         } else {
-            handleCmrReListing(caseId);
+            handleCmrReListing(caseId, serviceData);
             log.info("cmrRelistingHandler triggered for hearing " + hearingId);
         }
 
@@ -90,7 +94,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         coreCaseDataService.triggerSubmitEvent(CMR_LISTING, caseId, startEventResponse, asylumCase);
     }
 
-    private void handleCmrReListing(String caseId) {
+    private void handleCmrReListing(String caseId, ServiceData serviceData) {
         StartEventResponse startEventResponse =
             coreCaseDataService.startCaseEvent(CMR_RE_LISTING, caseId, CASE_TYPE_ASYLUM);
 
@@ -98,11 +102,22 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
         log.info("Sending `{}` event for case ID `{}`", CMR_RE_LISTING, caseId);
         coreCaseDataService.triggerSubmitEvent(CMR_RE_LISTING, caseId, startEventResponse, asylumCase);
+
+        if (isCmrHmcStatusCancelledHearing(serviceData)) {
+            log.info("Sending `{}` event for case ID `{}`", caseId, CMR_HEARING_CANCELLED);
+            coreCaseDataService.triggerSubmitEvent(CMR_HEARING_CANCELLED, caseId, startEventResponse, asylumCase);
+        }
     }
 
     private boolean isCmrListedHearing(ServiceData serviceData) {
         return isCaseManagementReview(serviceData)
                && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED);
+    }
+
+    private boolean isCmrHmcStatusCancelledHearing(ServiceData serviceData) {
+        return serviceData.read(HMC_STATUS, HmcStatus.class)
+            .map(hmcStatus -> Objects.equals(hmcStatus, HmcStatus.CANCELLED))
+            .orElse(false);
     }
 
     private boolean isInitialListing(String hearingId, List<PartiesNotifiedResponse> partiesNotifiedResponses) {
