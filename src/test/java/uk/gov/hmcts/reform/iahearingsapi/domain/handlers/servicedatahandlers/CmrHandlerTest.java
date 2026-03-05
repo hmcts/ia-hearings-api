@@ -185,6 +185,8 @@ class CmrHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(coreCaseDataService.startCaseEvent(CMR_RE_LISTING, CASE_REF, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(CMR_HEARING_CANCELLED, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
