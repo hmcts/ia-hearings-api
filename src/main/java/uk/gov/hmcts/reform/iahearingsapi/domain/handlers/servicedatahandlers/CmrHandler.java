@@ -105,15 +105,10 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
     }
 
     private void handleCmrCancelled(String caseId) {
-        StartEventResponse startEventResponseRelist =
-            coreCaseDataService.startCaseEvent(CMR_RE_LISTING, caseId, CASE_TYPE_ASYLUM);
         StartEventResponse startEventResponseCancelled =
             coreCaseDataService.startCaseEvent(CMR_HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponseCancelled);
-
-        log.info("Sending `{}` event for case ID `{}`", CMR_RE_LISTING, caseId);
-        coreCaseDataService.triggerSubmitEvent(CMR_RE_LISTING, caseId, startEventResponseRelist, asylumCase);
 
         log.info("Sending `{}` event for case ID `{}`", CMR_HEARING_CANCELLED, caseId);
         coreCaseDataService.triggerSubmitEvent(CMR_HEARING_CANCELLED, caseId, startEventResponseCancelled, asylumCase);

@@ -179,7 +179,7 @@ class CmrHandlerTest {
     }
 
     @Test
-    void should_trigger_cmr_reListed_notification_and_hearing_cancelled_for_cancelled_cmr() {
+    void should_trigger_cmr_hearing_cancelled_for_cancelled_cmr() {
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.CANCELLED));
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
@@ -196,7 +196,7 @@ class CmrHandlerTest {
 
         cmrHandler.handle(serviceData);
 
-        verify(coreCaseDataService).triggerSubmitEvent(
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
         verify(coreCaseDataService).triggerSubmitEvent(
             CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
