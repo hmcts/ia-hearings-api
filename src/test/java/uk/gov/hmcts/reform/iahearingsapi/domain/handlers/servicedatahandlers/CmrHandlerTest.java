@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
@@ -141,6 +142,8 @@ class CmrHandlerTest {
 
         verify(coreCaseDataService).triggerSubmitEvent(
             CMR_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
     }
 
     @Test
@@ -171,14 +174,18 @@ class CmrHandlerTest {
 
         verify(coreCaseDataService).triggerSubmitEvent(
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
     }
 
     @Test
-    void should_trigger_cmr_reListed_notification_for_cancelled_cmr() {
+    void should_trigger_cmr_hearing_cancelled_for_cancelled_cmr() {
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.CANCELLED));
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(coreCaseDataService.startCaseEvent(CMR_RE_LISTING, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(CMR_HEARING_CANCELLED, CASE_REF, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
@@ -189,8 +196,10 @@ class CmrHandlerTest {
 
         cmrHandler.handle(serviceData);
 
-        verify(coreCaseDataService).triggerSubmitEvent(
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
     }
 
     @Test
@@ -225,5 +234,7 @@ class CmrHandlerTest {
 
         verify(coreCaseDataService, never()).triggerSubmitEvent(
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
     }
 }

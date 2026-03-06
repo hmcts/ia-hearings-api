@@ -6,6 +6,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
@@ -72,6 +73,9 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
                     log.info("cmrRelistingHandler not triggered for hearing " + hearingId);
                 }
             }
+        } else if (isCmrCancelledHearing(serviceData)) {
+            handleCmrCancelled(caseId);
+            log.info("cmrRelistingHandler triggered for hearing " + hearingId);
         } else {
             handleCmrReListing(caseId);
             log.info("cmrRelistingHandler triggered for hearing " + hearingId);
@@ -98,6 +102,16 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
         log.info("Sending `{}` event for case ID `{}`", CMR_RE_LISTING, caseId);
         coreCaseDataService.triggerSubmitEvent(CMR_RE_LISTING, caseId, startEventResponse, asylumCase);
+    }
+
+    private void handleCmrCancelled(String caseId) {
+        StartEventResponse startEventResponseCancelled =
+            coreCaseDataService.startCaseEvent(CMR_HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
+
+        AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponseCancelled);
+
+        log.info("Sending `{}` event for case ID `{}`", CMR_HEARING_CANCELLED, caseId);
+        coreCaseDataService.triggerSubmitEvent(CMR_HEARING_CANCELLED, caseId, startEventResponseCancelled, asylumCase);
     }
 
     private boolean isCmrListedHearing(ServiceData serviceData) {
