@@ -88,7 +88,7 @@ public class HmcHearingsEventTopicListener {
             HmcStatus hmcStatus = hmcMessage.getHearingUpdate().getHmcStatus();
 
             if (isMessageRelevantForService(hmcMessage)
-                && (hmcStatus.equals(LISTED) || hmcStatus.equals(CANCELLED))) {
+                && (hmcStatus.equals(LISTED) || hmcStatus.equals(CANCELLED) || hmcStatus.equals(HmcStatus.EXCEPTION))) {
 
                 log.info("Attempting to process message from HMC hearings topic for"
                              + " Case ID {}, and Hearing ID {} with status {}", caseId, hearingId,
