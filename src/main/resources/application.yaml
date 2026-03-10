@@ -14,8 +14,12 @@ management:
   endpoints:
     web:
       base-path: "/"
+      exposure:
+        include: health, info, ping
 
 health:
+  redis:
+    enabled: false  # don't let Redis affect pod health
   services:
     idam:
       uri: ${IDAM_URL:http://127.0.0.1:4501}/health
@@ -26,12 +30,19 @@ health:
     hcm:
       uri: ${HMC_API_URL:http://127.0.0.1:4561}/health
       response: '"status":"UP"'
+  group:
+    readiness:
+      include: ping
+    liveness:
+      include: ping
 
 spring:
-  cache:
-    cache-names: userInfoCache, accessTokenCache, systemTokenCache
-    caffeine:
-      spec: expireAfterWrite=3600s
+  data:
+    redis:
+      url: ${IA_REDIS_CONNECTION_STRING:}
+      secret: ${IA_REDIS_ACCESS_KEY:}
+      ssl:
+        enabled: true
   cloud:
     bootstrap:
       enabled: true
