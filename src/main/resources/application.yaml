@@ -16,10 +16,16 @@ management:
       base-path: "/"
       exposure:
         include: health, info, ping
+  health:
+    redis:
+      enabled: false  # don't let Redis affect pod health
+    group:
+      readiness:
+        include: ping
+      liveness:
+        include: ping
 
 health:
-  redis:
-    enabled: false  # don't let Redis affect pod health
   services:
     idam:
       uri: ${IDAM_URL:http://127.0.0.1:4501}/health
@@ -30,11 +36,6 @@ health:
     hcm:
       uri: ${HMC_API_URL:http://127.0.0.1:4561}/health
       response: '"status":"UP"'
-  group:
-    readiness:
-      include: ping
-    liveness:
-      include: ping
 
 spring:
   data:
