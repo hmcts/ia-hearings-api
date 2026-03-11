@@ -29,6 +29,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
 @Slf4j
 @Component
@@ -37,6 +39,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
+    private final LocationRefDataService locationRefDataService;
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -62,7 +65,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         if (isCmrListedHearing(serviceData)) {
             PartiesNotifiedResponses partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId);
             if (isInitialListing(hearingId, partiesNotifiedResponses.getResponses())) {
-                handleCmrListing(caseId);
+                handleCmrListing(caseId, serviceData);
             } else {
                 boolean cmrHearingUpdated = isCmrUpdated(serviceData, partiesNotifiedResponses.getResponses());
                 if (cmrHearingUpdated) {
@@ -84,11 +87,17 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         return new ServiceDataResponse<>(serviceData);
     }
 
-    private void handleCmrListing(String caseId) {
+    private void handleCmrListing(String caseId, ServiceData serviceData) {
         StartEventResponse startEventResponse =
             coreCaseDataService.startCaseEvent(CMR_LISTING, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
+
+        boolean isAppealsLocationRefDataEnabled = HearingsUtils.isAppealsLocationRefDataEnabled(asylumCase);
+
+        updateListCaseHearingDetails(serviceData, asylumCase, isAppealsLocationRefDataEnabled, caseId,
+                                     locationRefDataService.getCourtVenuesAsServiceUser(),
+                                     locationRefDataService.getHearingLocationsDynamicList(true));
 
         log.info("Sending `{}` event for  Case ID `{}`", CMR_LISTING, caseId);
         coreCaseDataService.triggerSubmitEvent(CMR_LISTING, caseId, startEventResponse, asylumCase);
