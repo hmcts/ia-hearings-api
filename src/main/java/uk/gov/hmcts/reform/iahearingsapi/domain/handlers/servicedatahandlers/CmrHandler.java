@@ -6,6 +6,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
@@ -28,6 +29,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
 @Slf4j
 @Component
@@ -36,6 +39,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
+    private final LocationRefDataService locationRefDataService;
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -61,7 +65,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         if (isCmrListedHearing(serviceData)) {
             PartiesNotifiedResponses partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId);
             if (isInitialListing(hearingId, partiesNotifiedResponses.getResponses())) {
-                handleCmrListing(caseId);
+                handleCmrListing(caseId, serviceData);
             } else {
                 boolean cmrHearingUpdated = isCmrUpdated(serviceData, partiesNotifiedResponses.getResponses());
                 if (cmrHearingUpdated) {
@@ -72,6 +76,9 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
                     log.info("cmrRelistingHandler not triggered for hearing " + hearingId);
                 }
             }
+        } else if (isCmrCancelledHearing(serviceData)) {
+            handleCmrCancelled(caseId);
+            log.info("cmrRelistingHandler triggered for hearing " + hearingId);
         } else {
             handleCmrReListing(caseId);
             log.info("cmrRelistingHandler triggered for hearing " + hearingId);
@@ -80,11 +87,17 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         return new ServiceDataResponse<>(serviceData);
     }
 
-    private void handleCmrListing(String caseId) {
+    private void handleCmrListing(String caseId, ServiceData serviceData) {
         StartEventResponse startEventResponse =
             coreCaseDataService.startCaseEvent(CMR_LISTING, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
+
+        boolean isAppealsLocationRefDataEnabled = HearingsUtils.isAppealsLocationRefDataEnabled(asylumCase);
+
+        updateListCaseHearingDetails(serviceData, asylumCase, isAppealsLocationRefDataEnabled, caseId,
+                                     locationRefDataService.getCourtVenuesAsServiceUser(),
+                                     locationRefDataService.getHearingLocationsDynamicList(true));
 
         log.info("Sending `{}` event for  Case ID `{}`", CMR_LISTING, caseId);
         coreCaseDataService.triggerSubmitEvent(CMR_LISTING, caseId, startEventResponse, asylumCase);
@@ -98,6 +111,16 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
         log.info("Sending `{}` event for case ID `{}`", CMR_RE_LISTING, caseId);
         coreCaseDataService.triggerSubmitEvent(CMR_RE_LISTING, caseId, startEventResponse, asylumCase);
+    }
+
+    private void handleCmrCancelled(String caseId) {
+        StartEventResponse startEventResponseCancelled =
+            coreCaseDataService.startCaseEvent(CMR_HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
+
+        AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponseCancelled);
+
+        log.info("Sending `{}` event for case ID `{}`", CMR_HEARING_CANCELLED, caseId);
+        coreCaseDataService.triggerSubmitEvent(CMR_HEARING_CANCELLED, caseId, startEventResponseCancelled, asylumCase);
     }
 
     private boolean isCmrListedHearing(ServiceData serviceData) {
