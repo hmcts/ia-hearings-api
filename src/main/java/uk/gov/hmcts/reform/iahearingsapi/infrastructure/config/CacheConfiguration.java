@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.lettuce.core.RedisURI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +19,10 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
 
 import java.time.Duration;
 
@@ -46,13 +44,22 @@ public class CacheConfiguration {
             redisConnectionFactory.getConnection().ping();
             log.info("Redis connection successful - using Redis for systemTokenCache");
 
-            // Configure ObjectMapper to handle type info correctly
-            ObjectMapper objectMapper = new ObjectMapper()
-                .registerModule(new JavaTimeModule())
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            // Idam user info config
+            Jackson2JsonRedisSerializer<UserInfo> userInfoSerializer =
+                new Jackson2JsonRedisSerializer<>(UserInfo.class);
 
-            GenericJackson2JsonRedisSerializer serializer =
-                new GenericJackson2JsonRedisSerializer(objectMapper);
+            RedisCacheConfiguration userInfoCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofSeconds(3300))
+                .disableCachingNullValues()
+                .serializeKeysWith(
+                    RedisSerializationContext.SerializationPair
+                        .fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(
+                    RedisSerializationContext.SerializationPair
+                        .fromSerializer(userInfoSerializer));
+
+            // system user token config
+            Jackson2JsonRedisSerializer<String> tokenSerializer = new Jackson2JsonRedisSerializer<>(String.class);
 
             RedisCacheConfiguration tokenCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofSeconds(3300))  // 55mins (token might expire before cache)
@@ -62,15 +69,13 @@ public class CacheConfiguration {
                         .fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(
                     RedisSerializationContext.SerializationPair
-                        .fromSerializer(serializer));
+                        .fromSerializer(tokenSerializer));
 
             // only systemTokenCache goes to Redis, rest stay as Caffeine
             return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(tokenCacheConfig)
-                .withCacheConfiguration("systemUserTokenCache",
-                                        tokenCacheConfig.entryTtl(Duration.ofSeconds(3300)))
-                .withCacheConfiguration("userInfoCache",
-                                        tokenCacheConfig.entryTtl(Duration.ofSeconds(3300)))
+                .withCacheConfiguration("systemUserTokenCache", tokenCacheConfig)
+                .withCacheConfiguration("userInfoCache", userInfoCacheConfig)
                 .build();
 
         } catch (Exception e) {
@@ -94,22 +99,22 @@ public class CacheConfiguration {
         }
 
         try {
-            RedisURI redisURI = RedisURI.create(redisUrl);
+            RedisURI redisUri = RedisURI.create(redisUrl);
 
             boolean useSsl = redisUrl.contains("tls=true") || redisUrl.startsWith("rediss://");
             log.info("Redis SSL enabled: {}", useSsl);
 
             // checked azure portal,
             if (useSsl) {
-                redisURI.setSsl(true);
-                redisURI.setVerifyPeer(false); // for Azure (self signed certs)
+                redisUri.setSsl(true);
+                redisUri.setVerifyPeer(false); // for Azure (self signed certs)
             }
 
-            redisURI.setTimeout(Duration.ofSeconds(10)); // 64seconds is default, so fail quicker
+            redisUri.setTimeout(Duration.ofSeconds(10)); // 64seconds is default, so fail quicker
 
             RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-            config.setHostName(redisURI.getHost());
-            config.setPort(redisURI.getPort());
+            config.setHostName(redisUri.getHost());
+            config.setPort(redisUri.getPort());
             if (accessKey != null && !accessKey.isBlank()) {
                 config.setPassword(RedisPassword.of(accessKey));
                 log.info("adding password to redis");
@@ -134,4 +139,5 @@ public class CacheConfiguration {
             throw e;
         }
     }
+
 }
