@@ -14,6 +14,16 @@ management:
   endpoints:
     web:
       base-path: "/"
+      exposure:
+        include: health, info, ping
+  health:
+    redis:
+      enabled: false  # don't let Redis affect pod health
+    group:
+      readiness:
+        include: ping
+      liveness:
+        include: ping
 
 health:
   services:
@@ -28,10 +38,12 @@ health:
       response: '"status":"UP"'
 
 spring:
-  cache:
-    cache-names: userInfoCache, accessTokenCache, systemTokenCache
-    caffeine:
-      spec: expireAfterWrite=3600s
+  data:
+    redis:
+      url: ${IA_REDIS_CONNECTION_STRING:}
+      secret: ${IA_REDIS_ACCESS_KEY:}
+      ssl:
+        enabled: true
   cloud:
     bootstrap:
       enabled: true
