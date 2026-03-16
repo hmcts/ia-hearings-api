@@ -22,6 +22,8 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingDaySchedule;
@@ -44,6 +46,7 @@ public class UnNotifiedHearingsProcessor implements Runnable {
     }
 
     @Override
+    @EventListener(ApplicationReadyEvent.class)
     public void run() {
         log.info("Running UnNotifiedHearingsProcessor task to retrieve unNotifiedHearings");
         processUnNotifiedHearings();
