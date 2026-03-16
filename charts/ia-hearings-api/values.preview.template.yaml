@@ -19,3 +19,9 @@ java:
         - launch-darkly-sdk-key
         - ia-config-validator-secret
         - app-insights-connection-string
+  redis:
+    enabled: true
+    serviceAccount:
+      create: false
+      name: "iac"
+      automountServiceAccountToken: true
