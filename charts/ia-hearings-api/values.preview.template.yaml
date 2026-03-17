@@ -40,8 +40,4 @@ java:
         - name: ia-redis-access-key
           alias: IA_REDIS_ACCESS_KEY
   redis:
-    enabled: true
-    serviceAccount:
-      create: false
-      name: "iac"
-      automountServiceAccountToken: true
+    enabled: false
