@@ -26,3 +26,4 @@ bin/main/application.yaml
 
 applicationinsights-agent-*.jar
 *.log
+.mirrord/
