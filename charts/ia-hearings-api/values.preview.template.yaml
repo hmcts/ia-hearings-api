@@ -39,5 +39,3 @@ java:
           alias: IA_REDIS_CONNECTION_STRING
         - name: ia-redis-access-key
           alias: IA_REDIS_ACCESS_KEY
-  redis:
-    enabled: false
