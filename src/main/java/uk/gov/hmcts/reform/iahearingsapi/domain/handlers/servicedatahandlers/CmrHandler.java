@@ -166,6 +166,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         //asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
         asylumCase.write(CMR_HEARING_DATE, newHearingDateTime);
         asylumCase.write(CMR_HEARING_LENGTH, new HoursMinutes(getHearingDuration(serviceData)));
+        log.info("getHearingDuration: {}`", getHearingDuration(serviceData));
         asylumCase.write(CMR_HEARING_CENTRE, newHearingCentre);
         asylumCase.write(CMR_HEARING_CHANNEL, newHearingChannel);
 
@@ -191,8 +192,8 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
                              )
             );
 
-            log.info("updateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
-                     asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
+            log.info("updateListCaseHearingDetails for Case ID `{}` cmrHearingCentreAddress contains '{}'", caseId,
+                     asylumCase.read(AsylumCaseFieldDefinition.CMR_HEARING_CENTRE_ADDRESS).toString());
         }
     }
 }
