@@ -127,12 +127,8 @@ public class CoreCaseDataService {
 
     public CaseDetails getCaseDetails(String caseId) {
         try {
-            String serviceUserToken = idamService.getServiceUserToken();
-            log.info("System user token: {}", serviceUserToken);
-            String serviceAuthorisation = serviceAuthTokenGenerator.generate();
-            log.info("Service authorisation: {}", serviceAuthorisation);
             CaseDetails caseDetails = coreCaseDataApi
-                .getCase(serviceUserToken, serviceAuthorisation, caseId);
+                .getCase(idamService.getServiceUserToken(), serviceAuthTokenGenerator.generate(), caseId);
             if (caseDetails != null) {
                 return caseDetails;
             }
