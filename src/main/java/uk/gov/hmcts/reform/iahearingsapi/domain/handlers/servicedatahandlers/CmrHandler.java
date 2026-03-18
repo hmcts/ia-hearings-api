@@ -160,8 +160,8 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         String hearingVenueId = getHearingVenueId(serviceData);
 
         String newHearingDateTime = formatHearingDateTime(getAsylumHearingDatetime(serviceData, hearingVenueId));
-        HearingCentre newHearingCentre = HandlerUtils.getLocation(hearingChannels, hearingVenueId);
-        DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
+        final HearingCentre newHearingCentre = HandlerUtils.getLocation(hearingChannels, hearingVenueId);
+        final DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
 
         //asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
         asylumCase.write(CMR_HEARING_DATE, newHearingDateTime);
