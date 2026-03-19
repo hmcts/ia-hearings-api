@@ -10,6 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
@@ -17,6 +22,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_IS_REMOTE_HEARING;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,10 +35,16 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
@@ -41,6 +53,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -145,6 +158,13 @@ class CmrHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
             .thenReturn(Optional.of(HEARING_ID));
 
+        DynamicList cmrHearingChannel = new DynamicList(
+            new Value("INTER", "In Person"),
+            List.of(new Value("INTER", "In Person"))
+        );
+        when(asylumCase.read(CMR_HEARING_CHANNEL, DynamicList.class))
+            .thenReturn(Optional.of(cmrHearingChannel));
+
         PartiesNotifiedResponses partiesNotifiedResponses =
             PartiesNotifiedResponses.builder()
                 .responses(Collections.emptyList())
@@ -153,8 +173,73 @@ class CmrHandlerTest {
 
         cmrHandler.handle(serviceData);
 
-        verify(coreCaseDataService).triggerSubmitEvent(
-            CMR_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(asylumCase).write(CMR_HEARING_DATE, "2023-09-29T09:45:00.000");
+        verify(asylumCase).write(CMR_HEARING_LENGTH, new HoursMinutes(150));
+        verify(asylumCase).write(CMR_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
+        verify(asylumCase).write(CMR_HEARING_CHANNEL, cmrHearingChannel); // Replace with actual value
+        verify(coreCaseDataService).triggerSubmitEvent(CMR_LISTING, CASE_REF, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_trigger_cmr_listed_notification_with_appeals_location_ref_data_enabled() {
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(coreCaseDataService.startCaseEvent(CMR_LISTING, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HEARING_VENUE_ID));
+        when(serviceData.read(DURATION, Integer.class))
+            .thenReturn(Optional.of(150));
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(NEXT_HEARING_DATE));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
+            .thenReturn(Optional.of(HEARING_ID));
+        when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(Collections.emptyList());
+        when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(null);
+        CourtVenue mockCourtVenue = new CourtVenue(
+            "Glasgow Site", // siteName
+            "Glasgow Tribunals Centre", // courtName
+            "366559", // epimmsId
+            "Yes", // isHearingLocation
+            "Open" // courtStatus
+        );
+        when(locationRefDataService.getCourtVenuesAsServiceUser())
+            .thenReturn(List.of(mockCourtVenue));
+        DynamicList hearingLocationList = new DynamicList(
+            new Value("366559", "Glasgow Tribunals Centre"),
+            List.of(new Value("366559", "Glasgow Tribunals Centre"))
+        );
+        when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(hearingLocationList);
+
+
+        DynamicList cmrHearingChannel = new DynamicList(
+            new Value("INTER", "In Person"),
+            List.of(new Value("INTER", "In Person"))
+        );
+        when(asylumCase.read(CMR_HEARING_CHANNEL, DynamicList.class))
+            .thenReturn(Optional.of(cmrHearingChannel));
+
+        PartiesNotifiedResponses partiesNotifiedResponses =
+            PartiesNotifiedResponses.builder()
+                .responses(Collections.emptyList())
+                .hearingID(HEARING_ID).build();
+        when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
+        when(asylumCase.read(CMR_IS_REMOTE_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+
+
+        cmrHandler.handle(serviceData);
+
+        verify(asylumCase).write(CMR_HEARING_DATE,"2023-09-29T09:45:00.000");
+        verify(asylumCase).write(CMR_HEARING_LENGTH, new HoursMinutes(150));
+        verify(asylumCase).write(CMR_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
+        verify(asylumCase).write(AsylumCaseFieldDefinition.CMR_HEARING_CHANNEL, cmrHearingChannel);
+        verify(asylumCase).write(AsylumCaseFieldDefinition.CMR_IS_REMOTE_HEARING, YesOrNo.NO);
+        verify(coreCaseDataService).triggerSubmitEvent(CMR_LISTING, CASE_REF, startEventResponse, asylumCase);
     }
 
     @Test
