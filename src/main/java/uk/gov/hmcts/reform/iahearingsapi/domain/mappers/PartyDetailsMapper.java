@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static java.util.Objects.requireNonNullElse;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.NOT_REQUESTED;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.NonLegalRepDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.ApplicantDetailsMapper;
@@ -38,6 +40,7 @@ public class PartyDetailsMapper {
     private LegalRepOrgDetailsMapper legalRepOrgDetailsMapper;
     private RespondentDetailsMapper respondentDetailsMapper;
     private SponsorDetailsMapper sponsorDetailsMapper;
+    private NlrDetailsMapper nlrDetailsMapper;
     private WitnessDetailsMapper witnessDetailsMapper;
     private FinancialConditionSupporterDetailsMapper financialConditionSupporterDetailsMapper;
     private InterpreterDetailsMapper interpreterDetailsMapper;
@@ -66,6 +69,14 @@ public class PartyDetailsMapper {
         if (MapperUtils.hasSponsor(asylumCase)) {
             partyDetails.add(sponsorDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
         }
+        Optional<NonLegalRepDetails> optionalNlrDetails = asylumCase.read(NLR_DETAILS, NonLegalRepDetails.class);
+        optionalNlrDetails.ifPresent(nonLegalRepDetails -> partyDetails.add(nlrDetailsMapper.map(
+            asylumCase,
+            nonLegalRepDetails,
+            caseDataMapper,
+            persistedHearingDetails,
+            event
+        )));
         if (!MapperUtils.isInternalCase(asylumCase)
             && MapperUtils.isRepJourney(asylumCase)
             && !MapperUtils.isChangeOrganisationRequestPresent(asylumCase)) {
