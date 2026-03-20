@@ -344,6 +344,9 @@ public enum AsylumCaseFieldDefinition {
     CURRENT_HEARING_ID(
         "currentHearingId", new TypeReference<String>() {}),
 
+    NLR_DETAILS(
+        "nlrDetails", new TypeReference<NonLegalRepDetails>(){}),
+
     APPELLANT_IN_DETENTION(
         "appellantInDetention", new TypeReference<YesOrNo>(){});
 
