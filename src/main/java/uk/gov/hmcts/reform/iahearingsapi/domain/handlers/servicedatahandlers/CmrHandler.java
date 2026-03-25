@@ -10,6 +10,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_VENUE_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
@@ -29,7 +30,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
@@ -88,6 +88,9 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
                     log.info("cmrRelistingHandler not triggered for hearing " + hearingId);
                 }
             }
+        } else if (isCmrCancelledHearing(serviceData)) {
+            handleCmrCancelled(caseId);
+            log.info("cmrRelistingHandler triggered for hearing " + hearingId);
         } else {
             handleCmrReListing(caseId);
             log.info("cmrRelistingHandler triggered for hearing " + hearingId);
@@ -120,6 +123,16 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
         log.info("Sending `{}` event for case ID `{}`", CMR_RE_LISTING, caseId);
         coreCaseDataService.triggerSubmitEvent(CMR_RE_LISTING, caseId, startEventResponse, asylumCase);
+    }
+
+    private void handleCmrCancelled(String caseId) {
+        StartEventResponse startEventResponseCancelled =
+            coreCaseDataService.startCaseEvent(CMR_HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
+
+        AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponseCancelled);
+
+        log.info("Sending `{}` event for case ID `{}`", CMR_HEARING_CANCELLED, caseId);
+        coreCaseDataService.triggerSubmitEvent(CMR_HEARING_CANCELLED, caseId, startEventResponseCancelled, asylumCase);
     }
 
     private boolean isCmrListedHearing(ServiceData serviceData) {
@@ -163,7 +176,6 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         final HearingCentre newHearingCentre = HandlerUtils.getLocation(hearingChannels, hearingVenueId);
         final DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
 
-        //asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
         asylumCase.write(CMR_HEARING_DATE, newHearingDateTime);
         asylumCase.write(CMR_HEARING_LENGTH, new HoursMinutes(getHearingDuration(serviceData)));
         log.info("getHearingDuration: {}`", getHearingDuration(serviceData));
@@ -185,12 +197,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
             log.info("updateListCaseHearingDetails for Case ID `{}` serviceData contains '{}", caseId, serviceData);
 
             asylumCase.write(AsylumCaseFieldDefinition.CMR_HEARING_CENTRE_ADDRESS,
-                             new DynamicList(
-                                 new Value(getHearingVenueId(serviceData),
-                                           getHearingCourtName(serviceData, courtVenues)),
-                                 hearingLocationList.getListItems()
-                             )
-            );
+                             getHearingCourtName(serviceData, courtVenues));
 
             log.info("updateListCaseHearingDetails for Case ID `{}` cmrHearingCentreAddress contains '{}'", caseId,
                      asylumCase.read(AsylumCaseFieldDefinition.CMR_HEARING_CENTRE_ADDRESS).toString());

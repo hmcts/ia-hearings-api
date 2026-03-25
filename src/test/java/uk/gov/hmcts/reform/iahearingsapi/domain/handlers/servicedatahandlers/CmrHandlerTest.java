@@ -10,12 +10,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
@@ -173,6 +174,10 @@ class CmrHandlerTest {
 
         cmrHandler.handle(serviceData);
 
+        verify(coreCaseDataService).triggerSubmitEvent(
+            CMR_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
         verify(asylumCase).write(CMR_HEARING_DATE, "2023-09-29T09:45:00.000");
         verify(asylumCase).write(CMR_HEARING_LENGTH, new HoursMinutes(150));
         verify(asylumCase).write(CMR_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
@@ -270,14 +275,18 @@ class CmrHandlerTest {
 
         verify(coreCaseDataService).triggerSubmitEvent(
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
     }
 
     @Test
-    void should_trigger_cmr_reListed_notification_for_cancelled_cmr() {
+    void should_trigger_cmr_hearing_cancelled_for_cancelled_cmr() {
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.CANCELLED));
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(coreCaseDataService.startCaseEvent(CMR_RE_LISTING, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(CMR_HEARING_CANCELLED, CASE_REF, CASE_TYPE_ASYLUM))
             .thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
@@ -288,8 +297,10 @@ class CmrHandlerTest {
 
         cmrHandler.handle(serviceData);
 
-        verify(coreCaseDataService).triggerSubmitEvent(
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
     }
 
     @Test
@@ -324,5 +335,7 @@ class CmrHandlerTest {
 
         verify(coreCaseDataService, never()).triggerSubmitEvent(
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
     }
 }
