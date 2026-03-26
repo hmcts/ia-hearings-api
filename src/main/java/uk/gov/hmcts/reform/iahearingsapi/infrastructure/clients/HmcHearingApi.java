@@ -33,7 +33,9 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.FeignConfiguratio
 @FeignClient(
     name = "hmc-hearing",
     url = "${hmc.baseUrl}",
-    configuration = {FeignConfiguration.class, DisableHystrixFeignConfiguration.class}
+    configuration = {FeignConfiguration.class},
+    fallback = HmcHearingApiFallback.class
+
 )
 public interface HmcHearingApi {
 

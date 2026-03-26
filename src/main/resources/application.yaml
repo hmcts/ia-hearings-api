@@ -252,26 +252,6 @@ rd-commondata:
   api:
     url: ${REF_DATA_URL:http://localhost:8991}
 
-feign:
-  hystrix:
-    enabled: true
-  client:
-    config:
-      default:
-        connectTimeout: 160000000
-        readTimeout: 160000000
-        loggerLevel: full
-
-
-hystrix:
-  command:
-    default:
-      execution:
-        isolation:
-          thread:
-            timeoutInMilliseconds: 5000
-
-
 #OpenID
 idam:
   baseUrl: ${IDAM_URL:http://127.0.0.1:5000}
@@ -286,6 +266,16 @@ idam:
     username: ${IA_SYSTEM_USERNAME:system-user}
     password: ${IA_SYSTEM_PASSWORD:system-password}
     scope: "openid profile authorities acr roles create-user manage-user search-user"
+
+feign:
+  circuitbreaker:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: full
 
 #HMC
 hmc:
@@ -352,3 +342,4 @@ flags:
 
 pactbroker:
   url: ${PACT_BROKER_FULL_URL:http://localhost:80}
+

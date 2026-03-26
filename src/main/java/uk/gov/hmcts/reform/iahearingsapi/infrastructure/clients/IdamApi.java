@@ -16,7 +16,8 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.FeignConfiguratio
 @FeignClient(
     name = "idam-api",
     url = "${idam.baseUrl}",
-    configuration = {FeignConfiguration.class, DisableHystrixFeignConfiguration.class}
+    configuration = {FeignConfiguration.class},
+    fallback = IdamApiFallback.class
 )
 public interface IdamApi {
 
