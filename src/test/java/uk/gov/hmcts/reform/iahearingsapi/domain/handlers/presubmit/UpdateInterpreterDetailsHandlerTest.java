@@ -177,7 +177,7 @@ class UpdateInterpreterDetailsHandlerTest {
                 callback
             );
         });
-        assertEquals("Failed to retrieve data from HMC. Error: Failure", thrown.getMessage());
+        assertEquals("Failed call to HMC Hearing service. Error: Failure", thrown.getMessage());
     }
 
     @Test
