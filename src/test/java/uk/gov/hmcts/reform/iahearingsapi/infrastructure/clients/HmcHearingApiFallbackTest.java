@@ -14,11 +14,13 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHea
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class HmcHearingApiFallbackTest {
 
     private HmcHearingApiFallback hmcHearingApiFallback;
+
     @BeforeEach
     void setUp() {
         hmcHearingApiFallback = new HmcHearingApiFallback();
@@ -27,7 +29,7 @@ class HmcHearingApiFallbackTest {
     @Test
     void createHearingRequest_throws_runtimeException() {
         CreateHearingRequest someRequest = new CreateHearingRequest();
-        RuntimeException e = assertThrows(RuntimeException.class, () ->hmcHearingApiFallback.createHearingRequest(
+        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.createHearingRequest(
             "auth", "serviceAuth", "ID",
             "URL","role", someRequest)
         );
@@ -36,7 +38,7 @@ class HmcHearingApiFallbackTest {
 
     @Test
     void getHearingRequest_throws_runtimeException() {
-        RuntimeException e = assertThrows(RuntimeException.class, () ->hmcHearingApiFallback.getHearingRequest(
+        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.getHearingRequest(
             "auth","serviceAuth", "ID", "URL", "roleUrl","ID", true
         ));
         assertEquals("HMC Hearing service: getHearingRequest call failed after retries", e.getMessage());
@@ -46,7 +48,7 @@ class HmcHearingApiFallbackTest {
 
     @Test
     void getHearingsRequest_throws_runtimeException() {
-        RuntimeException e = assertThrows(RuntimeException.class, () ->hmcHearingApiFallback.getHearingsRequest(
+        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.getHearingsRequest(
             "auth", "serviceAuth","URL","role","depID", "ID"));
         assertEquals("HMC Hearing service: getHearingsRequest call failed after retries", e.getMessage());
     }
@@ -54,7 +56,7 @@ class HmcHearingApiFallbackTest {
     @Test
     void updateHearingRequest_throws_runtimeException() {
         UpdateHearingRequest someRequest = new UpdateHearingRequest();
-        RuntimeException e = assertThrows(RuntimeException.class, () ->hmcHearingApiFallback.updateHearingRequest(
+        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.updateHearingRequest(
             "auth", "serviceAuth","URL","role","depID", someRequest, "id"));
         assertEquals("HMC Hearing service: updateHearingRequest call failed after retries", e.getMessage());
     }
@@ -70,7 +72,8 @@ class HmcHearingApiFallbackTest {
     void updatePartiesNotifiedRequest_throws_runtimeException() {
         PartiesNotified parties =  new PartiesNotified();
         LocalDateTime now = LocalDateTime.now();
-        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.updatePartiesNotifiedRequest(
+        RuntimeException e = assertThrows(RuntimeException.class,
+                                          () -> hmcHearingApiFallback.updatePartiesNotifiedRequest(
             "auth", "serviceAuth","ID","URL","URL", parties, "ID",
             1, now));
         assertEquals("HMC Hearing service: updatePartiesNotifiedRequest call failed after retries", e.getMessage());
@@ -90,7 +93,7 @@ class HmcHearingApiFallbackTest {
     void getUnNotifiedHearings_throws_runtimeException() {
         LocalDateTime now = LocalDateTime.now();
         List<String> status = List.of("status", "status2", "status3");
-        RuntimeException e = assertThrows(RuntimeException.class, () ->hmcHearingApiFallback.getUnNotifiedHearings(
+        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.getUnNotifiedHearings(
             "auth","service","id","url","url",
             now,now,status,"id"));
         assertEquals("HMC Hearing service: getUnNotifiedHearings call failed after retries", e.getMessage());
