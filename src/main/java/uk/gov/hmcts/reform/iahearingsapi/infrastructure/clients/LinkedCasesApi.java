@@ -14,8 +14,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.FeignConfiguratio
 @FeignClient(
     name = "linked-cases-api",
     url = "${core_case_data.api.url}",
-    configuration = FeignConfiguration.class,
-    fallback = LinkedCasesApiFallback.class
+    configuration = FeignConfiguration.class
 )
 public interface LinkedCasesApi {
 
