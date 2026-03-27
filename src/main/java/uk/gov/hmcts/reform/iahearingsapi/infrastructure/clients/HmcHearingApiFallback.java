@@ -11,6 +11,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHear
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,7 +24,7 @@ public class HmcHearingApiFallback implements HmcHearingApi {
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, CreateHearingRequest hearingPayload) {
-        throw new RuntimeException("HMC Hearing service: createHearingRequest call failed after retries");
+        throw new HmcException("createHearingRequest call failed after retries");
     }
 
     @Override
@@ -30,7 +32,7 @@ public class HmcHearingApiFallback implements HmcHearingApi {
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, String id, Boolean isValid) {
-        throw new RuntimeException("HMC Hearing service: getHearingRequest call failed after retries");
+        throw new HmcException("getHearingRequest call failed after retries");
     }
 
     @Override
@@ -38,7 +40,7 @@ public class HmcHearingApiFallback implements HmcHearingApi {
         String authorisation, String serviceAuthorization,
         String dataStoreUrl, String roleAssignmentUrl,
         String hmctsDeploymentId, String id) {
-        throw new RuntimeException("HMC Hearing service: getHearingsRequest call failed after retries");
+        throw new HmcException("getHearingsRequest call failed after retries");
     }
 
     @Override
@@ -46,7 +48,7 @@ public class HmcHearingApiFallback implements HmcHearingApi {
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, UpdateHearingRequest updateHearingRequest, String id) {
-        throw new RuntimeException("HMC Hearing service: updateHearingRequest call failed after retries");
+        throw new HmcException("updateHearingRequest call failed after retries");
     }
 
     @Override
@@ -54,7 +56,7 @@ public class HmcHearingApiFallback implements HmcHearingApi {
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, String id) {
-        throw new RuntimeException("HMC Hearing service: getPartiesNotifiedRequest call failed after retries");
+        throw new HmcException("getPartiesNotifiedRequest call failed after retries");
     }
 
     @Override
@@ -63,7 +65,7 @@ public class HmcHearingApiFallback implements HmcHearingApi {
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, PartiesNotified partiesNotified,
         String hearingId, long requestVersion, LocalDateTime receivedDateTime) {
-        throw new RuntimeException("HMC Hearing service: updatePartiesNotifiedRequest call failed after retries");
+        throw new HmcException("updatePartiesNotifiedRequest call failed after retries");
     }
 
     @Override
@@ -80,6 +82,6 @@ public class HmcHearingApiFallback implements HmcHearingApi {
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, LocalDateTime hearingStartDateFrom,
         LocalDateTime hearingStartDateTo, List<String> hearingStatus, String serviceId) {
-        throw new RuntimeException("HMC Hearing service: getUnNotifiedHearings call failed after retries");
+        throw new HmcException("getUnNotifiedHearings call failed after retries");
     }
 }

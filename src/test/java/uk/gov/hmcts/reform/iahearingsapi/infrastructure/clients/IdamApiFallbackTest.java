@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.IdamApiException;
+
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,10 +21,10 @@ class IdamApiFallbackTest {
 
     @Test
     void userInfo_shouldThrowRuntimeException() {
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        IdamApiException exception = assertThrows(IdamApiException.class,
                                                   () -> idamApiFallback.userInfo("someToken"));
 
-        assertEquals("IDAM service: userInfo unavailable, call failed after retries",
+        assertEquals(IdamApiException.DEFAULT_MESSAGE + "userInfo unavailable, call failed after retries",
                      exception.getMessage());
     }
 
@@ -30,10 +32,10 @@ class IdamApiFallbackTest {
     void token_shouldThrowRuntimeException() {
         Map<String, String> form = Map.of("grant_type", "password");
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        IdamApiException exception = assertThrows(IdamApiException.class,
                                                   () -> idamApiFallback.token(form));
 
-        assertEquals("IDAM service: token unavailable, call failed after retries",
+        assertEquals(IdamApiException.DEFAULT_MESSAGE + "token form unavailable, call failed after retries",
                      exception.getMessage());
     }
 }

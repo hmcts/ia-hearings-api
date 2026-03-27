@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNot
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,56 +28,61 @@ class HmcHearingApiFallbackTest {
     }
 
     @Test
-    void createHearingRequest_throws_runtimeException() {
+    void createHearingRequest_throws_HmcException() {
         CreateHearingRequest someRequest = new CreateHearingRequest();
-        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.createHearingRequest(
+        HmcException e = assertThrows(
+            HmcException.class, () -> hmcHearingApiFallback.createHearingRequest(
             "auth", "serviceAuth", "ID",
             "URL","role", someRequest)
         );
-        assertEquals("HMC Hearing service: createHearingRequest call failed after retries", e.getMessage());
+        assertEquals(HmcException.MESSAGE_TEMPLATE + "createHearingRequest call failed "
+                         + "after retries", e.getMessage());
     }
 
     @Test
-    void getHearingRequest_throws_runtimeException() {
-        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.getHearingRequest(
+    void getHearingRequest_throws_HmcException() {
+        HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.getHearingRequest(
             "auth","serviceAuth", "ID", "URL", "roleUrl","ID", true
         ));
-        assertEquals("HMC Hearing service: getHearingRequest call failed after retries", e.getMessage());
+        assertEquals(HmcException.MESSAGE_TEMPLATE + "getHearingRequest call failed after retries", e.getMessage());
 
 
     }
 
     @Test
-    void getHearingsRequest_throws_runtimeException() {
-        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.getHearingsRequest(
+    void getHearingsRequest_throws_HmcException() {
+        HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.getHearingsRequest(
             "auth", "serviceAuth","URL","role","depID", "ID"));
-        assertEquals("HMC Hearing service: getHearingsRequest call failed after retries", e.getMessage());
+        assertEquals(HmcException.MESSAGE_TEMPLATE + "getHearingsRequest call failed after retries", e.getMessage());
     }
 
     @Test
-    void updateHearingRequest_throws_runtimeException() {
+    void updateHearingRequest_throws_HmcException() {
         UpdateHearingRequest someRequest = new UpdateHearingRequest();
-        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.updateHearingRequest(
+        HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.updateHearingRequest(
             "auth", "serviceAuth","URL","role","depID", someRequest, "id"));
-        assertEquals("HMC Hearing service: updateHearingRequest call failed after retries", e.getMessage());
+        assertEquals(HmcException.MESSAGE_TEMPLATE + "updateHearingRequest call failed after retries", e.getMessage());
     }
 
     @Test
-    void getPartiesNotifiedRequest_throws_runtimeException() {
-        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.getPartiesNotifiedRequest(
-            "auth", "serviceAuth","URL","role","depID", "id"));
-        assertEquals("HMC Hearing service: getPartiesNotifiedRequest call failed after retries", e.getMessage());
+    void getPartiesNotifiedRequest_throws_HmcException() {
+        HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.getPartiesNotifiedRequest(
+            "auth", "serviceAuth",
+            "URL","role","depID", "id"));
+        assertEquals(HmcException.MESSAGE_TEMPLATE + "getPartiesNotifiedRequest call "
+                         + "failed after retries", e.getMessage());
     }
 
     @Test
-    void updatePartiesNotifiedRequest_throws_runtimeException() {
+    void updatePartiesNotifiedRequest_throws_HmcException() {
         PartiesNotified parties =  new PartiesNotified();
         LocalDateTime now = LocalDateTime.now();
-        RuntimeException e = assertThrows(RuntimeException.class,
+        HmcException e = assertThrows(HmcException.class,
                                           () -> hmcHearingApiFallback.updatePartiesNotifiedRequest(
             "auth", "serviceAuth","ID","URL","URL", parties, "ID",
             1, now));
-        assertEquals("HMC Hearing service: updatePartiesNotifiedRequest call failed after retries", e.getMessage());
+        assertEquals(HmcException.MESSAGE_TEMPLATE + "updatePartiesNotifiedRequest "
+                         + "call failed after retries", e.getMessage());
     }
 
     @Test
@@ -90,12 +96,12 @@ class HmcHearingApiFallbackTest {
     }
 
     @Test
-    void getUnNotifiedHearings_throws_runtimeException() {
+    void getUnNotifiedHearings_throws_HmcException() {
         LocalDateTime now = LocalDateTime.now();
         List<String> status = List.of("status", "status2", "status3");
-        RuntimeException e = assertThrows(RuntimeException.class, () -> hmcHearingApiFallback.getUnNotifiedHearings(
+        HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.getUnNotifiedHearings(
             "auth","service","id","url","url",
             now,now,status,"id"));
-        assertEquals("HMC Hearing service: getUnNotifiedHearings call failed after retries", e.getMessage());
+        assertEquals(HmcException.MESSAGE_TEMPLATE + "getUnNotifiedHearings call failed after retries", e.getMessage());
     }
 }
