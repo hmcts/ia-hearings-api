@@ -15,7 +15,7 @@ public class IdamApiFallback implements IdamApi {
     }
 
     @Override
-    public Token token(Map<String, ?> form){
+    public Token token(Map<String, ?> form) {
         throw new RuntimeException("IDAM service: token unavailable, call failed after retries");
     }
 }

@@ -22,7 +22,7 @@ public class LocationRefDataService {
     private final UserDetails userDetails;
     private final LocationRefDataApi locationRefDataApi;
     private final IdamService idamService;
-//    @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}")
+    //    @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}")
     private final String serviceId;
 
     public LocationRefDataService(
@@ -31,13 +31,14 @@ public class LocationRefDataService {
         LocationRefDataApi locationRefDataApi,
         IdamService idamService,
         @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}") String serviceId
-    ){
+    ) {
         this.authTokenGenerator = authTokenGenerator;
         this.userDetails = userDetails;
         this.locationRefDataApi = locationRefDataApi;
         this.idamService = idamService;
         this.serviceId = serviceId;
     }
+
     public DynamicList getHearingLocationsDynamicList(boolean isServiceUser) {
 
         List<CourtVenue> courtVenues = isServiceUser ? getCourtVenuesAsServiceUser() : getCourtVenues();

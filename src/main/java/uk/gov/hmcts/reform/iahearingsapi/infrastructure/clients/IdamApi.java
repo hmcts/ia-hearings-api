@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 import java.util.Map;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.Token;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.idam.UserInfo;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.DisableHystrixFeignConfiguration;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.FeignConfiguration;
 
 @FeignClient(
