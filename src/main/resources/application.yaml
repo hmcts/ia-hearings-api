@@ -267,7 +267,6 @@ idam:
     password: ${IA_SYSTEM_PASSWORD:system-password}
     scope: "openid profile authorities acr roles create-user manage-user search-user"
 
-
 feign:
   circuitbreaker:
     enabled: true
@@ -277,6 +276,7 @@ feign:
         connectTimeout: 5000
         readTimeout: 10000
         loggerLevel: full
+
 resilience4j:
   circuitbreaker:
     instances:
@@ -296,6 +296,15 @@ resilience4j:
       hmc-hearing:
         maxAttempts: 3
         waitDuration: 1s
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 60s
+    instances:
+      idam-api:
+        timeoutDuration: 10s
+      hmc-hearing:
+        timeoutDuration: 10s
 #HMC
 hmc:
   baseUrl: ${HMC_API_URL:http://127.0.0.1:4561}
