@@ -72,6 +72,7 @@ security:
     - "/swagger-resources/**"
     - "/v3/api-docs/**"
     - "/favicon.ico"
+    - "/actuator/health"
   authorisedRoles:
     - "caseworker-ia"
   roleEventAccess:
