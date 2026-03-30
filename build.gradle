@@ -401,6 +401,9 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
   testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.12.4'
 
+  testImplementation group: 'org.testcontainers', name: 'testcontainers', version: '2.0.2'
+  testImplementation group: 'org.testcontainers', name: 'testcontainers-junit-jupiter', version: '2.0.2'
+
   testImplementation group: 'org.apache.qpid', name: 'qpid-jms-client', version: versions.qpidJmsClient
 
   testImplementation libraries.junit5
