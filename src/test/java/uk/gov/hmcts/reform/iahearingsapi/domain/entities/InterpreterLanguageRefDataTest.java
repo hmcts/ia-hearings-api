@@ -8,7 +8,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 
 @ExtendWith(MockitoExtension.class)
 public class InterpreterLanguageRefDataTest {
@@ -73,5 +76,4 @@ public class InterpreterLanguageRefDataTest {
             MANUAL_LANG_DESCRIPTION_2
         ));
     }
-
 }
