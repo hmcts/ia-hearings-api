@@ -32,14 +32,19 @@ public class FeignResilienceIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        wireMockServer = new WireMockServer(WireMockConfiguration.options().port(9999));
+        wireMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
         wireMockServer.start();
-        com.github.tomakehurst.wiremock.client.WireMock.configureFor("localhost", 9999);
+        com.github.tomakehurst.wiremock.client.WireMock.configureFor("localhost", wireMockServer.port());
+        System.setProperty("idam.baseUrl", "http://localhost:" + wireMockServer.port());
+        System.setProperty("hmc.baseUrl", "http://localhost:" + wireMockServer.port());
+
     }
 
     @AfterEach
     void tearDown() {
         wireMockServer.stop();
+        System.clearProperty("idam.baseUrl");
+        System.clearProperty("hmc.baseUrl");
     }
 
     @Test

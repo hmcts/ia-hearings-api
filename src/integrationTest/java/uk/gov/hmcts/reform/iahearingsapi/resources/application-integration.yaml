@@ -1,8 +1,8 @@
 idam:
-  baseUrl: http://localhost:9999
+  baseUrl: ${idam.baseUrl:http://localhost:9999}
 
 hmc:
-  baseUrl: http://localhost:9999
+  baseUrl: ${hmc.baseUrl:http://localhost:9999}
 
 feign:
   circuitbreaker:
