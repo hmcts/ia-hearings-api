@@ -402,6 +402,7 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
   testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.12.4'
+  testImplementation 'com.github.tomakehurst:wiremock-jre8:2.35.0'
 
   testImplementation group: 'org.apache.qpid', name: 'qpid-jms-client', version: versions.qpidJmsClient
 

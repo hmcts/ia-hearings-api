@@ -289,14 +289,6 @@ resilience4j:
         slidingWindowSize: 10
         failureRateThreshold: 50
         waitDurationInOpenState: 30s
-  retry:
-    instances:
-      idam-api:
-        maxAttempts: 3
-        waitDuration: 1s
-      hmc-hearing:
-        maxAttempts: 3
-        waitDuration: 1s
   timelimiter:
     configs:
       default:
