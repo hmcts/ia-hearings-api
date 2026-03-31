@@ -95,8 +95,7 @@ public class FeignResilienceIntegrationTest {
     void idamApi_circuitBreaker_shouldOpenAfterRepeatedFailures() {
         // stub to always return 500
         stubFor(get(urlEqualTo("/o/userinfo"))
-                    .willReturn(aResponse()
-                                    .withStatus(500)));
+                    .willReturn(aResponse().withStatus(500)));
 
         // fire enough requests to trip the circuit breaker
         // minimumNumberOfCalls is 3 in integration yaml so we need at least 3
@@ -105,14 +104,13 @@ public class FeignResilienceIntegrationTest {
                          () -> idamApi.userInfo("Bearer someToken"));
         }
 
-        // now change wiremock to return 200 - but circuit should still be open
+        //change wiremock to return 200 but circuit should still be open
         stubFor(get(urlEqualTo("/o/userinfo"))
                     .willReturn(aResponse()
                                     .withStatus(200)
                                     .withHeader("Content-Type", "application/json")
                                     .withBody("{}")));
 
-        // this should still fail because circuit is open
         assertThrows(Exception.class,
                      () -> idamApi.userInfo("Bearer someToken"));
     }
