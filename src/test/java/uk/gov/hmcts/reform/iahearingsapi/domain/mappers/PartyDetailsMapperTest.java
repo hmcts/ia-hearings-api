@@ -1,7 +1,10 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.BOOKED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.CANCELLED;
@@ -29,6 +32,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ChangeOrganisationRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.NonLegalRepDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
@@ -71,6 +75,8 @@ class PartyDetailsMapperTest {
     @Mock
     private SponsorDetailsMapper sponsorDetailsMapper;
     @Mock
+    private NlrDetailsMapper nlrDetailsMapper;
+    @Mock
     private WitnessDetailsMapper witnessDetailsMapper;
     @Mock
     private FinancialConditionSupporterDetailsMapper financialConditionSupporterDetailsMapper;
@@ -78,8 +84,6 @@ class PartyDetailsMapperTest {
     private InterpreterDetailsMapper interpreterDetailsMapper;
     @Mock
     private BailInterpreterDetailsMapper bailInterpreterDetailsMapper;
-    @Mock
-    private PartyDetailsModel partyDetailsModel;
     @Mock
     private IndividualDetailsModel individualDetailsModel;
     @Mock
@@ -128,6 +132,7 @@ class PartyDetailsMapperTest {
             legalRepOrgDetailsMapper,
             respondentDetailsMapper,
             sponsorDetailsMapper,
+            nlrDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
             interpreterDetailsMapper,
@@ -181,6 +186,7 @@ class PartyDetailsMapperTest {
             legalRepOrgDetailsMapper,
             respondentDetailsMapper,
             sponsorDetailsMapper,
+            nlrDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
             interpreterDetailsMapper,
@@ -226,6 +232,7 @@ class PartyDetailsMapperTest {
             legalRepOrgDetailsMapper,
             respondentDetailsMapper,
             sponsorDetailsMapper,
+            nlrDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
             interpreterDetailsMapper,
@@ -383,6 +390,7 @@ class PartyDetailsMapperTest {
             legalRepOrgDetailsMapper,
             respondentDetailsMapper,
             sponsorDetailsMapper,
+            nlrDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
             interpreterDetailsMapper,
@@ -391,5 +399,35 @@ class PartyDetailsMapperTest {
 
         assertEquals(7, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper).size());
 
+    }
+
+    @Test
+    void should_map_nlr_details_if_present() {
+        NonLegalRepDetails nonLegalRepDetails = mock(NonLegalRepDetails.class);
+        PartyDetailsModel model = mock(PartyDetailsModel.class);
+        when(asylumCase.read(AsylumCaseFieldDefinition.NLR_DETAILS, NonLegalRepDetails.class))
+            .thenReturn(Optional.of(nonLegalRepDetails));
+        when(nlrDetailsMapper.map(asylumCase, nonLegalRepDetails, caseDataMapper, null, null))
+            .thenReturn(model);
+
+        PartyDetailsMapper mapper = new PartyDetailsMapper(
+            appellantDetailsMapper,
+            applicantDetailsMapper,
+            legalRepDetailsMapper,
+            legalRepOrgDetailsMapper,
+            respondentDetailsMapper,
+            sponsorDetailsMapper,
+            nlrDetailsMapper,
+            witnessDetailsMapper,
+            financialConditionSupporterDetailsMapper,
+            interpreterDetailsMapper,
+            bailInterpreterDetailsMapper
+        );
+
+        List<PartyDetailsModel> partyDetailsModels =
+            mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper);
+        assertEquals(5, partyDetailsModels.size());
+        assertTrue(partyDetailsModels.contains(model));
+        verify(nlrDetailsMapper, times(1)).map(asylumCase, nonLegalRepDetails, caseDataMapper, null, null);
     }
 }

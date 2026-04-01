@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_INSTRUCTIONS_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
@@ -79,6 +80,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
             List.of(UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR, FOREIGN_NATIONAL_OFFENDER));
     }
 
+
     public PriorityType getHearingPriorityType(AsylumCase asylumCase) {
         List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
@@ -88,6 +90,9 @@ public class CaseFlagsToServiceHearingValuesMapper {
             .map(list -> list.stream().map(PartyFlagIdValue::getValue).collect(Collectors.toList()))
             .orElse(Collections.emptyList());
 
+        List<StrategicCaseFlag> nlrCaseFlags = asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .map(List::of).orElse(Collections.emptyList());
+
         List<StrategicCaseFlag> caseFlags = asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
 
@@ -95,9 +100,11 @@ public class CaseFlagsToServiceHearingValuesMapper {
             hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(UNACCOMPANIED_MINOR));
         boolean hasActiveWitnessFlag =
             hasOneOrMoreActiveFlagsOfType(witnessCaseFlags, List.of(UNACCOMPANIED_MINOR));
+        boolean hasActiveNlrFlag =
+            hasOneOrMoreActiveFlagsOfType(nlrCaseFlags, List.of(UNACCOMPANIED_MINOR));
         boolean hasActiveCaseFlag = hasOneOrMoreActiveFlagsOfType(caseFlags, List.of(URGENT_CASE));
 
-        if (hasActiveAppellantFlag || hasActiveWitnessFlag || hasActiveCaseFlag) {
+        if (hasActiveAppellantFlag || hasActiveWitnessFlag || hasActiveNlrFlag || hasActiveCaseFlag) {
             return PriorityType.URGENT;
         }
 
@@ -147,6 +154,11 @@ public class CaseFlagsToServiceHearingValuesMapper {
         if (!appellantFlags.isEmpty()) {
             caseFlags.addAll(appellantFlags);
         }
+        List<StrategicCaseFlag> nlrFlags = asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .map(List::of).orElse(Collections.emptyList());
+        if (!nlrFlags.isEmpty()) {
+            caseFlags.addAll(nlrFlags);
+        }
         Optional<List<PartyFlagIdValue>> flagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
         flagsOptional.ifPresent(witnessFlagIdValues -> {
             List<StrategicCaseFlag> witnessFlags = witnessFlagIdValues
@@ -169,6 +181,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
 
         flags.addAll(getCaseLevelFlags(asylumCase));
         flags.addAll(getAppellantCaseFlags(asylumCase, caseDataMapper));
+        flags.addAll(getNlrCaseFlags(asylumCase, caseDataMapper));
         flags.addAll(getWitnessCaseFlags(asylumCase));
 
         if (!flags.isEmpty()) {
@@ -225,6 +238,16 @@ public class CaseFlagsToServiceHearingValuesMapper {
             .map(flag -> buildCaseFlags(
                 flag.getDetails(),
                 caseDataMapper.getAppellantPartyId(asylumCase),
+                flag.getPartyName()))
+            .orElse(Collections.emptyList());
+    }
+
+    public List<PartyFlagsModel> getNlrCaseFlags(
+        AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
+        return asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .map(flag -> buildCaseFlags(
+                flag.getDetails(),
+                caseDataMapper.getNlrPartyId(asylumCase),
                 flag.getPartyName()))
             .orElse(Collections.emptyList());
     }
