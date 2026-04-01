@@ -2,14 +2,10 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
 
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_LANGUAGE_CATEGORY;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SIGN_LANGUAGE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SPOKEN_LANGUAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_INTERPRETER_SERVICES_NEEDED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
@@ -32,7 +28,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,14 +37,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterLanguageRefData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
@@ -140,33 +133,6 @@ public class SubstantiveHearingEditedHandler extends ListedHearingService implem
         asylumCase.write(CURRENT_HEARING_ID, newHearingId);
 
         return sendUpdate;
-    }
-
-    private boolean isInterpreterNeeded(AsylumCase asylumCase) {
-        boolean isInterpreterServicesNeeded = asylumCase
-            .read(IS_INTERPRETER_SERVICES_NEEDED, YesOrNo.class)
-            .map(yesOrNo -> Objects.equals(yesOrNo, YES))
-            .orElse(false);
-
-        if (isInterpreterServicesNeeded) {
-            Optional<List<String>> languageCategoriesOptional = asylumCase
-                .read(APPELLANT_INTERPRETER_LANGUAGE_CATEGORY);
-            if (languageCategoriesOptional.isPresent()) {
-                Optional<InterpreterLanguageRefData> appellantInterpreterSpokenLanguage =
-                    asylumCase.read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE);
-                Optional<InterpreterLanguageRefData> appellantInterpreterSignLanguage =
-                    asylumCase.read(APPELLANT_INTERPRETER_SIGN_LANGUAGE);
-
-                return appellantInterpreterSpokenLanguage.isPresent()
-                    && appellantInterpreterSpokenLanguage.get().getLanguageRefData() != null
-                    || appellantInterpreterSignLanguage.isPresent()
-                    && appellantInterpreterSignLanguage.get().getLanguageRefData() != null;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
     }
 
     private boolean tryUpdateHearingDateTime(AsylumCase asylumCase, ServiceData serviceData, String hearingId) {
