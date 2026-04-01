@@ -45,12 +45,13 @@ public class SubstantiveHearingCancelledHandler extends ListedHearingService
 
         String caseId = getCaseReference(serviceData);
 
-        StartEventResponse startEventResponse =
-            coreCaseDataService.startCaseEvent(HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
-        AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
         if (nextHearingDateService.enabled()) {
             log.info("Trigger hearing cancelled event for case ID " + caseId);
-            coreCaseDataService.hearingCancelledTask(caseId);
+
+            StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(
+                HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
+
+            AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
             boolean isInterpreterNeeded = isInterpreterNeeded(asylumCase);
             if (isInterpreterNeeded) {
@@ -59,9 +60,13 @@ public class SubstantiveHearingCancelledHandler extends ListedHearingService
             } else {
                 asylumCase.clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
             }
+
+            log.info("Sending `{}`an event for  Case ID `{}`", HEARING_CANCELLED, caseId);
+            coreCaseDataService.triggerSubmitEvent(
+                HEARING_CANCELLED, caseId, startEventResponse, asylumCase);
+
         } else {
             log.info("Next hearing date not enabled for case {}", caseId);
-            asylumCase.clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
         }
 
         return new ServiceDataResponse<>(serviceData);

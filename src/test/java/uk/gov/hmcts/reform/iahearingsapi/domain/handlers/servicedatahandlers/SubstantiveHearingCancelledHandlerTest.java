@@ -122,21 +122,23 @@ class SubstantiveHearingCancelledHandlerTest {
     }
 
     @Test
-    void should_trigger_hearing_cancelled_event() {
+    void should_trigger_submit_event_when_next_hearing_date_enabled() {
         when(nextHearingDateService.enabled()).thenReturn(true);
 
         substantiveHearingCancelledHandler.handle(serviceData);
 
-        verify(coreCaseDataService).hearingCancelledTask(CASE_ID);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            HEARING_CANCELLED, CASE_ID, startEventResponse, asylumCase);
     }
 
     @Test
-    void should_not_trigger_hearing_cancelled_event() {
+    void should_not_trigger_submit_event_when_next_hearing_date_not_enabled() {
         when(nextHearingDateService.enabled()).thenReturn(false);
 
         substantiveHearingCancelledHandler.handle(serviceData);
 
-        verify(coreCaseDataService, never()).hearingCancelledTask(CASE_ID);
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            HEARING_CANCELLED, CASE_ID, startEventResponse, asylumCase);
     }
 
     @Test
@@ -162,13 +164,14 @@ class SubstantiveHearingCancelledHandlerTest {
     }
 
     @Test
-    void should_clear_review_interpreter_task_when_next_hearing_date_not_enabled() {
+    void should_not_interact_with_asylum_case_when_next_hearing_date_not_enabled() {
         when(nextHearingDateService.enabled()).thenReturn(false);
 
         substantiveHearingCancelledHandler.handle(serviceData);
 
+        verify(coreCaseDataService, never()).startCaseEvent(HEARING_CANCELLED, CASE_ID, CASE_TYPE_ASYLUM);
         verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
-        verify(asylumCase).clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
+        verify(asylumCase, never()).clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
     }
 
     @Test
