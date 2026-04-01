@@ -29,10 +29,12 @@ public enum AsylumCaseFieldDefinition {
         "listCaseHearingCentre", new TypeReference<HearingCentre>(){}),
     IS_VIRTUAL_HEARING(
         "isVirtualHearing", new TypeReference<YesOrNo>(){}),
-    APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {
-    }),
+    APPELLANT_LEVEL_FLAGS(
+        "appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {}),
     WITNESS_LEVEL_FLAGS(
         "witnessLevelFlags", new TypeReference<List<PartyFlagIdValue>>() {}),
+    NLR_LEVEL_FLAGS(
+        "nlrLevelFlags", new TypeReference<List<StrategicCaseFlag>>() {}),
     CASE_FLAGS(
         "caseFlags", new TypeReference<StrategicCaseFlag>(){}),
     LEGAL_REP_NAME(
@@ -346,6 +348,9 @@ public enum AsylumCaseFieldDefinition {
 
     NLR_DETAILS(
         "nlrDetails", new TypeReference<NonLegalRepDetails>(){}),
+
+    NLR_PARTY_ID(
+        "nlrPartyId", new TypeReference<String>() {}),
 
     APPELLANT_IN_DETENTION(
         "appellantInDetention", new TypeReference<YesOrNo>(){});
