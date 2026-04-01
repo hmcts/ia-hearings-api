@@ -66,7 +66,7 @@ public class PartyDetailsMapper {
             appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event),
             respondentDetailsMapper.map(asylumCase, caseDataMapper)
         ));
-        if (MapperUtils.hasSponsor(asylumCase)) {
+        if (MapperUtils.hasSponsor(asylumCase) && caseDataMapper.isSponsorPartyIdPresent(asylumCase)) {
             partyDetails.add(sponsorDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
         }
         Optional<NonLegalRepDetails> optionalNlrDetails = asylumCase.read(NLR_DETAILS, NonLegalRepDetails.class);

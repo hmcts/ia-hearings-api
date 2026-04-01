@@ -245,6 +245,10 @@ public class CaseDataToServiceHearingValuesMapper {
             .orElseThrow(() -> new RequiredFieldMissingException("sponsorPartyId is a required field"));
     }
 
+    public boolean isSponsorPartyIdPresent(AsylumCase asylumCase) {
+        return !asylumCase.read(SPONSOR_PARTY_ID, String.class).orElse("").isEmpty();
+    }
+
     public String getNlrPartyId(AsylumCase asylumCase) {
         return asylumCase.read(NLR_PARTY_ID, String.class)
             .orElseThrow(() -> new RequiredFieldMissingException("nlrPartyId is a required field"));
