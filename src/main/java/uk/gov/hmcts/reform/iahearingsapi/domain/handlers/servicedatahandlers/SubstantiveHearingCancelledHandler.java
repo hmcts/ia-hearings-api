@@ -87,7 +87,6 @@ public class SubstantiveHearingCancelledHandler extends ListedHearingService
             Optional<List<String>> languageCategoriesOptional = asylumCase
                 .read(APPELLANT_INTERPRETER_LANGUAGE_CATEGORY);
             if (languageCategoriesOptional.isPresent()) {
-                List<String> languageCategories = languageCategoriesOptional.get();
                 Optional<InterpreterLanguageRefData> appellantInterpreterSpokenLanguage =
                     asylumCase.read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE);
                 Optional<InterpreterLanguageRefData> appellantInterpreterSignLanguage =
