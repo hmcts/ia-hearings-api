@@ -193,9 +193,9 @@ public enum AsylumCaseFieldDefinition {
     IS_SIGN_SERVICES_NEEDED(
         "isSignServicesNeeded", new TypeReference<YesOrNo>(){}),
     APPELLANT_INTERPRETER_SPOKEN_LANGUAGE(
-        "appellantInterpreterSpokenLanguage", new TypeReference<InterpreterBookingStatus>() {}),
+        "appellantInterpreterSpokenLanguage", new TypeReference<InterpreterLanguageRefData>() {}),
     APPELLANT_INTERPRETER_SIGN_LANGUAGE(
-        "appellantInterpreterSignLanguage", new TypeReference<InterpreterBookingStatus>() {}),
+        "appellantInterpreterSignLanguage", new TypeReference<InterpreterLanguageRefData>() {}),
 
     APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS(
         "appellantInterpreterSpokenLanguageBookingStatus", new TypeReference<InterpreterBookingStatus>() {}),
