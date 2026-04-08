@@ -35,7 +35,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 @Slf4j
 @Component
-@Profile("!integration,!functional")
+@Profile("!integration & !functional")
 public class UnNotifiedHearingsProcessor implements Runnable {
 
     private final HmcUpdateDispatcher<ServiceData> dispatcher;
