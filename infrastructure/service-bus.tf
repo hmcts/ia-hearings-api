@@ -1,6 +1,6 @@
 #HMC to hearings API
 module "servicebus-subscription" {
-  source              = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=4.x"
+  source              = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=DTSPO-18682"
   name                = "hmc-ia-subs-to-cft-${var.env}"
   namespace_name      = "hmc-servicebus-${var.env}"
   topic_name          = "hmc-to-cft-${var.env}"
