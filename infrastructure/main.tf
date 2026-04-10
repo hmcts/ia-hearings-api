@@ -1,7 +1,3 @@
-provider "azurerm" {
-  features {}
-}
-
 locals {
   preview_app_service_plan     = "${var.product}-${var.component}-${var.env}"
   non_preview_app_service_plan = "${var.product}-${var.env}"
