@@ -347,6 +347,9 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis'
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.8'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-circuitbreaker-resilience4j', version: '2.1.8'
+
+
 
   implementation group: 'org.springframework', name: 'spring-jms', version: '5.3.31'
   implementation group: 'org.springframework', name: 'spring-messaging', version: '5.3.31'
@@ -400,6 +403,7 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
   testImplementation group: 'org.mockito', name: 'mockito-core', version: '3.12.4'
+  testImplementation 'com.github.tomakehurst:wiremock-jre8:2.35.0'
 
   testImplementation group: 'org.testcontainers', name: 'testcontainers', version: '2.0.2'
   testImplementation group: 'org.testcontainers', name: 'testcontainers-junit-jupiter', version: '2.0.2'
