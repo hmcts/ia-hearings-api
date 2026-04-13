@@ -12,8 +12,6 @@ import org.springframework.jms.annotation.EnableJms;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.ScheduledTaskRunner;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-
 @Slf4j
 @EnableJms
 @EnableScheduling
@@ -35,14 +33,14 @@ public class Application implements CommandLineRunner {
         final var application = new SpringApplication(Application.class);
         final var instance = application.run(args);
 
-        if (isEmpty(System.getenv("TASK_NAME"))) {
+        if (System.getenv("TASK_NAME") != null) {
             instance.close();
         }
     }
 
     @Override
     public void run(String... args) {
-        if (!isEmpty(System.getenv("TASK_NAME"))) {
+        if (System.getenv("TASK_NAME") != null) {
             taskRunner.run(System.getenv("TASK_NAME"));
         }
     }
