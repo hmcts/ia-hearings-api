@@ -1,9 +1,9 @@
 #HMC to hearings API
 module "servicebus-subscription" {
-  source              = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=4.x"
-  name                = "hmc-ia-subs-to-cft-${var.env}"
-  namespace_id        = data.azurerm_servicebus_namespace.hmc_servicebus_namespace.id
-  topic_name          = "hmc-to-cft-${var.env}"
+  source       = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=4.x"
+  name         = "hmc-ia-subs-to-cft-${var.env}"
+  namespace_id = data.azurerm_servicebus_namespace.hmc_servicebus_namespace.id
+  topic_name   = "hmc-to-cft-${var.env}"
 }
 
 # Create a subscription rule for the HMC to IA hearings API
