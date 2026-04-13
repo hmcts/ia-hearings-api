@@ -42,7 +42,7 @@ public class Application implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (isEmpty(System.getenv("TASK_NAME"))) {
+        if (!isEmpty(System.getenv("TASK_NAME"))) {
             taskRunner.run(System.getenv("TASK_NAME"));
         }
     }
