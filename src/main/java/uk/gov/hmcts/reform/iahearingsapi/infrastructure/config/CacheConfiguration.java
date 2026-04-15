@@ -84,7 +84,6 @@ public class CacheConfiguration {
                 .withCacheConfiguration("legalRepATokenCache", tokenCacheConfig)
                 .withCacheConfiguration("caseOfficerTokenCache", tokenCacheConfig)
                 .withCacheConfiguration("citizenTokenCache", tokenCacheConfig)
-                .withCacheConfiguration("systemTokenCache", tokenCacheConfig)
                 .withCacheConfiguration("bailsLegalRepTokenCache", tokenCacheConfig)
                 .build();
 

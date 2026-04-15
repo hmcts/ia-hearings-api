@@ -29,8 +29,6 @@ feign:
         readTimeout: 160000000
 
 spring:
-  cache:
-    cache-names: userInfoCache, accessTokenCache, legalRepATokenCache, caseOfficerTokenCache, citizenTokenCache, systemTokenCache, bailsLegalRepTokenCache, systemUserTokenCache
   security:
     oauth2:
       client:
