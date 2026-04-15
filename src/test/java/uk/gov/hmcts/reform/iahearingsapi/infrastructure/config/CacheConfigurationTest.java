@@ -107,6 +107,14 @@ class CacheConfigurationTest {
         assertThat(result).isInstanceOf(NoOpCacheManager.class);
     }
 
+
+    @Test
+    void redisConnectionFactory_shouldReturnDefaultLettuceFactory_whenUrlIsNull() {
+        RedisConnectionFactory result = cacheConfiguration.redisConnectionFactory(null, ACCESS_KEY);
+
+        assertThat(result).isInstanceOf(LettuceConnectionFactory.class);
+    }
+
     @Test
     void redisConnectionFactory_shouldCreateFactory_withTlsParameter() {
         RedisConnectionFactory result = cacheConfiguration.redisConnectionFactory(
