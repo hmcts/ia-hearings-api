@@ -49,6 +49,7 @@ public class IdamService {
 
     @Cacheable(value = "systemUserTokenCache", key = "'systemUserTokenCache'")
     public String getServiceUserToken() {
+        log.info("Getting token for system user from IDAM.");
         Map<String, String> idamAuthDetails = new ConcurrentHashMap<>();
 
         idamAuthDetails.put("grant_type", "password");
