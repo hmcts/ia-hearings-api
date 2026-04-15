@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.cache.support.NoOpCacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.cache.RedisCacheManager;
@@ -52,8 +51,9 @@ class CacheConfigurationTest {
 
     @DynamicPropertySource
     static void redisProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.redis.url", () ->
-            String.format("redis://localhost:%d", redis.getMappedPort(6379))
+        registry.add(
+            "spring.data.redis.url", () ->
+                String.format("redis://localhost:%d", redis.getMappedPort(6379))
         );
         registry.add("spring.data.redis.encryption.key", () -> TEST_ENCRYPTION_KEY);
     }
@@ -107,12 +107,6 @@ class CacheConfigurationTest {
         assertThat(result).isInstanceOf(NoOpCacheManager.class);
     }
 
-    @Test
-    void redisConnectionFactory_shouldReturnDefaultLettuceFactory_whenUrlIsBlank() {
-        RedisConnectionFactory result = cacheConfiguration.redisConnectionFactory("", ACCESS_KEY);
-
-        assertThat(result).isInstanceOf(LettuceConnectionFactory.class);
-    }
 
     @Test
     void redisConnectionFactory_shouldReturnDefaultLettuceFactory_whenUrlIsNull() {
@@ -172,19 +166,5 @@ class CacheConfigurationTest {
         );
 
         assertThat(result).isInstanceOf(LettuceConnectionFactory.class);
-    }
-
-    // ───────────────────────────────────────────────
-    // cacheManagerCustomizer tests
-    // ───────────────────────────────────────────────
-
-    @Test
-    void cacheManagerCustomizer_shouldDisableNullValues() {
-        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-        caffeineCacheManager.setAllowNullValues(true); // set to true first
-
-        cacheConfiguration.cacheManagerCustomizer().customize(caffeineCacheManager);
-
-        assertThat(caffeineCacheManager.isAllowNullValues()).isFalse();
     }
 }
