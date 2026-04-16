@@ -18,7 +18,8 @@ public class IdamAuthProvider {
     @Value("${idam.redirectUrl}")
     protected String idamRedirectUri;
 
-    protected String userScope = "openid profile roles";
+    @Value("${idam.scope}")
+    protected String userScope;
 
     @Value("${spring.security.oauth2.client.registration.oidc.client-id}")
     protected String idamClientId;
@@ -26,7 +27,8 @@ public class IdamAuthProvider {
     @Value("${spring.security.oauth2.client.registration.oidc.client-secret}")
     protected String idamClientSecret;
 
-    @Autowired private IdamApi idamApi;
+    @Autowired
+    private IdamApi idamApi;
 
     public String getUserToken(String username, String password) {
 
@@ -46,7 +48,7 @@ public class IdamAuthProvider {
         }
     }
 
-    @Cacheable(value = "systemUserTokenCache")
+    @Cacheable(value = "systemUserTokenCache", key = "'systemUserTokenCache'")
     public String getSystemUserToken() {
         return getUserToken(
             System.getenv("IA_SYSTEM_USERNAME"),
@@ -54,7 +56,7 @@ public class IdamAuthProvider {
         );
     }
 
-    @Cacheable(value = "legalRepATokenCache")
+    @Cacheable(value = "legalRepATokenCache", key = "'legalRepATokenCache'")
     public String getLegalRepToken() {
         return getUserToken(
             System.getenv("TEST_LAW_FIRM_ORG_SUCCESS_USERNAME"),
@@ -62,7 +64,7 @@ public class IdamAuthProvider {
         );
     }
 
-    @Cacheable(value = "bailsLegalRepTokenCache")
+    @Cacheable(value = "bailsLegalRepTokenCache", key = "'bailsLegalRepTokenCache'")
     public String getBailsLegalRepToken() {
         return getUserToken(
             System.getenv("TEST_LAW_FIRM_BAILS_USERNAME"),
@@ -70,7 +72,7 @@ public class IdamAuthProvider {
         );
     }
 
-    @Cacheable(value = "caseOfficerTokenCache")
+    @Cacheable(value = "caseOfficerTokenCache", key = "'caseOfficerTokenCache'")
     public String getCaseOfficerToken() {
         return getUserToken(
             System.getenv("TEST_CASEOFFICER_USERNAME"),
@@ -78,7 +80,7 @@ public class IdamAuthProvider {
         );
     }
 
-    @Cacheable(value = "citizenTokenCache")
+    @Cacheable(value = "citizenTokenCache", key = "'citizenTokenCache'")
     public String getCitizenToken() {
         return getUserToken(
             System.getenv("TEST_CITIZEN_USERNAME"),

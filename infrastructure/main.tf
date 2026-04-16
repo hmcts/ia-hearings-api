@@ -1,7 +1,3 @@
-provider "azurerm" {
-  features {}
-}
-
 locals {
   preview_app_service_plan     = "${var.product}-${var.component}-${var.env}"
   non_preview_app_service_plan = "${var.product}-${var.env}"
@@ -16,7 +12,7 @@ locals {
 resource "azurerm_resource_group" "rg" {
   name     = "${var.product}-${var.component}-${var.env}"
   location = var.location
-  tags     = merge(var.common_tags, tomap({"lastUpdated" = "${timestamp()}"}))
+  tags     = merge(var.common_tags, tomap({ "lastUpdated" = "${timestamp()}" }))
 }
 
 data "azurerm_key_vault" "ia_key_vault" {
