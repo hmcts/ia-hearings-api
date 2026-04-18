@@ -59,7 +59,7 @@ public class SendServiceDataToHmcHandler implements ServiceDataHandler<ServiceDa
             log.info("SendServiceDataToHmcHandler updatePartiesNotified hearing id {}, versionNumber {}, "
                 + "receivedDateTime {}.", hearingId, versionNumber.get(), receivedDateTime.get());
 
-            hearingService.updatePartiesNotified(hearingId, versionNumber.get(), receivedDateTime.get(), payload);
+            //hearingService.updatePartiesNotified(hearingId, versionNumber.get(), receivedDateTime.get(), payload);
         } else {
             log.info("Message received for hearing {} will not result in a partiesNotified update because both "
                      + "versionNumber and hearingResponseReceivedDateTime are necessary for the update.", hearingId);
