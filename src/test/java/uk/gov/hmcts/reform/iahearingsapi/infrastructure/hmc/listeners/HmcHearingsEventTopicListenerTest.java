@@ -11,6 +11,10 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.HE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
 import static uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi.HMCTS_DEPLOYMENT_ID;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.qpid.jms.message.JmsBytesMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +25,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.reform.iahearingsapi.TestUtils;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
@@ -30,6 +35,10 @@ import javax.jms.JMSException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 class HmcHearingsEventTopicListenerTest {
@@ -138,7 +147,7 @@ class HmcHearingsEventTopicListenerTest {
         HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, LISTED);
         String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
         String timestamp = Instant.parse("2026-04-14T10:15:30Z").toString();
-        mocksToReadJmsByteMessage(stringMessage);
+        mocksToReadJmsByteMessage(stringMessage, timestamp);
         given(mockJmsBytesMessage.getStringProperty(HMCTS_DEPLOYMENT_ID)).willReturn(null);
         String payloadToSign = hmcHearingsEventTopicListenerWithDeploymentFilterEnabled.buildPayloadToSign(
             stringMessage,
@@ -157,6 +166,32 @@ class HmcHearingsEventTopicListenerTest {
         hmcHearingsEventTopicListenerWithDeploymentFilterEnabled.onMessage(mockJmsBytesMessage);
 
         verify(hmcMessageProcessor, times(1)).processMessage(any(HmcMessage.class));
+    }
+
+    @Test
+    public void logsWarningWhenTimestampOlderThanThirtyMinutes() throws Exception {
+        Logger logger = (Logger) LoggerFactory.getLogger(HmcHearingsEventTopicListener.class);
+        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+        listAppender.start();
+        logger.addAppender(listAppender);
+
+        HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, LISTED);
+        String stringMessage = OBJECT_MAPPER.writeValueAsString(hmcMessage);
+        mocksToReadJmsByteMessage(stringMessage, "2026-01-01T00:00:00Z");
+        given(mockObjectMapper.readValue(any(String.class), eq(HmcMessage.class))).willReturn(hmcMessage);
+
+        hmcHearingsEventTopicListenerWithDeploymentFilterDisabled.onMessage(mockJmsBytesMessage);
+
+        verify(hmcMessageProcessor, times(1)).processMessage(any(HmcMessage.class));
+        List<ILoggingEvent> logs = listAppender.list;
+        assertThat(logs)
+            .anySatisfy(event -> {
+                assertEquals(Level.WARN, event.getLevel());
+                assertEquals("Message hmc-message-1 timestamp is older than PT30M: 2026-01-01T00:00:00Z",
+                    event.getFormattedMessage());
+            });
+
+        logger.detachAndStopAllAppenders();
     }
 
     @Test
@@ -250,8 +285,11 @@ class HmcHearingsEventTopicListenerTest {
     }
 
     private void mocksToReadJmsByteMessage(String stringMessage) throws JMSException {
+        mocksToReadJmsByteMessage(stringMessage, Instant.now().toString());
+    }
+
+    private void mocksToReadJmsByteMessage(String stringMessage, String timestamp) throws JMSException {
         byte[] byteMessage = stringMessage.getBytes(StandardCharsets.UTF_8);
-        String timestamp = Instant.parse("2026-04-14T10:15:30Z").toString();
         String payloadToSign = hmcHearingsEventTopicListenerWithDeploymentFilterDisabled.buildPayloadToSign(
             stringMessage,
             timestamp,
@@ -266,6 +304,7 @@ class HmcHearingsEventTopicListenerTest {
             System.arraycopy(byteMessage, 0, buffer, 0, byteMessage.length);
             return byteMessage.length;
         });
+        lenient().when(mockJmsBytesMessage.getJMSMessageID()).thenReturn("hmc-message-1");
         lenient().when(mockJmsBytesMessage.getStringProperty("hmctsServiceId")).thenReturn(SERVICE_CODE);
         lenient().when(mockJmsBytesMessage.getStringProperty("hearing_id")).thenReturn("testId");
         lenient().when(mockJmsBytesMessage.getStringProperty(HMCTS_DEPLOYMENT_ID)).thenReturn("ia");

@@ -23,6 +23,8 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Base64;
 
 @Slf4j
@@ -42,6 +44,7 @@ public class HmcHearingsEventTopicListener {
     static final String HEADER_SENDER = "X-Sender-Service";
     static final String HEADER_TIMESTAMP = "X-Timestamp";
     static final String EXPECTED_SENDER = "HMC-CFT-Hearing-Service";
+    private static final Duration MESSAGE_AGE_WARNING_THRESHOLD = Duration.ofMinutes(30);
     private static final String HMCTS_DEPLOYMENT_ID = "hmctsDeploymentId";
 
     public HmcHearingsEventTopicListener(
@@ -148,6 +151,8 @@ public class HmcHearingsEventTopicListener {
             throw new SecurityException("Unexpected sender: " + sender);
         }
 
+        warnIfTimestampOlderThanThreshold(message.getJMSMessageID(), timestamp);
+
         if (!StringUtils.hasText(hmiToHmcSigningSecret)) {
             throw new IllegalStateException("hmac.secrets.hmi-to-hmc must be configured");
         }
@@ -202,6 +207,19 @@ public class HmcHearingsEventTopicListener {
             return Base64.getEncoder().encodeToString(rawHmac);
         } catch (Exception e) {
             throw new IllegalStateException("Unable to calculate HMAC-SHA256", e);
+        }
+    }
+
+    private void warnIfTimestampOlderThanThreshold(String messageId, String timestamp) {
+        try {
+            Instant messageTime = Instant.parse(timestamp);
+            Instant now = Instant.now();
+            if (messageTime.isBefore(now.minus(MESSAGE_AGE_WARNING_THRESHOLD))) {
+                log.warn("Message {} timestamp is older than {}: {}", messageId,
+                    MESSAGE_AGE_WARNING_THRESHOLD, timestamp);
+            }
+        } catch (Exception ex) {
+            log.warn("Unable to parse message timestamp for warning check on message {}: {}", messageId, timestamp);
         }
     }
 }
