@@ -60,6 +60,8 @@ java:
         alias: HEARINGS_TOPIC_CONNECTION_STRING
       - name: hmc-servicebus-shared-access-key-tf
         alias: HMC_HEARINGS_TOPIC_ACCESS_KEY
+      - name: hmi-to-hmc-message-signing-key
+        alias: HMI_TO_HMC_SIGNING_SECRET
       - name: ia-redis-connection-string
         alias: IA_REDIS_CONNECTION_STRING
       - name: ia-redis-access-key
