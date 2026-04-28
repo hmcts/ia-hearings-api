@@ -6,7 +6,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
@@ -110,17 +109,9 @@ class SubstantiveHearingCancelledHandlerTest {
         when(coreCaseDataService.getCase(CASE_ID)).thenReturn(asylumCase);
         when(asylumCase.read(NEXT_HEARING_DETAILS, NextHearingDetails.class))
             .thenReturn(Optional.of(nextHearingDetails));
-        when(nextHearingDateService.enabled()).thenReturn(true);
 
         substantiveHearingCancelledHandler.handle(serviceData);
 
         verify(coreCaseDataService).hearingCancelledTask(CASE_ID);
-    }
-
-    @Test
-    void should_not_trigger_hearing_cancelled_event() {
-        when(nextHearingDateService.enabled()).thenReturn(false);
-
-        verify(coreCaseDataService, never()).hearingCancelledTask(CASE_ID);
     }
 }

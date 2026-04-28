@@ -39,12 +39,8 @@ public class SubstantiveHearingCancelledHandler extends ListedHearingService
 
         String caseId = getCaseReference(serviceData);
 
-        if (nextHearingDateService.enabled()) {
-            log.info("Trigger hearing cancelled event for case ID " + caseId);
-            coreCaseDataService.hearingCancelledTask(caseId);
-        } else {
-            log.info("Next hearing date not enabled for case {}", caseId);
-        }
+        log.info("Trigger hearing cancelled event for case ID " + caseId);
+        coreCaseDataService.hearingCancelledTask(caseId);
 
         return new ServiceDataResponse<>(serviceData);
     }
