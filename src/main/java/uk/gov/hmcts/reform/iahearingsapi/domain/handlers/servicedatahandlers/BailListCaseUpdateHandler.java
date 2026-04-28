@@ -9,7 +9,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataField
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPLICATION_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.BAILS_LOCATION_REF_DATA_FEATURE;
 
 import java.util.HashSet;
 import java.util.List;
@@ -98,7 +97,6 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
 
             BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
             updateRelistingBailCaseListing(serviceData, bailCase, serviceDataFieldsWithUpdates,
-                featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false),
                 locationRefDataService.getCourtVenuesAsServiceUser(),
                 locationRefDataService.getHearingLocationsDynamicList(true));
 
