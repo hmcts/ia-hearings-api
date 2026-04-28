@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
@@ -183,7 +182,8 @@ class ListedHearingServiceTest {
         bailCase.write(LISTING_HEARING_DATE, hearingDate);
         bailCase.write(LISTING_LOCATION, REMOTE_HEARING.getValue());
 
-        listedHearingService.updateInitialBailCaseListing(serviceData, bailCase, "caseId", courtVenueList, hearingLocationList);
+        listedHearingService.updateInitialBailCaseListing(serviceData, bailCase, "caseId",
+                                                          courtVenueList, hearingLocationList);
 
         assertEquals(Optional.of(hearingDate), bailCase.read(LISTING_HEARING_DATE));
         assertEquals(Optional.of("60"), bailCase.read(LISTING_HEARING_DURATION));
