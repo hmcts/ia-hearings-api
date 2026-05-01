@@ -29,8 +29,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -75,7 +73,6 @@ class ServiceHearingValuesProviderTest {
 
     private static final String LOCATION_OF_SCREEN_FLOW_FILE_TEST = "classpath:screenFlowTest.json";
     private static final String TRIBUNAL_JUDGE = "84";
-    private static final String BAILS_LOCATION_REF_DATA_FEATURE = "bails-location-reference-data";
     private final String hmctsCaseNameInternal = "Eke Uke";
     private final String caseNameHmctsInternal = "John Doe";
     private final String listingLength = "120";
@@ -266,29 +263,23 @@ class ServiceHearingValuesProviderTest {
         assertEquals(expected, actual);
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {false, true})
-    void should_get_bail_service_hearing_values(boolean bailsLocationRefDataServiceEnabled) {
-
-        when(featureToggler.getValue(BAILS_LOCATION_REF_DATA_FEATURE, false))
-            .thenReturn(bailsLocationRefDataServiceEnabled);
+    @Test
+    void should_get_bail_service_hearing_values() {
 
         ServiceHearingValuesModel expected = buildTestBailServiceHearingValuesModel();
 
-        if (bailsLocationRefDataServiceEnabled) {
-            final String glasgow = "366559";
-            when(bailCase.read(HEARING_CENTRE_REF_DATA, DynamicList.class))
-                .thenReturn(
-                    Optional.of(
-                        new DynamicList(
-                            new Value(glasgow, glasgow),
-                            List.of(new Value(glasgow, glasgow))
-                        )
+        final String glasgow = "366559";
+        when(bailCase.read(HEARING_CENTRE_REF_DATA, DynamicList.class))
+            .thenReturn(
+                Optional.of(
+                    new DynamicList(
+                        new Value(glasgow, glasgow),
+                        List.of(new Value(glasgow, glasgow))
                     )
-                );
+                )
+            );
 
-            expected.setCaseManagementLocationCode(glasgow);
-        }
+        expected.setCaseManagementLocationCode(glasgow);
 
         ServiceHearingValuesModel actual = serviceHearingValuesProvider
             .provideBailServiceHearingValues(bailCase, caseReference);
