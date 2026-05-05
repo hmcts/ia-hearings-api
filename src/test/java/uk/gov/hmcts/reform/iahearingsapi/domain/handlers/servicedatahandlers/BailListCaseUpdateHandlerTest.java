@@ -21,7 +21,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChann
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.COSTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.BAILS_LOCATION_REF_DATA_FEATURE;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -115,7 +114,6 @@ class BailListCaseUpdateHandlerTest {
             .thenReturn(Optional.of(BAIL.getKey()));
         when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.BAIL_SUMMARY_UPLOADED);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(featureToggler.getValueAsServiceUser(BAILS_LOCATION_REF_DATA_FEATURE, false)).thenReturn(false);
 
         List<CourtVenue> courtVenueList = List.of(
             new CourtVenue("Glasgow Tribunals Centre",

@@ -209,7 +209,6 @@ public class ListedHearingService {
     protected void updateInitialBailCaseListing(
         ServiceData serviceData,
         BailCase bailCase,
-        boolean isRefDataLocationEnabled,
         String caseId,
         List<CourtVenue> courtVenues,
         DynamicList hearingLocationList
@@ -225,25 +224,22 @@ public class ListedHearingService {
         log.info("Writing {} {} to bail case {}", CURRENT_HEARING_ID, newHearingId, caseId);
         bailCase.write(CURRENT_HEARING_ID, newHearingId);
 
-        if (isRefDataLocationEnabled) {
-            bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
-            log.info("updateInitialBailCaseListing for Case ID `{}` serviceData contains '{}", caseId, serviceData);
+        bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
+        log.info("updateInitialBailCaseListing for Case ID `{}` serviceData contains '{}", caseId, serviceData);
 
-            bailCase.write(REF_DATA_LISTING_LOCATION,
-                new DynamicList(
-                    new Value(getHearingVenueId(serviceData), getHearingCourtName(serviceData, courtVenues)),
-                    hearingLocationList.getListItems()));
+        bailCase.write(REF_DATA_LISTING_LOCATION,
+            new DynamicList(
+                new Value(getHearingVenueId(serviceData), getHearingCourtName(serviceData, courtVenues)),
+                hearingLocationList.getListItems()));
 
-            log.info("updateInitialBailCaseListing for Case ID `{}` listingLocation contains '{}'", caseId,
-                bailCase.read(REF_DATA_LISTING_LOCATION).toString());
-        }
+        log.info("updateInitialBailCaseListing for Case ID `{}` listingLocation contains '{}'", caseId,
+            bailCase.read(REF_DATA_LISTING_LOCATION).toString());
     }
 
     protected void updateRelistingBailCaseListing(
         ServiceData serviceData,
         BailCase bailCase,
         Set<ServiceDataFieldDefinition> fieldsToUpdate,
-        boolean isRefDataLocationEnabled,
         List<CourtVenue> courtVenues,
         DynamicList hearingLocationList
     ) {
@@ -256,18 +252,16 @@ public class ListedHearingService {
             bailCase.write(LISTING_LOCATION, getHearingCentre(serviceData).getValue());
         }
 
-        if (isRefDataLocationEnabled) {
-            if (fieldsToUpdate.contains(HEARING_VENUE_ID)) {
-                bailCase.write(REF_DATA_LISTING_LOCATION,
-                    new DynamicList(
-                        new Value(getHearingVenueId(serviceData),
-                            getHearingCourtName(serviceData, courtVenues)),
-                        hearingLocationList.getListItems()));
-            }
+        if (fieldsToUpdate.contains(HEARING_VENUE_ID)) {
+            bailCase.write(REF_DATA_LISTING_LOCATION,
+                new DynamicList(
+                    new Value(getHearingVenueId(serviceData),
+                        getHearingCourtName(serviceData, courtVenues)),
+                    hearingLocationList.getListItems()));
+        }
 
-            if (fieldsToUpdate.contains(HEARING_CHANNELS)) {
-                bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
-            }
+        if (fieldsToUpdate.contains(HEARING_CHANNELS)) {
+            bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
         }
 
         if (fieldsToUpdate.contains(DURATION)) {

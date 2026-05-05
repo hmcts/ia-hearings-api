@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.APPLICATION_SUBMITTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_BAIL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.ServiceHearingValuesProvider.BAILS_LOCATION_REF_DATA_FEATURE;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,14 +56,7 @@ public class BailListCaseHandler
         BailCase bailCase = coreCaseDataService.getBailCaseFromStartedEvent(startEventResponse);
         log.info("bailCase for  Case ID `{}` contains '{}'", caseId, bailCase.toString());
 
-        boolean isBailsLocationRefDataEnabled = false;
-
-        isBailsLocationRefDataEnabled = featureToggler.getValueAsServiceUser(
-            BAILS_LOCATION_REF_DATA_FEATURE, false);
-
-        log.info("isBailsLocationRefDataEnabled value is " + isBailsLocationRefDataEnabled);
-
-        updateInitialBailCaseListing(serviceData, bailCase, isBailsLocationRefDataEnabled, caseId,
+        updateInitialBailCaseListing(serviceData, bailCase, caseId,
             locationRefDataService.getCourtVenuesAsServiceUser(),
             locationRefDataService.getHearingLocationsDynamicList(true));
 
