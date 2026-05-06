@@ -32,12 +32,12 @@ public class HearingsToDynamicListMapper {
         return switch (caseHearing.getHmcStatus()) {
             case AWAITING_LISTING ->
                 caseHearing.getHearingTypeDescription()
-                + " (Waiting to be listed)";
+                    + " (Waiting to be listed)";
             case LISTED, AWAITING_ACTUALS ->
                 getListedAndAwaitingHearingDetailsDescription(caseHearing);
             case UPDATE_SUBMITTED ->
                 caseHearing.getHearingTypeDescription()
-                + " (Update requested)";
+                    + " (Update requested)";
             default -> null;
         };
     }
