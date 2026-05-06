@@ -164,9 +164,9 @@ public class HearingService {
 
             List<CaseLinkDetails> linkDetails = caseLinkInfo.getLinkDetails();
 
-            if (!linkDetails.isEmpty() && !linkDetails.get(0).getReasons().isEmpty()) {
+            if (!linkDetails.isEmpty() && !linkDetails.getFirst().getReasons().isEmpty()) {
 
-                CaseLinkDetails caseLinkDetails = linkDetails.get(0);
+                CaseLinkDetails caseLinkDetails = linkDetails.getFirst();
 
                 List<String> reasonList =
                     caseLinkDetails.getReasons().stream()

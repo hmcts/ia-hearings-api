@@ -80,10 +80,10 @@ public class LinkedCasesApiConsumerTest {
 
         assertNotNull(getLinkedCasesResponse);
 
-        final CaseLinkInfo caseLinkInfo = getLinkedCasesResponse.getLinkedCases().get(0);
-        final CaseLinkDetails caseLinkDetails = caseLinkInfo.getLinkDetails().get(0);
+        final CaseLinkInfo caseLinkInfo = getLinkedCasesResponse.getLinkedCases().getFirst();
+        final CaseLinkDetails caseLinkDetails = caseLinkInfo.getLinkDetails().getFirst();
         final LocalDateTime createdDateTime = caseLinkDetails.getCreatedDateTime();
-        final Reason reason = caseLinkDetails.getReasons().get(0);
+        final Reason reason = caseLinkDetails.getReasons().getFirst();
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
         assertFalse(getLinkedCasesResponse.isHasMoreRecords());

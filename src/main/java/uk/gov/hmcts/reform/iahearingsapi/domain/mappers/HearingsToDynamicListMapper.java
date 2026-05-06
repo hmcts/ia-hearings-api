@@ -49,7 +49,7 @@ public class HearingsToDynamicListMapper {
                    + (caseHearing.getHmcStatus() == AWAITING_ACTUALS ? " (Awaiting hearing details)" : " (Listed)")
                    + " - " + HearingsUtils.convertToLocalStringFormat(convertFromUTC(caseHearing
                                                                                  .getHearingDaySchedule()
-                                                                                 .get(0)
+                                                                                 .getFirst()
                                                                                  .getHearingStartDateTime()));
         } else {
             return null;

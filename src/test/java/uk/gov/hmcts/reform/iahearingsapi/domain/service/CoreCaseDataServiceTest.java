@@ -231,8 +231,8 @@ public class CoreCaseDataServiceTest {
         assertEquals(caseDetails, actualCaseDetails);
         List<ILoggingEvent> logEvents = listAppender.list;
         assertTrue(logEvents.size() >= 2);
-        ILoggingEvent firstLogEvent = logEvents.get(0);
-        ILoggingEvent lastLogEvent = logEvents.get(logEvents.size() - 1);
+        ILoggingEvent firstLogEvent = logEvents.getFirst();
+        ILoggingEvent lastLogEvent = logEvents.getLast();
         assertEquals(Level.INFO, firstLogEvent.getLevel());
         assertEquals("Case details found for the caseId: 123456789", firstLogEvent.getFormattedMessage());
         assertEquals(Level.INFO, lastLogEvent.getLevel());
@@ -278,8 +278,8 @@ public class CoreCaseDataServiceTest {
         assertEquals(caseDetails, actualCaseDetails);
         List<ILoggingEvent> logEvents = listAppender.list;
         assertTrue(logEvents.size() >= 2);
-        ILoggingEvent firstLogEvent = logEvents.get(0);
-        ILoggingEvent lastLogEvent = logEvents.get(logEvents.size() - 1);
+        ILoggingEvent firstLogEvent = logEvents.getFirst();
+        ILoggingEvent lastLogEvent = logEvents.getLast();
         assertEquals(Level.INFO, firstLogEvent.getLevel());
         assertEquals("Case details found for the caseId: 123456789", firstLogEvent.getFormattedMessage());
         assertEquals(Level.INFO, lastLogEvent.getLevel());
@@ -320,7 +320,7 @@ public class CoreCaseDataServiceTest {
         assertEquals("Case 123456789 not found", exception.getMessage());
         List<ILoggingEvent> logEvents = listAppender.list;
         assertEquals(1, logEvents.size());
-        ILoggingEvent lastLogEvent = logEvents.get(0);
+        ILoggingEvent lastLogEvent = logEvents.getFirst();
         assertEquals(Level.ERROR, lastLogEvent.getLevel());
         assertEquals(
             "Case 123456789 not found",
@@ -346,7 +346,7 @@ public class CoreCaseDataServiceTest {
         assertEquals("Case 123456789 not found", exception.getMessage());
         List<ILoggingEvent> logEvents = listAppender.list;
         assertEquals(2, logEvents.size());
-        ILoggingEvent firstLogEvent = logEvents.get(0);
+        ILoggingEvent firstLogEvent = logEvents.getFirst();
         ILoggingEvent lastLogEvent = logEvents.get(1);
         assertEquals(Level.ERROR, firstLogEvent.getLevel());
         assertEquals(
@@ -467,7 +467,7 @@ public class CoreCaseDataServiceTest {
         assertEquals("some error message", exception.getMessage());
         List<ILoggingEvent> logEvents = listAppender.list;
         assertEquals(1, logEvents.size());
-        ILoggingEvent firstLogEvent = logEvents.get(0);
+        ILoggingEvent firstLogEvent = logEvents.getFirst();
         assertEquals(Level.ERROR, firstLogEvent.getLevel());
         assertEquals(
             "Unauthorized access to getCaseById: some error message",
@@ -497,7 +497,7 @@ public class CoreCaseDataServiceTest {
         assertEquals("some error message", exception.getMessage());
         List<ILoggingEvent> logEvents = listAppender.list;
         assertEquals(1, logEvents.size());
-        ILoggingEvent firstLogEvent = logEvents.get(0);
+        ILoggingEvent firstLogEvent = logEvents.getFirst();
         assertEquals(Level.ERROR, firstLogEvent.getLevel());
         assertEquals(
             "Unauthorized access to getCaseById: some error message",
@@ -528,7 +528,7 @@ public class CoreCaseDataServiceTest {
         assertEquals("some error message", exception.getMessage());
         List<ILoggingEvent> logEvents = listAppender.list;
         assertEquals(1, logEvents.size());
-        ILoggingEvent firstLogEvent = logEvents.get(0);
+        ILoggingEvent firstLogEvent = logEvents.getFirst();
         assertEquals(Level.ERROR, firstLogEvent.getLevel());
         assertEquals(
             "Unauthorized access to getCaseById: some error message",

@@ -53,7 +53,7 @@ class InterpreterDetailsMapperTest {
 
         assertEquals(2, partyDetailsList.size());
 
-        PartyDetailsModel partyDetails1 = partyDetailsList.get(0);
+        PartyDetailsModel partyDetails1 = partyDetailsList.getFirst();
         assertEquals("INTP1", partyDetails1.getPartyID());
         assertEquals("IND", partyDetails1.getPartyType());
         assertEquals("INTP", partyDetails1.getPartyRole());

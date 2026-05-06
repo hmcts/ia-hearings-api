@@ -168,7 +168,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
                     .locationId(locationCode)
                     .locationType(persistedHearing
                         .getHearingDetails()
-                        .getHearingLocations().get(0)
+                        .getHearingLocations().getFirst()
                         .getLocationType()).build()))
             .orElseGet(() -> persistedHearing.getHearingDetails().getHearingLocations());
     }

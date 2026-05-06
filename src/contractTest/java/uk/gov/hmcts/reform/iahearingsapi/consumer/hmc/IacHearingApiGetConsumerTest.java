@@ -120,8 +120,8 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
             .jsonPath();
 
         List<Map<String, String>> hearingLinkData = response.get();
-        assertEquals("Case name", hearingLinkData.get(0).get("caseName"));
-        assertEquals(CASE_REFERENCE, hearingLinkData.get(0).get("caseReference"));
+        assertEquals("Case name", hearingLinkData.getFirst().get("caseName"));
+        assertEquals(CASE_REFERENCE, hearingLinkData.getFirst().get("caseReference"));
     }
 
 }

@@ -24,9 +24,9 @@ rewrite {
 //  activeRecipe('org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_2')
 //  activeRecipe('org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3')
 //  activeRecipe('org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_4')
-  activeRecipe('org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5')
-//  activeRecipe('org.openrewrite.java.migrate.UpgradeToJava21')
-//  setExportDatatables(true)
+//  activeRecipe('org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_5')
+  activeRecipe('org.openrewrite.java.migrate.UpgradeToJava21')
+  setExportDatatables(true)
 }
 
 apply plugin: 'java'
@@ -48,7 +48,7 @@ compileTestJava {
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(21)
   }
 }
 
@@ -353,7 +353,7 @@ dependencies {
   implementation group: 'com.google.guava', name: 'guava', version: '32.1.2-jre'
   implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
   implementation group: "jakarta.servlet", name: "jakarta.servlet-api", version: "6.0.0"
-  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.3.0'
+  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.13.2'
 
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
 
@@ -370,14 +370,11 @@ dependencies {
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.14.6'
   implementation group: 'com.azure', name: 'azure-core', version: '1.45.1'
 
-  // TODO delete this after upgrade to java 21
-  implementation group: 'net.bytebuddy', name: 'byte-buddy', version: '1.18.8'
-
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '10.1.54'
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '10.1.54'
 
   implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.0'
-  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '7.0.0'
+  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '8.0.0'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.22.0'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.22.0'
 
