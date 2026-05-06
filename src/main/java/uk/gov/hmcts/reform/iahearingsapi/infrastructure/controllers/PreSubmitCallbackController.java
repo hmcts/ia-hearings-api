@@ -36,7 +36,7 @@ public class PreSubmitCallbackController<T extends CaseData> {
     }
 
     public ResponseEntity<PreSubmitCallbackResponse<T>> ccdAboutToSubmit(
-        Callback<T> callback
+        @NotNull @RequestBody Callback<T> callback
     ) {
         return performStageRequest(PreSubmitCallbackStage.ABOUT_TO_SUBMIT, callback);
     }
