@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.iahearingsapi;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
-import io.pactfoundation.consumer.dsl.LambdaDsl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -33,7 +33,7 @@ public class DataProvider {
     public static final String PORT = "4561";
 
     public static DslPart buildHearingGetResponseDsl() {
-        return LambdaDsl.newJsonBody((body) -> {
+        return newJsonBody((body) -> {
             body
                 .object("requestDetails", (requestDetails) -> {
                     requestDetails.stringType("status", "HEARING_REQUESTED");
@@ -120,18 +120,18 @@ public class DataProvider {
                         partyDetail.object("organisationDetails", (organisationDetails) -> {
                             organisationDetails.stringType("name","Secretary of State");
                             organisationDetails.stringType("organisationType","ORG");
-                            organisationDetails.stringType("cftOrganisationID",null);
+                            organisationDetails.stringType("cftOrganisationID");
                         });
                         partyDetail.object("individualDetails", (individualDetails) -> {
-                            individualDetails.stringType("title", null);
+                            individualDetails.stringType("title");
                             individualDetails.stringType("firstName", "eee");
                             individualDetails.stringType("lastName", "fff");
                             individualDetails.stringType("preferredHearingChannel", "INTER");
-                            individualDetails.stringType("interpreterLanguage", null);
+                            individualDetails.stringType("interpreterLanguage");
                             individualDetails.array("reasonableAdjustments", reasonableAdjustments ->
                                 reasonableAdjustments.stringType(""));
-                            individualDetails.stringType("vulnerableFlag", null);
-                            individualDetails.stringType("vulnerabilityDetails", null);
+                            individualDetails.stringType("vulnerableFlag");
+                            individualDetails.stringType("vulnerabilityDetails");
                             individualDetails.array("hearingChannelEmail", hearingChannelEmail ->
                                 hearingChannelEmail.stringType(""));
                             individualDetails.array("hearingChannelPhone", hearingChannelPhone ->
@@ -173,7 +173,7 @@ public class DataProvider {
     }
 
     public static DslPart buildHearingsGetResponseDsl(String caseRef) {
-        return LambdaDsl.newJsonBody((body) -> {
+        return newJsonBody((body) -> {
             body
                 .stringType("caseRef", caseRef)
                 .array("caseHearings", (caseHearings) ->

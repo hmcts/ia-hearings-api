@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.INTERPRETER_DETAILS;
 

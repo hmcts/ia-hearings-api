@@ -54,7 +54,7 @@ public class CoreCaseDataService {
         } catch (Exception ex) {
             log.error("Case {} not found due to: {}", caseId, ex.getMessage());
         }
-        String errorMessage = String.format("Case %s not found", caseId);
+        String errorMessage = "Case %s not found".formatted(caseId);
         log.error(errorMessage);
         throw new IllegalArgumentException(errorMessage);
     }
@@ -135,7 +135,7 @@ public class CoreCaseDataService {
         } catch (Exception ex) {
             log.error("Case {} not found due to: {}", caseId, ex.getMessage());
         }
-        String errorMessage = String.format("Case %s not found", caseId);
+        String errorMessage = "Case %s not found".formatted(caseId);
         log.error(errorMessage);
         throw new IllegalArgumentException(errorMessage);
     }
@@ -144,7 +144,7 @@ public class CoreCaseDataService {
         return getCaseDetails(caseId).getCaseTypeId();
     }
 
-    private uk.gov.hmcts.reform.ccd.client.model.CaseDetails submitEventForCaseWorker(String userToken,
+    public CaseDetails submitEventForCaseWorker(String userToken,
                                                                                       String s2sToken,
                                                                                       String userId,
                                                                                       String caseId,
@@ -160,7 +160,7 @@ public class CoreCaseDataService {
         if (startEventResponse.getCaseDetails().getLastModified().truncatedTo(ChronoUnit.MILLIS)
             .isAfter(lastModified)) {
             throw new ConcurrentModificationException(
-                String.format("Case with ID %s cannot be updated: case details out of date", caseId));
+                "Case with ID %s cannot be updated: case details out of date".formatted(caseId));
         }
 
         CaseDataContent request = CaseDataContent.builder()
@@ -187,7 +187,7 @@ public class CoreCaseDataService {
         );
     }
 
-    private String getUserToken(Event event, String caseId) {
+    public String getUserToken(Event event, String caseId) {
         String userToken;
         try {
             userToken = idamService.getServiceUserToken();
@@ -199,7 +199,7 @@ public class CoreCaseDataService {
         return userToken;
     }
 
-    private String getS2sToken(Event event, String caseId) {
+    public String getS2sToken(Event event, String caseId) {
         String s2sToken;
         try {
             s2sToken = serviceAuthTokenGenerator.generate();
@@ -211,7 +211,7 @@ public class CoreCaseDataService {
         return s2sToken;
     }
 
-    private String getUid(Event event, String caseId) {
+    public String getUid(Event event, String caseId) {
         String uid;
         try {
             uid = idamService.getUserInfo(idamService.getServiceUserToken()).getUid();
