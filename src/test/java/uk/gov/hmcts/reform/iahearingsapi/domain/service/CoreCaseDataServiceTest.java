@@ -377,7 +377,7 @@ public class CoreCaseDataServiceTest {
             .thenReturn(startEventResponse);
         when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
         when(caseDetails.getLastModified()).thenReturn(now);
-
+        LocalDateTime time = now.minusMinutes(10);
         ConcurrentModificationException exception = assertThrows(
             ConcurrentModificationException.class,
             () -> coreCaseDataService.submitEventForCaseWorker(
@@ -389,7 +389,7 @@ public class CoreCaseDataServiceTest {
                 LIST_CASE,
                 true,
                 EVENT_TOKEN,
-                now.minusMinutes(10),
+                time,
                 CASE_TYPE_ASYLUM
             )
         );
