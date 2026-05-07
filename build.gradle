@@ -404,8 +404,6 @@ tasks.register('runAndPublishConsumerPactTests', Test) {
   classpath = sourceSets.contractTest.runtimeClasspath
 }
 
-runAndPublishConsumerPactTests.finalizedBy pactPublish
-
 pact {
     broker {
         pactBrokerUrl = System.getenv("PACT_BROKER_FULL_URL") ?: 'http://localhost:80'
@@ -416,6 +414,12 @@ pact {
         version = project.pacticipantVersion + '_' + System.nanoTime().toString()
     }
 }
+
+pactPublish {
+  pactPublish = project.pact.publish
+}
+
+runAndPublishConsumerPactTests.finalizedBy pactPublish
 
 tasks.withType(Copy).configureEach { duplicatesStrategy 'exclude' }
 
