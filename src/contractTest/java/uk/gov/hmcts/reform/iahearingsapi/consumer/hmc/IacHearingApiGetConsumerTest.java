@@ -54,7 +54,7 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     }
 
     @Test
-    @PactTestFor(pactMethod = "getHearingServiceValues")
+    @PactTestFor(pactMethod = "getHearingServiceValues", port = "8090")
     public void shouldGetHearingServiceValues(MockServer mockServer) throws JsonProcessingException {
 
         JsonPath response = RestAssured

@@ -39,7 +39,7 @@ public class CoreCaseDataGetCaseConsumerTest extends CcdConsumerTestBase {
     }
 
     @Test
-    @PactTestFor(pactMethod = "getCase", pactVersion = PactSpecVersion.V3)
+    @PactTestFor(pactMethod = "getCase", pactVersion = PactSpecVersion.V4)
     public void verifyGetCase() {
 
         final CaseDetails caseDetails = coreCaseDataApi.getCase(

@@ -5,7 +5,6 @@ import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.Caseflags;
@@ -31,6 +30,8 @@ public class DataProvider {
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String APPLICATION_JSON = "application/json";
     public static final String PORT = "4561";
+    private static final LocalDate FIXED_DATE =
+        LocalDate.parse("2026-05-01");
 
     public static DslPart buildHearingGetResponseDsl() {
         return newJsonBody((body) -> {
@@ -120,18 +121,18 @@ public class DataProvider {
                         partyDetail.object("organisationDetails", (organisationDetails) -> {
                             organisationDetails.stringType("name","Secretary of State");
                             organisationDetails.stringType("organisationType","ORG");
-                            organisationDetails.stringType("cftOrganisationID");
+                            organisationDetails.stringType("cftOrganisationID", "orgId");
                         });
                         partyDetail.object("individualDetails", (individualDetails) -> {
-                            individualDetails.stringType("title");
+                            individualDetails.stringType("title", "aaa");
                             individualDetails.stringType("firstName", "eee");
                             individualDetails.stringType("lastName", "fff");
                             individualDetails.stringType("preferredHearingChannel", "INTER");
-                            individualDetails.stringType("interpreterLanguage");
+                            individualDetails.stringType("interpreterLanguage", "fff");
                             individualDetails.array("reasonableAdjustments", reasonableAdjustments ->
                                 reasonableAdjustments.stringType(""));
-                            individualDetails.stringType("vulnerableFlag");
-                            individualDetails.stringType("vulnerabilityDetails");
+                            individualDetails.booleanType("vulnerableFlag", true);
+                            individualDetails.stringType("vulnerabilityDetails", "ccc");
                             individualDetails.array("hearingChannelEmail", hearingChannelEmail ->
                                 hearingChannelEmail.stringType(""));
                             individualDetails.array("hearingChannelPhone", hearingChannelPhone ->
@@ -281,8 +282,8 @@ public class DataProvider {
                     .hearingRequestId("hearingRequestId")
                     .hearingGroupRequestId("hearingGroupRequestId")
                     .status("status")
-                    .partiesNotified(LocalDateTime.now())
-                    .timestamp(LocalDateTime.now())
+                    .partiesNotified(FIXED_DATE.atStartOfDay())
+                    .timestamp(FIXED_DATE.atStartOfDay())
                     .versionNumber(1234L)
                     .build())
             .build();
@@ -308,7 +309,7 @@ public class DataProvider {
             .caseDeepLink("caseDeepLink")
             .caserestrictedFlag(false)
             .externalCaseReference("externalCaseReference")
-            .caseSlaStartDate(LocalDate.now().toString())
+            .caseSlaStartDate(FIXED_DATE.toString())
             .caseManagementLocationCode("caseManagementLocationCode")
             .autoListFlag(false)
             .hearingType("hearingType")

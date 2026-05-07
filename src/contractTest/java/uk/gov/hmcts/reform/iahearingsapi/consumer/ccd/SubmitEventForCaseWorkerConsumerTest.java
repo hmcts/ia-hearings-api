@@ -54,7 +54,7 @@ public class SubmitEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
     }
 
     @Test
-    @PactTestFor(pactMethod = "submitEventForCaseWorker", pactVersion = PactSpecVersion.V3)
+    @PactTestFor(pactMethod = "submitEventForCaseWorker", pactVersion = PactSpecVersion.V4)
     public void verifySubmitEventForCaseworker() {
 
         final CaseDetails caseDetails = coreCaseDataApi.submitEventForCaseWorker(

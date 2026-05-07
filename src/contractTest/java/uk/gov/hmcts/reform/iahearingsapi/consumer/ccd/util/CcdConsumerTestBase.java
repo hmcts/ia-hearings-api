@@ -52,9 +52,9 @@ public class CcdConsumerTestBase {
     protected static final String USER_ID = "123456";
     protected static final Long CASE_ID = 1593694526480000L;
     public static final String CASE_CONTENT_TYPE =
-        "application/vnd.uk.gov.hmcts.ccd-data-store-api.case.v2+json;charset=UTF-8";
+        "application/vnd.uk.gov.hmcts.ccd-data-store-api.case.v2+json; charset=UTF-8";
     public static final String CASE_CONTENT_TYPE_EXPRESSION =
-        "application/vnd\\.uk\\.gov\\.hmcts\\.ccd-data-store-api\\.case\\.v2\\+json;charset=UTF-8";
+        "application/vnd\\.uk\\.gov\\.hmcts\\.ccd-data-store-api\\.case\\.v2\\+json;\\s*charset=UTF-8";
 
     protected Map<String, Object> caseDetailsMap;
 

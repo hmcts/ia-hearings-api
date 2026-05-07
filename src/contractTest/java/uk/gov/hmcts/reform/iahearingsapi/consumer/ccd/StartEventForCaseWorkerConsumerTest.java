@@ -50,7 +50,7 @@ public class StartEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
     }
 
     @Test
-    @PactTestFor(pactMethod = "startEventForCaseWorker", pactVersion = PactSpecVersion.V3)
+    @PactTestFor(pactMethod = "startEventForCaseWorker", pactVersion = PactSpecVersion.V4)
     public void verifyStartEventForCaseworker() {
 
         final StartEventResponse startEventResponse = coreCaseDataApi.startEventForCaseWorker(
