@@ -7,7 +7,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PanelRequirementsMo
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 class HearingDetailsTest {
@@ -25,31 +28,31 @@ class HearingDetailsTest {
     }
 
     @Test
-    void shouldReturnInPersonForINTER() {
+    void shouldReturnInPersonForInter() {
         HearingDetails details = HearingDetails.builder().hearingChannels(List.of("INTER")).build();
         assertEquals("In Person", details.getHearingChannelDescription());
     }
 
     @Test
-    void shouldReturnVideoForVID() {
+    void shouldReturnVideoForVid() {
         HearingDetails details = HearingDetails.builder().hearingChannels(List.of("VID")).build();
         assertEquals("Video", details.getHearingChannelDescription());
     }
 
     @Test
-    void shouldReturnTelephoneForTEL() {
+    void shouldReturnTelephoneForTel() {
         HearingDetails details = HearingDetails.builder().hearingChannels(List.of("TEL")).build();
         assertEquals("Telephone", details.getHearingChannelDescription());
     }
 
     @Test
-    void shouldReturnOnThePapersForONPPRS() {
+    void shouldReturnOnThePapersForOnpprs() {
         HearingDetails details = HearingDetails.builder().hearingChannels(List.of("ONPPRS")).build();
         assertEquals("On the Papers", details.getHearingChannelDescription());
     }
 
     @Test
-    void shouldReturnNotInAttendanceForNA() {
+    void shouldReturnNotInAttendanceForNa() {
         HearingDetails details = HearingDetails.builder().hearingChannels(List.of("NA")).build();
         assertEquals("Not in Attendance", details.getHearingChannelDescription());
     }
