@@ -260,9 +260,7 @@ dependencyUpdates {
 }
 
 dependencyCheck {
-  // TODO swap back
-  // suppressionFile = 'https://raw.githubusercontent.com/hmcts/ia-owasp-suppressions/refs/heads/master/ia-hearings-api/suppressions.xml'
-  suppressionFile = 'tempSuppressions.xml'
+  suppressionFile = 'config/owasp/suppressions.xml'
 }
 
 repositories {
