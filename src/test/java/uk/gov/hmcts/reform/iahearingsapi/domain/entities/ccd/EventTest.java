@@ -25,7 +25,8 @@ public class EventTest {
             .toList();
         List<Event> missingEvents = Arrays.stream(Event.values())
             .filter(event -> !eventMappingStrings.contains(event.toString())).toList();
-        assertTrue(missingEvents.isEmpty(), "The following events are missing from the eventMapping method: " + missingEvents);
+        assertTrue(missingEvents.isEmpty(),
+                   "The following events are missing from the eventMapping method: " + missingEvents);
     }
 
     static Stream<Arguments> eventMapping() {
