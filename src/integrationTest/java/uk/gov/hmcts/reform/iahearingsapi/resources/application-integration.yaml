@@ -1,0 +1,37 @@
+idam:
+  baseUrl: ${idam.baseUrl:http://localhost:9999}
+
+hmc:
+  baseUrl: ${hmc.baseUrl:http://localhost:9999}
+
+feign:
+  circuitbreaker:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 1000
+        readTimeout: 2000
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      idam-api:
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+      hmc-hearing:
+        slidingWindowSize: 3
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 60s
+    instances:
+      idam-api:
+        timeoutDuration: 3s
+      hmc-hearing:
+        timeoutDuration: 3s

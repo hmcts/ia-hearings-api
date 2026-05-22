@@ -27,13 +27,14 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHear
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.DisableHystrixFeignConfiguration;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.FeignConfiguration;
 
 @FeignClient(
     name = "hmc-hearing",
     url = "${hmc.baseUrl}",
-    configuration = {FeignConfiguration.class, DisableHystrixFeignConfiguration.class}
+    configuration = {FeignConfiguration.class},
+    fallback = HmcHearingApiFallback.class
+
 )
 public interface HmcHearingApi {
 
