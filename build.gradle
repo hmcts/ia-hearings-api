@@ -293,7 +293,7 @@ dependencyManagement {
     // CVE-2026-33870
     // CVE-2026-33871
     // CVE-2025-67735 - from spring-boot-starter-data-redis@3.5.14
-    mavenBom "io.netty:netty-bom:4.1.133.Final"
+    mavenBom "io.netty:netty-bom:4.2.13.Final"
   }
   dependencies {
     dependencySet(group: 'org.junit.jupiter', version: '5.13.4') {
@@ -308,7 +308,6 @@ dependencyManagement {
       entry 'junit-platform-engine'
       entry 'junit-platform-launcher'
     }
-
 
     dependencySet(group: 'org.mockito', version: '5.23.0') {
       entry 'mockito-core'
