@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerContainerFactory;
+import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
 
@@ -30,7 +31,10 @@ public class HearingsJmsConfig {
         jmsConnectionFactory.setPassword(hmcTopicConnectionParams.getPassword());
         jmsConnectionFactory.setClientID(hmcTopicConnectionParams.getClientId());
         jmsConnectionFactory.setReceiveLocalOnly(true);
-        return jmsConnectionFactory;
+        CachingConnectionFactory cf = new CachingConnectionFactory(jmsConnectionFactory);
+        cf.setCacheConsumers(false);
+        cf.setCacheProducers(true);
+        return cf;
     }
 
     @Bean
