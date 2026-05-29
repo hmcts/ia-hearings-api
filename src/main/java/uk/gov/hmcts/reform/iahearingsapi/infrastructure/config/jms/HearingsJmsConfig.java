@@ -42,6 +42,7 @@ public class HearingsJmsConfig {
         factory.setConnectionFactory(hmcHearingsJmsConnectionFactory);
         factory.setReceiveTimeout(receiveTimeout);
         factory.setSubscriptionDurable(Boolean.TRUE);
+        factory.setSubscriptionShared(Boolean.TRUE);
         factory.setSessionTransacted(Boolean.TRUE);
         factory.setSessionAcknowledgeMode(Session.SESSION_TRANSACTED);
         factory.setPubSubDomain(true);
