@@ -13,6 +13,7 @@ import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerContainerFactory;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.jms.support.destination.DynamicDestinationResolver;
 
 @Slf4j
 @Configuration
@@ -49,7 +50,7 @@ public class HearingsJmsConfig {
         factory.setSessionTransacted(Boolean.TRUE);
         factory.setSessionAcknowledgeMode(Session.SESSION_TRANSACTED);
         factory.setPubSubDomain(true);
-
+        factory.setDestinationResolver(new DynamicDestinationResolver());
         configurer.configure(factory, hmcHearingsJmsConnectionFactory);
         return factory;
     }
