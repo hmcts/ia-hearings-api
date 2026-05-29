@@ -36,6 +36,7 @@ public class HearingsJmsConfig {
     @Bean
     @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
     public JmsListenerContainerFactory<DefaultMessageListenerContainer> hmcHearingsEventTopicContainerFactory(
+
         ConnectionFactory hmcHearingsJmsConnectionFactory,
         DefaultJmsListenerContainerFactoryConfigurer configurer) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
@@ -46,8 +47,6 @@ public class HearingsJmsConfig {
         factory.setSessionAcknowledgeMode(Session.SESSION_TRANSACTED);
         factory.setPubSubDomain(true);
         factory.setDestinationResolver(new DynamicDestinationResolver());
-        factory.setAutoStartup(true);
-        factory.setRecoveryInterval(6000L);
         configurer.configure(factory, hmcHearingsJmsConnectionFactory);
         return factory;
     }
