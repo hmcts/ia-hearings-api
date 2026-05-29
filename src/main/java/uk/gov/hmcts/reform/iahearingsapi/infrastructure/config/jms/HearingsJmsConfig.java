@@ -30,8 +30,10 @@ public class HearingsJmsConfig {
         jmsConnectionFactory.setPassword(hmcTopicConnectionParams.getPassword());
         jmsConnectionFactory.setClientID(hmcTopicConnectionParams.getClientId());
         jmsConnectionFactory.setReceiveLocalOnly(true);
-
-        return new CachingConnectionFactory(jmsConnectionFactory);
+        CachingConnectionFactory cf = new CachingConnectionFactory(jmsConnectionFactory);
+        cf.setCacheConsumers(false);
+        cf.setCacheProducers(true);
+        return cf;
     }
 
     @Bean
@@ -46,6 +48,7 @@ public class HearingsJmsConfig {
         factory.setSubscriptionDurable(Boolean.TRUE);
         factory.setSessionTransacted(Boolean.TRUE);
         factory.setSessionAcknowledgeMode(Session.SESSION_TRANSACTED);
+        factory.setPubSubDomain(true);
 
         configurer.configure(factory, hmcHearingsJmsConnectionFactory);
         return factory;
