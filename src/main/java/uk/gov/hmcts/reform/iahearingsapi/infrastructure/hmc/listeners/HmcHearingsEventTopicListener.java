@@ -49,7 +49,7 @@ public class HmcHearingsEventTopicListener {
     }
 
     @JmsListener(
-        destination = "topic://${azure.service-bus.hmc-to-hearings-api.topicName}",
+        destination = "${azure.service-bus.hmc-to-hearings-api.topicName}",
         subscription = "${azure.service-bus.hmc-to-hearings-api.subscriptionName}",
         containerFactory = "hmcHearingsEventTopicContainerFactory"
     )
