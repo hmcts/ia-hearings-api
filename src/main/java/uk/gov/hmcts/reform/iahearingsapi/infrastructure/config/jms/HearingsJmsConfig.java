@@ -43,6 +43,7 @@ public class HearingsJmsConfig {
     }
 
     @Bean("hmcHearingsJmsTemplate")
+    @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
     public JmsTemplate jmsTemplate(
         @Qualifier("hmcHearingsJmsConnectionFactory") ConnectionFactory jmsConnectionFactory) {
         JmsTemplate returnValue = new JmsTemplate();
