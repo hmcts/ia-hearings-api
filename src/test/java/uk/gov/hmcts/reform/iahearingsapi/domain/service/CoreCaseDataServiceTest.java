@@ -148,8 +148,7 @@ public class CoreCaseDataServiceTest {
         List<ILoggingEvent> logEvents = listAppender.list;
         assertEquals(5, logEvents.size());
         assertEquals(Level.ERROR, logEvents.get(3).getLevel());
-        assertEquals("Case 123456789 not found due to: some error message",
-                     logEvents.get(3).getFormattedMessage());
+        assertEquals("Case 123456789 not found due to: some error message", logEvents.get(3).getFormattedMessage());
         assertEquals(Level.ERROR, logEvents.get(4).getLevel());
         assertEquals("Case 123456789 not found", logEvents.get(4).getFormattedMessage());
     }
@@ -203,8 +202,7 @@ public class CoreCaseDataServiceTest {
         responseLogger.addAppender(listAppender);
         when(coreCaseDataApi.startEventForCaseWorker(any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(startEventResponse);
-        when(coreCaseDataApi.submitEventForCaseWorker(any(), any(), any(), any(), any(), any(),
-                                                      anyBoolean(), any()))
+        when(coreCaseDataApi.submitEventForCaseWorker(any(), any(), any(), any(), any(), any(), anyBoolean(), any()))
             .thenReturn(caseDetails);
         when(startEventResponse.getToken()).thenReturn(EVENT_TOKEN);
         when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
@@ -236,8 +234,7 @@ public class CoreCaseDataServiceTest {
         ILoggingEvent firstLogEvent = logEvents.getFirst();
         ILoggingEvent lastLogEvent = logEvents.getLast();
         assertEquals(Level.INFO, firstLogEvent.getLevel());
-        assertEquals("Case details found for the caseId: 123456789",
-                     firstLogEvent.getFormattedMessage());
+        assertEquals("Case details found for the caseId: 123456789", firstLogEvent.getFormattedMessage());
         assertEquals(Level.INFO, lastLogEvent.getLevel());
         assertEquals(
             "Event listCase triggered for case 123456789, Status: callbackStatus",
