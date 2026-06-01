@@ -35,3 +35,7 @@ resilience4j:
         timeoutDuration: 3s
       hmc-hearing:
         timeoutDuration: 3s
+
+app:
+  cache:
+    enabled: false
