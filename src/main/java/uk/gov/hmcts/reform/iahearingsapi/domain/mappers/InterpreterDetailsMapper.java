@@ -62,7 +62,7 @@ public class InterpreterDetailsMapper {
     }
 
     private static String getOtherReasonableAdjustmentDetails(InterpreterDetails interpreterDetails) {
-        return String.format(ADJUSTMENT_DETAILS_FORMAT, interpreterDetails.getInterpreterBookingRef(),
+        return ADJUSTMENT_DETAILS_FORMAT.formatted(interpreterDetails.getInterpreterBookingRef(),
             interpreterDetails.getInterpreterNote());
     }
 }

@@ -67,7 +67,7 @@ class WitnessDetailsMapperTest {
         when(languageAndAdjustmentsMapper.processAsylumPartyCaseFlags(eq(asylumCase), any(PartyDetailsModel.class)))
             .thenReturn(expectedParty);
 
-        expected.get(0).getIndividualDetails().setOtherReasonableAdjustmentDetails("");
+        expected.getFirst().getIndividualDetails().setOtherReasonableAdjustmentDetails("");
 
         assertEquals(expected, new WitnessDetailsMapper(languageAndAdjustmentsMapper).map(asylumCase,
                                                                                           caseDataMapper,

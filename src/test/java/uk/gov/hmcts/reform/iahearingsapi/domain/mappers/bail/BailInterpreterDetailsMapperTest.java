@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.INTERPRETER_DETAILS;
 
@@ -45,7 +45,7 @@ class BailInterpreterDetailsMapperTest {
 
         assertEquals(2, partyDetailsList.size());
 
-        PartyDetailsModel partyDetails1 = partyDetailsList.get(0);
+        PartyDetailsModel partyDetails1 = partyDetailsList.getFirst();
         assertEquals("INTP1", partyDetails1.getPartyID());
         assertEquals("IND", partyDetails1.getPartyType());
         assertEquals("INTP", partyDetails1.getPartyRole());

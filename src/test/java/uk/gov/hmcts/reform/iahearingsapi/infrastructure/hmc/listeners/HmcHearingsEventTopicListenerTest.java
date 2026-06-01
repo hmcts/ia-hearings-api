@@ -25,7 +25,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.HmcMessageProcessor;
 
-import javax.jms.JMSException;
+import jakarta.jms.JMSException;
 import java.nio.charset.StandardCharsets;
 
 @ExtendWith(MockitoExtension.class)

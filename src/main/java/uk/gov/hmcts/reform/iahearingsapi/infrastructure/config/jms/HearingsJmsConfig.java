@@ -1,17 +1,19 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.jms;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Session;
+import jakarta.jms.ConnectionFactory;
+import javax.net.ssl.SSLContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.qpid.jms.JmsConnectionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerContainerFactory;
 import org.springframework.jms.connection.CachingConnectionFactory;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
 @Slf4j
@@ -21,33 +23,43 @@ public class HearingsJmsConfig {
     @Value("${azure.service-bus.hmc-to-hearings-api.receiveTimeout}")
     private Long receiveTimeout;
 
-    @Bean
+    @Bean("hmcHearingsJmsConnectionFactory")
     @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
-    public ConnectionFactory hmcHearingsJmsConnectionFactory(HmcTopicConnectionParams hmcTopicConnectionParams) {
+    public ConnectionFactory hmcHearingsJmsConnectionFactory(
+        HmcTopicConnectionParams hmcTopicConnectionParams,
+        @Autowired(required = false) final SSLContext jmsSslContext) {
 
-        JmsConnectionFactory jmsConnectionFactory = new JmsConnectionFactory(hmcTopicConnectionParams.getUrlString());
+        JmsConnectionFactory jmsConnectionFactory =
+            new JmsConnectionFactory(hmcTopicConnectionParams.getUrlString());
         jmsConnectionFactory.setUsername(hmcTopicConnectionParams.getUsername());
         jmsConnectionFactory.setPassword(hmcTopicConnectionParams.getPassword());
         jmsConnectionFactory.setClientID(hmcTopicConnectionParams.getClientId());
         jmsConnectionFactory.setReceiveLocalOnly(true);
+        if (jmsSslContext != null) {
+            jmsConnectionFactory.setSslContext(jmsSslContext);
+        }
 
         return new CachingConnectionFactory(jmsConnectionFactory);
     }
 
-    @Bean
+    @Bean("hmcHearingsJmsTemplate")
+    @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
+    public JmsTemplate jmsTemplate(
+        @Qualifier("hmcHearingsJmsConnectionFactory") ConnectionFactory jmsConnectionFactory) {
+        JmsTemplate returnValue = new JmsTemplate();
+        returnValue.setConnectionFactory(jmsConnectionFactory);
+        return returnValue;
+    }
+
+    @Bean("hmcHearingsEventTopicContainerFactory")
     @ConditionalOnProperty("flags.hmc-to-hearings-api.enabled")
     public JmsListenerContainerFactory<DefaultMessageListenerContainer> hmcHearingsEventTopicContainerFactory(
-
-        ConnectionFactory hmcHearingsJmsConnectionFactory,
-        DefaultJmsListenerContainerFactoryConfigurer configurer) {
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(hmcHearingsJmsConnectionFactory);
-        factory.setReceiveTimeout(receiveTimeout);
-        factory.setSubscriptionDurable(Boolean.TRUE);
-        factory.setSessionTransacted(Boolean.TRUE);
-        factory.setSessionAcknowledgeMode(Session.SESSION_TRANSACTED);
-
-        configurer.configure(factory, hmcHearingsJmsConnectionFactory);
-        return factory;
+        @Qualifier("hmcHearingsJmsConnectionFactory") ConnectionFactory connectionFactory) {
+        DefaultJmsListenerContainerFactory returnValue = new DefaultJmsListenerContainerFactory();
+        returnValue.setConnectionFactory(connectionFactory);
+        returnValue.setSubscriptionDurable(Boolean.TRUE);
+        returnValue.setErrorHandler(t -> log.error("Error while processing JMS message", t));
+        returnValue.setExceptionListener(t -> log.error("Exception while processing JMS message", t));
+        return returnValue;
     }
 }
