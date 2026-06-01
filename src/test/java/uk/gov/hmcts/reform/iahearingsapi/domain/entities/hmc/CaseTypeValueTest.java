@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -54,20 +53,20 @@ class CaseTypeValueTest {
     }
 
     @ParameterizedTest
-    @MethodSource("invalidMappings")
-    @DisplayName("Should throw exception for unsupported combinations")
-    void shouldThrowExceptionForInvalidMappings(
+    @MethodSource("fallbackCases")
+    void shouldResolveUsingFallbackLogic(
             AppealType appealType,
             boolean deportation,
             boolean floating,
             boolean virtual,
             boolean detained,
-            boolean stf
+            boolean stf,
+            CaseTypeValue expected
     ) {
 
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> CaseTypeValue.from(
+        assertEquals(
+                expected,
+                CaseTypeValue.from(
                         appealType,
                         deportation,
                         floating,
@@ -78,13 +77,23 @@ class CaseTypeValueTest {
         );
     }
 
-    private static Stream<Arguments> invalidMappings() {
+    private static Stream<Arguments> fallbackCases() {
         return Stream.of(
-                Arguments.of(AppealType.RP, false, false, true, true, true),
-                Arguments.of(AppealType.PA, true, true, false, false, false),
-                Arguments.of(AppealType.EA, true, true, true, false, false),
-                Arguments.of(AppealType.HU, false, false, true, true, true),
-                Arguments.of(AppealType.DC, false, false, true, true, false)
+                Arguments.of(
+                        AppealType.PA,
+                        true, true, true, true, true,
+                        CaseTypeValue.PASTX
+                ),
+                Arguments.of(
+                        AppealType.PA,
+                        true, true, true, true, false,
+                        CaseTypeValue.PADEX
+                ),
+                Arguments.of(
+                        AppealType.PA,
+                        true, true, true, false, false,
+                        CaseTypeValue.PAX
+                )
         );
     }
 }

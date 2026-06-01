@@ -153,21 +153,31 @@ public enum CaseTypeValue {
                 )
         );
 
-        if (result == null) {
-            throw new IllegalArgumentException(
-                    String.format(
-                            "No CaseTypeValue found for %s [deportation=%s, float=%s, virtual=%s, detained=%s, stf=%s]",
-                            appealType,
-                            hasDeportation,
-                            isSuitableToFloat,
-                            isVirtualHearing,
-                            isAppellantInDetention,
-                            isStf24Weeks
-                    )
-            );
+        if (result != null) {
+            return result;
         }
 
-        return result;
+        if (isStf24Weeks) {
+            result = LOOKUP.get(
+                    new Key(appealType, false, false, false, false, true)
+            );
+            if (result != null) {
+                return result;
+            }
+        }
+
+        if (isAppellantInDetention) {
+            result = LOOKUP.get(
+                    new Key(appealType, false, false, false, true, false)
+            );
+            if (result != null) {
+                return result;
+            }
+        }
+
+        return LOOKUP.get(
+                new Key(appealType, false, false, false, false, false)
+        );
     }
 
     public String getValue() {
