@@ -164,13 +164,13 @@ public class CaseFlagsToServiceHearingValuesMapper {
     public Caseflags getCaseFlags(
         AsylumCase asylumCase, String caseReference) {
 
-        Caseflags caseflags = Caseflags.builder().build();
         List<PartyFlagsModel> flags = new ArrayList<>();
 
         flags.addAll(getCaseLevelFlags(asylumCase));
         flags.addAll(getAppellantCaseFlags(asylumCase, caseDataMapper));
         flags.addAll(getWitnessCaseFlags(asylumCase));
 
+        Caseflags caseflags = Caseflags.builder().build();
         if (!flags.isEmpty()) {
             caseflags.setFlags(flags);
             caseflags.setFlagAmendUrl("/cases/case-details/" + caseReference + "#Case%20flags");

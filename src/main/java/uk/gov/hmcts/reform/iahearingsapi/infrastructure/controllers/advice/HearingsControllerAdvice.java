@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.infrastructure.controllers.advice;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.http.HttpStatus;
@@ -24,7 +24,7 @@ public class HearingsControllerAdvice extends ResponseEntityExceptionHandler {
         RequiredFieldMissingException e
     ) {
         ExceptionUtils.printRootCauseStackTrace(e);
-        String errorMessage = String.format("{\"error\": \"%s\"}", e.getMessage());
+        String errorMessage = "{\"error\": \"%s\"}".formatted(e.getMessage());
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 
@@ -37,7 +37,7 @@ public class HearingsControllerAdvice extends ResponseEntityExceptionHandler {
         Exception ex
     ) {
         ExceptionUtils.printRootCauseStackTrace(ex);
-        String errorMessage = String.format("{\"error\": \"%s\"}", ex.getMessage());
+        String errorMessage = "{\"error\": \"%s\"}".formatted(ex.getMessage());
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 
