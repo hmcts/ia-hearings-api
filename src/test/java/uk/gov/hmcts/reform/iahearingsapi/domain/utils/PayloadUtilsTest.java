@@ -51,7 +51,7 @@ public class PayloadUtilsTest {
     @Test
     void number_of_physical_attendees_should_be_0_when_hearing_channel_is_not_in_person() {
 
-        partyDetailsModels.get(0).setIndividualDetails(IndividualDetailsModel.builder()
+        partyDetailsModels.getFirst().setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("ONPPRS").build());
         partyDetailsModels.get(1).setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("ONPPRS").build());
@@ -61,7 +61,7 @@ public class PayloadUtilsTest {
 
     @Test
     void number_of_physical_attendees_should_be_3() {
-        partyDetailsModels.get(0).setIndividualDetails(IndividualDetailsModel.builder()
+        partyDetailsModels.getFirst().setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("INTER").build());
         partyDetailsModels.get(1).setIndividualDetails(IndividualDetailsModel.builder()
                                                      .preferredHearingChannel("INTER").build());
@@ -81,7 +81,7 @@ public class PayloadUtilsTest {
         when(asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class)).thenReturn(Optional.of(isVirtualHearing));
 
         assertEquals(expectedValue.getValue(),
-                     PayloadUtils.getCaseCategoriesValue(asylumCase).get(0).getCategoryValue());
+                     PayloadUtils.getCaseCategoriesValue(asylumCase).getFirst().getCategoryValue());
     }
    
 

@@ -159,7 +159,7 @@ class UnNotifiedHearingsProcessorTest {
         when(hearingService.getUnNotifiedHearings(any(LocalDateTime.class), any()))
             .thenReturn(unNotifiedHearingsResponse);
         when(unNotifiedHearingsResponse.getHearingIds()).thenReturn(List.of(HEARING_ID_1, HEARING_ID_2));
-        when(hearingService.getHearing(HEARING_ID_1)).thenReturn(hearings.get(0));
+        when(hearingService.getHearing(HEARING_ID_1)).thenReturn(hearings.getFirst());
         when(hearingService.getHearing(HEARING_ID_2)).thenReturn(hearings.get(1));
 
         unNotifiedHearingsProcessor.processUnNotifiedHearings();
@@ -167,7 +167,7 @@ class UnNotifiedHearingsProcessorTest {
         ArgumentCaptor<ServiceData> serviceDataArgumentCaptor = ArgumentCaptor.forClass(ServiceData.class);
         verify(dispatcher, times(2)).dispatch(serviceDataArgumentCaptor.capture());
 
-        ServiceData actualServiceData1 = serviceDataArgumentCaptor.getAllValues().get(0);
+        ServiceData actualServiceData1 = serviceDataArgumentCaptor.getAllValues().getFirst();
         ServiceData actualServiceData2 = serviceDataArgumentCaptor.getAllValues().get(1);
 
         assertTrue(actualServiceData1.keySet().containsAll(Set.of(ServiceDataFieldDefinition.HMCTS_SERVICE_CODE.value(),

@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.INTERPRETER_DETAILS;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ class InterpreterDetailsMapperTest {
 
         assertEquals(2, partyDetailsList.size());
 
-        PartyDetailsModel partyDetails1 = partyDetailsList.get(0);
+        PartyDetailsModel partyDetails1 = partyDetailsList.getFirst();
         assertEquals("INTP1", partyDetails1.getPartyID());
         assertEquals("IND", partyDetails1.getPartyType());
         assertEquals("INTP", partyDetails1.getPartyRole());
