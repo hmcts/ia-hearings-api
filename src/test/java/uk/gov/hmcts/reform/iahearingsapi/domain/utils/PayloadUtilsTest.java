@@ -1,15 +1,18 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.utils;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_IN_DETENTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.DEPORTATION_ORDER_OPTIONS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_APPEAL_SUITABLE_TO_FLOAT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_IN_DETENTION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_VIRTUAL_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.STF_24W_CURRENT_STATUS_AUTO_GENERATED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.INTER;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -21,12 +24,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.*;
 
 @ExtendWith(MockitoExtension.class)
 public class PayloadUtilsTest {
@@ -34,412 +35,137 @@ public class PayloadUtilsTest {
     @Mock
     private AsylumCase asylumCase;
 
-    private final List<PartyDetailsModel> partyDetailsModels = Arrays.asList(
-        PartyDetailsModel.builder().build(),
-        PartyDetailsModel.builder().build(),
-        PartyDetailsModel.builder().build(),
-        PartyDetailsModel.builder().build(),
-        PartyDetailsModel.builder().build()
-    );
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("caseTypeScenarios")
+    void shouldBuildCaseCategories(
+            AppealType appealType,
+            boolean deportation,
+            boolean floating,
+            boolean virtual,
+            boolean detained,
+            boolean stf,
+            CaseTypeValue expectedCaseType
+    ) {
 
-    @Test
-    void number_of_physical_attendees_should_be_null() {
+        when(asylumCase.read(APPEAL_TYPE, AppealType.class))
+                .thenReturn(Optional.of(appealType));
 
-        assertNull(PayloadUtils.getNumberOfPhysicalAttendees(partyDetailsModels));
+        when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class))
+                .thenReturn(Optional.of(deportation ? YesOrNo.YES : YesOrNo.NO));
+
+        when(asylumCase.read(IS_APPEAL_SUITABLE_TO_FLOAT, YesOrNo.class))
+                .thenReturn(Optional.of(floating ? YesOrNo.YES : YesOrNo.NO));
+
+        when(asylumCase.read(APPELLANT_IN_DETENTION, YesOrNo.class))
+                .thenReturn(Optional.of(detained ? YesOrNo.YES : YesOrNo.NO));
+
+        when(asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class))
+                .thenReturn(Optional.of(virtual ? YesOrNo.YES : YesOrNo.NO));
+
+        when(asylumCase.read(STF_24W_CURRENT_STATUS_AUTO_GENERATED, YesOrNo.class))
+                .thenReturn(Optional.of(stf ? YesOrNo.YES : YesOrNo.NO));
+
+        List<CaseCategoryModel> result =
+                PayloadUtils.getCaseCategoriesValue(asylumCase);
+
+        assertEquals(2, result.size());
+
+        assertEquals(CategoryType.CASE_TYPE, result.get(0).getCategoryType());
+        assertEquals(expectedCaseType.getValue(), result.get(0).getCategoryValue());
+        assertEquals("", result.get(0).getCategoryParent());
+
+        assertEquals(CategoryType.CASE_SUB_TYPE, result.get(1).getCategoryType());
+        assertEquals(expectedCaseType.getValue(), result.get(1).getCategoryValue());
+        assertEquals(expectedCaseType.getValue(), result.get(1).getCategoryParent());
+    }
+
+    private static Stream<Arguments> caseTypeScenarios() {
+        return Stream.of(
+                Arguments.of(AppealType.PA, false, false, false, false, false, CaseTypeValue.PAX),
+                Arguments.of(AppealType.PA, true, false, false, false, false, CaseTypeValue.PAD),
+                Arguments.of(AppealType.PA, false, true, false, false, false, CaseTypeValue.PAF),
+                Arguments.of(AppealType.PA, false, false, true, false, false, CaseTypeValue.PAV),
+                Arguments.of(AppealType.PA, false, false, false, true, false, CaseTypeValue.PADEX),
+                Arguments.of(AppealType.PA, false, false, false, false, true, CaseTypeValue.PASTX)
+        );
     }
 
     @Test
-    void number_of_physical_attendees_should_be_0_when_hearing_channel_is_not_in_person() {
+    void shouldThrowWhenAppealTypeMissing() {
 
-        partyDetailsModels.get(0).setIndividualDetails(IndividualDetailsModel.builder()
-                                                     .preferredHearingChannel("ONPPRS").build());
-        partyDetailsModels.get(1).setIndividualDetails(IndividualDetailsModel.builder()
-                                                     .preferredHearingChannel("ONPPRS").build());
+        when(asylumCase.read(any(), eq(YesOrNo.class)))
+                .thenReturn(Optional.of(YesOrNo.NO));
 
-        assertEquals(0, PayloadUtils.getNumberOfPhysicalAttendees(partyDetailsModels));
-    }
+        when(asylumCase.read(APPEAL_TYPE, AppealType.class))
+                .thenReturn(Optional.empty());
 
-    @Test
-    void number_of_physical_attendees_should_be_3() {
-        partyDetailsModels.get(0).setIndividualDetails(IndividualDetailsModel.builder()
-                                                     .preferredHearingChannel("INTER").build());
-        partyDetailsModels.get(1).setIndividualDetails(IndividualDetailsModel.builder()
-                                                     .preferredHearingChannel("INTER").build());
-
-        assertEquals(3, PayloadUtils.getNumberOfPhysicalAttendees(partyDetailsModels));
+        assertThrows(
+                RequiredFieldMissingException.class,
+                () -> PayloadUtils.getCaseCategoriesValue(asylumCase)
+        );
     }
 
     @ParameterizedTest
-    @MethodSource("caseTypeValueTestCases")
-    void testGetCaseTypeValue(YesOrNo hasDeportationOrder, YesOrNo isSuitableToFloat, YesOrNo isVirtualHearing,
-                              YesOrNo appellantInDetention, AppealType appealType, CaseTypeValue expectedValue) {
-
-        when(asylumCase.read(DEPORTATION_ORDER_OPTIONS, YesOrNo.class)).thenReturn(Optional.of(hasDeportationOrder));
-        when(asylumCase.read(IS_APPEAL_SUITABLE_TO_FLOAT, YesOrNo.class)).thenReturn(Optional.of(isSuitableToFloat));
-        when(asylumCase.read(APPELLANT_IN_DETENTION, YesOrNo.class)).thenReturn(Optional.of(appellantInDetention));
-        when(asylumCase.read(APPEAL_TYPE, AppealType.class)).thenReturn(Optional.of(appealType));
-        when(asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class)).thenReturn(Optional.of(isVirtualHearing));
-
-        assertEquals(expectedValue.getValue(),
-                     PayloadUtils.getCaseCategoriesValue(asylumCase).get(0).getCategoryValue());
-    }
-   
-
-    private static Stream<Arguments> caseTypeValueTestCases() {
-        return Stream.of(
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.HU,
-                CaseTypeValue.HUD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.EA,
-                CaseTypeValue.EAD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.EU,
-                CaseTypeValue.EUD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.DC,
-                CaseTypeValue.DCD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.PA,
-                CaseTypeValue.PAD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.RP,
-                CaseTypeValue.RPD
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.HU,
-                CaseTypeValue.HUX
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.EA,
-                CaseTypeValue.EAX
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.EU,
-                CaseTypeValue.EUX
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.DC,
-                CaseTypeValue.DCX
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.PA,
-                CaseTypeValue.PAX
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.RP,
-                CaseTypeValue.RPX
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.HU,
-                CaseTypeValue.HUD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.EA,
-                CaseTypeValue.EAD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.EU,
-                CaseTypeValue.EUD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.DC,
-                CaseTypeValue.DCD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.PA,
-                CaseTypeValue.PAD
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.RP,
-                CaseTypeValue.RPD
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.HU,
-                CaseTypeValue.HUF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.EA,
-                CaseTypeValue.EAF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.EU,
-                CaseTypeValue.EUF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.DC,
-                CaseTypeValue.DCF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.PA,
-                CaseTypeValue.PAF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                AppealType.RP,
-                CaseTypeValue.RPF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.HU,
-                CaseTypeValue.HUV
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.EA,
-                CaseTypeValue.EAV
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.EU,
-                CaseTypeValue.EUV
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.PA,
-                CaseTypeValue.PAV
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.HU,
-                CaseTypeValue.HUVF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.EA,
-                CaseTypeValue.EAVF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.EU,
-                CaseTypeValue.EUVF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.YES,
-                YesOrNo.YES,
-                YesOrNo.NO,
-                AppealType.PA,
-                CaseTypeValue.PAVF
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.HU,
-                CaseTypeValue.HUDEX
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.HU,
-                CaseTypeValue.HUDED
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.EA,
-                CaseTypeValue.EADEX
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.EA,
-                CaseTypeValue.EADED
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.EU,
-                CaseTypeValue.EUDEX
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.EU,
-                CaseTypeValue.EUDED
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.DC,
-                CaseTypeValue.DCDEX
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.DC,
-                CaseTypeValue.DCDED
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.PA,
-                CaseTypeValue.PADEX
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.PA,
-                CaseTypeValue.PADED
-            ),
-            Arguments.of(
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.RP,
-                CaseTypeValue.RPDEX
-            ),
-            Arguments.of(
-                YesOrNo.YES,
-                YesOrNo.NO,
-                YesOrNo.NO,
-                YesOrNo.YES,
-                AppealType.RP,
-                CaseTypeValue.RPDED
-            )
-
+    @MethodSource("physicalAttendeeScenarios")
+    void shouldCalculatePhysicalAttendees(
+            List<PartyDetailsModel> parties,
+            Integer expected
+    ) {
+        assertEquals(
+                expected,
+                PayloadUtils.getNumberOfPhysicalAttendees(parties)
         );
+    }
+
+    private static Stream<Arguments> physicalAttendeeScenarios() {
+
+        return Stream.of(
+
+                // no selections
+                Arguments.of(
+                        List.of(party(null)),
+                        null
+                ),
+
+                // one remote attendee
+                Arguments.of(
+                        List.of(party("VIDEO")),
+                        0
+                ),
+
+                // one in person attendee + HO
+                Arguments.of(
+                        List.of(party(INTER.name())),
+                        2
+                ),
+
+                // two in person attendees + HO
+                Arguments.of(
+                        List.of(
+                                party(INTER.name()),
+                                party(INTER.name())
+                        ),
+                        3
+                ),
+
+                // mixed
+                Arguments.of(
+                        List.of(
+                                party(INTER.name()),
+                                party("VIDEO"),
+                                party("TELEPHONE")
+                        ),
+                        2
+                )
+        );
+    }
+
+    private static PartyDetailsModel party(String channel) {
+
+        IndividualDetailsModel individual = IndividualDetailsModel.builder().preferredHearingChannel(channel).build();
+
+        PartyDetailsModel party = PartyDetailsModel.builder().individualDetails(individual).build();
+
+        return party;
     }
 }
