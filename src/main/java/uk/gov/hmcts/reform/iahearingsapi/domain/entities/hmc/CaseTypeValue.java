@@ -191,16 +191,16 @@ public enum CaseTypeValue {
     public boolean hasDeportation() {
         return hasDeportation;
     }
-    public boolean isSuitableToFloat(){
+    public boolean isSuitableToFloat() {
         return isSuitableToFloat;
     }
-    public boolean isVirtualHearing(){
+    public boolean isVirtualHearing() {
         return isVirtualHearing;
     }
-    public boolean isAppellantInDetention(){
+    public boolean isAppellantInDetention() {
         return isAppellantInDetention;
     }
-    public boolean isStf24Weeks(){
+    public boolean isStf24Weeks() {
         return isStf24Weeks;
     }
 

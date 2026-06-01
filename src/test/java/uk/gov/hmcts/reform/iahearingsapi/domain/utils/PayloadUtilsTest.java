@@ -27,7 +27,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.*;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseCategoryModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseTypeValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CategoryType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 
 @ExtendWith(MockitoExtension.class)
 public class PayloadUtilsTest {
