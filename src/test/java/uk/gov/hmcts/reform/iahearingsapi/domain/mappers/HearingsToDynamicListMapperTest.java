@@ -120,7 +120,7 @@ class HearingsToDynamicListMapperTest {
         assertTrue(hearingDescriptions.contains("Substantive (Waiting to be listed)"));
         assertTrue(hearingDescriptions.contains("Substantive (Update requested)"));
         assertTrue(hearingDescriptions.contains("Substantive (Awaiting hearing details) - 21 January 2023"));
-        assertTrue(hearingDescriptions.contains("Substantive (Listed) - 21 January 4023"));;
+        assertTrue(hearingDescriptions.contains("Substantive (Listed) - 21 January 4023"));
     }
 
 }

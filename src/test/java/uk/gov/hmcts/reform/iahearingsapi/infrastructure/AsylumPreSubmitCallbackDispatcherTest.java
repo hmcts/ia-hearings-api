@@ -294,7 +294,7 @@ public class AsylumPreSubmitCallbackDispatcherTest {
 
         assert sortedDispatcher != null;
         assertEquals(2, sortedDispatcher.size());
-        assertEquals(h3, sortedDispatcher.get(0));
+        assertEquals(h3, sortedDispatcher.getFirst());
         assertEquals(h1, sortedDispatcher.get(1));
     }
 }
