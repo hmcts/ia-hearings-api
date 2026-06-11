@@ -22,6 +22,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LOCAL_AUTHORITY_POLICY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_FORMAT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
@@ -242,6 +243,15 @@ public class CaseDataToServiceHearingValuesMapper {
     public String getSponsorPartyId(AsylumCase asylumCase) {
         return asylumCase.read(SPONSOR_PARTY_ID, String.class)
             .orElseThrow(() -> new RequiredFieldMissingException("sponsorPartyId is a required field"));
+    }
+
+    public boolean isSponsorPartyIdPresent(AsylumCase asylumCase) {
+        return !asylumCase.read(SPONSOR_PARTY_ID, String.class).orElse("").isEmpty();
+    }
+
+    public String getNlrPartyId(AsylumCase asylumCase) {
+        return asylumCase.read(NLR_PARTY_ID, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("nlrPartyId is a required field"));
     }
 
     public String getLegalRepCompany(AsylumCase asylumCase) {
