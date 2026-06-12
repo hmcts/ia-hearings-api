@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
@@ -23,7 +26,6 @@ public class Assignment {
     private final String id;
     @Getter
     private final LocalDateTime created;
-    @Getter
     private final List<String> authorisations;
     @Getter
     private final ActorIdType actorIdType;
@@ -40,7 +42,6 @@ public class Assignment {
     @Getter
     private final GrantType grantType;
     private final Boolean readOnly;
-    @Getter
     private final Map<String, String> attributes;
 
     @JsonCreator
@@ -58,7 +59,7 @@ public class Assignment {
                       @JsonProperty("attributes") Map<String, String> attributes) {
         this.id = id;
         this.created = created;
-        this.authorisations = authorisations;
+        this.authorisations = authorisations == null ? new ArrayList<>() : new ArrayList<>(authorisations);
         this.actorIdType = actorIdType;
         this.actorId = actorId;
         this.roleType = roleType;
@@ -67,6 +68,14 @@ public class Assignment {
         this.classification = classification;
         this.grantType = grantType;
         this.readOnly = readOnly;
-        this.attributes = attributes;
+        this.attributes = attributes == null ? new HashMap<>() : new HashMap<>(attributes);
+    }
+
+    public List<String> getAuthorisations() {
+        return authorisations == null ? Collections.emptyList() : Collections.unmodifiableList(authorisations);
+    }
+
+    public Map<String, String> getAttributes() {
+        return attributes == null ? Collections.emptyMap() : Collections.unmodifiableMap(attributes);
     }
 }
