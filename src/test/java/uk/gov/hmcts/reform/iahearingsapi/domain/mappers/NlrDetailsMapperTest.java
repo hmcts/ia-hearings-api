@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.NlrDetailsMapper.NLR_PARTY_ROLE;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +51,7 @@ class NlrDetailsMapperTest {
 
         assertEquals(idamId, actual.getPartyID());
         assertEquals("IND", actual.getPartyType());
-        assertEquals("NLRP", actual.getPartyRole());
+        assertEquals(NLR_PARTY_ROLE, actual.getPartyRole());
         IndividualDetailsModel individualDetails = actual.getIndividualDetails();
         assertEquals(givenNames, individualDetails.getFirstName());
         assertEquals(familyName, individualDetails.getLastName());
@@ -81,7 +82,7 @@ class NlrDetailsMapperTest {
 
         assertEquals(idamId, actual.getPartyID());
         assertEquals("IND", actual.getPartyType());
-        assertEquals("NLRP", actual.getPartyRole());
+        assertEquals(NLR_PARTY_ROLE, actual.getPartyRole());
         IndividualDetailsModel individualDetails = actual.getIndividualDetails();
         assertEquals(givenNames, individualDetails.getFirstName());
         assertEquals(familyName, individualDetails.getLastName());
