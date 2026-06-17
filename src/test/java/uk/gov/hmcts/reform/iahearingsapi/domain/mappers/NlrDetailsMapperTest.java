@@ -3,9 +3,11 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.NlrDetailsMapper.NLR_PARTY_ROLE;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -30,6 +32,15 @@ class NlrDetailsMapperTest {
     private NonLegalRepDetails nlrDetails;
     @Mock
     private Event event;
+    @Mock
+    private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
+
+    private NlrDetailsMapper nlrDetailsMapper;
+
+    @BeforeEach
+    void setUp() {
+        nlrDetailsMapper = new NlrDetailsMapper(languageAndAdjustmentsMapper);
+    }
 
     @Test
     void should_map_correctly_with_phone_number() {
@@ -46,7 +57,7 @@ class NlrDetailsMapperTest {
         when(nlrDetails.getFamilyName()).thenReturn(familyName);
         when(nlrDetails.getPhoneNumber()).thenReturn(phoneNumber);
 
-        PartyDetailsModel actual = new NlrDetailsMapper()
+        PartyDetailsModel actual = nlrDetailsMapper
             .map(asylumCase, nlrDetails, caseDataMapper, persistedHearingDetails, event);
 
         assertEquals(idamId, actual.getPartyID());
@@ -77,7 +88,7 @@ class NlrDetailsMapperTest {
         when(nlrDetails.getFamilyName()).thenReturn(familyName);
         when(nlrDetails.getPhoneNumber()).thenReturn(null);
 
-        PartyDetailsModel actual = new NlrDetailsMapper()
+        PartyDetailsModel actual = nlrDetailsMapper
             .map(asylumCase, nlrDetails, caseDataMapper, persistedHearingDetails, event);
 
         assertEquals(idamId, actual.getPartyID());
@@ -90,5 +101,6 @@ class NlrDetailsMapperTest {
         assertFalse(individualDetails.getHearingChannelEmail().isEmpty());
         assertTrue(individualDetails.getHearingChannelPhone().isEmpty());
         assertEquals(emailAddress, individualDetails.getHearingChannelEmail().get(0));
+        verify(languageAndAdjustmentsMapper).processAsylumPartyCaseFlags(asylumCase, actual);
     }
 }

@@ -6,6 +6,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.FCS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.NlrDetailsMapper.NLR_PARTY_ROLE;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -41,7 +42,6 @@ public class LanguageAndAdjustmentsMapper {
     public static final String INTERPRETER = "Interpreter: ";
     private static final String ACTIVE = "Active";
     private static final String PARTY_ROLE_APPELLANT = "APEL";
-    private static final String PARTY_ROLE_NLR = "NLR";
     private static final String PARTY_ROLE_APPLICANT = "APPL";
     private static final String PARTY_ROLE_WITNESS = "WITN";
     private static final String PARTY_ROLE_FCS = "FINS";
@@ -58,7 +58,7 @@ public class LanguageAndAdjustmentsMapper {
                 caseFlags = getAppellantCaseFlags(asylumCase);
             } else if (Objects.equals(partyRole, PARTY_ROLE_WITNESS)) {
                 caseFlags = getWitnessCaseFlags(asylumCase, partyDetails.getPartyID());
-            } else if (Objects.equals(partyRole, PARTY_ROLE_NLR)) {
+            } else if (Objects.equals(partyRole, NLR_PARTY_ROLE)) {
                 caseFlags = getNlrCaseFlags(asylumCase);
             }
 

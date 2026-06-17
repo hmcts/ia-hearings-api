@@ -80,7 +80,6 @@ public class CaseFlagsToServiceHearingValuesMapper {
             List.of(UNACCEPTABLE_DISRUPTIVE_CUSTOMER_BEHAVIOUR, FOREIGN_NATIONAL_OFFENDER));
     }
 
-
     public PriorityType getHearingPriorityType(AsylumCase asylumCase) {
         List<StrategicCaseFlag> appellantCaseFlags = asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
@@ -90,9 +89,6 @@ public class CaseFlagsToServiceHearingValuesMapper {
             .map(list -> list.stream().map(PartyFlagIdValue::getValue).collect(Collectors.toList()))
             .orElse(Collections.emptyList());
 
-        List<StrategicCaseFlag> nlrCaseFlags = asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class)
-            .map(List::of).orElse(Collections.emptyList());
-
         List<StrategicCaseFlag> caseFlags = asylumCase.read(CASE_FLAGS, StrategicCaseFlag.class)
             .map(List::of).orElse(Collections.emptyList());
 
@@ -100,11 +96,9 @@ public class CaseFlagsToServiceHearingValuesMapper {
             hasOneOrMoreActiveFlagsOfType(appellantCaseFlags, List.of(UNACCOMPANIED_MINOR));
         boolean hasActiveWitnessFlag =
             hasOneOrMoreActiveFlagsOfType(witnessCaseFlags, List.of(UNACCOMPANIED_MINOR));
-        boolean hasActiveNlrFlag =
-            hasOneOrMoreActiveFlagsOfType(nlrCaseFlags, List.of(UNACCOMPANIED_MINOR));
         boolean hasActiveCaseFlag = hasOneOrMoreActiveFlagsOfType(caseFlags, List.of(URGENT_CASE));
 
-        if (hasActiveAppellantFlag || hasActiveWitnessFlag || hasActiveNlrFlag || hasActiveCaseFlag) {
+        if (hasActiveAppellantFlag || hasActiveWitnessFlag || hasActiveCaseFlag) {
             return PriorityType.URGENT;
         }
 
