@@ -3,10 +3,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.Objects.requireNonNull;
 
 public class AddressUk {
 
