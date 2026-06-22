@@ -5,7 +5,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import feign.FeignException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -26,7 +25,6 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityMa
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
 @ControllerAdvice(basePackages = "uk.gov.hmcts.reform.iahearingsapi.infrastructure.controllers")
 @RequestMapping(produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
@@ -40,7 +38,6 @@ public class HearingsControllerAdvice {
         RequiredFieldMissingException ex
     ) {
         ExceptionUtils.printRootCauseStackTrace(ex);
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.REQUIRED_FIELD_MISSING, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.REQUIRED_FIELD_MISSING, request, "Required field is missing: " + ex.getMessage());
@@ -52,7 +49,7 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         IllegalStateException ex
     ) {
-        logAbbreviatedStackTrace(ex);
+        ExceptionUtils.printRootCauseStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.BAD_REQUEST, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.BAD_REQUEST, request, "Invalid application state: " + ex.getMessage());
@@ -64,7 +61,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         IllegalArgumentException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.BAD_REQUEST, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.BAD_REQUEST, request, "Invalid argument: " + ex.getMessage());
@@ -76,7 +72,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         MethodArgumentNotValidException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.VALIDATION_ERROR, request);
 
         List<ErrorResponse.FieldError> fieldErrors = ex.getBindingResult()
@@ -98,7 +93,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         HttpMessageNotReadableException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.BAD_REQUEST, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.BAD_REQUEST, request, "Malformed request body");
@@ -110,7 +104,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         MissingServletRequestParameterException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.BAD_REQUEST, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.BAD_REQUEST, request, "Missing request parameter: " + ex.getParameterName());
@@ -122,7 +115,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         HttpMediaTypeNotSupportedException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.BAD_REQUEST, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.BAD_REQUEST, request, "Unsupported media type: " + ex.getContentType());
@@ -134,7 +126,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         HttpRequestMethodNotSupportedException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.BAD_REQUEST, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.BAD_REQUEST, request, "HTTP method not supported: " + ex.getMethod());
@@ -146,7 +137,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         HmcException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.HMC_SERVICE_ERROR, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.HMC_SERVICE_ERROR, request, "HMC service error: " + ex.getMessage());
@@ -158,7 +148,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         IdamApiException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.IDAM_SERVICE_ERROR, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.IDAM_SERVICE_ERROR, request, "Authentication service unavailable");
@@ -170,7 +159,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         IdentityManagerResponseException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.IDENTITY_MANAGER_ERROR, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.IDENTITY_MANAGER_ERROR, request, "Authentication service unavailable");
@@ -182,7 +170,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         CcdDataDeserializationException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.CCD_DATA_ERROR, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.CCD_DATA_ERROR, request, "Unable to process case data");
@@ -194,7 +181,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         FeignException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.EXTERNAL_SERVICE_ERROR, request);
         ErrorResponse response = errorResponseBuilder.build(
             ErrorCode.EXTERNAL_SERVICE_ERROR, request, "External service error occurred");
@@ -206,7 +192,6 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         AccessDeniedException ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.ACCESS_DENIED, request);
         ErrorResponse response = errorResponseBuilder.build(ErrorCode.ACCESS_DENIED, request, null);
         return new ResponseEntity<>(response, ErrorCode.ACCESS_DENIED.getHttpStatus());
@@ -217,30 +202,8 @@ public class HearingsControllerAdvice {
         HttpServletRequest request,
         Exception ex
     ) {
-        logAbbreviatedStackTrace(ex);
         errorResponseBuilder.logError(ex, ErrorCode.INTERNAL_ERROR, request);
         ErrorResponse response = errorResponseBuilder.build(ErrorCode.INTERNAL_ERROR, request, null);
         return new ResponseEntity<>(response, ErrorCode.INTERNAL_ERROR.getHttpStatus());
-    }
-
-    private void logAbbreviatedStackTrace(Exception ex) {
-        log.error(getAbbreviatedStackTrace(ex, 5));
-    }
-
-    private String getAbbreviatedStackTrace(Exception ex, int numInitialLines) {
-        String[] trace = ExceptionUtils.getRootCauseStackTrace(ex);
-        StringBuilder sb = new StringBuilder();
-        String lastLine = "";
-        String continuationLine = "        ...";
-        for (int i = 0; i < trace.length; i++) {
-            if (i < numInitialLines || trace[i].contains("uk.gov.hmcts.reform")) {
-                lastLine = trace[i];
-                sb.append(lastLine).append("\r\n");
-            } else if (!lastLine.equals(continuationLine)) {
-                lastLine = continuationLine;
-                sb.append(lastLine).append("\r\n");
-            }
-        }
-        return sb.toString();
     }
 }
