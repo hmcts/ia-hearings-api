@@ -25,8 +25,9 @@ public class NlrDetailsMapper {
 
     private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
 
-    // TODO change this value to the correct one once we have it from HMC team.
+    // TODO change this value to RPTT one once it's been added to BFA1 code in rd-commondata
     //  For now, we are using the value for Intermediary as a placeholder.
+    // public static final String NLR_PARTY_ROLE = "RPTT";
     public static final String NLR_PARTY_ROLE = "INTE";
 
     public PartyDetailsModel map(AsylumCase asylumCase,
