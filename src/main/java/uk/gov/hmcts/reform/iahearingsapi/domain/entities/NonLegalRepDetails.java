@@ -20,4 +20,5 @@ public class NonLegalRepDetails {
     private AddressUk addressUk;
     private String address;
     private String phoneNumber;
+    private YesOrNo sameAsSponsor;
 }
