@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.CASE_BUILDING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
@@ -44,7 +45,7 @@ public class SubstantiveHearingListedHandler extends ListedHearingService implem
 
         return isSubstantiveListedHearing(serviceData)
             && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED)
-            && caseState.equals(LISTING);
+            && (caseState == LISTING || caseState == CASE_BUILDING);
     }
 
     public ServiceDataResponse<ServiceData> handle(ServiceData serviceData) {

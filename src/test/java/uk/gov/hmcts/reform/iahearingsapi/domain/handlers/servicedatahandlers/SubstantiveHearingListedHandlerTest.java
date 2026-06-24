@@ -115,6 +115,12 @@ class SubstantiveHearingListedHandlerTest {
     }
 
     @Test
+    void should_handle_if_case_state_is_case_building() {
+        when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.CASE_BUILDING);
+        assertTrue(substantiveHearingListedHandler.canHandle(serviceData));
+    }
+
+    @Test
     void should_not_handle_if_hearing_type_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(COSTS.getKey()));
