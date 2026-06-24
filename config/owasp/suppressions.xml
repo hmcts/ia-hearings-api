@@ -6,4 +6,7 @@
     </notes>
     <cve>CVE-2026-33117</cve>
   </suppress>
+  <suppress until="2023-10-30">
+    <cve>CVE-2023-4586</cve>
+  </suppress>
 </suppressions>
