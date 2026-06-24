@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.consumer.ccd;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
-import au.com.dius.pact.core.model.RequestResponsePact;
+import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.PactDslBuilderForCaseDetailsList.buildGetCaseDetailsPactDsl;
@@ -22,7 +22,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.PactDslBuilder
 public class CoreCaseDataGetCaseConsumerTest extends CcdConsumerTestBase {
 
     @Pact(provider = "ccdDataStoreAPI_Cases", consumer = "ia_hearingsApi")
-    public RequestResponsePact getCase(PactDslWithProvider builder) throws JSONException {
+    public V4Pact getCase(PactDslWithProvider builder) throws JSONException {
         return builder
             .given("A case has been submitted")
             .uponReceiving("A request to retrieve case data")
@@ -35,11 +35,11 @@ public class CoreCaseDataGetCaseConsumerTest extends CcdConsumerTestBase {
             .matchHeader(CONTENT_TYPE, CASE_CONTENT_TYPE_EXPRESSION, CASE_CONTENT_TYPE)
             .status(200)
             .body(buildGetCaseDetailsPactDsl(CASE_ID))
-            .toPact();
+            .toPact(V4Pact.class);
     }
 
     @Test
-    @PactTestFor(pactMethod = "getCase", pactVersion = PactSpecVersion.V3)
+    @PactTestFor(pactMethod = "getCase", pactVersion = PactSpecVersion.V4)
     public void verifyGetCase() {
 
         final CaseDetails caseDetails = coreCaseDataApi.getCase(

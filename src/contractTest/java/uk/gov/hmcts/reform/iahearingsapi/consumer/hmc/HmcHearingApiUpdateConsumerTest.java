@@ -8,7 +8,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.PORT;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
-import au.com.dius.pact.core.model.RequestResponsePact;
+import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,19 +17,17 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 
 @PactTestFor(providerName = HMC_PROVIDER, port = PORT)
-@ExtendWith(SpringExtension.class)
 @ExtendWith(PactConsumerTestExt.class)
 @PactFolder("pacts")
-@ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
+@SpringJUnitConfig(classes = {HmcHearingApiConsumerApplication.class})
 public class HmcHearingApiUpdateConsumerTest extends HmcHearingApiConsumerTestBase {
 
     @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
-    public RequestResponsePact updateHearing(
+    public V4Pact updateHearing(
         PactDslWithProvider builder) throws JsonProcessingException {
         Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
             .put("Connection", "close")
@@ -45,7 +43,7 @@ public class HmcHearingApiUpdateConsumerTest extends HmcHearingApiConsumerTestBa
             .headers(responseHeaders)
             .body(hearingGetResponseDsl)
             .status(HttpStatus.OK.value())
-            .toPact();
+            .toPact(V4Pact.class);
     }
 
     @Test
