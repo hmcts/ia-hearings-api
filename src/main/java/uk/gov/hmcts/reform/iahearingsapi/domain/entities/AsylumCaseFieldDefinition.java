@@ -185,6 +185,18 @@ public enum AsylumCaseFieldDefinition {
         "deportationOrderOptions", new TypeReference<YesOrNo>(){}),
     APPEAL_TYPE(
         "appealType", new TypeReference<AppealType>(){}),
+
+    APPELLANT_INTERPRETER_LANGUAGE_CATEGORY(
+        "appellantInterpreterLanguageCategory", new TypeReference<List<String>>() {}),
+    IS_INTERPRETER_SERVICES_NEEDED(
+        "isInterpreterServicesNeeded", new TypeReference<YesOrNo>(){}),
+    IS_SIGN_SERVICES_NEEDED(
+        "isSignServicesNeeded", new TypeReference<YesOrNo>(){}),
+    APPELLANT_INTERPRETER_SPOKEN_LANGUAGE(
+        "appellantInterpreterSpokenLanguage", new TypeReference<InterpreterLanguageRefData>() {}),
+    APPELLANT_INTERPRETER_SIGN_LANGUAGE(
+        "appellantInterpreterSignLanguage", new TypeReference<InterpreterLanguageRefData>() {}),
+
     APPELLANT_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS(
         "appellantInterpreterSpokenLanguageBookingStatus", new TypeReference<InterpreterBookingStatus>() {}),
 
