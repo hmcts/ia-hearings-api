@@ -47,6 +47,7 @@ public class SubstantiveHearingListedHandler extends ListedHearingService implem
         boolean isListAssistListed = isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED);
         boolean isValidState = caseState == LISTING || caseState == CASE_BUILDING;
 
+        log.warn("DIAC-2616]");
         log.info("[DIAC-2616] SubstantiveHearingListedHandler.canHandle() for case {}: "
                  + "isSubstantiveListed={}, isListAssistListed={}, caseState={}, isValidState={}",
                  caseId, isSubstantiveListed, isListAssistListed, caseState, isValidState);
