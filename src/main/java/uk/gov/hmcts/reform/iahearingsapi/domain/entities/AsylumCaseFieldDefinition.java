@@ -29,10 +29,12 @@ public enum AsylumCaseFieldDefinition {
         "listCaseHearingCentre", new TypeReference<HearingCentre>(){}),
     IS_VIRTUAL_HEARING(
         "isVirtualHearing", new TypeReference<YesOrNo>(){}),
-    APPELLANT_LEVEL_FLAGS("appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {
-    }),
+    APPELLANT_LEVEL_FLAGS(
+        "appellantLevelFlags", new TypeReference<StrategicCaseFlag>() {}),
     WITNESS_LEVEL_FLAGS(
         "witnessLevelFlags", new TypeReference<List<PartyFlagIdValue>>() {}),
+    NLR_LEVEL_FLAGS(
+        "nlrLevelFlags", new TypeReference<StrategicCaseFlag>() {}),
     CASE_FLAGS(
         "caseFlags", new TypeReference<StrategicCaseFlag>(){}),
     LEGAL_REP_NAME(
@@ -191,6 +193,18 @@ public enum AsylumCaseFieldDefinition {
     APPELLANT_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS(
         "appellantInterpreterSignLanguageBookingStatus", new TypeReference<InterpreterBookingStatus>() {}),
 
+    NLR_INTERPRETER_SPOKEN_LANGUAGE_BOOKING(
+        "nlrInterpreterSpokenLanguageBooking", new TypeReference<String>() {}),
+
+    NLR_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS(
+        "nlrInterpreterSpokenLanguageBookingStatus", new TypeReference<InterpreterBookingStatus>() {}),
+
+    NLR_INTERPRETER_SIGN_LANGUAGE_BOOKING(
+        "nlrInterpreterSignLanguageBooking", new TypeReference<String>() {}),
+
+    NLR_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS(
+        "nlrInterpreterSignLanguageBookingStatus", new TypeReference<InterpreterBookingStatus>() {}),
+
     WITNESS_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS_1(
         "witnessInterpreterSpokenLanguageBookingStatus1", new TypeReference<InterpreterBookingStatus>() {}),
 
@@ -343,6 +357,12 @@ public enum AsylumCaseFieldDefinition {
 
     CURRENT_HEARING_ID(
         "currentHearingId", new TypeReference<String>() {}),
+
+    NLR_DETAILS(
+        "nlrDetails", new TypeReference<NonLegalRepDetails>(){}),
+
+    NLR_PARTY_ID(
+        "nlrPartyId", new TypeReference<String>() {}),
 
     APPELLANT_IN_DETENTION(
         "appellantInDetention", new TypeReference<YesOrNo>(){});

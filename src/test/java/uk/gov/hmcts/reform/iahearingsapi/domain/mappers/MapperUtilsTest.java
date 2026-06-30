@@ -16,6 +16,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_ADMIN;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.AIP;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
 
@@ -146,6 +147,21 @@ class MapperUtilsTest {
         when(asylumCase.read(HAS_SPONSOR, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
 
         assertFalse(MapperUtils.hasSponsor(asylumCase));
+    }
+
+    @Test
+    void isSponsorPartyIdPresent_should_return_true() {
+        when(asylumCase.read(SPONSOR_PARTY_ID, String.class)).thenReturn(Optional.of("string"));
+
+        assertTrue(MapperUtils.isSponsorPartyIdPresent(asylumCase));
+    }
+
+    @Test
+    void isSponsorPartyIdPresent_should_return_false() {
+        assertFalse(MapperUtils.isSponsorPartyIdPresent(asylumCase));
+
+        when(asylumCase.read(SPONSOR_PARTY_ID, String.class)).thenReturn(Optional.of(""));
+        assertFalse(MapperUtils.isSponsorPartyIdPresent(asylumCase));
     }
 
     @Test

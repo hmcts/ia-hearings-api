@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.FCS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.NlrDetailsMapper.NLR_PARTY_ROLE;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -51,11 +53,14 @@ public class LanguageAndAdjustmentsMapper {
         if (individualDetails != null) {
             String partyRole = partyDetails.getPartyRole();
 
-            List<StrategicCaseFlag> caseFlags = Objects.equals(partyRole, PARTY_ROLE_APPELLANT)
-                ? getAppellantCaseFlags(asylumCase)
-                : Objects.equals(partyRole, PARTY_ROLE_WITNESS)
-                ? getWitnessCaseFlags(asylumCase, partyDetails.getPartyID())
-                : Collections.emptyList();
+            List<StrategicCaseFlag> caseFlags = Collections.emptyList();
+            if (Objects.equals(partyRole, PARTY_ROLE_APPELLANT)) {
+                caseFlags = getAppellantCaseFlags(asylumCase);
+            } else if (Objects.equals(partyRole, PARTY_ROLE_WITNESS)) {
+                caseFlags = getWitnessCaseFlags(asylumCase, partyDetails.getPartyID());
+            } else if (Objects.equals(partyRole, NLR_PARTY_ROLE)) {
+                caseFlags = getNlrCaseFlags(asylumCase);
+            }
 
             List<CaseFlagDetail> activeCaseFlagDetails = filterForAsylumActiveCaseFlagDetails(caseFlags);
             processPartyDetailsFlags(activeCaseFlagDetails, individualDetails);
@@ -209,6 +214,11 @@ public class LanguageAndAdjustmentsMapper {
         });
 
         return witnessCaseFlags;
+    }
+
+    private List<StrategicCaseFlag> getNlrCaseFlags(AsylumCase asylumCase) {
+        return asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .map(Lists::newArrayList).orElse(new ArrayList<>());
     }
 
     private List<BailStrategicCaseFlag> getFcsCaseFlags(BailCase bailCase, String partyId) {

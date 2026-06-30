@@ -1,8 +1,14 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.BOOKED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.NOT_REQUESTED;
@@ -12,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,6 +36,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ChangeOrganisationRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.NonLegalRepDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
@@ -71,6 +79,8 @@ class PartyDetailsMapperTest {
     @Mock
     private SponsorDetailsMapper sponsorDetailsMapper;
     @Mock
+    private NlrDetailsMapper nlrDetailsMapper;
+    @Mock
     private WitnessDetailsMapper witnessDetailsMapper;
     @Mock
     private FinancialConditionSupporterDetailsMapper financialConditionSupporterDetailsMapper;
@@ -78,8 +88,6 @@ class PartyDetailsMapperTest {
     private InterpreterDetailsMapper interpreterDetailsMapper;
     @Mock
     private BailInterpreterDetailsMapper bailInterpreterDetailsMapper;
-    @Mock
-    private PartyDetailsModel partyDetailsModel;
     @Mock
     private IndividualDetailsModel individualDetailsModel;
     @Mock
@@ -108,8 +116,12 @@ class PartyDetailsMapperTest {
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
         when(asylumCase.read(AsylumCaseFieldDefinition.HAS_SPONSOR, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
-        when(asylumCase.read(AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD,
-                             ChangeOrganisationRequest.class))
+        when(asylumCase.read(AsylumCaseFieldDefinition.SPONSOR_PARTY_ID, String.class))
+            .thenReturn(Optional.of("sponsorPartyId"));
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD,
+            ChangeOrganisationRequest.class
+        ))
             .thenReturn(Optional.empty());
 
         List<PartyDetailsModel> expected = Arrays.asList(
@@ -128,6 +140,7 @@ class PartyDetailsMapperTest {
             legalRepOrgDetailsMapper,
             respondentDetailsMapper,
             sponsorDetailsMapper,
+            nlrDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
             interpreterDetailsMapper,
@@ -143,7 +156,7 @@ class PartyDetailsMapperTest {
             Arguments.of(Optional.of(JourneyType.AIP.getValue()), Optional.empty()),
             Arguments.of(Optional.empty(), Optional.of(mock(ChangeOrganisationRequest.class))),
             Arguments.of(Optional.of(JourneyType.AIP.getValue()), Optional.of(mock(ChangeOrganisationRequest.class)))
-            );
+        );
     }
 
     @ParameterizedTest
@@ -167,10 +180,14 @@ class PartyDetailsMapperTest {
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
         when(asylumCase.read(AsylumCaseFieldDefinition.HAS_SPONSOR, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(AsylumCaseFieldDefinition.SPONSOR_PARTY_ID, String.class))
+            .thenReturn(Optional.of("sponsorPartyId"));
         when(asylumCase.read(AsylumCaseFieldDefinition.JOURNEY_TYPE, String.class))
             .thenReturn(journeyType);
-        when(asylumCase.read(AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD,
-                             ChangeOrganisationRequest.class))
+        when(asylumCase.read(
+            AsylumCaseFieldDefinition.CHANGE_ORGANISATION_REQUEST_FIELD,
+            ChangeOrganisationRequest.class
+        ))
             .thenReturn(changeOrgReq);
         when(asylumCase.read(AsylumCaseFieldDefinition.IS_ADMIN, YesOrNo.class)).thenReturn(Optional.empty());
 
@@ -181,6 +198,7 @@ class PartyDetailsMapperTest {
             legalRepOrgDetailsMapper,
             respondentDetailsMapper,
             sponsorDetailsMapper,
+            nlrDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
             interpreterDetailsMapper,
@@ -189,8 +207,12 @@ class PartyDetailsMapperTest {
 
         if (journeyType.isPresent() || changeOrgReq.isPresent()) {
             assertEquals(5, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper).size());
+            verify(legalRepDetailsMapper, never()).map(any(AsylumCase.class), any(), any(), any());
+            verify(legalRepOrgDetailsMapper, never()).map(any(AsylumCase.class), any());
         } else {
             assertEquals(7, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper).size());
+            verify(legalRepDetailsMapper).map(asylumCase, caseDataMapper, null, null);
+            verify(legalRepOrgDetailsMapper).map(asylumCase, caseDataMapper);
         }
     }
 
@@ -226,6 +248,7 @@ class PartyDetailsMapperTest {
             legalRepOrgDetailsMapper,
             respondentDetailsMapper,
             sponsorDetailsMapper,
+            nlrDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
             interpreterDetailsMapper,
@@ -253,7 +276,7 @@ class PartyDetailsMapperTest {
     @ParameterizedTest
     @MethodSource("bothSpokenAndSignStatuses")
     void should_handle_spoken_and_sign_interpreter_booking_status(InterpreterBookingStatus spokenBookingStatus,
-                                                         InterpreterBookingStatus signBookingStatus) {
+                                                                  InterpreterBookingStatus signBookingStatus) {
 
         PartyDetailsModel partyDetailsModel = PartyDetailsModel.builder()
             .individualDetails(IndividualDetailsModel.builder().build())
@@ -262,13 +285,14 @@ class PartyDetailsMapperTest {
         PartyDetailsModel result = PartyDetailsMapper.appendBookingStatus(
             Optional.of(spokenBookingStatus),
             Optional.of(signBookingStatus),
-            partyDetailsModel);
+            partyDetailsModel
+        );
 
         String expected = "Status (Spoken): "
-                          + spokenBookingStatus.getDesc()
-                          + "; Status (Sign): "
-                          + signBookingStatus.getDesc()
-                          + ";";
+            + spokenBookingStatus.getDesc()
+            + "; Status (Sign): "
+            + signBookingStatus.getDesc()
+            + ";";
 
         if (spokenBookingStatus.equals(NOT_REQUESTED)
             && signBookingStatus.equals(NOT_REQUESTED)) {
@@ -289,11 +313,12 @@ class PartyDetailsMapperTest {
         PartyDetailsModel result = PartyDetailsMapper.appendBookingStatus(
             Optional.of(spokenBookingStatus),
             Optional.empty(),
-            partyDetailsModel);
+            partyDetailsModel
+        );
 
         String expected = "Status: "
-                          + spokenBookingStatus.getDesc()
-                          + ";";
+            + spokenBookingStatus.getDesc()
+            + ";";
 
         if (spokenBookingStatus.equals(NOT_REQUESTED)) {
             assertEquals("", result.getIndividualDetails().getOtherReasonableAdjustmentDetails());
@@ -313,11 +338,12 @@ class PartyDetailsMapperTest {
         PartyDetailsModel result = PartyDetailsMapper.appendBookingStatus(
             Optional.empty(),
             Optional.of(signBookingStatus),
-            partyDetailsModel);
+            partyDetailsModel
+        );
 
         String expected = "Status: "
-                          + signBookingStatus.getDesc()
-                          + ";";
+            + signBookingStatus.getDesc()
+            + ";";
 
         if (signBookingStatus.equals(NOT_REQUESTED)) {
             assertEquals("", result.getIndividualDetails().getOtherReasonableAdjustmentDetails());
@@ -371,6 +397,8 @@ class PartyDetailsMapperTest {
             .thenReturn(List.of(PartyDetailsModel.builder().build()));
         when(asylumCase.read(AsylumCaseFieldDefinition.HAS_SPONSOR, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(AsylumCaseFieldDefinition.SPONSOR_PARTY_ID, String.class))
+            .thenReturn(Optional.of("sponsorPartyId"));
         when(asylumCase.read(AsylumCaseFieldDefinition.IS_ADMIN, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
         when(asylumCase.read(AsylumCaseFieldDefinition.APPELLANTS_REPRESENTATION, YesOrNo.class))
@@ -383,6 +411,7 @@ class PartyDetailsMapperTest {
             legalRepOrgDetailsMapper,
             respondentDetailsMapper,
             sponsorDetailsMapper,
+            nlrDetailsMapper,
             witnessDetailsMapper,
             financialConditionSupporterDetailsMapper,
             interpreterDetailsMapper,
@@ -390,6 +419,48 @@ class PartyDetailsMapperTest {
         );
 
         assertEquals(7, mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper).size());
+        verify(appellantDetailsMapper).map(asylumCase, caseFlagsMapper, caseDataMapper, null, null);
+        verify(applicantDetailsMapper, never()).map(any(), any(), any());
+        verify(legalRepDetailsMapper, never()).map(any(), any(), any(), any());
+        verify(legalRepOrgDetailsMapper, never()).map(any(AsylumCase.class), any());
+        verify(legalRepDetailsMapper).mapInternalCaseLegalRep(asylumCase, caseDataMapper, null, null);
+        verify(legalRepOrgDetailsMapper).mapInternalCaseLegalRepOrg(asylumCase, caseDataMapper);
+        verify(respondentDetailsMapper).map(asylumCase, caseDataMapper);
+        verify(sponsorDetailsMapper).map(asylumCase, caseDataMapper, null, null);
+        verify(nlrDetailsMapper, never()).map(any(), any(), any(), any(), any());
+        verify(witnessDetailsMapper).map(asylumCase, caseDataMapper, null, null);
+        verify(financialConditionSupporterDetailsMapper, never()).map(any(), any());
+        verify(interpreterDetailsMapper).map(asylumCase, caseDataMapper, null, null);
+        verify(bailInterpreterDetailsMapper, never()).map(any(), any());
+    }
 
+    @Test
+    void should_map_nlr_details_if_present() {
+        NonLegalRepDetails nonLegalRepDetails = mock(NonLegalRepDetails.class);
+        PartyDetailsModel model = mock(PartyDetailsModel.class);
+        when(asylumCase.read(NLR_DETAILS, NonLegalRepDetails.class))
+            .thenReturn(Optional.of(nonLegalRepDetails));
+        when(nlrDetailsMapper.map(asylumCase, nonLegalRepDetails, caseDataMapper, null, null))
+            .thenReturn(model);
+
+        PartyDetailsMapper mapper = new PartyDetailsMapper(
+            appellantDetailsMapper,
+            applicantDetailsMapper,
+            legalRepDetailsMapper,
+            legalRepOrgDetailsMapper,
+            respondentDetailsMapper,
+            sponsorDetailsMapper,
+            nlrDetailsMapper,
+            witnessDetailsMapper,
+            financialConditionSupporterDetailsMapper,
+            interpreterDetailsMapper,
+            bailInterpreterDetailsMapper
+        );
+
+        List<PartyDetailsModel> partyDetailsModels =
+            mapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper);
+        assertEquals(5, partyDetailsModels.size());
+        assertTrue(partyDetailsModels.contains(model));
+        verify(nlrDetailsMapper, times(1)).map(asylumCase, nonLegalRepDetails, caseDataMapper, null, null);
     }
 }
