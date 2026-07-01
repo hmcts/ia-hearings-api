@@ -5,5 +5,6 @@
       positive:https://learn.microsoft.com/en-in/answers/questions/5897871/security-issue-cve-2026-33117-reported-on-applicat
     </notes>
     <cve>CVE-2026-33117</cve>
+    <cve>CVE-2026-54515</cve>
   </suppress>
 </suppressions>
