@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
+
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -345,7 +346,22 @@ public enum AsylumCaseFieldDefinition {
         "currentHearingId", new TypeReference<String>() {}),
 
     APPELLANT_IN_DETENTION(
-        "appellantInDetention", new TypeReference<YesOrNo>(){});
+        "appellantInDetention", new TypeReference<YesOrNo>(){}),
+
+    CMR_HEARING_CENTRE("cmrHearingCentre", new TypeReference<HearingCentre>(){}),
+
+    CMR_HEARING_CENTRE_ADDRESS("cmrHearingCentreAddress", new TypeReference<DynamicList>(){}),
+
+    CMR_HEARING_LENGTH("cmrHearingLength", new TypeReference<HoursMinutes>(){}),
+
+    CMR_HEARING_DATE("cmrHearingDate", new TypeReference<String>(){}),
+
+    CMR_HEARING_CHANNEL("cmrHearingChannel", new TypeReference<DynamicList>(){}),
+
+    CMR_IS_REMOTE_HEARING("cmrIsRemoteHearing", new TypeReference<YesOrNo>(){}),
+
+    CMR_HEARING_ID_LIST("cmrHearingIdList", new TypeReference<List<IdValue<String>>>(){}),
+    ;
 
     private final String value;
     private final TypeReference typeReference;
