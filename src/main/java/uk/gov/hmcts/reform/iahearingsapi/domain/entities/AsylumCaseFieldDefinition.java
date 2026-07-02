@@ -360,7 +360,7 @@ public enum AsylumCaseFieldDefinition {
 
     CMR_IS_REMOTE_HEARING("cmrIsRemoteHearing", new TypeReference<YesOrNo>(){}),
 
-    CMR_HEARING_ID_LIST("cmrHearingIdList", new TypeReference<List<IdValue<String>>>(){}),
+    CMR_HEARING_ID_LIST("cmrHearingIdList", new TypeReference<List<String>>(){}),
     ;
 
     private final String value;

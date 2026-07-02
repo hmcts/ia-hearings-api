@@ -77,6 +77,8 @@ class CmrHandlerTest {
     AsylumCase asylumCase;
     @Mock
     LocationRefDataService locationRefDataService;
+    @Mock
+    CmrHearingIdListProcessor cmrHearingIdListProcessor;
 
     private CmrHandler cmrHandler;
 
@@ -84,7 +86,7 @@ class CmrHandlerTest {
     public void setUp() {
 
         cmrHandler =
-            new CmrHandler(coreCaseDataService, hearingService, locationRefDataService);
+            new CmrHandler(coreCaseDataService, hearingService, locationRefDataService, cmrHearingIdListProcessor);
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));

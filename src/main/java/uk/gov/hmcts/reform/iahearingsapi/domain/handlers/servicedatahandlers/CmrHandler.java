@@ -52,6 +52,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
     private final LocationRefDataService locationRefDataService;
+    private final CmrHearingIdListProcessor cmrHearingIdListProcessor;
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -171,13 +172,10 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         asylumCase.write(CMR_HEARING_CHANNEL, newHearingChannel);
 
         String newHearingId = getHearingId(serviceData);
-        log.info(
-            "Writing {} {} to asylum case {}",
-            AsylumCaseFieldDefinition.CURRENT_HEARING_ID,
-            newHearingId,
-            caseId
-        );
+        log.info("Writing {} {} to asylum case {}", AsylumCaseFieldDefinition.CURRENT_HEARING_ID, newHearingId, caseId);
         asylumCase.write(AsylumCaseFieldDefinition.CURRENT_HEARING_ID, newHearingId);
+
+        cmrHearingIdListProcessor.processHearingIdList(asylumCase, newHearingId);
 
         if (isAppealsLocationRefDataEnabled) {
             asylumCase.write(AsylumCaseFieldDefinition.CMR_IS_REMOTE_HEARING,
