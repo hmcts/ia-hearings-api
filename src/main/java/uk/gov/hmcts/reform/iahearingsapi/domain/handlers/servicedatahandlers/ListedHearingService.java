@@ -201,6 +201,10 @@ public class ListedHearingService {
     }
 
     protected boolean isCaseManagementReview(ServiceData serviceData) {
+        log.info("-----isCaseManagementReview");
+        log.info("isHmcStatus(serviceData, HmcStatus.LISTED) {}", isHmcStatus(serviceData, HmcStatus.LISTED));
+        log.info("isHearingChannel(serviceData, ONPPRS) {}", isHearingChannel(serviceData, ONPPRS));
+        log.info("isHearingType(serviceData, CASE_MANAGEMENT_REVIEW) {}", isHearingType(serviceData, CASE_MANAGEMENT_REVIEW));
         return isHmcStatus(serviceData, HmcStatus.LISTED)
             && !isHearingChannel(serviceData, ONPPRS)
             && isHearingType(serviceData, CASE_MANAGEMENT_REVIEW);

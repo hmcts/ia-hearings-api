@@ -77,9 +77,12 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
         if (isCmrListedHearing(serviceData)) {
             PartiesNotifiedResponses partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId);
+            log.info("PartiesNotifiedResponses contains {} elements", partiesNotifiedResponses.getResponses().size());
             if (isInitialListing(hearingId, partiesNotifiedResponses.getResponses())) {
+                log.info("This is an initial listing");
                 handleCmrListing(caseId, serviceData);
             } else {
+                log.info("This is maybe an updated listing");
                 boolean cmrHearingUpdated = isCmrUpdated(serviceData, partiesNotifiedResponses.getResponses());
                 if (cmrHearingUpdated) {
                     handleCmrReListing(caseId);
@@ -136,8 +139,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         return partiesNotifiedResponses.isEmpty();
     }
 
-    private boolean isCmrUpdated(
-        ServiceData serviceData, List<PartiesNotifiedResponse> partiesNotifiedResponses) {
+    private boolean isCmrUpdated(ServiceData serviceData, List<PartiesNotifiedResponse> partiesNotifiedResponses) {
         Set<ServiceDataFieldDefinition> updatedTargetFields = findUpdatedServiceDataFields(
             serviceData, partiesNotifiedResponses, Set.of(
                 NEXT_HEARING_DATE,
@@ -149,7 +151,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         return !updatedTargetFields.isEmpty();
     }
 
-    protected void updateCmrHearingDetails(
+    private void updateCmrHearingDetails(
         ServiceData serviceData,
         AsylumCase asylumCase,
         boolean isAppealsLocationRefDataEnabled,
