@@ -77,12 +77,9 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
         if (isCmrListedHearing(serviceData)) {
             PartiesNotifiedResponses partiesNotifiedResponses = hearingService.getPartiesNotified(hearingId);
-            log.info("PartiesNotifiedResponses contains {} elements", partiesNotifiedResponses.getResponses().size());
             if (isInitialListing(hearingId, partiesNotifiedResponses.getResponses())) {
-                log.info("This is an initial listing");
                 handleCmrListing(caseId, serviceData);
             } else {
-                log.info("This is maybe an updated listing");
                 boolean cmrHearingUpdated = isCmrUpdated(serviceData, partiesNotifiedResponses.getResponses());
                 if (cmrHearingUpdated) {
                     handleCmrReListing(caseId, serviceData);
@@ -126,11 +123,6 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
             coreCaseDataService.startCaseEvent(CMR_RE_LISTING, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
-        log.info("----------------------------");
-        log.info("startEventResponse: {}", startEventResponse);
-        log.info("----------------------------");
-        log.info("asylumCase: {}", asylumCase);
-        log.info("----------------------------");
 
         boolean isAppealsLocationRefDataEnabled = HearingsUtils.isAppealsLocationRefDataEnabled(asylumCase);
 
@@ -148,11 +140,6 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
     }
 
     private boolean isCmrListedHearing(ServiceData serviceData) {
-        log.info("isCaseManagementReview(serviceData): {}", isCaseManagementReview(serviceData));
-        log.info(
-            "isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED): {}",
-            isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED)
-        );
         return isCaseManagementReview(serviceData)
                && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED);
     }
@@ -195,7 +182,6 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         //asylumCase.write(ARIA_LISTING_REFERENCE, getListingReference());
         asylumCase.write(CMR_HEARING_DATE, newHearingDateTime);
         asylumCase.write(CMR_HEARING_LENGTH, new HoursMinutes(getHearingDuration(serviceData)));
-        log.info("getHearingDuration: {}`", getHearingDuration(serviceData));
         asylumCase.write(CMR_HEARING_CENTRE, newHearingCentre);
         asylumCase.write(CMR_HEARING_CHANNEL, newHearingChannel);
 
