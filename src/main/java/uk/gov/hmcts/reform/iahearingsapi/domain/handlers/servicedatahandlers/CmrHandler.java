@@ -127,6 +127,11 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
     }
 
     private boolean isCmrListedHearing(ServiceData serviceData) {
+        log.info("isCaseManagementReview(serviceData): {}", isCaseManagementReview(serviceData));
+        log.info(
+            "isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED): {}",
+            isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED)
+        );
         return isCaseManagementReview(serviceData)
                && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED);
     }
