@@ -108,9 +108,14 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
         boolean isAppealsLocationRefDataEnabled = HearingsUtils.isAppealsLocationRefDataEnabled(asylumCase);
 
-        updateCmrHearingDetails(serviceData, asylumCase, isAppealsLocationRefDataEnabled, caseId,
-                                locationRefDataService.getCourtVenuesAsServiceUser(),
-                                locationRefDataService.getHearingLocationsDynamicList(true));
+        updateCmrHearingDetails(
+            serviceData,
+            asylumCase,
+            isAppealsLocationRefDataEnabled,
+            caseId,
+            locationRefDataService.getCourtVenuesAsServiceUser(),
+            locationRefDataService.getHearingLocationsDynamicList(true)
+        );
 
         log.info("Sending `{}` event for Case ID `{}`", CMR_LISTING, caseId);
         coreCaseDataService.triggerSubmitEvent(CMR_LISTING, caseId, startEventResponse, asylumCase);
@@ -121,12 +126,22 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
             coreCaseDataService.startCaseEvent(CMR_RE_LISTING, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
+        log.info("----------------------------");
+        log.info("startEventResponse: {}", startEventResponse);
+        log.info("----------------------------");
+        log.info("asylumCase: {}", asylumCase);
+        log.info("----------------------------");
 
         boolean isAppealsLocationRefDataEnabled = HearingsUtils.isAppealsLocationRefDataEnabled(asylumCase);
 
-        updateCmrHearingDetails(serviceData, asylumCase, isAppealsLocationRefDataEnabled, caseId,
-                                locationRefDataService.getCourtVenuesAsServiceUser(),
-                                locationRefDataService.getHearingLocationsDynamicList(true));
+        updateCmrHearingDetails(
+            serviceData,
+            asylumCase,
+            isAppealsLocationRefDataEnabled,
+            caseId,
+            locationRefDataService.getCourtVenuesAsServiceUser(),
+            locationRefDataService.getHearingLocationsDynamicList(true)
+        );
 
         log.info("Sending `{}` event for Case ID `{}`", CMR_RE_LISTING, caseId);
         coreCaseDataService.triggerSubmitEvent(CMR_RE_LISTING, caseId, startEventResponse, asylumCase);
