@@ -22,7 +22,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.AsylumPreSubmitCallbackDispatcher;
 
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @Slf4j
 @Tag(name = "Asylum Service")

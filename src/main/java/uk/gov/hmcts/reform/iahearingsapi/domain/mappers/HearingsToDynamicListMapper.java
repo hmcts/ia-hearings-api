@@ -32,12 +32,12 @@ public class HearingsToDynamicListMapper {
         return switch (caseHearing.getHmcStatus()) {
             case AWAITING_LISTING ->
                 caseHearing.getHearingTypeDescription()
-                + " (Waiting to be listed)";
+                    + " (Waiting to be listed)";
             case LISTED, AWAITING_ACTUALS ->
                 getListedAndAwaitingHearingDetailsDescription(caseHearing);
             case UPDATE_SUBMITTED ->
                 caseHearing.getHearingTypeDescription()
-                + " (Update requested)";
+                    + " (Update requested)";
             default -> null;
         };
     }
@@ -49,7 +49,7 @@ public class HearingsToDynamicListMapper {
                    + (caseHearing.getHmcStatus() == AWAITING_ACTUALS ? " (Awaiting hearing details)" : " (Listed)")
                    + " - " + HearingsUtils.convertToLocalStringFormat(convertFromUTC(caseHearing
                                                                                  .getHearingDaySchedule()
-                                                                                 .get(0)
+                                                                                 .getFirst()
                                                                                  .getHearingStartDateTime()));
         } else {
             return null;

@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.consumer.ccd;
 
-import static org.apache.http.HttpHeaders.AUTHORIZATION;
-import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.apache.hc.core5.http.HttpHeaders.AUTHORIZATION;
+import static org.apache.hc.core5.http.HttpHeaders.CONTENT_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -14,34 +14,32 @@ import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
-import au.com.dius.pact.core.model.RequestResponsePact;
+import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.pactfoundation.consumer.dsl.LambdaDsl;
+import au.com.dius.pact.consumer.dsl.LambdaDsl;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.CaseLinkDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.CaseLinkInfo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.GetLinkedCasesResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.caselinking.Reason;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.LinkedCasesApi;
 
-@ExtendWith(SpringExtension.class)
 @ExtendWith(PactConsumerTestExt.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @PactFolder("pacts")
 @TestPropertySource(properties = {"core_case_data.api.url=http://localhost:4452", "idam.api.url=http://localhost:5000"})
-@ContextConfiguration(classes = { CoreCaseDataConsumerApplication.class })
+@SpringJUnitConfig(classes = {CoreCaseDataConsumerApplication.class})
 @PactTestFor(providerName = "linked-cases-api", port = "4452")
 public class LinkedCasesApiConsumerTest {
 
@@ -49,7 +47,7 @@ public class LinkedCasesApiConsumerTest {
     LinkedCasesApi linkedCasesApi;
 
     @Pact(provider = "linked-cases-api", consumer = "ia_hearingsApi")
-    public RequestResponsePact generatePactFragmentForLinkedCases(PactDslWithProvider builder)
+    public V4Pact generatePactFragmentForLinkedCases(PactDslWithProvider builder)
         throws JsonProcessingException {
 
         // @formatter:off
@@ -66,7 +64,7 @@ public class LinkedCasesApiConsumerTest {
             .willRespondWith()
             .status(HttpStatus.SC_OK)
             .body(createGetLinkedCasesResponseResponse())
-            .toPact();
+            .toPact(V4Pact.class);
     }
 
     @Test
@@ -82,10 +80,10 @@ public class LinkedCasesApiConsumerTest {
 
         assertNotNull(getLinkedCasesResponse);
 
-        final CaseLinkInfo caseLinkInfo = getLinkedCasesResponse.getLinkedCases().get(0);
-        final CaseLinkDetails caseLinkDetails = caseLinkInfo.getLinkDetails().get(0);
+        final CaseLinkInfo caseLinkInfo = getLinkedCasesResponse.getLinkedCases().getFirst();
+        final CaseLinkDetails caseLinkDetails = caseLinkInfo.getLinkDetails().getFirst();
         final LocalDateTime createdDateTime = caseLinkDetails.getCreatedDateTime();
-        final Reason reason = caseLinkDetails.getReasons().get(0);
+        final Reason reason = caseLinkDetails.getReasons().getFirst();
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
         assertFalse(getLinkedCasesResponse.isHasMoreRecords());

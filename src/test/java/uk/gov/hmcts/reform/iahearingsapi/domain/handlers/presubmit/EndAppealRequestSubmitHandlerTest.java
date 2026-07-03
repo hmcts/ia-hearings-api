@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit;
 import java.util.List;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;

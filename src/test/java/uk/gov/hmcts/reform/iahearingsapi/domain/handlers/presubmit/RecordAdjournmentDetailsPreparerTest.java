@@ -114,7 +114,7 @@ public class RecordAdjournmentDetailsPreparerTest {
 
         DynamicList result = dynamicListArgumentCaptor.getValue();
         assertEquals(2, result.getListItems().size());
-        assertEquals("Substantive (Waiting to be listed)", result.getListItems().get(0).getLabel());
+        assertEquals("Substantive (Waiting to be listed)", result.getListItems().getFirst().getLabel());
         assertEquals("Case Management Review (Update requested)", result.getListItems().get(1).getLabel());
     }
 }

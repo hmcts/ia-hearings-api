@@ -64,7 +64,7 @@ public class HearingDetails {
             return "";
         }
 
-        return switch (hearingChannels.get(0)) {
+        return switch (hearingChannels.getFirst()) {
             case "INTER" -> "In Person";
             case "VID" -> "Video";
             case "TEL" -> "Telephone";

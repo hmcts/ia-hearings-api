@@ -94,13 +94,13 @@ public class BailCaseFlagsToServiceHearingValuesMapper {
 
     public Caseflags getCaseFlags(BailCase bailCase, String caseReference) {
 
-        Caseflags caseflags = Caseflags.builder().build();
         List<PartyFlagsModel> flags = new ArrayList<>();
 
         flags.addAll(getCaseLevelFlags(bailCase));
         flags.addAll(getApplicantCaseFlags(bailCase, caseDataMapper));
         flags.addAll(getFcsCaseFlags(bailCase));
 
+        Caseflags caseflags = Caseflags.builder().build();
         if (!flags.isEmpty()) {
             caseflags.setFlags(flags);
             caseflags.setFlagAmendUrl("/cases/case-details/" + caseReference + "#Case%20flags");

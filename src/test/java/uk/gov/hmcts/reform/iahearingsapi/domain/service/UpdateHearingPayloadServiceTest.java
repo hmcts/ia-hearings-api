@@ -258,7 +258,7 @@ class UpdateHearingPayloadServiceTest {
 
         assertEquals(
             persistedHearingLocationId,
-            updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId()
+            updateHearingRequest.getHearingDetails().getHearingLocations().getFirst().getLocationId()
         );
         assertEqualsHearingDetails(updateHearingRequest);
     }
@@ -493,7 +493,7 @@ class UpdateHearingPayloadServiceTest {
         );
         assertEquals(
             LEEDS_MAGS.getEpimsId(),
-            updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId()
+            updateHearingRequest.getHearingDetails().getHearingLocations().getFirst().getLocationId()
         );
         assertEquals(
             duration,
@@ -555,7 +555,7 @@ class UpdateHearingPayloadServiceTest {
 
         assertEquals(
             persistedHearingLocationId,
-            updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId());
+            updateHearingRequest.getHearingDetails().getHearingLocations().getFirst().getLocationId());
 
         assertEquals(
             persistedHearingDuration,
@@ -587,7 +587,7 @@ class UpdateHearingPayloadServiceTest {
 
         assertEquals(
             "783803",
-            updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId());
+            updateHearingRequest.getHearingDetails().getHearingLocations().getFirst().getLocationId());
 
         assertEquals(
             90,
@@ -618,7 +618,7 @@ class UpdateHearingPayloadServiceTest {
 
         assertEquals(
             HearingCentre.NEWPORT.getEpimsId(),
-            updateHearingRequest.getHearingDetails().getHearingLocations().get(0).getLocationId());
+            updateHearingRequest.getHearingDetails().getHearingLocations().getFirst().getLocationId());
 
         assertEquals(
             60,

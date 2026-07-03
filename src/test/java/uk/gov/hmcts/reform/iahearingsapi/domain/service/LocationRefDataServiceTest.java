@@ -62,9 +62,9 @@ public class LocationRefDataServiceTest {
             authTokenGenerator,
             userDetails,
             locationRefDataApi,
-            idamService
+            idamService,
+            serviceId
         );
-        locationRefDataService.setServiceId(serviceId);
     }
 
     @Test

@@ -5,7 +5,7 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
@@ -27,13 +27,14 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHear
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.DisableHystrixFeignConfiguration;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.FeignConfiguration;
 
 @FeignClient(
     name = "hmc-hearing",
     url = "${hmc.baseUrl}",
-    configuration = {FeignConfiguration.class, DisableHystrixFeignConfiguration.class}
+    configuration = {FeignConfiguration.class},
+    fallback = HmcHearingApiFallback.class
+
 )
 public interface HmcHearingApi {
 

@@ -78,7 +78,7 @@ class FinancialConditionSupporterDetailsMapperTest {
         when(languageAndAdjustmentsMapper.processBailPartyCaseFlags(eq(bailCase), any(PartyDetailsModel.class)))
             .thenReturn(expectedParty);
 
-        expected.get(0).getIndividualDetails().setOtherReasonableAdjustmentDetails("");
+        expected.getFirst().getIndividualDetails().setOtherReasonableAdjustmentDetails("");
 
         assertEquals(expected, new FinancialConditionSupporterDetailsMapper(languageAndAdjustmentsMapper)
             .map(bailCase, caseDataMapper));
@@ -109,7 +109,7 @@ class FinancialConditionSupporterDetailsMapperTest {
         when(languageAndAdjustmentsMapper.processBailPartyCaseFlags(eq(bailCase), any(PartyDetailsModel.class)))
             .thenReturn(expectedParty);
 
-        expected.get(0).getIndividualDetails().setOtherReasonableAdjustmentDetails("");
+        expected.getFirst().getIndividualDetails().setOtherReasonableAdjustmentDetails("");
 
         assertEquals(expected, new FinancialConditionSupporterDetailsMapper(languageAndAdjustmentsMapper)
             .map(bailCase, caseDataMapper));

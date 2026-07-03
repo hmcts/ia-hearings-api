@@ -1,37 +1,35 @@
 package uk.gov.hmcts.reform.iahearingsapi.consumer.refdata;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
-import au.com.dius.pact.core.model.RequestResponsePact;
+import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtLocationCategory;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.refdata.LocationRefDataApi;
 
 
-@ExtendWith(SpringExtension.class)
 @ExtendWith(PactConsumerTestExt.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @PactFolder("pacts")
 @TestPropertySource(properties = {"location.ref.data.url=http://localhost:8991"})
 @PactTestFor(providerName = "referenceData_location", port = "8991")
-@ContextConfiguration(classes = {RefDataConsumerApplication.class})
+@SpringJUnitConfig(classes = {RefDataConsumerApplication.class})
 public class LocationRefDataConsumerTest {
 
     static final String AUTHORIZATION_HEADER = "Authorization";
@@ -46,7 +44,7 @@ public class LocationRefDataConsumerTest {
     LocationRefDataApi locationRefDataApi;
 
     @Pact(provider = "referenceData_location", consumer = "ia_hearingsApi")
-    public RequestResponsePact generatePactFragment(PactDslWithProvider builder)
+    public V4Pact generatePactFragment(PactDslWithProvider builder)
         throws JSONException, JsonProcessingException {
 
         return builder
@@ -59,7 +57,7 @@ public class LocationRefDataConsumerTest {
             .willRespondWith()
             .body(buildLocationResponsePactDsl())
             .status(HttpStatus.SC_OK)
-            .toPact();
+            .toPact(V4Pact.class);
     }
 
     @Test
@@ -73,8 +71,8 @@ public class LocationRefDataConsumerTest {
         assertEquals("serviceCode", courtLocationCategory.getServiceCode());
         assertEquals("courtTypeId", courtLocationCategory.getCourtTypeId());
         assertEquals("courtType", courtLocationCategory.getCourtType());
-        assertEquals("siteName", courtLocationCategory.getCourtVenues().get(0).getSiteName());
-        assertEquals("epimmsId", courtLocationCategory.getCourtVenues().get(0).getEpimmsId());
+        assertEquals("siteName", courtLocationCategory.getCourtVenues().getFirst().getSiteName());
+        assertEquals("epimmsId", courtLocationCategory.getCourtVenues().getFirst().getEpimmsId());
     }
 
     private DslPart buildLocationResponsePactDsl() {

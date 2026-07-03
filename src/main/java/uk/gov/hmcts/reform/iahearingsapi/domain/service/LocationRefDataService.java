@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -9,13 +8,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtLocationCategory;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.refdata.LocationRefDataApi;
-
 import java.util.Collections;
 import java.util.Objects;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class LocationRefDataService {
 
     private static final String OPEN = "Open";
@@ -25,8 +22,22 @@ public class LocationRefDataService {
     private final UserDetails userDetails;
     private final LocationRefDataApi locationRefDataApi;
     private final IdamService idamService;
-    @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}")
-    private String serviceId;
+    //    @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}")
+    private final String serviceId;
+
+    public LocationRefDataService(
+        AuthTokenGenerator authTokenGenerator,
+        UserDetails userDetails,
+        LocationRefDataApi locationRefDataApi,
+        IdamService idamService,
+        @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}") String serviceId
+    ) {
+        this.authTokenGenerator = authTokenGenerator;
+        this.userDetails = userDetails;
+        this.locationRefDataApi = locationRefDataApi;
+        this.idamService = idamService;
+        this.serviceId = serviceId;
+    }
 
     public DynamicList getHearingLocationsDynamicList(boolean isServiceUser) {
 
@@ -56,10 +67,6 @@ public class LocationRefDataService {
         return locationCategory == null
             ? Collections.emptyList()
             : locationCategory.getCourtVenues();
-    }
-
-    public void setServiceId(String serviceId) {
-        this.serviceId = serviceId;
     }
 
 

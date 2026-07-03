@@ -164,7 +164,7 @@ public class SubstantiveHearingEditedHandler extends ListedHearingService implem
         final List<HearingChannel> nextHearingChannelList = getHearingChannels(serviceData);
         String currentHearingChannel = asylumCase.read(HEARING_CHANNEL, DynamicList.class)
             .map(dynamicList -> dynamicList.getValue().getCode()).orElse("");
-        String nextHearingChannel = nextHearingChannelList.get(0).name();
+        String nextHearingChannel = nextHearingChannelList.getFirst().name();
 
         boolean updated = !Objects.equals(currentHearingChannel, nextHearingChannel);
 

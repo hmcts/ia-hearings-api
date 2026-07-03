@@ -6,7 +6,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LI
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import javax.jms.JMSException;
+import jakarta.jms.JMSException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.qpid.jms.message.JmsBytesMessage;
 import org.springframework.beans.factory.annotation.Value;
@@ -98,7 +98,7 @@ public class HmcHearingsEventTopicListener {
             }
         }  catch (JsonProcessingException ex) {
             throw new HmcEventProcessingException(
-                String.format("Unable to successfully receive HMC message: %s", stringMessage), ex);
+                "Unable to successfully receive HMC message: %s".formatted(stringMessage), ex);
         }
     }
 

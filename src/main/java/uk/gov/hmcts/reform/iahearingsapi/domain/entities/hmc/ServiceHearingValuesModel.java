@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;

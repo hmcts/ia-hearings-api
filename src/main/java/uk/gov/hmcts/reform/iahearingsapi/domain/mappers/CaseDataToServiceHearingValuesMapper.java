@@ -189,7 +189,7 @@ public class CaseDataToServiceHearingValuesMapper {
     }
 
     public String getCaseDeepLink(String caseReference) {
-        return String.format("/cases/case-details/%s#Overview", caseReference);
+        return "/cases/case-details/%s#Overview".formatted(caseReference);
     }
 
     public String getHearingChannel(AsylumCase asylumCase) {

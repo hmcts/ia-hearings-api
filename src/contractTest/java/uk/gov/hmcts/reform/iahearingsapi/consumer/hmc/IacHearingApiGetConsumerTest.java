@@ -9,7 +9,7 @@ import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
-import au.com.dius.pact.core.model.RequestResponsePact;
+import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase {
 
     @Pact(provider = IAC_PROVIDER, consumer = CONSUMER)
-    public RequestResponsePact getHearingServiceValues(
+    public V4Pact getHearingServiceValues(
         PactDslWithProvider builder) throws JsonProcessingException {
 
         Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
@@ -50,11 +50,11 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
             .body(getServiceHearingValues())
             .headers(responseHeaders)
             .status(org.springframework.http.HttpStatus.OK.value())
-            .toPact();
+            .toPact(V4Pact.class);
     }
 
     @Test
-    @PactTestFor(pactMethod = "getHearingServiceValues")
+    @PactTestFor(pactMethod = "getHearingServiceValues", port = "8090")
     public void shouldGetHearingServiceValues(MockServer mockServer) throws JsonProcessingException {
 
         JsonPath response = RestAssured
@@ -80,7 +80,7 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     }
 
     @Pact(provider = IAC_PROVIDER, consumer = CONSUMER)
-    public RequestResponsePact getHearingLinkData(PactDslWithProvider builder) throws JsonProcessingException {
+    public V4Pact getHearingLinkData(PactDslWithProvider builder) throws JsonProcessingException {
 
         Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
             .put("Connection", "close")
@@ -97,7 +97,7 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
             .body(getHearingLinkDataList())
             .headers(responseHeaders)
             .status(org.springframework.http.HttpStatus.OK.value())
-            .toPact();
+            .toPact(V4Pact.class);
     }
 
     @Test
@@ -120,8 +120,8 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
             .jsonPath();
 
         List<Map<String, String>> hearingLinkData = response.get();
-        assertEquals("Case name", hearingLinkData.get(0).get("caseName"));
-        assertEquals(CASE_REFERENCE, hearingLinkData.get(0).get("caseReference"));
+        assertEquals("Case name", hearingLinkData.getFirst().get("caseName"));
+        assertEquals(CASE_REFERENCE, hearingLinkData.getFirst().get("caseReference"));
     }
 
 }

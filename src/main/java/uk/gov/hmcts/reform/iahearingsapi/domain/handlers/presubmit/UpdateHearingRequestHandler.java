@@ -119,7 +119,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
                 );
                 asylumCase.write(REQUEST_HEARING_CHANNEL, new DynamicList(
                     new Value(
-                        hearingDetails.getHearingChannels().get(0),
+                        hearingDetails.getHearingChannels().getFirst(),
                         hearingDetails.getHearingChannelDescription()
                     ),
                     allChannelsOptions
@@ -254,7 +254,7 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
         AsylumCase asylumCase, DynamicList hearingLocation, List<HearingLocationModel> hmcHearinglocation) {
 
         Value hearingVenueValue = getHearingVenueValue(
-            hearingLocation, hmcHearinglocation.get(0).getLocationId());
+            hearingLocation, hmcHearinglocation.getFirst().getLocationId());
         asylumCase.write(
             CHANGE_HEARING_VENUE,
             HearingCentre.getHearingCentreByEpimsId(hearingVenueValue.getCode()).getValue());
