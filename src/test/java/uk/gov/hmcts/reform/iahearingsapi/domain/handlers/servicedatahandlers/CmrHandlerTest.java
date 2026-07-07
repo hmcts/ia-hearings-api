@@ -78,6 +78,8 @@ class CmrHandlerTest {
     AsylumCase asylumCase;
     @Mock
     LocationRefDataService locationRefDataService;
+    @Mock
+    CmrHearingIdListProcessor cmrHearingIdListProcessor;
 
     private CmrHandler cmrHandler;
 
@@ -85,7 +87,7 @@ class CmrHandlerTest {
     public void setUp() {
 
         cmrHandler =
-            new CmrHandler(coreCaseDataService, hearingService, locationRefDataService);
+            new CmrHandler(coreCaseDataService, hearingService, locationRefDataService, cmrHearingIdListProcessor);
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -255,6 +257,12 @@ class CmrHandlerTest {
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HEARING_VENUE_ID));
+        when(serviceData.read(DURATION, Integer.class))
+            .thenReturn(Optional.of(150));
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(NEXT_HEARING_DATE));
 
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
             .thenReturn(Optional.of(HEARING_ID));
@@ -291,6 +299,12 @@ class CmrHandlerTest {
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HEARING_VENUE_ID));
+        when(serviceData.read(DURATION, Integer.class))
+            .thenReturn(Optional.of(150));
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(NEXT_HEARING_DATE));
 
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
             .thenReturn(Optional.of(HEARING_ID));

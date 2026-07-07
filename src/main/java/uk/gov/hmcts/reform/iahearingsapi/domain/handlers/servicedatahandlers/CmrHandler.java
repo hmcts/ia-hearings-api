@@ -52,6 +52,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
     private final LocationRefDataService locationRefDataService;
+    private final CmrHearingIdListProcessor cmrHearingIdListProcessor;
 
     @Override
     public DispatchPriority getDispatchPriority() {
@@ -81,7 +82,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
             } else {
                 boolean cmrHearingUpdated = isCmrUpdated(serviceData, partiesNotifiedResponses.getResponses());
                 if (cmrHearingUpdated) {
-                    handleCmrReListing(caseId);
+                    handleCmrReListing(caseId, serviceData);
                     log.info("cmrRelistingHandler triggered for hearing " + hearingId);
                 } else {
                     log.info("Hearing date, channel, duration and location not updated");
@@ -92,7 +93,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
             handleCmrCancelled(caseId);
             log.info("cmrRelistingHandler triggered for hearing " + hearingId);
         } else {
-            handleCmrReListing(caseId);
+            handleCmrReListing(caseId, serviceData);
             log.info("cmrRelistingHandler triggered for hearing " + hearingId);
         }
 
@@ -107,21 +108,37 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
         boolean isAppealsLocationRefDataEnabled = HearingsUtils.isAppealsLocationRefDataEnabled(asylumCase);
 
-        updateCmrHearingDetails(serviceData, asylumCase, isAppealsLocationRefDataEnabled, caseId,
-                                locationRefDataService.getCourtVenuesAsServiceUser(),
-                                locationRefDataService.getHearingLocationsDynamicList(true));
+        updateCmrHearingDetails(
+            serviceData,
+            asylumCase,
+            isAppealsLocationRefDataEnabled,
+            caseId,
+            locationRefDataService.getCourtVenuesAsServiceUser(),
+            locationRefDataService.getHearingLocationsDynamicList(true)
+        );
 
-        log.info("Sending `{}` event for  Case ID `{}`", CMR_LISTING, caseId);
+        log.info("Sending `{}` event for Case ID `{}`", CMR_LISTING, caseId);
         coreCaseDataService.triggerSubmitEvent(CMR_LISTING, caseId, startEventResponse, asylumCase);
     }
 
-    private void handleCmrReListing(String caseId) {
+    private void handleCmrReListing(String caseId, ServiceData serviceData) {
         StartEventResponse startEventResponse =
             coreCaseDataService.startCaseEvent(CMR_RE_LISTING, caseId, CASE_TYPE_ASYLUM);
 
         AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
 
-        log.info("Sending `{}` event for case ID `{}`", CMR_RE_LISTING, caseId);
+        boolean isAppealsLocationRefDataEnabled = HearingsUtils.isAppealsLocationRefDataEnabled(asylumCase);
+
+        updateCmrHearingDetails(
+            serviceData,
+            asylumCase,
+            isAppealsLocationRefDataEnabled,
+            caseId,
+            locationRefDataService.getCourtVenuesAsServiceUser(),
+            locationRefDataService.getHearingLocationsDynamicList(true)
+        );
+
+        log.info("Sending `{}` event for Case ID `{}`", CMR_RE_LISTING, caseId);
         coreCaseDataService.triggerSubmitEvent(CMR_RE_LISTING, caseId, startEventResponse, asylumCase);
     }
 
@@ -148,8 +165,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         return partiesNotifiedResponses.isEmpty();
     }
 
-    private boolean isCmrUpdated(
-        ServiceData serviceData, List<PartiesNotifiedResponse> partiesNotifiedResponses) {
+    private boolean isCmrUpdated(ServiceData serviceData, List<PartiesNotifiedResponse> partiesNotifiedResponses) {
         Set<ServiceDataFieldDefinition> updatedTargetFields = findUpdatedServiceDataFields(
             serviceData, partiesNotifiedResponses, Set.of(
                 NEXT_HEARING_DATE,
@@ -161,7 +177,7 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         return !updatedTargetFields.isEmpty();
     }
 
-    protected void updateCmrHearingDetails(
+    private void updateCmrHearingDetails(
         ServiceData serviceData,
         AsylumCase asylumCase,
         boolean isAppealsLocationRefDataEnabled,
@@ -178,18 +194,14 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
 
         asylumCase.write(CMR_HEARING_DATE, newHearingDateTime);
         asylumCase.write(CMR_HEARING_LENGTH, new HoursMinutes(getHearingDuration(serviceData)));
-        log.info("getHearingDuration: {}`", getHearingDuration(serviceData));
         asylumCase.write(CMR_HEARING_CENTRE, newHearingCentre);
         asylumCase.write(CMR_HEARING_CHANNEL, newHearingChannel);
 
         String newHearingId = getHearingId(serviceData);
-        log.info(
-            "Writing {} {} to asylum case {}",
-            AsylumCaseFieldDefinition.CURRENT_HEARING_ID,
-            newHearingId,
-            caseId
-        );
+        log.info("Writing {} {} to asylum case {}", AsylumCaseFieldDefinition.CURRENT_HEARING_ID, newHearingId, caseId);
         asylumCase.write(AsylumCaseFieldDefinition.CURRENT_HEARING_ID, newHearingId);
+
+        cmrHearingIdListProcessor.processHearingIdList(asylumCase, newHearingId);
 
         if (isAppealsLocationRefDataEnabled) {
             asylumCase.write(AsylumCaseFieldDefinition.CMR_IS_REMOTE_HEARING,
