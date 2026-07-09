@@ -61,7 +61,6 @@ public class SendServiceDataToHmcHandlerTest {
     }
 
     @Test
-    @Disabled
     void should_update_partiesNotified() {
         when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.AWAITING_LISTING));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
