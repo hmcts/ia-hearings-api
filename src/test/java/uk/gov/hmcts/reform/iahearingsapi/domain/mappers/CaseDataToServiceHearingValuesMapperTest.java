@@ -42,6 +42,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.STF_24W_CURRENT_STATUS_AUTO_GENERATED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.VULNERABILITIES_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.GRANTED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.GrantedRefusedType.REFUSED;
@@ -85,6 +86,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.AppealType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingWindowModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityRangeModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.UnavailabilityType;
@@ -178,7 +180,13 @@ class CaseDataToServiceHearingValuesMapperTest {
     @Test
     void getHearingChannels_should_return_virtual_hearing_centre() {
         when(asylumCase.read(IS_VIRTUAL_HEARING, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.YES));
-        assertEquals(mapper.getHearingChannels(asylumCase), List.of("VID"));
+        assertEquals(mapper.getHearingChannels(asylumCase), List.of(HearingChannel.VID.name()));
+    }
+
+    @Test
+    void getHearingChannels_should_return_in_person_if_24w_not_virtual() {
+        when(asylumCase.read(STF_24W_CURRENT_STATUS_AUTO_GENERATED, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
+        assertEquals(mapper.getHearingChannels(asylumCase), List.of(HearingChannel.INTER.name()));
     }
 
     @Test
