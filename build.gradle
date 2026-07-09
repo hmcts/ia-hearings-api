@@ -285,7 +285,7 @@ test {
 dependencyManagement {
   imports {
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.2'
-    mavenBom 'com.fasterxml.jackson:jackson-bom:2.21.2'
+    mavenBom 'com.fasterxml.jackson:jackson-bom:2.21.4'
     mavenBom "com.azure:azure-sdk-bom:1.3.7"
 
     // CVE-2026-34478
@@ -301,7 +301,7 @@ dependencyManagement {
     // CVE-2026-33870
     // CVE-2026-33871
     // CVE-2025-67735 - from spring-boot-starter-data-redis@3.5.14
-    mavenBom "io.netty:netty-bom:4.2.15.Final"
+    mavenBom "io.netty:netty-bom:4.2.16.Final"
   }
   dependencies {
     dependencySet(group: 'org.junit.jupiter', version: '5.13.4') {
