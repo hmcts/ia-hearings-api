@@ -63,38 +63,35 @@ public class PayloadUtils {
             .orElseThrow(() -> new RequiredFieldMissingException("Appeal Type is a required field"));
 
         return CaseTypeValue.from(
-                appealType,
-                hasDeportationOrder,
-                isSuitableToFloat,
-                isVirtualHearing,
-                appellantInDetention,
-                isStf24Weeks
+            appealType,
+            hasDeportationOrder,
+            isSuitableToFloat,
+            isVirtualHearing,
+            appellantInDetention,
+            isStf24Weeks
         );
 
     }
 
     public static Integer getNumberOfPhysicalAttendees(List<PartyDetailsModel> partyDetails) {
 
-        long physicalAttendees = partyDetails.stream()
-                .filter(PayloadUtils::isInPersonAttendee)
-                .count();
+        boolean hasNoChannelSelection = partyDetails.stream()
+            .noneMatch(party ->
+                           party.getIndividualDetails() != null
+                               && party.getIndividualDetails().getPreferredHearingChannel() != null);
 
-        boolean hasAnyChannelSelection = partyDetails.stream()
-                .anyMatch(party ->
-                        party.getIndividualDetails() != null
-                                && party.getIndividualDetails().getPreferredHearingChannel() != null);
-
-        if (!hasAnyChannelSelection) {
+        if (hasNoChannelSelection) {
             return null;
         }
 
-        return physicalAttendees > 0
-                ? (int) physicalAttendees + 1
-                : 0;
+        int physicalAttendees = partyDetails.stream()
+            .filter(PayloadUtils::isInPersonAttendee).toList().size();
+
+        return physicalAttendees > 0 ? physicalAttendees + 1 : 0;
     }
 
     private static boolean isInPersonAttendee(PartyDetailsModel party) {
         return party.getIndividualDetails() != null
-                && Objects.equals(party.getIndividualDetails().getPreferredHearingChannel(), INTER.name());
+            && Objects.equals(party.getIndividualDetails().getPreferredHearingChannel(), INTER.name());
     }
 }
