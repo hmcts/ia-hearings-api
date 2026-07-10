@@ -127,8 +127,8 @@ public enum CaseTypeValue {
         boolean isAppellantInDetention,
         boolean isStf24Weeks
     ) {
-        log.info("No matching case type found for appealType: {}, hasDeportation: {}, isSuitableToFloat: {}," +
-                     " isVirtualHearing: {}, isAppellantInDetention: {}, isStf24Weeks: {}. Using fallback logic.",
+        log.info("No matching case type found for appealType: {}, hasDeportation: {}, isSuitableToFloat: {},"
+                     + " isVirtualHearing: {}, isAppellantInDetention: {}, isStf24Weeks: {}. Using fallback logic.",
             appealType, hasDeportation, isSuitableToFloat, isVirtualHearing, isAppellantInDetention, isStf24Weeks);
         return switch (appealType) {
             case RP -> isStf24Weeks ? RPSTX : isAppellantInDetention ? RPDEX : RPX;
