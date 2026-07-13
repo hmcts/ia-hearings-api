@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.listeners;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.AWAITING_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
 
@@ -88,7 +89,8 @@ public class HmcHearingsEventTopicListener {
             HmcStatus hmcStatus = hmcMessage.getHearingUpdate().getHmcStatus();
 
             if (isMessageRelevantForService(hmcMessage)
-                && (hmcStatus.equals(LISTED) || hmcStatus.equals(CANCELLED) || hmcStatus.equals(HmcStatus.EXCEPTION))) {
+                && (hmcStatus.equals(LISTED) || hmcStatus.equals(CANCELLED) || hmcStatus.equals(HmcStatus.EXCEPTION)
+                    || hmcStatus.equals(AWAITING_LISTING))) {
 
                 log.info("Attempting to process message from HMC hearings topic for"
                              + " Case ID {}, and Hearing ID {} with status {}", caseId, hearingId,

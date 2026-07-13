@@ -48,8 +48,8 @@ public class SendServiceDataToHmcHandlerTest {
     }
 
     @Test
-    void should_always_run_if_hmc_status_not_exception() {
-        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.AWAITING_LISTING));
+    void should_run_if_hmc_status_not_exception_or_awaiting_listing() {
+        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.LISTED));
         assertTrue(sendServiceDataToHmcHandler.canHandle(serviceData));
     }
 
@@ -60,8 +60,14 @@ public class SendServiceDataToHmcHandlerTest {
     }
 
     @Test
-    void should_update_partiesNotified() {
+    void should_not_run_if_hmc_status_awaiting_listing() {
         when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.AWAITING_LISTING));
+        assertFalse(sendServiceDataToHmcHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_update_partiesNotified() {
+        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.LISTED));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
         when(serviceData.read(HEARING_REQUEST_VERSION_NUMBER, Long.class)).thenReturn(Optional.of(VERSION_NUMBER));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME, LocalDateTime.class))
@@ -81,7 +87,7 @@ public class SendServiceDataToHmcHandlerTest {
 
     @Test
     void should_not_update_partiesNotified_if_receivedDateTime_not_present() {
-        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.AWAITING_LISTING));
+        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.LISTED));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
         when(serviceData.read(HEARING_REQUEST_VERSION_NUMBER, Long.class)).thenReturn(Optional.of(VERSION_NUMBER));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME, LocalDateTime.class))
@@ -101,7 +107,7 @@ public class SendServiceDataToHmcHandlerTest {
 
     @Test
     void should_not_update_partiesNotified_if_versionNumber_not_present() {
-        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.AWAITING_LISTING));
+        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.LISTED));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
         when(serviceData.read(HEARING_REQUEST_VERSION_NUMBER, Long.class)).thenReturn(Optional.empty());
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME, LocalDateTime.class))
@@ -121,7 +127,7 @@ public class SendServiceDataToHmcHandlerTest {
 
     @Test
     void should_not_update_partiesNotified_if_neither_versionNumber_and_receivedDateTime_present() {
-        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.AWAITING_LISTING));
+        when(serviceData.read(HMC_STATUS, HmcStatus.class)).thenReturn(Optional.of(HmcStatus.LISTED));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
         when(serviceData.read(HEARING_REQUEST_VERSION_NUMBER, Long.class)).thenReturn(Optional.empty());
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_RESPONSE_RECEIVED_DATE_TIME, LocalDateTime.class))
