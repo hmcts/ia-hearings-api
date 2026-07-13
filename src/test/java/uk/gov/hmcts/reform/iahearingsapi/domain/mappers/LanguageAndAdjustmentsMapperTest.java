@@ -396,12 +396,12 @@ public class LanguageAndAdjustmentsMapperTest {
         when(partyDetailsModel.getPartyRole()).thenReturn(NLR_PARTY_ROLE);
         when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
-        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
 
         mapper.processAsylumPartyCaseFlags(asylumCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("bfi");
-        verify(reasonableAdjustments, times(1)).addAll(List.of("RA0042", "RA0018"));
+        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
+        assertThat(reasonableAdjustmentsCaptor.getValue()).containsExactly("RA0042", "RA0018");
         verify(individualDetailsModel, times(1))
             .setOtherReasonableAdjustmentDetails("Interpreter: German; "
                                                      + "Support filling in forms: comment of r.a. flag;");
