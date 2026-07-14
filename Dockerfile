@@ -1,4 +1,4 @@
-ARG APP_INSIGHTS_AGENT_VERSION=3.4.13
+ARG APP_INSIGHTS_AGENT_VERSION=3.7.3
 FROM hmctsprod.azurecr.io/base/java:21-distroless
 
 COPY lib/applicationinsights.json /opt/app/

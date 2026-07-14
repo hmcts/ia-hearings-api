@@ -13,8 +13,8 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 public class ServiceHealthIndicator implements HealthIndicator {
 
-    private String uri;
-    private String matcher;
+    private final String uri;
+    private final String matcher;
     private RestTemplate restTemplate;
 
     public ServiceHealthIndicator(String uri, String matcher, RestTemplate restTemplate) {
