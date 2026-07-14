@@ -191,14 +191,15 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         String newHearingDateTime = formatHearingDateTime(getAsylumHearingDatetime(serviceData, hearingVenueId));
         final HearingCentre newHearingCentre = HandlerUtils.getCmrLocation(hearingChannels, hearingVenueId);
         final DynamicList newHearingChannel = buildHearingChannelDynmicList(hearingChannels);
-        log.info("-----------newHearingChannel.getValue().getCode(): {}", newHearingChannel.getValue().getCode());
-        log.info("-----------newHearingChannel.getValue().getLabel(): {}", newHearingChannel.getValue().getLabel());
-        log.info("-----------newHearingChannel.getListItems(): {}", newHearingChannel.getListItems());
 
         asylumCase.write(CMR_HEARING_DATE, newHearingDateTime);
         asylumCase.write(CMR_HEARING_LENGTH, new HoursMinutes(getHearingDuration(serviceData)));
         asylumCase.write(CMR_HEARING_CENTRE, newHearingCentre);
         asylumCase.write(CMR_HEARING_CHANNEL, newHearingChannel);
+
+        log.info("-----------newHearingChannel.getValue().getCode(): {}", newHearingChannel.getValue().getCode());
+        log.info("-----------newHearingChannel.getValue().getLabel(): {}", newHearingChannel.getValue().getLabel());
+        log.info("-----------newHearingChannel.getListItems(): {}", newHearingChannel.getListItems());
 
         String newHearingId = getHearingId(serviceData);
         log.info("Writing {} {} to asylum case {}", AsylumCaseFieldDefinition.CURRENT_HEARING_ID, newHearingId, caseId);
