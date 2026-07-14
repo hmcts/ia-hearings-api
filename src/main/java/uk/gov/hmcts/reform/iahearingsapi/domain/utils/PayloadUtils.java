@@ -64,9 +64,9 @@ public class PayloadUtils {
 
         return CaseTypeValue.from(
             appealType,
-            hasDeportationOrder,
-            isSuitableToFloat,
             isVirtualHearing,
+            isSuitableToFloat,
+            hasDeportationOrder,
             appellantInDetention,
             isStf24Weeks
         );
