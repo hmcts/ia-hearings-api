@@ -12,7 +12,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RE_LIST_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.BAIL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import org.junit.jupiter.api.BeforeEach;
