@@ -197,10 +197,6 @@ public class CmrHandler extends ListedHearingService implements ServiceDataHandl
         asylumCase.write(CMR_HEARING_CENTRE, newHearingCentre);
         asylumCase.write(CMR_HEARING_CHANNEL, newHearingChannel);
 
-        log.info("-----------newHearingChannel.getValue().getCode(): {}", newHearingChannel.getValue().getCode());
-        log.info("-----------newHearingChannel.getValue().getLabel(): {}", newHearingChannel.getValue().getLabel());
-        log.info("-----------newHearingChannel.getListItems(): {}", newHearingChannel.getListItems());
-
         String newHearingId = getHearingId(serviceData);
         log.info("Writing {} {} to asylum case {}", AsylumCaseFieldDefinition.CURRENT_HEARING_ID, newHearingId, caseId);
         asylumCase.write(AsylumCaseFieldDefinition.CURRENT_HEARING_ID, newHearingId);
