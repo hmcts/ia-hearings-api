@@ -3,260 +3,205 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
+import java.util.EnumMap;
 
 @Slf4j
 @Getter
 public enum CaseTypeValue {
 
-    RPX("BFA1-RPX"),
-    PAX("BFA1-PAX"),
-    EAX("BFA1-EAX"),
-    EUX("BFA1-EUX"),
-    HUX("BFA1-HUX"),
-    DCX("BFA1-DCX"),
+    RPX("BFA1-RPX", AppealType.RP, Category.DEFAULT),
+    PAX("BFA1-PAX", AppealType.PA, Category.DEFAULT),
+    EAX("BFA1-EAX", AppealType.EA, Category.DEFAULT),
+    EUX("BFA1-EUX", AppealType.EU, Category.DEFAULT),
+    HUX("BFA1-HUX", AppealType.HU, Category.DEFAULT),
+    DCX("BFA1-DCX", AppealType.DC, Category.DEFAULT),
 
-    RPD("BFA1-RPD"),
-    PAD("BFA1-PAD"),
-    EAD("BFA1-EAD"),
-    EUD("BFA1-EUD"),
-    HUD("BFA1-HUD"),
-    DCD("BFA1-DCD"),
+    RPD("BFA1-RPD", AppealType.RP, Category.DEPORT),
+    PAD("BFA1-PAD", AppealType.PA, Category.DEPORT),
+    EAD("BFA1-EAD", AppealType.EA, Category.DEPORT),
+    EUD("BFA1-EUD", AppealType.EU, Category.DEPORT),
+    HUD("BFA1-HUD", AppealType.HU, Category.DEPORT),
+    DCD("BFA1-DCD", AppealType.DC, Category.DEPORT),
 
-    PAF("BFA1-PAF"),
-    RPF("BFA1-RPF"),
-    EAF("BFA1-EAF"),
-    EUF("BFA1-EUF"),
-    HUF("BFA1-HUF"),
-    DCF("BFA1-DCF"),
+    PAF("BFA1-PAF", AppealType.PA, Category.FLOAT),
+    RPF("BFA1-RPF", AppealType.RP, Category.FLOAT),
+    EAF("BFA1-EAF", AppealType.EA, Category.FLOAT),
+    EUF("BFA1-EUF", AppealType.EU, Category.FLOAT),
+    HUF("BFA1-HUF", AppealType.HU, Category.FLOAT),
+    DCF("BFA1-DCF", AppealType.DC, Category.FLOAT),
 
-    PAV("BFA1-PAV"),
-    EAV("BFA1-EAV"),
-    EUV("BFA1-EUV"),
-    HUV("BFA1-HUV"),
+    PAV("BFA1-PAV", AppealType.PA, Category.VIRTUAL),
+    EAV("BFA1-EAV", AppealType.EA, Category.VIRTUAL),
+    EUV("BFA1-EUV", AppealType.EU, Category.VIRTUAL),
+    HUV("BFA1-HUV", AppealType.HU, Category.VIRTUAL),
 
-    PAVF("BFA1-PAVF"),
-    EAVF("BFA1-EAVF"),
-    EUVF("BFA1-EUVF"),
-    HUVF("BFA1-HUVF"),
+    PAVF("BFA1-PAVF", AppealType.PA, Category.VIRTUAL_FLOAT),
+    EAVF("BFA1-EAVF", AppealType.EA, Category.VIRTUAL_FLOAT),
+    EUVF("BFA1-EUVF", AppealType.EU, Category.VIRTUAL_FLOAT),
+    HUVF("BFA1-HUVF", AppealType.HU, Category.VIRTUAL_FLOAT),
 
-    PADEV("BFA1-PADEV"),
-    EADEV("BFA1-EADEV"),
-    EUDEV("BFA1-EUDEV"),
-    HUDEV("BFA1-HUDEV"),
+    // Currently unused
+    PADEV("BFA1-PADEV", AppealType.PA, Category.DETAINED_VIRTUAL),
+    EADEV("BFA1-EADEV", AppealType.EA, Category.DETAINED_VIRTUAL),
+    EUDEV("BFA1-EUDEV", AppealType.EU, Category.DETAINED_VIRTUAL),
+    HUDEV("BFA1-HUDEV", AppealType.HU, Category.DETAINED_VIRTUAL),
 
-    PADEX("BFA1-PADEX"),
-    RPDEX("BFA1-RPDEX"),
-    EADEX("BFA1-EADEX"),
-    EUDEX("BFA1-EUDEX"),
-    HUDEX("BFA1-HUDEX"),
-    DCDEX("BFA1-DCDEX"),
+    PADEX("BFA1-PADEX", AppealType.PA, Category.DETAINED),
+    RPDEX("BFA1-RPDEX", AppealType.RP, Category.DETAINED),
+    EADEX("BFA1-EADEX", AppealType.EA, Category.DETAINED),
+    EUDEX("BFA1-EUDEX", AppealType.EU, Category.DETAINED),
+    HUDEX("BFA1-HUDEX", AppealType.HU, Category.DETAINED),
+    DCDEX("BFA1-DCDEX", AppealType.DC, Category.DETAINED),
 
-    PADED("BFA1-PADED"),
-    RPDED("BFA1-RPDED"),
-    EADED("BFA1-EADED"),
-    EUDED("BFA1-EUDED"),
-    HUDED("BFA1-HUDED"),
-    DCDED("BFA1-DCDED"),
+    PADED("BFA1-PADED", AppealType.PA, Category.DETAINED_DEPORT),
+    RPDED("BFA1-RPDED", AppealType.RP, Category.DETAINED_DEPORT),
+    EADED("BFA1-EADED", AppealType.EA, Category.DETAINED_DEPORT),
+    EUDED("BFA1-EUDED", AppealType.EU, Category.DETAINED_DEPORT),
+    HUDED("BFA1-HUDED", AppealType.HU, Category.DETAINED_DEPORT),
+    DCDED("BFA1-DCDED", AppealType.DC, Category.DETAINED_DEPORT),
 
-    PASTX("BFA1-PASTX"),
-    RPSTX("BFA1-RPSTX"),
-    EASTX("BFA1-EASTX"),
-    EUSTX("BFA1-EUSTX"),
-    HUSTX("BFA1-HUSTX"),
-    DCSTX("BFA1-DCSTX"),
+    PASTX("BFA1-PASTX", AppealType.PA, Category.STF_DEFAULT),
+    RPSTX("BFA1-RPSTX", AppealType.RP, Category.STF_DEFAULT),
+    EASTX("BFA1-EASTX", AppealType.EA, Category.STF_DEFAULT),
+    EUSTX("BFA1-EUSTX", AppealType.EU, Category.STF_DEFAULT),
+    HUSTX("BFA1-HUSTX", AppealType.HU, Category.STF_DEFAULT),
+    DCSTX("BFA1-DCSTX", AppealType.DC, Category.STF_DEFAULT),
 
-    PASTD("BFA1-PASTD"),
-    RPSTD("BFA1-RPSTD"),
-    EASTD("BFA1-EASTD"),
-    EUSTD("BFA1-EUSTD"),
-    HUSTD("BFA1-HUSTD"),
-    DCSTD("BFA1-DCSTD"),
+    PASTD("BFA1-PASTD", AppealType.PA, Category.STF_DEPORT),
+    RPSTD("BFA1-RPSTD", AppealType.RP, Category.STF_DEPORT),
+    EASTD("BFA1-EASTD", AppealType.EA, Category.STF_DEPORT),
+    EUSTD("BFA1-EUSTD", AppealType.EU, Category.STF_DEPORT),
+    HUSTD("BFA1-HUSTD", AppealType.HU, Category.STF_DEPORT),
+    DCSTD("BFA1-DCSTD", AppealType.DC, Category.STF_DEPORT),
 
-    PASTV("BFA1-PASTV"),
-    EASTV("BFA1-EASTV"),
-    EUSTV("BFA1-EUSTV"),
-    HUSTV("BFA1-HUSTV"),
+    PASTV("BFA1-PASTV", AppealType.PA, Category.STF_VIRTUAL),
+    EASTV("BFA1-EASTV", AppealType.EA, Category.STF_VIRTUAL),
+    EUSTV("BFA1-EUSTV", AppealType.EU, Category.STF_VIRTUAL),
+    HUSTV("BFA1-HUSTV", AppealType.HU, Category.STF_VIRTUAL),
 
-    PASTF("BFA1-PASTF"),
-    RPSTF("BFA1-RPSTF"),
-    EASTF("BFA1-EASTF"),
-    EUSTF("BFA1-EUSTF"),
-    HUSTF("BFA1-HUSTF"),
-    DCSTF("BFA1-DCSTF"),
+    PASTF("BFA1-PASTF", AppealType.PA, Category.STF_FLOAT),
+    RPSTF("BFA1-RPSTF", AppealType.RP, Category.STF_FLOAT),
+    EASTF("BFA1-EASTF", AppealType.EA, Category.STF_FLOAT),
+    EUSTF("BFA1-EUSTF", AppealType.EU, Category.STF_FLOAT),
+    HUSTF("BFA1-HUSTF", AppealType.HU, Category.STF_FLOAT),
+    DCSTF("BFA1-DCSTF", AppealType.DC, Category.STF_FLOAT),
 
-    PASTVF("BFA1-PASTVF"),
-    EASTVF("BFA1-EASTVF"),
-    EUSTVF("BFA1-EUSTVF"),
-    HUSTVF("BFA1-HUSTVF");
+    PASTVF("BFA1-PASTVF", AppealType.PA, Category.STF_VIRTUAL_FLOAT),
+    EASTVF("BFA1-EASTVF", AppealType.EA, Category.STF_VIRTUAL_FLOAT),
+    EUSTVF("BFA1-EUSTVF", AppealType.EU, Category.STF_VIRTUAL_FLOAT),
+    HUSTVF("BFA1-HUSTVF", AppealType.HU, Category.STF_VIRTUAL_FLOAT);
 
     private final String value;
+    private final AppealType appealType;
+    private final Category category;
 
-    CaseTypeValue(String value) {
+    private enum Category {
+        DEFAULT,
+        DEPORT,
+        FLOAT,
+        VIRTUAL,
+        VIRTUAL_FLOAT,
+        DETAINED_VIRTUAL,
+        DETAINED,
+        DETAINED_DEPORT,
+        STF_DEFAULT,
+        STF_DEPORT,
+        STF_VIRTUAL,
+        STF_FLOAT,
+        STF_VIRTUAL_FLOAT
+    }
+
+    CaseTypeValue(String value,
+                  AppealType appealType,
+                  Category category) {
         this.value = value;
+        this.appealType = appealType;
+        this.category = category;
+    }
+
+    private static final EnumMap<AppealType, EnumMap<Category, CaseTypeValue>> LOOKUP =
+        new EnumMap<>(AppealType.class);
+
+    static {
+        for (AppealType appealType : AppealType.values()) {
+            LOOKUP.put(appealType, new EnumMap<>(Category.class));
+        }
+
+        for (CaseTypeValue value : values()) {
+            LOOKUP.get(value.appealType).put(value.category, value);
+        }
     }
 
     public static CaseTypeValue from(
         AppealType appealType,
-        boolean hasDeportation,
-        boolean isSuitableToFloat,
         boolean isVirtualHearing,
+        boolean isSuitableToFloat,
+        boolean hasDeportation,
         boolean isAppellantInDetention,
         boolean isStf24Weeks
     ) {
-        return RULES.stream()
-            .filter(rule -> rule.matches(
-                appealType,
-                hasDeportation,
-                isSuitableToFloat,
+        CaseTypeValue value = LOOKUP.get(appealType)
+            .get(resolveCategory(
                 isVirtualHearing,
+                isSuitableToFloat,
+                hasDeportation,
                 isAppellantInDetention,
                 isStf24Weeks
-            ))
-            .map(CaseTypeRule::result)
-            .findFirst()
-            .orElse(getDefaultCaseType(appealType, hasDeportation, isSuitableToFloat,
-                                       isVirtualHearing, isAppellantInDetention, isStf24Weeks));
+            ));
+        return value == null ? getDefaultCaseTypeValue(appealType, isStf24Weeks) : value;
     }
 
-    public static CaseTypeValue getDefaultCaseType(
-        AppealType appealType,
-        boolean hasDeportation,
-        boolean isSuitableToFloat,
-        boolean isVirtualHearing,
-        boolean isAppellantInDetention,
-        boolean isStf24Weeks
-    ) {
-        log.info("No matching case type found for appealType: {}, hasDeportation: {}, isSuitableToFloat: {},"
-                     + " isVirtualHearing: {}, isAppellantInDetention: {}, isStf24Weeks: {}. Using fallback logic.",
-            appealType, hasDeportation, isSuitableToFloat, isVirtualHearing, isAppellantInDetention, isStf24Weeks);
-        return switch (appealType) {
-            case RP -> isStf24Weeks ? RPSTX : isAppellantInDetention ? RPDEX : RPX;
-            case PA -> isStf24Weeks ? PASTX : isAppellantInDetention ? PADEX : PAX;
-            case EA -> isStf24Weeks ? EASTX : isAppellantInDetention ? EADEX : EAX;
-            case EU -> isStf24Weeks ? EUSTX : isAppellantInDetention ? EUDEX : EUX;
-            case HU -> isStf24Weeks ? HUSTX : isAppellantInDetention ? HUDEX : HUX;
-            case DC -> isStf24Weeks ? DCSTX : isAppellantInDetention ? DCDEX : DCX;
-        };
+    private static CaseTypeValue getDefaultCaseTypeValue(AppealType appealType, boolean isStf24Weeks) {
+        return LOOKUP.get(appealType).get(isStf24Weeks ? Category.STF_DEFAULT : Category.DEFAULT);
     }
 
-    public static final List<CaseTypeRule> RULES = List.of(
-        // ---------- STANDARD ----------
-        new CaseTypeRule(AppealType.RP, false, false, false, false, false, RPX),
-        new CaseTypeRule(AppealType.PA, false, false, false, false, false, PAX),
-        new CaseTypeRule(AppealType.EA, false, false, false, false, false, EAX),
-        new CaseTypeRule(AppealType.EU, false, false, false, false, false, EUX),
-        new CaseTypeRule(AppealType.HU, false, false, false, false, false, HUX),
-        new CaseTypeRule(AppealType.DC, false, false, false, false, false, DCX),
-        // ---------- DEPORTATION ----------
-        new CaseTypeRule(AppealType.RP, true, false, false, false, false, RPD),
-        new CaseTypeRule(AppealType.PA, true, false, false, false, false, PAD),
-        new CaseTypeRule(AppealType.EA, true, false, false, false, false, EAD),
-        new CaseTypeRule(AppealType.EU, true, false, false, false, false, EUD),
-        new CaseTypeRule(AppealType.HU, true, false, false, false, false, HUD),
-        new CaseTypeRule(AppealType.DC, true, false, false, false, false, DCD),
-        // ---------- FLOAT ----------
-        new CaseTypeRule(AppealType.RP, false, true, false, false, false, RPF),
-        new CaseTypeRule(AppealType.PA, false, true, false, false, false, PAF),
-        new CaseTypeRule(AppealType.EA, false, true, false, false, false, EAF),
-        new CaseTypeRule(AppealType.EU, false, true, false, false, false, EUF),
-        new CaseTypeRule(AppealType.HU, false, true, false, false, false, HUF),
-        new CaseTypeRule(AppealType.DC, false, true, false, false, false, DCF),
-        // ---------- VIRTUAL ----------
-        new CaseTypeRule(AppealType.RP, false, false, true, false, false, RPX),
-        new CaseTypeRule(AppealType.PA, false, false, true, false, false, PAV),
-        new CaseTypeRule(AppealType.EA, false, false, true, false, false, EAV),
-        new CaseTypeRule(AppealType.EU, false, false, true, false, false, EUV),
-        new CaseTypeRule(AppealType.HU, false, false, true, false, false, HUV),
-        new CaseTypeRule(AppealType.DC, false, false, true, false, false, DCX),
-        // ---------- VIRTUAL FLOAT ----------
-        new CaseTypeRule(AppealType.RP, false, true, true, false, false, RPX),
-        new CaseTypeRule(AppealType.PA, false, true, true, false, false, PAVF),
-        new CaseTypeRule(AppealType.EA, false, true, true, false, false, EAVF),
-        new CaseTypeRule(AppealType.EU, false, true, true, false, false, EUVF),
-        new CaseTypeRule(AppealType.HU, false, true, true, false, false, HUVF),
-        new CaseTypeRule(AppealType.DC, false, true, true, false, false, DCX),
-        // ---------- VIRTUAL DETENTION ----------
-        new CaseTypeRule(AppealType.RP, false, false, true, true, false, RPX),
-        new CaseTypeRule(AppealType.PA, false, false, true, true, false, PADEV),
-        new CaseTypeRule(AppealType.EA, false, false, true, true, false, EADEV),
-        new CaseTypeRule(AppealType.EU, false, false, true, true, false, EUDEV),
-        new CaseTypeRule(AppealType.HU, false, false, true, true, false, HUDEV),
-        new CaseTypeRule(AppealType.DC, false, false, true, true, false, DCX),
-        // ---------- DETENTION ----------
-        new CaseTypeRule(AppealType.RP, false, false, false, true, false, RPDEX),
-        new CaseTypeRule(AppealType.PA, false, false, false, true, false, PADEX),
-        new CaseTypeRule(AppealType.EA, false, false, false, true, false, EADEX),
-        new CaseTypeRule(AppealType.EU, false, false, false, true, false, EUDEX),
-        new CaseTypeRule(AppealType.HU, false, false, false, true, false, HUDEX),
-        new CaseTypeRule(AppealType.DC, false, false, false, true, false, DCDEX),
-        // ---------- DETENTION + DEPORTATION ----------
-        new CaseTypeRule(AppealType.RP, true, false, false, true, false, RPDED),
-        new CaseTypeRule(AppealType.PA, true, false, false, true, false, PADED),
-        new CaseTypeRule(AppealType.EA, true, false, false, true, false, EADED),
-        new CaseTypeRule(AppealType.EU, true, false, false, true, false, EUDED),
-        new CaseTypeRule(AppealType.HU, true, false, false, true, false, HUDED),
-        new CaseTypeRule(AppealType.DC, true, false, false, true, false, DCDED),
-        // ---------- STF STANDARD ----------
-        new CaseTypeRule(AppealType.RP, false, false, false, false, true, RPSTX),
-        new CaseTypeRule(AppealType.PA, false, false, false, false, true, PASTX),
-        new CaseTypeRule(AppealType.EA, false, false, false, false, true, EASTX),
-        new CaseTypeRule(AppealType.EU, false, false, false, false, true, EUSTX),
-        new CaseTypeRule(AppealType.HU, false, false, false, false, true, HUSTX),
-        new CaseTypeRule(AppealType.DC, false, false, false, false, true, DCSTX),
-        // ---------- STF DEPORTATION ----------
-        new CaseTypeRule(AppealType.RP, true, false, false, false, true, RPSTD),
-        new CaseTypeRule(AppealType.PA, true, false, false, false, true, PASTD),
-        new CaseTypeRule(AppealType.EA, true, false, false, false, true, EASTD),
-        new CaseTypeRule(AppealType.EU, true, false, false, false, true, EUSTD),
-        new CaseTypeRule(AppealType.HU, true, false, false, false, true, HUSTD),
-        new CaseTypeRule(AppealType.DC, true, false, false, false, true, DCSTD),
-        // ---------- STF FLOAT ----------
-        new CaseTypeRule(AppealType.RP, false, true, false, false, true, RPSTF),
-        new CaseTypeRule(AppealType.PA, false, true, false, false, true, PASTF),
-        new CaseTypeRule(AppealType.EA, false, true, false, false, true, EASTF),
-        new CaseTypeRule(AppealType.EU, false, true, false, false, true, EUSTF),
-        new CaseTypeRule(AppealType.HU, false, true, false, false, true, HUSTF),
-        new CaseTypeRule(AppealType.DC, false, true, false, false, true, DCSTF),
-        // ---------- STF VIRTUAL ----------
-        new CaseTypeRule(AppealType.RP, false, false, true, false, true, RPSTX),
-        new CaseTypeRule(AppealType.PA, false, false, true, false, true, PASTV),
-        new CaseTypeRule(AppealType.EA, false, false, true, false, true, EASTV),
-        new CaseTypeRule(AppealType.EU, false, false, true, false, true, EUSTV),
-        new CaseTypeRule(AppealType.HU, false, false, true, false, true, HUSTV),
-        new CaseTypeRule(AppealType.DC, false, false, true, false, true, DCSTX),
-        // ---------- STF VIRTUAL FLOAT ----------
-        new CaseTypeRule(AppealType.RP, false, true, true, false, true, RPSTX),
-        new CaseTypeRule(AppealType.PA, false, true, true, false, true, PASTVF),
-        new CaseTypeRule(AppealType.EA, false, true, true, false, true, EASTVF),
-        new CaseTypeRule(AppealType.EU, false, true, true, false, true, EUSTVF),
-        new CaseTypeRule(AppealType.HU, false, true, true, false, true, HUSTVF),
-        new CaseTypeRule(AppealType.DC, false, true, true, false, true, DCSTX)
-    );
-
-    public record CaseTypeRule(
-        AppealType appealType,
+    private static Category resolveCategory(
+        boolean isVirtual,
+        boolean isFloat,
         boolean deportation,
-        boolean suitableToFloat,
-        boolean virtualHearing,
-        boolean appellantInDetention,
-        boolean stf24Weeks,
-        CaseTypeValue result
+        boolean detained,
+        boolean stf
     ) {
-        boolean matches(
-            AppealType appealType,
-            boolean deportation,
-            boolean suitableToFloat,
-            boolean virtualHearing,
-            boolean appellantInDetention,
-            boolean stf24Weeks
-        ) {
-            return this.appealType == appealType
-                && this.deportation == deportation
-                && this.suitableToFloat == suitableToFloat
-                && this.virtualHearing == virtualHearing
-                && this.appellantInDetention == appellantInDetention
-                && this.stf24Weeks == stf24Weeks;
+        if (stf) {
+            if (isVirtual) {
+                return isFloat
+                    ? Category.STF_VIRTUAL_FLOAT
+                    : Category.STF_VIRTUAL;
+            }
+
+            if (deportation) {
+                return Category.STF_DEPORT;
+            }
+
+            return isFloat
+                ? Category.STF_FLOAT
+                : Category.STF_DEFAULT;
         }
+
+        if (isVirtual) {
+            return isFloat
+                ? Category.VIRTUAL_FLOAT
+                : Category.VIRTUAL;
+        }
+
+        if (deportation) {
+            if (detained) {
+                return isFloat
+                    ? Category.DEFAULT
+                    : Category.DETAINED_DEPORT;
+            }
+
+            return Category.DEPORT;
+        }
+
+        if (detained) {
+            return isFloat
+                ? Category.DEFAULT
+                : Category.DETAINED;
+        }
+
+        return isFloat
+            ? Category.FLOAT
+            : Category.DEFAULT;
     }
 }
