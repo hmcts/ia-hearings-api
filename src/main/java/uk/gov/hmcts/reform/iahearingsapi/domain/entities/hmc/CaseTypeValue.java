@@ -40,12 +40,6 @@ public enum CaseTypeValue {
     EUVF("BFA1-EUVF", AppealType.EU, Category.VIRTUAL_FLOAT),
     HUVF("BFA1-HUVF", AppealType.HU, Category.VIRTUAL_FLOAT),
 
-    // Currently unused
-    PADEV("BFA1-PADEV", AppealType.PA, Category.DETAINED_VIRTUAL),
-    EADEV("BFA1-EADEV", AppealType.EA, Category.DETAINED_VIRTUAL),
-    EUDEV("BFA1-EUDEV", AppealType.EU, Category.DETAINED_VIRTUAL),
-    HUDEV("BFA1-HUDEV", AppealType.HU, Category.DETAINED_VIRTUAL),
-
     PADEX("BFA1-PADEX", AppealType.PA, Category.DETAINED),
     RPDEX("BFA1-RPDEX", AppealType.RP, Category.DETAINED),
     EADEX("BFA1-EADEX", AppealType.EA, Category.DETAINED),
@@ -101,7 +95,6 @@ public enum CaseTypeValue {
         FLOAT,
         VIRTUAL,
         VIRTUAL_FLOAT,
-        DETAINED_VIRTUAL,
         DETAINED,
         DETAINED_DEPORT,
         STF_DEFAULT,
@@ -185,13 +178,9 @@ public enum CaseTypeValue {
         }
 
         if (deportation) {
-            if (detained) {
-                return isFloat
-                    ? Category.DEFAULT
-                    : Category.DETAINED_DEPORT;
-            }
-
-            return Category.DEPORT;
+            return detained
+                ? Category.DETAINED_DEPORT
+                : Category.DEPORT;
         }
 
         if (detained) {
