@@ -1,95 +1,226 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.util.stream.Stream;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.CsvSource;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CaseTypeValueTest {
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("allCaseTypeMappings")
+    @ParameterizedTest()
+    @CsvSource({
+        "RP, false, false, false, false, false, RPX",
+        "RP, true, false, false, false, false, RPX",
+        "RP, false, true, false, false, false, RPF",
+        "RP, true, true, false, false, false, RPX",
+        "RP, false, false, true, false, false, RPD",
+        "RP, true, false, true, false, false, RPX",
+        "RP, false, true, true, false, false, RPD",
+        "RP, true, true, true, false, false, RPX",
+        "RP, false, false, false, true, false, RPDEX",
+        "RP, true, false, false, true, false, RPX",
+        "RP, false, true, false, true, false, RPX",
+        "RP, true, true, false, true, false, RPX",
+        "RP, false, false, true, true, false, RPDED",
+        "RP, true, false, true, true, false, RPX",
+        "RP, false, true, true, true, false, RPX",
+        "RP, true, true, true, true, false, RPX",
+        "RP, false, false, false, false, true, RPSTX",
+        "RP, true, false, false, false, true, RPSTX",
+        "RP, false, true, false, false, true, RPSTF",
+        "RP, true, true, false, false, true, RPSTX",
+        "RP, false, false, true, false, true, RPSTD",
+        "RP, true, false, true, false, true, RPSTX",
+        "RP, false, true, true, false, true, RPSTD",
+        "RP, true, true, true, false, true, RPSTX",
+        "RP, false, false, false, true, true, RPSTX",
+        "RP, true, false, false, true, true, RPSTX",
+        "RP, false, true, false, true, true, RPSTF",
+        "RP, true, true, false, true, true, RPSTX",
+        "RP, false, false, true, true, true, RPSTD",
+        "RP, true, false, true, true, true, RPSTX",
+        "RP, false, true, true, true, true, RPSTD",
+        "RP, true, true, true, true, true, RPSTX",
+        "PA, false, false, false, false, false, PAX",
+        "PA, true, false, false, false, false, PAV",
+        "PA, false, true, false, false, false, PAF",
+        "PA, true, true, false, false, false, PAVF",
+        "PA, false, false, true, false, false, PAD",
+        "PA, true, false, true, false, false, PAV",
+        "PA, false, true, true, false, false, PAD",
+        "PA, true, true, true, false, false, PAVF",
+        "PA, false, false, false, true, false, PADEX",
+        "PA, true, false, false, true, false, PAV",
+        "PA, false, true, false, true, false, PAX",
+        "PA, true, true, false, true, false, PAVF",
+        "PA, false, false, true, true, false, PADED",
+        "PA, true, false, true, true, false, PAV",
+        "PA, false, true, true, true, false, PAX",
+        "PA, true, true, true, true, false, PAVF",
+        "PA, false, false, false, false, true, PASTX",
+        "PA, true, false, false, false, true, PASTV",
+        "PA, false, true, false, false, true, PASTF",
+        "PA, true, true, false, false, true, PASTVF",
+        "PA, false, false, true, false, true, PASTD",
+        "PA, true, false, true, false, true, PASTV",
+        "PA, false, true, true, false, true, PASTD",
+        "PA, true, true, true, false, true, PASTVF",
+        "PA, false, false, false, true, true, PASTX",
+        "PA, true, false, false, true, true, PASTV",
+        "PA, false, true, false, true, true, PASTF",
+        "PA, true, true, false, true, true, PASTVF",
+        "PA, false, false, true, true, true, PASTD",
+        "PA, true, false, true, true, true, PASTV",
+        "PA, false, true, true, true, true, PASTD",
+        "PA, true, true, true, true, true, PASTVF",
+        "EA, false, false, false, false, false, EAX",
+        "EA, true, false, false, false, false, EAV",
+        "EA, false, true, false, false, false, EAF",
+        "EA, true, true, false, false, false, EAVF",
+        "EA, false, false, true, false, false, EAD",
+        "EA, true, false, true, false, false, EAV",
+        "EA, false, true, true, false, false, EAD",
+        "EA, true, true, true, false, false, EAVF",
+        "EA, false, false, false, true, false, EADEX",
+        "EA, true, false, false, true, false, EAV",
+        "EA, false, true, false, true, false, EAX",
+        "EA, true, true, false, true, false, EAVF",
+        "EA, false, false, true, true, false, EADED",
+        "EA, true, false, true, true, false, EAV",
+        "EA, false, true, true, true, false, EAX",
+        "EA, true, true, true, true, false, EAVF",
+        "EA, false, false, false, false, true, EASTX",
+        "EA, true, false, false, false, true, EASTV",
+        "EA, false, true, false, false, true, EASTF",
+        "EA, true, true, false, false, true, EASTVF",
+        "EA, false, false, true, false, true, EASTD",
+        "EA, true, false, true, false, true, EASTV",
+        "EA, false, true, true, false, true, EASTD",
+        "EA, true, true, true, false, true, EASTVF",
+        "EA, false, false, false, true, true, EASTX",
+        "EA, true, false, false, true, true, EASTV",
+        "EA, false, true, false, true, true, EASTF",
+        "EA, true, true, false, true, true, EASTVF",
+        "EA, false, false, true, true, true, EASTD",
+        "EA, true, false, true, true, true, EASTV",
+        "EA, false, true, true, true, true, EASTD",
+        "EA, true, true, true, true, true, EASTVF",
+        "HU, false, false, false, false, false, HUX",
+        "HU, true, false, false, false, false, HUV",
+        "HU, false, true, false, false, false, HUF",
+        "HU, true, true, false, false, false, HUVF",
+        "HU, false, false, true, false, false, HUD",
+        "HU, true, false, true, false, false, HUV",
+        "HU, false, true, true, false, false, HUD",
+        "HU, true, true, true, false, false, HUVF",
+        "HU, false, false, false, true, false, HUDEX",
+        "HU, true, false, false, true, false, HUV",
+        "HU, false, true, false, true, false, HUX",
+        "HU, true, true, false, true, false, HUVF",
+        "HU, false, false, true, true, false, HUDED",
+        "HU, true, false, true, true, false, HUV",
+        "HU, false, true, true, true, false, HUX",
+        "HU, true, true, true, true, false, HUVF",
+        "HU, false, false, false, false, true, HUSTX",
+        "HU, true, false, false, false, true, HUSTV",
+        "HU, false, true, false, false, true, HUSTF",
+        "HU, true, true, false, false, true, HUSTVF",
+        "HU, false, false, true, false, true, HUSTD",
+        "HU, true, false, true, false, true, HUSTV",
+        "HU, false, true, true, false, true, HUSTD",
+        "HU, true, true, true, false, true, HUSTVF",
+        "HU, false, false, false, true, true, HUSTX",
+        "HU, true, false, false, true, true, HUSTV",
+        "HU, false, true, false, true, true, HUSTF",
+        "HU, true, true, false, true, true, HUSTVF",
+        "HU, false, false, true, true, true, HUSTD",
+        "HU, true, false, true, true, true, HUSTV",
+        "HU, false, true, true, true, true, HUSTD",
+        "HU, true, true, true, true, true, HUSTVF",
+        "DC, false, false, false, false, false, DCX",
+        "DC, true, false, false, false, false, DCX",
+        "DC, false, true, false, false, false, DCF",
+        "DC, true, true, false, false, false, DCX",
+        "DC, false, false, true, false, false, DCD",
+        "DC, true, false, true, false, false, DCX",
+        "DC, false, true, true, false, false, DCD",
+        "DC, true, true, true, false, false, DCX",
+        "DC, false, false, false, true, false, DCDEX",
+        "DC, true, false, false, true, false, DCX",
+        "DC, false, true, false, true, false, DCX",
+        "DC, true, true, false, true, false, DCX",
+        "DC, false, false, true, true, false, DCDED",
+        "DC, true, false, true, true, false, DCX",
+        "DC, false, true, true, true, false, DCX",
+        "DC, true, true, true, true, false, DCX",
+        "DC, false, false, false, false, true, DCSTX",
+        "DC, true, false, false, false, true, DCSTX",
+        "DC, false, true, false, false, true, DCSTF",
+        "DC, true, true, false, false, true, DCSTX",
+        "DC, false, false, true, false, true, DCSTD",
+        "DC, true, false, true, false, true, DCSTX",
+        "DC, false, true, true, false, true, DCSTD",
+        "DC, true, true, true, false, true, DCSTX",
+        "DC, false, false, false, true, true, DCSTX",
+        "DC, true, false, false, true, true, DCSTX",
+        "DC, false, true, false, true, true, DCSTF",
+        "DC, true, true, false, true, true, DCSTX",
+        "DC, false, false, true, true, true, DCSTD",
+        "DC, true, false, true, true, true, DCSTX",
+        "DC, false, true, true, true, true, DCSTD",
+        "DC, true, true, true, true, true, DCSTX",
+        "EU, false, false, false, false, false, EUX",
+        "EU, true, false, false, false, false, EUV",
+        "EU, false, true, false, false, false, EUF",
+        "EU, true, true, false, false, false, EUVF",
+        "EU, false, false, true, false, false, EUD",
+        "EU, true, false, true, false, false, EUV",
+        "EU, false, true, true, false, false, EUD",
+        "EU, true, true, true, false, false, EUVF",
+        "EU, false, false, false, true, false, EUDEX",
+        "EU, true, false, false, true, false, EUV",
+        "EU, false, true, false, true, false, EUX",
+        "EU, true, true, false, true, false, EUVF",
+        "EU, false, false, true, true, false, EUDED",
+        "EU, true, false, true, true, false, EUV",
+        "EU, false, true, true, true, false, EUX",
+        "EU, true, true, true, true, false, EUVF",
+        "EU, false, false, false, false, true, EUSTX",
+        "EU, true, false, false, false, true, EUSTV",
+        "EU, false, true, false, false, true, EUSTF",
+        "EU, true, true, false, false, true, EUSTVF",
+        "EU, false, false, true, false, true, EUSTD",
+        "EU, true, false, true, false, true, EUSTV",
+        "EU, false, true, true, false, true, EUSTD",
+        "EU, true, true, true, false, true, EUSTVF",
+        "EU, false, false, false, true, true, EUSTX",
+        "EU, true, false, false, true, true, EUSTV",
+        "EU, false, true, false, true, true, EUSTF",
+        "EU, true, true, false, true, true, EUSTVF",
+        "EU, false, false, true, true, true, EUSTD",
+        "EU, true, false, true, true, true, EUSTV",
+        "EU, false, true, true, true, true, EUSTD",
+        "EU, true, true, true, true, true, EUSTVF"
+    })
     @DisplayName("Should resolve all valid case type combinations")
     void shouldResolveCaseType(
-        CaseTypeValue expected,
         AppealType appealType,
-        boolean deportation,
-        boolean floating,
-        boolean virtual,
-        boolean detained,
-        boolean stf
-    ) {
-
-        assertEquals(
-            expected,
-            CaseTypeValue.from(
-                appealType,
-                deportation,
-                floating,
-                virtual,
-                detained,
-                stf
-            )
-        );
-    }
-
-    private static Stream<Arguments> allCaseTypeMappings() {
-        return CaseTypeValue.RULES.stream()
-            .map(caseType -> Arguments.of(
-                caseType.result(),
-                caseType.appealType(),
-                caseType.deportation(),
-                caseType.suitableToFloat(),
-                caseType.virtualHearing(),
-                caseType.appellantInDetention(),
-                caseType.stf24Weeks()
-            ));
-    }
-
-    @ParameterizedTest
-    @MethodSource("fallbackCases")
-    void shouldResolveUsingFallbackLogic(
-        AppealType appealType,
-        boolean deportation,
-        boolean floating,
-        boolean virtual,
-        boolean detained,
-        boolean stf,
+        boolean isVirtualHearing,
+        boolean isSuitableToFloat,
+        boolean hasDeportation,
+        boolean isAppellantInDetention,
+        boolean isStf24Week,
         CaseTypeValue expected
     ) {
-        assertEquals(
-            expected,
+        assertEquals(expected,
             CaseTypeValue.from(
                 appealType,
-                deportation,
-                floating,
-                virtual,
-                detained,
-                stf
-            )
-        );
-    }
-
-    private static Stream<Arguments> fallbackCases() {
-        return Stream.of(
-            Arguments.of(
-                AppealType.PA,
-                true, true, true, true, true,
-                CaseTypeValue.PASTX
-            ),
-            Arguments.of(
-                AppealType.PA,
-                true, true, true, true, false,
-                CaseTypeValue.PADEX
-            ),
-            Arguments.of(
-                AppealType.PA,
-                true, true, true, false, false,
-                CaseTypeValue.PAX
+                isVirtualHearing,
+                isSuitableToFloat,
+                hasDeportation,
+                isAppellantInDetention,
+                isStf24Week
             )
         );
     }
