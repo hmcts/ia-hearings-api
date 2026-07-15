@@ -47,7 +47,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CmrHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
+public class CmrHearingListedHandler extends ListedHearingService implements ServiceDataHandler<ServiceData> {
 
     private final CoreCaseDataService coreCaseDataService;
     private final HearingService hearingService;
