@@ -123,8 +123,6 @@ public class CaseDataToServiceHearingValuesMapper {
 
         if (HearingsUtils.isVirtualHearing(asylumCase)) {
             return List.of(HearingChannel.VID.name());
-        } else if (HearingsUtils.is24WeekStfCase(asylumCase)) {
-            return List.of(HearingChannel.INTER.name());
         }
 
         Optional<DynamicList> hearingChannelOptional = asylumCase.read(HEARING_CHANNEL, DynamicList.class);
