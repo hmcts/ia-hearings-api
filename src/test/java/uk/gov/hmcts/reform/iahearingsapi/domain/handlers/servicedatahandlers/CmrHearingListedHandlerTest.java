@@ -85,8 +85,12 @@ class CmrHearingListedHandlerTest {
     @BeforeEach
     public void setUp() {
 
-        cmrHearingListedHandler =
-            new CmrHearingListedHandler(coreCaseDataService, hearingService, locationRefDataService, cmrHearingIdListProcessor);
+        cmrHearingListedHandler = new CmrHearingListedHandler(
+            coreCaseDataService,
+            hearingService,
+            locationRefDataService,
+            cmrHearingIdListProcessor
+        );
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
