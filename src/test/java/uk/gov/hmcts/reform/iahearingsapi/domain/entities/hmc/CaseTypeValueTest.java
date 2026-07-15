@@ -304,8 +304,8 @@ class CaseTypeValueTest {
         "EU, false, true, true, false, true, EUSTVF",
         "HU, false, true, true, false, true, HUSTVF",
     })
-    @DisplayName("Should resolve all valid case type combinations as given by " +
-        "https://tools.hmcts.net/confluence/spaces/RIA/pages/1735952858/Deriving+case+types+and+case+sub+types")
+    @DisplayName("Should resolve all valid case type combinations as given by "
+        + "https://tools.hmcts.net/confluence/spaces/RIA/pages/1735952858/Deriving+case+types+and+case+sub+types")
     void should_resolve_all_valid_types(
         AppealType appealType,
         boolean hasDeportation,
