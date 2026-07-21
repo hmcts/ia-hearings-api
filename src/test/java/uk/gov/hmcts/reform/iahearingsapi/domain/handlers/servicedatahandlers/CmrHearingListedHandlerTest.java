@@ -17,7 +17,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
@@ -58,7 +57,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-class CmrHandlerTest {
+class CmrHearingListedHandlerTest {
 
     private static final String CASE_REF = "1234";
     public static final String HEARING_ID = "1";
@@ -81,13 +80,17 @@ class CmrHandlerTest {
     @Mock
     CmrHearingIdListProcessor cmrHearingIdListProcessor;
 
-    private CmrHandler cmrHandler;
+    private CmrHearingListedHandler cmrHearingListedHandler;
 
     @BeforeEach
     public void setUp() {
 
-        cmrHandler =
-            new CmrHandler(coreCaseDataService, hearingService, locationRefDataService, cmrHearingIdListProcessor);
+        cmrHearingListedHandler = new CmrHearingListedHandler(
+            coreCaseDataService,
+            hearingService,
+            locationRefDataService,
+            cmrHearingIdListProcessor
+        );
 
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
@@ -103,7 +106,7 @@ class CmrHandlerTest {
 
     @Test
     void should_have_early_dispatch_priority() {
-        assertEquals(DispatchPriority.EARLY, cmrHandler.getDispatchPriority());
+        assertEquals(DispatchPriority.EARLY, cmrHearingListedHandler.getDispatchPriority());
     }
 
     @ParameterizedTest
@@ -112,35 +115,35 @@ class CmrHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(hmcStatus));
 
-        assertTrue(cmrHandler.canHandle(serviceData));
+        assertTrue(cmrHearingListedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hearing_type_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
-        assertFalse(cmrHandler.canHandle(serviceData));
+        assertFalse(cmrHearingListedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hmc_status_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.CLOSED));
-        assertFalse(cmrHandler.canHandle(serviceData));
+        assertFalse(cmrHearingListedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_hearing_channels_on_papers() {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS, List.class))
             .thenReturn(Optional.of(List.of(HearingChannel.ONPPRS)));
-        assertFalse(cmrHandler.canHandle(serviceData));
+        assertFalse(cmrHearingListedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_not_handle_if_list_assist_case_status_unqualified() {
         when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
             .thenReturn(Optional.of(ListAssistCaseStatus.CASE_CLOSED));
-        assertFalse(cmrHandler.canHandle(serviceData));
+        assertFalse(cmrHearingListedHandler.canHandle(serviceData));
     }
 
     @Test
@@ -174,7 +177,7 @@ class CmrHandlerTest {
                 .hearingID(HEARING_ID).build();
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
 
-        cmrHandler.handle(serviceData);
+        cmrHearingListedHandler.handle(serviceData);
 
         verify(coreCaseDataService).triggerSubmitEvent(
             CMR_LISTING, CASE_REF, startEventResponse, asylumCase);
@@ -239,7 +242,7 @@ class CmrHandlerTest {
             .thenReturn(Optional.of(YesOrNo.YES));
 
 
-        cmrHandler.handle(serviceData);
+        cmrHearingListedHandler.handle(serviceData);
 
         verify(asylumCase).write(CMR_HEARING_DATE,"2023-09-29T09:45:00.000");
         verify(asylumCase).write(CMR_HEARING_LENGTH, new HoursMinutes(150));
@@ -279,7 +282,7 @@ class CmrHandlerTest {
                 .hearingID(HEARING_ID).build();
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
 
-        cmrHandler.handle(serviceData);
+        cmrHearingListedHandler.handle(serviceData);
 
         verify(coreCaseDataService).triggerSubmitEvent(
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
@@ -309,7 +312,7 @@ class CmrHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
             .thenReturn(Optional.of(HEARING_ID));
 
-        cmrHandler.handle(serviceData);
+        cmrHearingListedHandler.handle(serviceData);
 
         verify(coreCaseDataService, never()).triggerSubmitEvent(
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
@@ -345,7 +348,7 @@ class CmrHandlerTest {
                 .hearingID(HEARING_ID).build();
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
 
-        cmrHandler.handle(serviceData);
+        cmrHearingListedHandler.handle(serviceData);
 
         verify(coreCaseDataService, never()).triggerSubmitEvent(
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
