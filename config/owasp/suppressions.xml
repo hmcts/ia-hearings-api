@@ -6,13 +6,19 @@
     </notes>
     <cve>CVE-2026-33117</cve>
     <cve>CVE-2026-54515</cve>
-    <cve>CVE-2026-54516</cve>
-    <cve>CVE-2026-54513</cve>
-    <cve>CVE-2026-54514</cve>
-    <cve>CVE-2026-54517</cve>
-    <cve>CVE-2026-54518</cve>
-    <cve>CVE-2026-54512</cve>
-    <cve>CVE-2026-54428</cve>
+  </suppress>
+  <suppress until="2026-07-17">
+    <notes>Should be fixed with jackson 2.21.5 release - see https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.21.5</notes>
+    <cve>CVE-2026-54515</cve>
+  </suppress>
+  <suppress>
+    <notes>Fix is dependent on gov notify client migrating to httpclient5 - https://github.com/alphagov/notifications-java-client/issues/267</notes>
     <cve>CVE-2026-54399</cve>
+    <cve>CVE-2026-54428</cve>
+  </suppress>
+  <suppress>
+    <cve>CVE-2026-49844</cve>
+    <cve>CVE-2026-59083</cve>
+    <cve>CVE-2026-59084</cve>
   </suppress>
 </suppressions>
