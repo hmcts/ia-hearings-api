@@ -44,7 +44,7 @@ public class IdamUserDetailsProvider implements UserDetailsProvider {
             throw new IllegalStateException("IDAM user details missing 'uid' field");
         }
 
-        if (response.getRoles() == null || response.getRoles().isEmpty()) {
+        if (response.getRoles() == null) {
             throw new IllegalStateException("IDAM user details missing 'roles' field");
         }
 

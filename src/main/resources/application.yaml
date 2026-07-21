@@ -25,12 +25,6 @@ management:
       liveness:
         include: ping
 
-logging:
-  level:
-    io.lettuce.core: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{correlationId}] [%X{ccdCaseId}] %-5level %logger{36} - %msg%n"
-
 health:
   services:
     idam:

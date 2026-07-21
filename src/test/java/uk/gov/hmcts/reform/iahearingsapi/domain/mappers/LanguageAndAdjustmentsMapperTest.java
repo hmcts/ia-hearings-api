@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -14,13 +13,12 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFla
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -60,8 +58,8 @@ public class LanguageAndAdjustmentsMapperTest {
     @Mock
     private IndividualDetailsModel individualDetailsModel;
 
-    @Captor
-    private ArgumentCaptor<List<String>> reasonableAdjustmentsCaptor;
+    @Mock
+    private List<String> reasonableAdjustments;
 
     private LanguageAndAdjustmentsMapper mapper;
 
@@ -99,13 +97,12 @@ public class LanguageAndAdjustmentsMapperTest {
         when(partyDetailsModel.getPartyRole()).thenReturn(APPELLANT_PARTY_ID);
         when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
-        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(new ArrayList<>());
+        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
 
         mapper.processAsylumPartyCaseFlags(asylumCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("bfi");
-        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
-        assertThat(reasonableAdjustmentsCaptor.getValue()).containsExactly("RA0042", "RA0018");
+        verify(reasonableAdjustments, times(1)).addAll(List.of("RA0042", "RA0018"));
         verify(individualDetailsModel, times(1))
             .setOtherReasonableAdjustmentDetails("Interpreter: German; "
                                                  + "Support filling in forms: comment of r.a. flag;");
@@ -140,13 +137,12 @@ public class LanguageAndAdjustmentsMapperTest {
         when(partyDetailsModel.getPartyRole()).thenReturn(APPLICANT_PARTY_ROLE);
         when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
-        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(new ArrayList<>());
+        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
 
         mapper.processBailPartyCaseFlags(bailCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("bfi");
-        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
-        assertThat(reasonableAdjustmentsCaptor.getValue()).containsExactly("RA0042", "RA0018");
+        verify(reasonableAdjustments, times(1)).addAll(List.of("RA0042", "RA0018"));
         verify(individualDetailsModel, times(1))
             .setOtherReasonableAdjustmentDetails("Interpreter: German; "
                                                      + "Support filling in forms: comment of r.a. flag;");
@@ -204,14 +200,13 @@ public class LanguageAndAdjustmentsMapperTest {
         when(partyDetailsModel.getPartyRole()).thenReturn(WITNESS_PARTY_ID);
         when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
-        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(new ArrayList<>());
+        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
         when(partyDetailsModel.getPartyID()).thenReturn(PARTY_ID);
 
         mapper.processAsylumPartyCaseFlags(asylumCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("ita");
-        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
-        assertThat(reasonableAdjustmentsCaptor.getValue()).containsExactly("SM0004", "RA0018");
+        verify(reasonableAdjustments, times(1)).addAll(List.of("SM0004", "RA0018"));
         verify(individualDetailsModel, times(1))
             .setOtherReasonableAdjustmentDetails("Interpreter: Portuguese; "
                                                  + "Interpreter: Sardinian; "
@@ -271,14 +266,13 @@ public class LanguageAndAdjustmentsMapperTest {
         when(partyDetailsModel.getPartyRole()).thenReturn(FCS_PARTY_ROLE);
         when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
-        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(new ArrayList<>());
+        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
         when(partyDetailsModel.getPartyID()).thenReturn(PARTY_ID);
 
         mapper.processBailPartyCaseFlags(bailCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("ita");
-        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
-        assertThat(reasonableAdjustmentsCaptor.getValue()).containsExactly("SM0004", "RA0018");
+        verify(reasonableAdjustments, times(1)).addAll(List.of("SM0004", "RA0018"));
         verify(individualDetailsModel, times(1))
             .setOtherReasonableAdjustmentDetails("Interpreter: Portuguese; "
                                                      + "Interpreter: Sardinian; "
@@ -303,13 +297,12 @@ public class LanguageAndAdjustmentsMapperTest {
         when(partyDetailsModel.getPartyRole()).thenReturn(APPELLANT_PARTY_ID);
         when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
-        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(null);
+        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
 
         mapper.processAsylumPartyCaseFlags(asylumCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage(null);
-        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
-        assertThat(reasonableAdjustmentsCaptor.getValue()).isEmpty();
+        verify(reasonableAdjustments, times(1)).addAll(Collections.emptyList());
         verify(individualDetailsModel, never()).setOtherReasonableAdjustmentDetails(anyString());
     }
 

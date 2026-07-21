@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @EqualsAndHashCode
@@ -25,12 +23,12 @@ public class DynamicList {
     }
 
     public List<Value> getListItems() {
-        return listItems == null ? Collections.emptyList() : Collections.unmodifiableList(listItems);
+        return listItems;
     }
 
     public DynamicList(Value value, List<Value> listItems) {
         this.value = value;
-        this.listItems = listItems == null ? new ArrayList<>() : new ArrayList<>(listItems);
+        this.listItems = listItems;
     }
 
     public Value getValue() {
