@@ -170,6 +170,7 @@ public class ListedHearingService {
     protected LocalDateTime getAsylumHearingDatetime(ServiceData serviceData, String hearingVenueId) {
         LocalDateTime hearingDateTime = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
             .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
+        log.info("-------------------nextHearingDate read from HMC message: {}", hearingDateTime);
 
         return HandlerUtils.getHearingDateAndTime(
             hearingDateTime.truncatedTo(ChronoUnit.MINUTES), hearingVenueId);

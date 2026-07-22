@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
+
+import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
@@ -22,6 +24,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
 
+@Slf4j
 public class HandlerUtils {
     private HandlerUtils() {
     }
@@ -66,6 +69,7 @@ public class HandlerUtils {
     }
 
     public static HearingCentre getLocation(List<HearingChannel> hearingChannels, String venueId) {
+        log.info("-------------------venueId: {}", venueId);
         if (!hearingChannels.contains(INTER)
             && (hearingChannels.contains(VID) || hearingChannels.contains(TEL))) {
             return REMOTE_HEARING;
