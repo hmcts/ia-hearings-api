@@ -386,8 +386,8 @@ dependencies {
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '8.0.0'
 
-  testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: '5.3.10'
-  testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: '5.3.10'
+  testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: '5.3.11'
+  testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: '5.3.11'
 
   testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock'
 
