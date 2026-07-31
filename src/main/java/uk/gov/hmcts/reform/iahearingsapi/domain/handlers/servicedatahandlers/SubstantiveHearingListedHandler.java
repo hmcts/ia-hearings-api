@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.STF_24W_CURRENT_STATUS_AUTO_GENERATED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isListAssistCaseStatus;
@@ -9,12 +10,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataServi
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.ServiceDataHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
@@ -39,10 +42,14 @@ public class SubstantiveHearingListedHandler extends ListedHearingService implem
         requireNonNull(serviceData, "serviceData must not be null");
 
         String caseId = getCaseReference(serviceData);
-        State caseState = coreCaseDataService
-            .getCaseState(caseId);
 
-        return isSubstantiveListedHearing(serviceData)
+        CaseDetails caseDetails = coreCaseDataService.getCaseDetails(caseId);
+        State caseState = State.get(caseDetails.getState());
+        AsylumCase asylumCase = coreCaseDataService.mapCaseDetailsToAsylumCase(caseDetails);
+        boolean isStf = asylumCase.read(STF_24W_CURRENT_STATUS_AUTO_GENERATED, YesOrNo.class)
+            .orElse(YesOrNo.NO).equals(YesOrNo.YES);
+
+        return isSubstantiveListedHearing(serviceData, isStf)
             && isListAssistCaseStatus(serviceData, ListAssistCaseStatus.LISTED)
             && caseState.equals(LISTING);
     }
