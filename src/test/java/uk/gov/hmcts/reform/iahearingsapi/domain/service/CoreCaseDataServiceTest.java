@@ -185,6 +185,16 @@ public class CoreCaseDataServiceTest {
         verify(iaCcdConvertService, times(1)).convertToAsylumCaseData(data);
     }
 
+    @Test
+    void getCase_returns_convert_from_caseDetails() {
+        Map<String, Object> data = new HashMap<>();
+        when(caseDetails.getData()).thenReturn(data);
+        when(iaCcdConvertService.convertToAsylumCaseData(data)).thenReturn(asylumCase);
+        AsylumCase actualAsylumCase = coreCaseDataService.mapCaseDetailsToAsylumCase(caseDetails);
+        assertEquals(asylumCase, actualAsylumCase);
+        verify(iaCcdConvertService, times(1)).convertToAsylumCaseData(data);
+    }
+
     @ParameterizedTest
     @EnumSource(State.class)
     void getCaseState_returns_state_from_getCaseDetails(State state) {
