@@ -45,6 +45,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
@@ -64,7 +65,12 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 
 @Slf4j
 public class ListedHearingService {
-    protected boolean isSubstantiveListedHearing(ServiceData serviceData) {
+    protected boolean isSubstantiveListedHearing(ServiceData serviceData, boolean isStf) {
+        if (isStf) {
+            return isHmcStatus(serviceData, HmcStatus.LISTED)
+                && isHearingListingStatus(serviceData, ListingStatus.FIXED)
+                && isHearingType(serviceData, SUBSTANTIVE);
+        }
         return isHmcStatus(serviceData, HmcStatus.LISTED)
             && isHearingListingStatus(serviceData, ListingStatus.FIXED)
             && !isHearingChannel(serviceData, ONPPRS)
@@ -85,8 +91,8 @@ public class ListedHearingService {
 
     protected boolean isCmrCancelledHearing(ServiceData serviceData) {
         return isHmcStatus(serviceData, HmcStatus.CANCELLED)
-               && !isHearingChannel(serviceData, ONPPRS)
-               && isHearingType(serviceData, CASE_MANAGEMENT_REVIEW);
+            && !isHearingChannel(serviceData, ONPPRS)
+            && isHearingType(serviceData, CASE_MANAGEMENT_REVIEW);
     }
 
     protected boolean isBailListedHearing(ServiceData serviceData) {
@@ -135,15 +141,18 @@ public class ListedHearingService {
             asylumCase.write(AsylumCaseFieldDefinition.IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
             log.info("updateListCaseHearingDetails for Case ID `{}` serviceData contains '{}", caseId, serviceData);
 
-            asylumCase.write(AsylumCaseFieldDefinition.LISTING_LOCATION,
+            asylumCase.write(
+                AsylumCaseFieldDefinition.LISTING_LOCATION,
                 new DynamicList(
                     new Value(getHearingVenueId(serviceData), getHearingCourtName(serviceData, courtVenues)),
                     hearingLocationList.getListItems()
                 )
             );
 
-            log.info("updateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
-                asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
+            log.info(
+                "updateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
+                asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString()
+            );
         }
     }
 
@@ -186,13 +195,15 @@ public class ListedHearingService {
     }
 
     protected DynamicList buildHearingChannelDynmicList(List<HearingChannel> hearingChannels) {
-        return new DynamicList(new Value(
+        return new DynamicList(
+            new Value(
+                hearingChannels.getFirst().name(),
+                hearingChannels.getFirst().getLabel()
+            ), List.of(new Value(
             hearingChannels.getFirst().name(),
             hearingChannels.getFirst().getLabel()
-        ), List.of(new Value(
-            hearingChannels.getFirst().name(),
-            hearingChannels.getFirst().getLabel()
-        )));
+        ))
+        );
     }
 
     protected String getHearingId(ServiceData serviceData) {
@@ -229,13 +240,18 @@ public class ListedHearingService {
             bailCase.write(IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
             log.info("updateInitialBailCaseListing for Case ID `{}` serviceData contains '{}", caseId, serviceData);
 
-            bailCase.write(REF_DATA_LISTING_LOCATION,
+            bailCase.write(
+                REF_DATA_LISTING_LOCATION,
                 new DynamicList(
                     new Value(getHearingVenueId(serviceData), getHearingCourtName(serviceData, courtVenues)),
-                    hearingLocationList.getListItems()));
+                    hearingLocationList.getListItems()
+                )
+            );
 
-            log.info("updateInitialBailCaseListing for Case ID `{}` listingLocation contains '{}'", caseId,
-                bailCase.read(REF_DATA_LISTING_LOCATION).toString());
+            log.info(
+                "updateInitialBailCaseListing for Case ID `{}` listingLocation contains '{}'", caseId,
+                bailCase.read(REF_DATA_LISTING_LOCATION).toString()
+            );
         }
     }
 
@@ -258,11 +274,16 @@ public class ListedHearingService {
 
         if (isRefDataLocationEnabled) {
             if (fieldsToUpdate.contains(HEARING_VENUE_ID)) {
-                bailCase.write(REF_DATA_LISTING_LOCATION,
+                bailCase.write(
+                    REF_DATA_LISTING_LOCATION,
                     new DynamicList(
-                        new Value(getHearingVenueId(serviceData),
-                            getHearingCourtName(serviceData, courtVenues)),
-                        hearingLocationList.getListItems()));
+                        new Value(
+                            getHearingVenueId(serviceData),
+                            getHearingCourtName(serviceData, courtVenues)
+                        ),
+                        hearingLocationList.getListItems()
+                    )
+                );
             }
 
             if (fieldsToUpdate.contains(HEARING_CHANNELS)) {

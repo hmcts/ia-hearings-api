@@ -71,6 +71,10 @@ public class CoreCaseDataService {
         return iaCcdConvertService.convertToAsylumCaseData(getCaseDetails(caseId).getData());
     }
 
+    public AsylumCase mapCaseDetailsToAsylumCase(CaseDetails caseDetails) {
+        return iaCcdConvertService.convertToAsylumCaseData(caseDetails.getData());
+    }
+
     public State getCaseState(String caseId) {
         return State.get(getCaseDetails(caseId).getState());
     }
