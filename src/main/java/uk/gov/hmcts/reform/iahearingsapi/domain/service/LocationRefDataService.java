@@ -84,7 +84,7 @@ public class LocationRefDataService {
 
     public String getHearingCentreAddress(String epimsId) {
 
-        return getCourtVenues()
+        return getCourtVenuesAsServiceUser()
             .stream()
             .filter(courtVenue -> Objects.equals(courtVenue.getEpimmsId(), epimsId))
             .findFirst()

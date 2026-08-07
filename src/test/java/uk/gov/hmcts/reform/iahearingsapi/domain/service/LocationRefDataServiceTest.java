@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -173,11 +175,21 @@ public class LocationRefDataServiceTest {
 
     @Test
     void should_return_empty_address_when_no_court_venues_returned() {
-        when(userDetails.getAccessToken()).thenReturn(authToken);
+        when(idamService.getServiceUserToken()).thenReturn(serviceUserToken);
         when(authTokenGenerator.generate()).thenReturn(authToken);
-        when(locationRefDataApi.getCourtVenues(authToken, authToken, serviceId)).thenReturn(null);
+        when(locationRefDataApi.getCourtVenues(serviceUserToken, authToken, serviceId)).thenReturn(null);
 
         assertEquals("", locationRefDataService.getHearingCentreAddress(GLASGOW_EPIMS_ID));
+    }
+
+    @Test
+    void should_look_up_addresses_with_the_service_user_token() {
+        mockCourtVenues(List.of(glasgowCourtVenue()));
+
+        locationRefDataService.getHearingCentreAddress(GLASGOW_EPIMS_ID);
+
+        verify(locationRefDataApi).getCourtVenues(serviceUserToken, authToken, serviceId);
+        verify(userDetails, never()).getAccessToken();
     }
 
     @Test
@@ -223,9 +235,9 @@ public class LocationRefDataServiceTest {
     }
 
     private void mockCourtVenues(List<CourtVenue> courtVenues) {
-        when(userDetails.getAccessToken()).thenReturn(authToken);
+        when(idamService.getServiceUserToken()).thenReturn(serviceUserToken);
         when(authTokenGenerator.generate()).thenReturn(authToken);
-        when(locationRefDataApi.getCourtVenues(authToken, authToken, serviceId)).thenReturn(locationCategory);
+        when(locationRefDataApi.getCourtVenues(serviceUserToken, authToken, serviceId)).thenReturn(locationCategory);
         when(locationCategory.getCourtVenues()).thenReturn(courtVenues);
     }
 
