@@ -17,6 +17,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
@@ -63,6 +64,8 @@ class CmrHearingListedHandlerTest {
     public static final String HEARING_ID = "1";
     private static final String GLASGOW_EPIMMS_ID = "366559";
     private static final String HEARING_VENUE_ID = GLASGOW_EPIMMS_ID;
+    private static final String GLASGOW_ADDRESS =
+        "Glasgow Tribunals Centre, Atlantic Quay, 20 York Street, G2 8GT";
     private static final LocalDateTime NEXT_HEARING_DATE = LocalDateTime.of(2023, 9, 29, 12, 0);
 
     @Mock
@@ -176,6 +179,8 @@ class CmrHearingListedHandlerTest {
                 .responses(Collections.emptyList())
                 .hearingID(HEARING_ID).build();
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
+        when(locationRefDataService.getHearingCentreAddress(HearingCentre.GLASGOW_TRIBUNALS_CENTRE))
+            .thenReturn(GLASGOW_ADDRESS);
 
         cmrHearingListedHandler.handle(serviceData);
 
@@ -187,6 +192,7 @@ class CmrHearingListedHandlerTest {
         verify(asylumCase).write(CMR_HEARING_LENGTH, new HoursMinutes(150));
         verify(asylumCase).write(CMR_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
         verify(asylumCase).write(CMR_HEARING_CHANNEL, cmrHearingChannel); // Replace with actual value
+        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE_ADDRESS, GLASGOW_ADDRESS);
         verify(coreCaseDataService).triggerSubmitEvent(CMR_LISTING, CASE_REF, startEventResponse, asylumCase);
     }
 
@@ -213,7 +219,10 @@ class CmrHearingListedHandlerTest {
             "Glasgow Tribunals Centre", // courtName
             "366559", // epimmsId
             "Yes", // isHearingLocation
-            "Open" // courtStatus
+            "Open", // courtStatus
+            "Atlantic Quay, 20 York Street", // courtAddress
+            "G2 8GT", // postcode
+            "Court" // locationType
         );
         when(locationRefDataService.getCourtVenuesAsServiceUser())
             .thenReturn(List.of(mockCourtVenue));
@@ -240,10 +249,13 @@ class CmrHearingListedHandlerTest {
             .thenReturn(Optional.of(YesOrNo.YES));
         when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
+        when(locationRefDataService.getHearingCentreAddress(HearingCentre.GLASGOW_TRIBUNALS_CENTRE))
+            .thenReturn(GLASGOW_ADDRESS);
 
 
         cmrHearingListedHandler.handle(serviceData);
 
+        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE_ADDRESS, GLASGOW_ADDRESS);
         verify(asylumCase).write(CMR_HEARING_DATE,"2023-09-29T09:45:00.000");
         verify(asylumCase).write(CMR_HEARING_LENGTH, new HoursMinutes(150));
         verify(asylumCase).write(CMR_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
@@ -281,6 +293,8 @@ class CmrHearingListedHandlerTest {
                 .responses(List.of(response))
                 .hearingID(HEARING_ID).build();
         when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
+        when(locationRefDataService.getHearingCentreAddress(HearingCentre.GLASGOW_TRIBUNALS_CENTRE))
+            .thenReturn(GLASGOW_ADDRESS);
 
         cmrHearingListedHandler.handle(serviceData);
 
@@ -288,6 +302,7 @@ class CmrHearingListedHandlerTest {
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
         verify(coreCaseDataService, never()).triggerSubmitEvent(
             CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
+        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE_ADDRESS, GLASGOW_ADDRESS);
     }
 
     @Test

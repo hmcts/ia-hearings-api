@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.UserDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtLocationCategory;
@@ -52,6 +53,10 @@ public class LocationRefDataServiceTest {
 
     private LocationRefDataService locationRefDataService;
 
+    private static final String COURT_ADDRESS = "Crown Square";
+    private static final String POSTCODE = "M60 9DJ";
+    private static final String GLASGOW_EPIMS_ID = "366559";
+
     private final String serviceId = "BFA1";
     private String authToken = "authToken";
     private String serviceUserToken = "serviceUserToken";
@@ -82,25 +87,37 @@ public class LocationRefDataServiceTest {
                                                "Manchester Magistrates Court",
                                                "783803",
                                                "Y",
-                                               "Open");
+                                               "Open",
+                                               COURT_ADDRESS,
+                                               POSTCODE,
+                                               "Court");
 
         closedHearingCourtVenue = new CourtVenue("Manchester Magistrates",
                                                "Manchester Magistrates Court",
                                                "783803",
                                                "Y",
-                                               "Closed");
+                                               "Closed",
+                                               COURT_ADDRESS,
+                                               POSTCODE,
+                                               "Court");
 
         openNonHearingCourtVenue = new CourtVenue("Manchester Magistrates",
                                                "Manchester Magistrates Court",
                                                "783803",
                                                "N",
-                                               "Open");
+                                               "Open",
+                                               COURT_ADDRESS,
+                                               POSTCODE,
+                                               "Court");
 
         closedNonHearingCourtVenue = new CourtVenue("Manchester Magistrates",
                                                  "Manchester Magistrates Court",
                                                  "783803",
                                                  "N",
-                                                 "Closed");
+                                                 "Closed",
+                                                 COURT_ADDRESS,
+                                                 POSTCODE,
+                                                 "Court");
 
         when(locationCategory.getCourtVenues()).thenReturn(List.of(
             openHearingCourtVenue,
@@ -129,10 +146,97 @@ public class LocationRefDataServiceTest {
             "Manchester Magistrates Court",
             "783803",
             "Y",
-            "Open"));
+            "Open",
+            COURT_ADDRESS,
+            POSTCODE,
+            "Court"));
 
         when(locationCategory.getCourtVenues()).thenReturn(courtVenueList);
 
         assertEquals(courtVenueList, locationRefDataService.getCourtVenuesAsServiceUser());
+    }
+
+    @Test
+    void should_return_assembled_address_for_matching_epims_id() {
+        mockCourtVenues(List.of(glasgowCourtVenue()));
+
+        assertEquals("Glasgow Tribunals Centre, Atlantic Quay, 20 York Street, G2 8GT",
+                     locationRefDataService.getHearingCentreAddress(GLASGOW_EPIMS_ID));
+    }
+
+    @Test
+    void should_return_empty_address_when_no_court_venue_matches_epims_id() {
+        mockCourtVenues(List.of(glasgowCourtVenue()));
+
+        assertEquals("", locationRefDataService.getHearingCentreAddress("unmatchedEpimsId"));
+    }
+
+    @Test
+    void should_return_empty_address_when_no_court_venues_returned() {
+        when(userDetails.getAccessToken()).thenReturn(authToken);
+        when(authTokenGenerator.generate()).thenReturn(authToken);
+        when(locationRefDataApi.getCourtVenues(authToken, authToken, serviceId)).thenReturn(null);
+
+        assertEquals("", locationRefDataService.getHearingCentreAddress(GLASGOW_EPIMS_ID));
+    }
+
+    @Test
+    void should_skip_null_address_parts_when_assembling_address() {
+        mockCourtVenues(List.of(new CourtVenue("Glasgow Tribunals Centre",
+                                               null,
+                                               GLASGOW_EPIMS_ID,
+                                               "Y",
+                                               "Open",
+                                               null,
+                                               null,
+                                               "Court")));
+
+        assertEquals(", , ", locationRefDataService.getHearingCentreAddress(GLASGOW_EPIMS_ID));
+    }
+
+    @Test
+    void should_return_address_for_hearing_centre() {
+        mockCourtVenues(List.of(glasgowCourtVenue()));
+
+        assertEquals("Glasgow Tribunals Centre, Atlantic Quay, 20 York Street, G2 8GT",
+                     locationRefDataService.getHearingCentreAddress(HearingCentre.GLASGOW_TRIBUNALS_CENTRE));
+    }
+
+    @Test
+    void should_return_remote_hearing_for_remote_hearing_centre() {
+        assertEquals("Remote hearing", locationRefDataService.getHearingCentreAddress(HearingCentre.REMOTE_HEARING));
+    }
+
+    @Test
+    void should_look_up_address_for_national_virtual_hearing_centre() {
+        mockCourtVenues(List.of(new CourtVenue("IAC National Virtual Region",
+                                               "IAC National Virtual Region",
+                                               HearingCentre.IAC_NATIONAL_VIRTUAL.getEpimsId(),
+                                               "Y",
+                                               "Open",
+                                               "Remote",
+                                               "",
+                                               "Court")));
+
+        assertEquals("IAC National Virtual Region, Remote, ",
+                     locationRefDataService.getHearingCentreAddress(HearingCentre.IAC_NATIONAL_VIRTUAL));
+    }
+
+    private void mockCourtVenues(List<CourtVenue> courtVenues) {
+        when(userDetails.getAccessToken()).thenReturn(authToken);
+        when(authTokenGenerator.generate()).thenReturn(authToken);
+        when(locationRefDataApi.getCourtVenues(authToken, authToken, serviceId)).thenReturn(locationCategory);
+        when(locationCategory.getCourtVenues()).thenReturn(courtVenues);
+    }
+
+    private CourtVenue glasgowCourtVenue() {
+        return new CourtVenue("Glasgow Tribunals Centre",
+                              "Glasgow Tribunals Centre",
+                              GLASGOW_EPIMS_ID,
+                              "Y",
+                              "Open",
+                              "Atlantic Quay, 20 York Street",
+                              "G2 8GT",
+                              "Court");
     }
 }

@@ -126,7 +126,10 @@ class SubstantiveHearingEditedHandlerTest {
             COURT_NAME,
             "231596",
             "Y",
-            "Open"
+            "Open",
+            "Priory Courts, 33 Bull Street",
+            "B4 6DS",
+            "Court"
         ));
 
 
