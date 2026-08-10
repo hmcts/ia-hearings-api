@@ -7,6 +7,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,7 +19,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE_ADDRESS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_CENTRE_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
@@ -192,7 +194,7 @@ class CmrHearingListedHandlerTest {
         verify(asylumCase).write(CMR_HEARING_LENGTH, new HoursMinutes(150));
         verify(asylumCase).write(CMR_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
         verify(asylumCase).write(CMR_HEARING_CHANNEL, cmrHearingChannel); // Replace with actual value
-        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE_ADDRESS, GLASGOW_ADDRESS);
+        verify(asylumCase, never()).write(eq(CMR_HEARING_CENTRE_ADDRESS), anyString());
         verify(coreCaseDataService).triggerSubmitEvent(CMR_LISTING, CASE_REF, startEventResponse, asylumCase);
     }
 
@@ -255,7 +257,7 @@ class CmrHearingListedHandlerTest {
 
         cmrHearingListedHandler.handle(serviceData);
 
-        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE_ADDRESS, GLASGOW_ADDRESS);
+        verify(asylumCase).write(CMR_HEARING_CENTRE_ADDRESS, GLASGOW_ADDRESS);
         verify(asylumCase).write(CMR_HEARING_DATE,"2023-09-29T09:45:00.000");
         verify(asylumCase).write(CMR_HEARING_LENGTH, new HoursMinutes(150));
         verify(asylumCase).write(CMR_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
@@ -302,7 +304,7 @@ class CmrHearingListedHandlerTest {
             CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
         verify(coreCaseDataService, never()).triggerSubmitEvent(
             CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
-        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE_ADDRESS, GLASGOW_ADDRESS);
+        verify(asylumCase, never()).write(eq(CMR_HEARING_CENTRE_ADDRESS), anyString());
     }
 
     @Test

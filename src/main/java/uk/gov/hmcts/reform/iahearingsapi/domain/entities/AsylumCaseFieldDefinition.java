@@ -359,8 +359,6 @@ public enum AsylumCaseFieldDefinition {
 
     CMR_HEARING_CHANNEL("cmrHearingChannel", new TypeReference<DynamicList>(){}),
 
-    LIST_CASE_HEARING_CENTRE_ADDRESS("listCaseHearingCentreAddress",  new TypeReference<String>(){}),
-
     CMR_IS_REMOTE_HEARING("cmrIsRemoteHearing", new TypeReference<YesOrNo>(){}),
 
     CMR_HEARING_ID_LIST("cmrHearingIdList", new TypeReference<List<IdValue<String>>>(){}),
