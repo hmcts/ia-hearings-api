@@ -220,8 +220,11 @@ public class LocationRefDataServiceTest {
     }
 
     @Test
-    void should_return_remote_hearing_for_remote_hearing_centre() {
-        assertEquals("Remote hearing", locationRefDataService.getHearingCentreAddress(HearingCentre.REMOTE_HEARING));
+    void should_return_empty_address_for_hearing_centre_without_an_epims_id() {
+        mockCourtVenues(List.of(glasgowCourtVenue()));
+
+        assertEquals("", locationRefDataService.getHearingCentreAddress(HearingCentre.REMOTE_HEARING));
+        assertEquals("", locationRefDataService.getHearingCentreAddress(HearingCentre.DECISION_WITHOUT_HEARING));
     }
 
     @Test

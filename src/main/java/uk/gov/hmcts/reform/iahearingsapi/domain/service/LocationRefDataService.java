@@ -14,7 +14,6 @@ import java.util.Objects;
 import java.util.List;
 
 import static org.apache.commons.lang3.ObjectUtils.getIfNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 
 @Service
 public class LocationRefDataService {
@@ -76,10 +75,6 @@ public class LocationRefDataService {
     public String getHearingCentreAddress(HearingCentre hearingCentre) {
         if (hearingCentre == null) {
             return "";
-        }
-
-        if (hearingCentre == REMOTE_HEARING) {
-            return "Remote hearing";
         }
 
         return getHearingCentreAddress(hearingCentre.getEpimsId());
