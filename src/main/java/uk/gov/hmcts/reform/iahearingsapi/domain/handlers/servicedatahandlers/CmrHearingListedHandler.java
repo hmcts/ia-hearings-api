@@ -5,6 +5,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE_ADDRESS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_CHANNELS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
@@ -196,6 +197,9 @@ public class CmrHearingListedHandler extends ListedHearingService implements Ser
         asylumCase.write(CMR_HEARING_LENGTH, new HoursMinutes(getHearingDuration(serviceData)));
         asylumCase.write(CMR_HEARING_CENTRE, newHearingCentre);
         asylumCase.write(CMR_HEARING_CHANNEL, newHearingChannel);
+
+        asylumCase.write(LIST_CASE_HEARING_CENTRE_ADDRESS,
+                         locationRefDataService.getHearingCentreAddress(newHearingCentre));
 
         String newHearingId = getHearingId(serviceData);
         log.info("Writing {} {} to asylum case {}", AsylumCaseFieldDefinition.CURRENT_HEARING_ID, newHearingId, caseId);
