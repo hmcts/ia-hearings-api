@@ -215,6 +215,11 @@ public class LocationRefDataServiceTest {
     }
 
     @Test
+    void should_return_empty_address_for_null_hearing_centre() {
+        assertEquals("", locationRefDataService.getHearingCentreAddress((HearingCentre) null));
+    }
+
+    @Test
     void should_return_remote_hearing_for_remote_hearing_centre() {
         assertEquals("Remote hearing", locationRefDataService.getHearingCentreAddress(HearingCentre.REMOTE_HEARING));
     }
