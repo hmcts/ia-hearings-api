@@ -16,6 +16,12 @@
     <cve>CVE-2026-59083</cve>
     <cve>CVE-2026-59084</cve>
     <cve>CVE-2026-66299</cve>
+    <cve>CVE-2026-66257</cve>
+    <cve>CVE-2026-66273</cve>
+    <cve>CVE-2026-66274</cve>
+    <cve>CVE-2026-66275</cve>
+    <cve>CVE-2026-66276</cve>
+    <cve>CVE-2026-66277</cve>
   </suppress>
   <suppress until="2026-07-17">
     <notes>Should be fixed with jackson 2.21.5 release - see https://github.com/FasterXML/jackson/wiki/Jackson-Release-2.21.5</notes>
