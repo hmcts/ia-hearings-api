@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +52,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -73,6 +71,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class SubstantiveHearingEditedHandlerTest {
 
 
@@ -93,36 +92,31 @@ class SubstantiveHearingEditedHandlerTest {
     AsylumCase asylumCase;
     @Mock
     LocationRefDataService locationRefDataService;
-    @Mock
-    CaseDetails caseDetails;
 
     private SubstantiveHearingEditedHandler substantiveHearingEditedHandler;
 
     private DynamicList hearingLocationList = new DynamicList(
         new Value("231596", "Hendon Magistrates Court"),
-        List.of(new Value("231596", "Hendon Magistrates Court"))
-    );
+        List.of(new Value("231596", "Hendon Magistrates Court")));
 
     @BeforeEach
     public void setUp() {
 
         substantiveHearingEditedHandler = new SubstantiveHearingEditedHandler(
             coreCaseDataService, locationRefDataService);
-        when(coreCaseDataService.mapCaseDetailsToAsylumCase(any())).thenReturn(asylumCase);
-        when(coreCaseDataService.getCaseDetails(any())).thenReturn(caseDetails);
-        when(caseDetails.getState()).thenReturn(PREPARE_FOR_HEARING.toString());
         when(serviceData.read(CASE_REF, String.class)).thenReturn(Optional.of(CASE_REFERENCE));
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.class))
             .thenReturn(Optional.of(ListingStatus.FIXED));
+        when(coreCaseDataService.getCaseState(CASE_REFERENCE))
+            .thenReturn(PREPARE_FOR_HEARING);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
 
-        List<CourtVenue> courtVenueList = List.of(new CourtVenue(
-            "Manchester Magistrates",
+        List<CourtVenue> courtVenueList = List.of(new CourtVenue("Manchester Magistrates",
             COURT_NAME,
             "231596",
             "Y",
@@ -177,16 +171,16 @@ class SubstantiveHearingEditedHandlerTest {
 
     @Test
     void should_not_handle_if_case_status_unqualified() {
-        when(caseDetails.getState())
-            .thenReturn(APPEAL_SUBMITTED.toString());
+        when(coreCaseDataService.getCaseState(CASE_REFERENCE))
+            .thenReturn(APPEAL_SUBMITTED);
 
         assertFalse(substantiveHearingEditedHandler.canHandle(serviceData));
     }
 
     @Test
     void should_throw_error_if_cannot_handle() {
-        when(caseDetails.getState())
-            .thenReturn(APPEAL_SUBMITTED.toString());
+        when(coreCaseDataService.getCaseState(CASE_REFERENCE))
+            .thenReturn(APPEAL_SUBMITTED);
 
         assertThrows(IllegalStateException.class, () -> substantiveHearingEditedHandler.handle(serviceData));
     }
@@ -281,21 +275,21 @@ class SubstantiveHearingEditedHandlerTest {
             verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
         } else if (hearingChannel.equals(List.of(INTER))
-            && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
+                   && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
 
             verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
             verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtNineFortyFive);
             verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
         } else if (hearingChannel.equals(List.of(TEL))
-            && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
+                   && hearingLocation.equals(HearingCentre.GLASGOW.getEpimsId())) {
 
             verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
             verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtNineFortyFive);
             verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
 
         } else if (hearingChannel.equals(List.of(TEL))
-            && hearingLocation.equals(HearingCentre.BIRMINGHAM.getEpimsId())) {
+                   && hearingLocation.equals(HearingCentre.BIRMINGHAM.getEpimsId())) {
 
             verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.REMOTE_HEARING);
             verify(asylumCase).write(LIST_CASE_HEARING_DATE, dateTimeAtTen);
@@ -328,15 +322,13 @@ class SubstantiveHearingEditedHandlerTest {
         substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(
-            HEARING_CHANNEL, new DynamicList(
-                new Value(
-                    ONPPRS.name(),
-                    ONPPRS.getLabel()
-                ), List.of(new Value(
+            HEARING_CHANNEL, new DynamicList(new Value(
                 ONPPRS.name(),
                 ONPPRS.getLabel()
-            ))
-            )
+            ), List.of(new Value(
+                ONPPRS.name(),
+                ONPPRS.getLabel()
+            )))
         );
 
         verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
@@ -354,15 +346,13 @@ class SubstantiveHearingEditedHandlerTest {
         substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(
-            HEARING_CHANNEL, new DynamicList(
-                new Value(
-                    VID.name(),
-                    VID.getLabel()
-                ), List.of(new Value(
+            HEARING_CHANNEL, new DynamicList(new Value(
                 VID.name(),
                 VID.getLabel()
-            ))
-            )
+            ), List.of(new Value(
+                VID.name(),
+                VID.getLabel()
+            )))
         );
         verify(asylumCase).write(eq(LIST_CASE_HEARING_CENTRE), any(HearingCentre.class));
         verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
@@ -383,15 +373,13 @@ class SubstantiveHearingEditedHandlerTest {
         substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(
-            HEARING_CHANNEL, new DynamicList(
-                new Value(
-                    INTER.name(),
-                    INTER.getLabel()
-                ), List.of(new Value(
+            HEARING_CHANNEL, new DynamicList(new Value(
                 INTER.name(),
                 INTER.getLabel()
-            ))
-            )
+            ), List.of(new Value(
+                INTER.name(),
+                INTER.getLabel()
+            )))
         );
         verify(asylumCase).write(eq(LIST_CASE_HEARING_CENTRE), any(HearingCentre.class));
         verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
@@ -434,15 +422,13 @@ class SubstantiveHearingEditedHandlerTest {
         substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(
-            HEARING_CHANNEL, new DynamicList(
-                new Value(
-                    TEL.name(),
-                    TEL.getLabel()
-                ), List.of(new Value(
+            HEARING_CHANNEL, new DynamicList(new Value(
                 TEL.name(),
                 TEL.getLabel()
-            ))
-            )
+            ), List.of(new Value(
+                TEL.name(),
+                TEL.getLabel()
+            )))
         );
 
         verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
@@ -465,15 +451,13 @@ class SubstantiveHearingEditedHandlerTest {
         substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase).write(
-            HEARING_CHANNEL, new DynamicList(
-                new Value(
-                    VID.name(),
-                    VID.getLabel()
-                ), List.of(new Value(
+            HEARING_CHANNEL, new DynamicList(new Value(
                 VID.name(),
                 VID.getLabel()
-            ))
-            )
+            ), List.of(new Value(
+                VID.name(),
+                VID.getLabel()
+            )))
         );
 
         verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
@@ -504,8 +488,7 @@ class SubstantiveHearingEditedHandlerTest {
 
         DynamicList expectedRefDataListingLocation = new DynamicList(
             new Value("231596", COURT_NAME),
-            hearingLocationList.getListItems()
-        );
+            hearingLocationList.getListItems());
 
         if (isRefDataEnabled.equals(YES)) {
             verify(asylumCase).write(IS_REMOTE_HEARING, expectedIsRemoteHearing);

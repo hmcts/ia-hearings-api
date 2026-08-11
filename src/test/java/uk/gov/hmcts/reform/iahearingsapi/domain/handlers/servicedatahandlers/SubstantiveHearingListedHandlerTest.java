@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
@@ -13,7 +12,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.STF_24W_CURRENT_STATUS_AUTO_GENERATED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.LIST_CASE;
@@ -24,7 +22,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +29,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
@@ -54,6 +50,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class SubstantiveHearingListedHandlerTest {
 
     private static final String GLASGOW_EPIMMS_ID = "366559";
@@ -71,23 +68,19 @@ class SubstantiveHearingListedHandlerTest {
     StartEventResponse startEventResponse;
     @Mock
     AsylumCase asylumCase;
-    @Mock
-    CaseDetails caseDetails;
 
     private SubstantiveHearingListedHandler substantiveHearingListedHandler;
 
     private DynamicList hearingLocationList = new DynamicList(
         new Value("745389", "Hendon Magistrates Court"),
-        List.of(new Value("745389", "Hendon Magistrates Court"))
-    );
+        List.of(new Value("745389", "Hendon Magistrates Court")));
 
     @BeforeEach
     public void setUp() {
 
         substantiveHearingListedHandler =
             new SubstantiveHearingListedHandler(coreCaseDataService, locationRefDataService);
-        when(coreCaseDataService.mapCaseDetailsToAsylumCase(any())).thenReturn(asylumCase);
-        when(coreCaseDataService.getCaseDetails(any())).thenReturn(caseDetails);
+
         when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
             .thenReturn(Optional.of(HmcStatus.LISTED));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_LISTING_STATUS, ListingStatus.class))
@@ -98,12 +91,11 @@ class SubstantiveHearingListedHandlerTest {
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
             .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
-        when(caseDetails.getState()).thenReturn(State.LISTING.toString());
+        when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.LISTING);
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class)).thenReturn(Optional.of(YesOrNo.NO));
 
-        List<CourtVenue> courtVenueList = List.of(new CourtVenue(
-            "Manchester Magistrates",
+        List<CourtVenue> courtVenueList = List.of(new CourtVenue("Manchester Magistrates",
             "Manchester Magistrates Court",
             "231596",
             "Y",
@@ -174,7 +166,6 @@ class SubstantiveHearingListedHandlerTest {
         when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
         when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REF, "Asylum")).thenReturn(startEventResponse);
         when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
-        when(coreCaseDataService.mapCaseDetailsToAsylumCase(any())).thenReturn(asylumCase);
         when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
             .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
         when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
@@ -184,77 +175,22 @@ class SubstantiveHearingListedHandlerTest {
         when(serviceData.read(DURATION, Integer.class))
             .thenReturn(Optional.of(150));
         when(serviceData.read(HEARING_ID, String.class))
-            .thenReturn(Optional.of("12345"));
+                .thenReturn(Optional.of("12345"));
 
         substantiveHearingListedHandler.handle(serviceData);
 
         verify(asylumCase).write(ARIA_LISTING_REFERENCE, LISTING_REFERENCE);
-        verify(asylumCase).write(
-            LIST_CASE_HEARING_DATE,
-            LocalDateTime.of(2023, 9, 29, 9, 45)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
-        );
+        verify(asylumCase).write(LIST_CASE_HEARING_DATE,
+                                 LocalDateTime.of(2023, 9, 29, 9, 45)
+                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS")));
         verify(asylumCase).write(LISTING_LENGTH, new HoursMinutes(150));
         verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
-        verify(asylumCase).write(
-            HEARING_CHANNEL, new DynamicList(
-                new Value(
-                    HearingChannel.INTER.name(),
-                    HearingChannel.INTER.getLabel()
-                ),
-                List.of(new Value(
-                    HearingChannel.INTER.name(),
-                    HearingChannel.INTER.getLabel()
-                ))
-            )
-        );
+        verify(asylumCase).write(HEARING_CHANNEL, new DynamicList(new Value(HearingChannel.INTER.name(),
+                                                                            HearingChannel.INTER.getLabel()),
+                                                                  List.of(new Value(HearingChannel.INTER.name(),
+                                                                                    HearingChannel.INTER.getLabel()))));
 
-        verify(coreCaseDataService).triggerSubmitEvent(LIST_CASE, CASE_REF, startEventResponse, asylumCase);
-    }
-
-    @Test
-    void should_trigger_case_listing_stf() {
-        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
-        when(coreCaseDataService.startCaseEvent(LIST_CASE, CASE_REF, "Asylum"))
-            .thenReturn(startEventResponse);
-        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
-        when(asylumCase.read(STF_24W_CURRENT_STATUS_AUTO_GENERATED, YesOrNo.class))
-            .thenReturn(Optional.of(YesOrNo.YES));
-        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
-            .thenReturn(Optional.of(List.of(HearingChannel.ONPPRS)));
-        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
-            .thenReturn(Optional.of(NEXT_HEARING_DATE));
-        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
-            .thenReturn(Optional.of(HEARING_VENUE_ID));
-        when(serviceData.read(DURATION, Integer.class))
-            .thenReturn(Optional.of(150));
-        when(serviceData.read(HEARING_ID, String.class))
-            .thenReturn(Optional.of("12345"));
-
-        substantiveHearingListedHandler.handle(serviceData);
-
-        verify(asylumCase).write(ARIA_LISTING_REFERENCE, LISTING_REFERENCE);
-        verify(asylumCase).write(
-            LIST_CASE_HEARING_DATE,
-            LocalDateTime.of(2023, 9, 29, 9, 45)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"))
-        );
-        verify(asylumCase).write(LISTING_LENGTH, new HoursMinutes(150));
-        verify(asylumCase).write(LIST_CASE_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
-        verify(asylumCase).write(
-            HEARING_CHANNEL, new DynamicList(
-                new Value(
-                    HearingChannel.ONPPRS.name(),
-                    HearingChannel.ONPPRS.getLabel()
-                ),
-                List.of(new Value(
-                    HearingChannel.ONPPRS.name(),
-                    HearingChannel.ONPPRS.getLabel()
-                ))
-            )
-        );
-
-        verify(coreCaseDataService).triggerSubmitEvent(LIST_CASE, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(LIST_CASE, CASE_REF,startEventResponse, asylumCase);
     }
 }
 
