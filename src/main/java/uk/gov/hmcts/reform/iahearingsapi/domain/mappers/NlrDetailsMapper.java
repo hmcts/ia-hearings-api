@@ -25,7 +25,7 @@ public class NlrDetailsMapper {
 
     private LanguageAndAdjustmentsMapper languageAndAdjustmentsMapper;
 
-     public static final String NLR_PARTY_ROLE = "RPTT";
+    public static final String NLR_PARTY_ROLE = "RPTT";
 
     public PartyDetailsModel map(AsylumCase asylumCase,
                                  NonLegalRepDetails nonLegalRepDetails,
