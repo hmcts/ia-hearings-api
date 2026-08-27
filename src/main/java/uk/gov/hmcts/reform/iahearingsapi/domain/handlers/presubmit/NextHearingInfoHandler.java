@@ -41,7 +41,8 @@ public class NextHearingInfoHandler implements PreSubmitCallbackHandler<AsylumCa
 
         return (callbackStage == ABOUT_TO_START && callback.getEvent() == UPDATE_NEXT_HEARING_INFO)
             || (callbackStage == ABOUT_TO_SUBMIT
-            && List.of(LIST_CASE, EDIT_CASE_LISTING, CMR_LISTING, CMR_RE_LISTING, HEARING_CANCELLED, CMR_HEARING_CANCELLED)
+            && List.of(LIST_CASE, EDIT_CASE_LISTING, CMR_LISTING, CMR_RE_LISTING,
+                       HEARING_CANCELLED, CMR_HEARING_CANCELLED)
             .contains(callback.getEvent()));
     }
 
