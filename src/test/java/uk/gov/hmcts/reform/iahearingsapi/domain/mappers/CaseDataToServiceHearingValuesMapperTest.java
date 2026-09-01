@@ -39,6 +39,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.MULTIMEDIA_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_FORMAT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.REQUEST_HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
@@ -361,6 +362,8 @@ class CaseDataToServiceHearingValuesMapperTest {
             .thenReturn(Optional.of("legalRepOrgPartyId"));
         when(asylumCase.read(SPONSOR_PARTY_ID, String.class))
             .thenReturn(Optional.of("sponsorPartyId"));
+        when(asylumCase.read(NLR_PARTY_ID, String.class))
+            .thenReturn(Optional.of("nlrPartyId"));
         when(asylumCase.read(LEGAL_REP_COMPANY_PAPER_J, String.class))
             .thenReturn(Optional.of("internalCaseLegalRepCompany"));
 
@@ -368,6 +371,7 @@ class CaseDataToServiceHearingValuesMapperTest {
         assertNotNull(mapper.getLegalRepPartyId(asylumCase));
         assertNotNull(mapper.getLegalRepOrgPartyId(asylumCase));
         assertNotNull(mapper.getSponsorPartyId(asylumCase));
+        assertNotNull(mapper.getNlrPartyId(asylumCase));
         assertNotNull(mapper.getRespondentPartyId(asylumCase));
         assertNotNull(mapper.getInternalCaseLegalRepCompany(asylumCase));
     }
@@ -387,6 +391,9 @@ class CaseDataToServiceHearingValuesMapperTest {
         assertThatThrownBy(() -> mapper.getSponsorPartyId(asylumCase))
             .isExactlyInstanceOf(RequiredFieldMissingException.class)
             .hasMessage("sponsorPartyId is a required field");
+        assertThatThrownBy(() -> mapper.getNlrPartyId(asylumCase))
+            .isExactlyInstanceOf(RequiredFieldMissingException.class)
+            .hasMessage("nlrPartyId is a required field");
         assertThatThrownBy(() -> mapper.getInternalCaseLegalRepCompany(asylumCase))
             .isExactlyInstanceOf(RequiredFieldMissingException.class)
             .hasMessage("legalRepCompanyPaperJ is a required field");

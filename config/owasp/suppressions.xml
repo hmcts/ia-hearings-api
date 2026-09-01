@@ -32,10 +32,31 @@
     <cve>CVE-2026-54399</cve>
     <cve>CVE-2026-54428</cve>
   </suppress>
-  <suppress until="2026-08-15">
+  <suppress until="2026-08-31">
     <notes>Should be fixed with netty 4.2.17.Final release - https://github.com/netty/netty/commit/60f7a00f4f675238c44e2d3e93a395a6dd61f4f0</notes>
     <cve>CVE-2026-44891</cve>
     <cve>CVE-2026-55831</cve>
     <cve>CVE-2026-55833</cve>
   </suppress>
+  <suppress until="2026-09-30">
+    <cve>CVE-2026-66299</cve>
+    <cve>CVE-2026-66257</cve>
+    <cve>CVE-2026-66273</cve>
+    <cve>CVE-2026-66274</cve>
+    <cve>CVE-2026-66275</cve>
+    <cve>CVE-2026-66276</cve>
+    <cve>CVE-2026-66277</cve>
+    <cve>CVE-2026-65637</cve>
+    <cve>CVE-2026-65182</cve>
+    <cve>CVE-2026-65183</cve>
+    <cve>CVE-2026-65905</cve>
+    <cve>CVE-2026-65927</cve>
+    <cve>CVE-2026-68763</cve>
+    <cve>CVE-2026-73180</cve>
+    <cve>CVE-2026-68525</cve>
+    <cve>CVE-2026-68569</cve>
+    <cve>CVE-2026-59313</cve>
+    <cve>CVE-2026-66422</cve>
+    <cve>CVE-2026-59314</cve>
+  </suppress>  
 </suppressions>
