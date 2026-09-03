@@ -11,6 +11,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_NAME_FOR_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
@@ -44,6 +45,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagDetail;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseFlagValue;
@@ -794,6 +796,52 @@ class CaseFlagsToServiceHearingValuesMapperTest {
             .thenReturn(Optional.of(new StrategicCaseFlag(caseFlagDetails)));
 
         assertNull(mapper.getVulnerableDetails(asylumCase));
+    }
+
+    @Test
+    void getNlrCaseFlags_should_return_empty_list_when_nlr_level_flags_not_present() {
+        // Given NLR_LEVEL_FLAGS is not present
+        when(asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.empty());
+        when(asylumCase.read(NLR_PARTY_ID, String.class))
+            .thenReturn(Optional.empty());
+
+        // When
+        List<PartyFlagsModel> result = mapper.getNlrCaseFlags(asylumCase, caseDataMapper);
+
+        // Then return empty list
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getNlrCaseFlags_should_return_empty_list_when_nlr_level_flags_present_but_empty() {
+        // Given NLR_LEVEL_FLAGS is present but has null partyName and roleOnCase (like empty JSON {})
+        StrategicCaseFlag emptyNlrFlags = new StrategicCaseFlag();
+        when(asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.of(emptyNlrFlags));
+
+        // When
+        List<PartyFlagsModel> result = mapper.getNlrCaseFlags(asylumCase, caseDataMapper);
+
+        // Then return empty list without calling getNlrPartyId
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getNlrCaseFlags_should_return_empty_list_when_nlr_level_flags_has_empty_details() {
+        StrategicCaseFlag caseFlags = new StrategicCaseFlag();
+        when(asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class)).thenReturn(Optional.of(caseFlags));
+        when(asylumCase.read(NLR_PARTY_ID, String.class)).thenReturn(Optional.empty());
+
+        // getNlrPartyId throws when nlrPartyId is missing
+        when(caseDataMapper.getNlrPartyId(asylumCase))
+            .thenThrow(new RequiredFieldMissingException("nlrPartyId is a required field"));
+
+        // When
+        List<PartyFlagsModel> result = mapper.getNlrCaseFlags(asylumCase, caseDataMapper);
+
+        // Then return empty list without calling getNlrPartyId
+        assertTrue(result.isEmpty());
     }
 
 }
