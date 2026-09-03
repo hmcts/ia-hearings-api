@@ -239,6 +239,7 @@ public class CaseFlagsToServiceHearingValuesMapper {
     public List<PartyFlagsModel> getNlrCaseFlags(
         AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
         return asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .filter(flag -> flag.getDetails() != null && !flag.getDetails().isEmpty())
             .map(flag -> buildCaseFlags(
                 flag.getDetails(),
                 caseDataMapper.getNlrPartyId(asylumCase),
