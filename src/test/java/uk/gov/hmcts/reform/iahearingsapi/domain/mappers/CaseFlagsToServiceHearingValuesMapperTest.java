@@ -33,7 +33,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CustodyStatu
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -816,29 +815,25 @@ class CaseFlagsToServiceHearingValuesMapperTest {
 
     @Test
     void getNlrCaseFlags_should_return_empty_list_when_nlr_level_flags_present_but_empty() {
-        // Given NLR_LEVEL_FLAGS is present but has empty details
-        StrategicCaseFlag emptyNlrFlags = new StrategicCaseFlag(
-            "some name", "Non-legal representative", Collections.emptyList());
+        // Given NLR_LEVEL_FLAGS is present but has null partyName and roleOnCase (like empty JSON {})
+        StrategicCaseFlag emptyNlrFlags = new StrategicCaseFlag();
         when(asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(emptyNlrFlags));
-        // getNlrPartyId throws when NLR_PARTY_ID is missing
-        when(caseDataMapper.getNlrPartyId(asylumCase))
-            .thenThrow(new RequiredFieldMissingException("nlrPartyId is a required field"));
 
         // When
         List<PartyFlagsModel> result = mapper.getNlrCaseFlags(asylumCase, caseDataMapper);
 
-        // Then return empty list (no active flags to process)
+        // Then return empty list without calling getNlrPartyId
         assertTrue(result.isEmpty());
     }
 
     @Test
     void getNlrCaseFlags_should_return_empty_list_when_nlr_level_flags_has_empty_details() {
         StrategicCaseFlag caseFlags = new StrategicCaseFlag();
-        when(asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class))
-            .thenReturn(Optional.of(caseFlags));
+        when(asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class)).thenReturn(Optional.of(caseFlags));
+        when(asylumCase.read(NLR_PARTY_ID, String.class)).thenReturn(Optional.empty());
 
-        // getNlrPartyId throws when NLR_PARTY_ID is missing
+        // getNlrPartyId throws when nlrPartyId is missing
         when(caseDataMapper.getNlrPartyId(asylumCase))
             .thenThrow(new RequiredFieldMissingException("nlrPartyId is a required field"));
 
