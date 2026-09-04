@@ -62,7 +62,7 @@ class HmcHearingsEventTopicListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = HmcStatus.class, names = { "LISTED", "CANCELLED", "EXCEPTION" })
+    @EnumSource(value = HmcStatus.class, names = { "LISTED", "CANCELLED", "EXCEPTION", "AWAITING_LISTING" })
     public void testOnMessageWithRelevantMessage(HmcStatus hmcStatus) throws Exception {
         HmcMessage hmcMessage = TestUtils.createHmcMessage(SERVICE_CODE, hmcStatus);
 
@@ -90,7 +90,7 @@ class HmcHearingsEventTopicListenerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = HmcStatus.class, names = {"HEARING_REQUESTED", "AWAITING_LISTING", "UPDATE_REQUESTED",
+    @EnumSource(value = HmcStatus.class, names = {"HEARING_REQUESTED", "UPDATE_REQUESTED",
         "UPDATE_SUBMITTED", "CANCELLATION_REQUESTED", "CANCELLATION_SUBMITTED", "CLOSED", "EXCEPTION"})
     public void testOnMessageWithIrrelevantHmcStatuses(HmcStatus hmcStatus) throws Exception {
         HmcMessage hmcMessage = TestUtils.createHmcMessage("irrelevantServiceCode", hmcStatus);

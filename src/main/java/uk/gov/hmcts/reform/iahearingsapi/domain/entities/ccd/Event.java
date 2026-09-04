@@ -9,6 +9,7 @@ public enum Event {
     UPDATE_HEARING_REQUEST("updateHearingRequest"),
     HANDLE_HEARING_EXCEPTION("handleHearingException"),
     CMR_RE_LISTING("cmrReListing"),
+    RE_LIST_HEARING("reListHearing"),
     CMR_HEARING_CANCELLED("cmrHearingCancelled"),
     RECORD_ADJOURNMENT_DETAILS("recordAdjournmentDetails"),
     END_APPEAL("endAppeal"),
