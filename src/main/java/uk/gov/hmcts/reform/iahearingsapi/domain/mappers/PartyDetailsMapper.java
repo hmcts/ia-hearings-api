@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
@@ -69,14 +70,18 @@ public class PartyDetailsMapper {
         if (MapperUtils.hasSponsor(asylumCase) && MapperUtils.isSponsorPartyIdPresent(asylumCase)) {
             partyDetails.add(sponsorDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
         }
-        Optional<NonLegalRepDetails> optionalNlrDetails = asylumCase.read(NLR_DETAILS, NonLegalRepDetails.class);
-        optionalNlrDetails.ifPresent(nonLegalRepDetails -> partyDetails.add(nlrDetailsMapper.map(
-            asylumCase,
-            nonLegalRepDetails,
-            caseDataMapper,
-            persistedHearingDetails,
-            event
-        )));
+        asylumCase.read(NLR_DETAILS, NonLegalRepDetails.class)
+            .ifPresent(nonLegalRepDetails -> {
+                if (nonLegalRepDetails.getIdamId() != null && !nonLegalRepDetails.getIdamId().isBlank()) {
+                    partyDetails.add(nlrDetailsMapper.map(
+                        asylumCase,
+                        nonLegalRepDetails,
+                        caseDataMapper,
+                        persistedHearingDetails,
+                        event
+                    ));
+                }
+            });
         if (!MapperUtils.isInternalCase(asylumCase)
             && MapperUtils.isRepJourney(asylumCase)
             && !MapperUtils.isChangeOrganisationRequestPresent(asylumCase)) {
@@ -118,8 +123,8 @@ public class PartyDetailsMapper {
     }
 
     public static PartyDetailsModel appendBookingStatus(Optional<InterpreterBookingStatus> spokenBookingStatus,
-                                                 Optional<InterpreterBookingStatus> signBookingStatus,
-                                                 PartyDetailsModel partyDetailsModel) {
+                                                        Optional<InterpreterBookingStatus> signBookingStatus,
+                                                        PartyDetailsModel partyDetailsModel) {
 
         //String status;
         StringBuilder status = new StringBuilder();
@@ -127,7 +132,7 @@ public class PartyDetailsMapper {
         if (spokenBookingStatus.isPresent()
             && signBookingStatus.isPresent()
             && (!spokenBookingStatus.get().equals(NOT_REQUESTED)
-                || !signBookingStatus.get().equals(NOT_REQUESTED))) {
+            || !signBookingStatus.get().equals(NOT_REQUESTED))) {
             status
                 .append(STATUS_SPOKEN)
                 .append(spokenBookingStatus.get().getDesc())
@@ -147,8 +152,10 @@ public class PartyDetailsMapper {
                 .append(";");
         }
 
-        String otherReasonableAdjustments = requireNonNullElse(partyDetailsModel.getIndividualDetails()
-            .getOtherReasonableAdjustmentDetails(), "");
+        String otherReasonableAdjustments = requireNonNullElse(
+            partyDetailsModel.getIndividualDetails()
+                .getOtherReasonableAdjustmentDetails(), ""
+        );
 
         partyDetailsModel.getIndividualDetails()
             .setOtherReasonableAdjustmentDetails((otherReasonableAdjustments + " " + status).trim());

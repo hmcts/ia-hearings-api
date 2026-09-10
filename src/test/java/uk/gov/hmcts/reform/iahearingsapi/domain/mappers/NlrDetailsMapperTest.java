@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.quality.Strictness.LENIENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.NlrDetailsMapper.NLR_PARTY_ROLE;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,14 +13,19 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.NonLegalRepDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
+import java.util.Optional;
+
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = LENIENT)
 class NlrDetailsMapperTest {
 
     @Mock
@@ -40,6 +46,8 @@ class NlrDetailsMapperTest {
     @BeforeEach
     void setUp() {
         nlrDetailsMapper = new NlrDetailsMapper(languageAndAdjustmentsMapper);
+        when(asylumCase.read(AsylumCaseFieldDefinition.NLR_PARTY_ID, String.class))
+            .thenReturn(Optional.of("nlrPartyId"));
     }
 
     @Test
@@ -60,7 +68,7 @@ class NlrDetailsMapperTest {
         PartyDetailsModel actual = nlrDetailsMapper
             .map(asylumCase, nlrDetails, caseDataMapper, persistedHearingDetails, event);
 
-        assertEquals(idamId, actual.getPartyID());
+        assertEquals("nlrPartyId", actual.getPartyID());
         assertEquals("IND", actual.getPartyType());
         assertEquals(NLR_PARTY_ROLE, actual.getPartyRole());
         IndividualDetailsModel individualDetails = actual.getIndividualDetails();
@@ -91,7 +99,7 @@ class NlrDetailsMapperTest {
         PartyDetailsModel actual = nlrDetailsMapper
             .map(asylumCase, nlrDetails, caseDataMapper, persistedHearingDetails, event);
 
-        assertEquals(idamId, actual.getPartyID());
+        assertEquals("nlrPartyId", actual.getPartyID());
         assertEquals("IND", actual.getPartyType());
         assertEquals(NLR_PARTY_ROLE, actual.getPartyRole());
         IndividualDetailsModel individualDetails = actual.getIndividualDetails();
