@@ -1,10 +1,16 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.HEARING_CANCELLED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.ServiceDataResponse;
@@ -41,7 +47,24 @@ public class SubstantiveHearingCancelledHandler extends ListedHearingService
 
         if (nextHearingDateService.enabled()) {
             log.info("Trigger hearing cancelled event for case ID " + caseId);
-            coreCaseDataService.hearingCancelledTask(caseId);
+
+            StartEventResponse startEventResponse = coreCaseDataService.startCaseEvent(
+                HEARING_CANCELLED, caseId, CASE_TYPE_ASYLUM);
+
+            AsylumCase asylumCase = coreCaseDataService.getCaseFromStartedEvent(startEventResponse);
+
+            boolean isInterpreterNeeded = isInterpreterNeeded(asylumCase);
+            if (isInterpreterNeeded) {
+                asylumCase.write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+                log.info("Setting trigger review interpreter task flag for hearing for case {}", caseId);
+            } else {
+                asylumCase.clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
+            }
+
+            log.info("Sending `{}`an event for  Case ID `{}`", HEARING_CANCELLED, caseId);
+            coreCaseDataService.triggerSubmitEvent(
+                HEARING_CANCELLED, caseId, startEventResponse, asylumCase);
+
         } else {
             log.info("Next hearing date not enabled for case {}", caseId);
         }

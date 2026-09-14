@@ -33,6 +33,12 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandl
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHearingType;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.isHmcStatus;
 
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_LANGUAGE_CATEGORY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SIGN_LANGUAGE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SPOKEN_LANGUAGE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_INTERPRETER_SERVICES_NEEDED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -51,11 +57,13 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefiniti
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterLanguageRefData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail.ListingEvent;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListingStatus;
@@ -312,6 +320,33 @@ public class ListedHearingService {
             .findFirst()
             .orElseThrow(() -> new NoSuchElementException("No matching ref data court venue found for epims id "
                                                               + getHearingVenueId(serviceData)));
+    }
+
+    protected boolean isInterpreterNeeded(AsylumCase asylumCase) {
+        boolean isInterpreterServicesNeeded = asylumCase
+            .read(IS_INTERPRETER_SERVICES_NEEDED, YesOrNo.class)
+            .map(yesOrNo -> Objects.equals(yesOrNo, YES))
+            .orElse(false);
+
+        if (isInterpreterServicesNeeded) {
+            Optional<List<String>> languageCategoriesOptional = asylumCase
+                .read(APPELLANT_INTERPRETER_LANGUAGE_CATEGORY);
+            if (languageCategoriesOptional.isPresent()) {
+                Optional<InterpreterLanguageRefData> appellantInterpreterSpokenLanguage =
+                    asylumCase.read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE);
+                Optional<InterpreterLanguageRefData> appellantInterpreterSignLanguage =
+                    asylumCase.read(APPELLANT_INTERPRETER_SIGN_LANGUAGE);
+
+                return appellantInterpreterSpokenLanguage.isPresent()
+                    && appellantInterpreterSpokenLanguage.get().getLanguageRefData() != null
+                    || appellantInterpreterSignLanguage.isPresent()
+                    && appellantInterpreterSignLanguage.get().getLanguageRefData() != null;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     private String getListingReference() {

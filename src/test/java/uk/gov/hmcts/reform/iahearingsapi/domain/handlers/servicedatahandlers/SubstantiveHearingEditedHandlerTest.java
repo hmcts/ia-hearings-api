@@ -5,14 +5,18 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_LANGUAGE_CATEGORY;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SIGN_LANGUAGE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_INTERPRETER_SPOKEN_LANGUAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_INTERPRETER_SERVICES_NEEDED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LOCATION;
@@ -56,6 +60,7 @@ import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterLanguageRefData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
@@ -73,7 +78,6 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.Co
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("unchecked")
 class SubstantiveHearingEditedHandlerTest {
-
 
     private static final String GLASGOW_EPIMMS_ID = "366559";
     private static final String LISTING_REFERENCE = "LAI";
@@ -398,7 +402,7 @@ class SubstantiveHearingEditedHandlerTest {
         substantiveHearingEditedHandler.handle(serviceData);
 
         verify(asylumCase, never()).write(eq(LIST_CASE_HEARING_CENTRE), any());
-        verify(asylumCase, never()).write(eq(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK), anyBoolean());
+        verify(asylumCase, never()).write(eq(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK), any());
         verify(coreCaseDataService, never()).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
@@ -428,6 +432,7 @@ class SubstantiveHearingEditedHandlerTest {
         );
 
         verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        verify(asylumCase).clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
     }
@@ -457,8 +462,170 @@ class SubstantiveHearingEditedHandlerTest {
         );
 
         verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        verify(asylumCase).clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_not_trigger_review_interpreter_task_when_interpreter_not_needed() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(asylumCase.read(IS_INTERPRETER_SERVICES_NEEDED, YesOrNo.class))
+            .thenReturn(Optional.of(NO));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HearingCentre.BRADFORD.getEpimsId()));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
+
+        substantiveHearingEditedHandler.handle(serviceData);
+
+        verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        verify(asylumCase).clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_not_trigger_review_interpreter_task_when_no_language_selected() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(asylumCase.read(IS_INTERPRETER_SERVICES_NEEDED, YesOrNo.class))
+            .thenReturn(Optional.of(YES));
+        when(asylumCase.read(APPELLANT_INTERPRETER_LANGUAGE_CATEGORY))
+            .thenReturn(Optional.empty());
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HearingCentre.BRADFORD.getEpimsId()));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
+
+        substantiveHearingEditedHandler.handle(serviceData);
+
+        verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        verify(asylumCase).clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
+    }
+
+    @Test
+    void should_trigger_review_interpreter_task_when_sign_language_only() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(asylumCase.read(IS_INTERPRETER_SERVICES_NEEDED, YesOrNo.class))
+            .thenReturn(Optional.of(YES));
+        when(asylumCase.read(APPELLANT_INTERPRETER_LANGUAGE_CATEGORY))
+            .thenReturn(Optional.of(List.of("signLanguageInterpreter")));
+        when(asylumCase.read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE))
+            .thenReturn(Optional.empty());
+        InterpreterLanguageRefData signLanguage = new InterpreterLanguageRefData();
+        signLanguage.setLanguageRefData(new DynamicList(new Value("bsl", "British Sign Language"), List.of()));
+        when(asylumCase.read(APPELLANT_INTERPRETER_SIGN_LANGUAGE))
+            .thenReturn(Optional.of(signLanguage));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HearingCentre.BRADFORD.getEpimsId()));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
+
+        substantiveHearingEditedHandler.handle(serviceData);
+
+        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+    }
+
+    @Test
+    void should_not_trigger_review_interpreter_task_when_spoken_language_ref_data_is_null() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(asylumCase.read(IS_INTERPRETER_SERVICES_NEEDED, YesOrNo.class))
+            .thenReturn(Optional.of(YES));
+        when(asylumCase.read(APPELLANT_INTERPRETER_LANGUAGE_CATEGORY))
+            .thenReturn(Optional.of(List.of("spokenLanguageInterpreter")));
+        InterpreterLanguageRefData spokenLanguage = new InterpreterLanguageRefData();
+        spokenLanguage.setLanguageRefData(null);
+        when(asylumCase.read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE))
+            .thenReturn(Optional.of(spokenLanguage));
+        when(asylumCase.read(APPELLANT_INTERPRETER_SIGN_LANGUAGE))
+            .thenReturn(Optional.empty());
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HearingCentre.BRADFORD.getEpimsId()));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
+
+        substantiveHearingEditedHandler.handle(serviceData);
+
+        verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        verify(asylumCase).clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
+    }
+
+    @Test
+    void should_not_trigger_review_interpreter_task_when_both_languages_have_null_ref_data() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(asylumCase.read(IS_INTERPRETER_SERVICES_NEEDED, YesOrNo.class))
+            .thenReturn(Optional.of(YES));
+        when(asylumCase.read(APPELLANT_INTERPRETER_LANGUAGE_CATEGORY))
+            .thenReturn(Optional.of(List.of("spokenLanguageInterpreter", "signLanguageInterpreter")));
+        InterpreterLanguageRefData spokenLanguage = new InterpreterLanguageRefData();
+        spokenLanguage.setLanguageRefData(null);
+        when(asylumCase.read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE))
+            .thenReturn(Optional.of(spokenLanguage));
+        InterpreterLanguageRefData signLanguage = new InterpreterLanguageRefData();
+        signLanguage.setLanguageRefData(null);
+        when(asylumCase.read(APPELLANT_INTERPRETER_SIGN_LANGUAGE))
+            .thenReturn(Optional.of(signLanguage));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HearingCentre.BRADFORD.getEpimsId()));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
+
+        substantiveHearingEditedHandler.handle(serviceData);
+
+        verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+        verify(asylumCase).clear(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK);
+    }
+
+    @Test
+    void should_trigger_review_interpreter_task_when_both_spoken_and_sign_language_present() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(asylumCase.read(IS_INTERPRETER_SERVICES_NEEDED, YesOrNo.class))
+            .thenReturn(Optional.of(YES));
+        when(asylumCase.read(APPELLANT_INTERPRETER_LANGUAGE_CATEGORY))
+            .thenReturn(Optional.of(List.of("spokenLanguageInterpreter", "signLanguageInterpreter")));
+        InterpreterLanguageRefData spokenLanguage = new InterpreterLanguageRefData();
+        spokenLanguage.setLanguageRefData(new DynamicList(new Value("eng", "English"), List.of()));
+        when(asylumCase.read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE))
+            .thenReturn(Optional.of(spokenLanguage));
+        InterpreterLanguageRefData signLanguage = new InterpreterLanguageRefData();
+        signLanguage.setLanguageRefData(new DynamicList(new Value("bsl", "British Sign Language"), List.of()));
+        when(asylumCase.read(APPELLANT_INTERPRETER_SIGN_LANGUAGE))
+            .thenReturn(Optional.of(signLanguage));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HearingCentre.BRADFORD.getEpimsId()));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
+
+        substantiveHearingEditedHandler.handle(serviceData);
+
+        verify(asylumCase).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
+    }
+
+    @Test
+    void should_write_current_hearing_id() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HearingCentre.BRADFORD.getEpimsId()));
+        String listCaseHearingDate = LocalDateTime.of(2023, 9, 29, 9, 45).toString();
+        when(asylumCase.read(LIST_CASE_HEARING_DATE, String.class))
+            .thenReturn(Optional.of(listCaseHearingDate));
+
+        substantiveHearingEditedHandler.handle(serviceData);
+
+        verify(asylumCase).write(CURRENT_HEARING_ID, HEARING_ID);
     }
 
     @ParameterizedTest
@@ -536,6 +703,19 @@ class SubstantiveHearingEditedHandlerTest {
         when(asylumCase.read(HEARING_CHANNEL, DynamicList.class)).thenReturn(Optional.of(
             new DynamicList(INTER.name())));
         when(asylumCase.read(LISTING_LENGTH, HoursMinutes.class)).thenReturn(Optional.of(new HoursMinutes(150)));
+
+        initializeInterpreterData();
+    }
+
+    private void initializeInterpreterData() {
+        when(asylumCase.read(IS_INTERPRETER_SERVICES_NEEDED, YesOrNo.class))
+            .thenReturn(Optional.of(YES));
+        when(asylumCase.read(APPELLANT_INTERPRETER_LANGUAGE_CATEGORY))
+            .thenReturn(Optional.of(List.of("spokenLanguageInterpreter")));
+        InterpreterLanguageRefData spokenLanguage = new InterpreterLanguageRefData();
+        spokenLanguage.setLanguageRefData(new DynamicList(new Value("eng", "English"), List.of()));
+        when(asylumCase.read(APPELLANT_INTERPRETER_SPOKEN_LANGUAGE))
+            .thenReturn(Optional.of(spokenLanguage));
     }
 
     @NotNull
