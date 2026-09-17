@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.iahearingsapi.domain.RequiredFieldMissingException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.NonLegalRepDetails;
@@ -17,6 +18,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_INTERPRETER_SPOKEN_LANGUAGE_BOOKING_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper.appendBookingStatus;
 
 @Component
@@ -36,7 +38,7 @@ public class NlrDetailsMapper {
             ? List.of(nonLegalRepDetails.getPhoneNumber()) : Collections.emptyList();
 
         PartyDetailsModel nlrPartyDetailsModel = PartyDetailsModel.builder()
-            .partyID(nonLegalRepDetails.getIdamId())
+            .partyID(getNlrPartyId(asylumCase))
             .partyType(PartyType.IND.getPartyType())
             .partyRole(NLR_PARTY_ROLE)
             .individualDetails(
@@ -70,5 +72,10 @@ public class NlrDetailsMapper {
             .read(NLR_INTERPRETER_SIGN_LANGUAGE_BOOKING_STATUS, InterpreterBookingStatus.class);
 
         appendBookingStatus(spokenBookingStatus, signBookingStatus, nlrPartyDetailsModel);
+    }
+
+    public String getNlrPartyId(AsylumCase asylumCase) {
+        return asylumCase.read(NLR_PARTY_ID, String.class)
+            .orElseThrow(() -> new RequiredFieldMissingException("nlrPartyId is a required field"));
     }
 }
