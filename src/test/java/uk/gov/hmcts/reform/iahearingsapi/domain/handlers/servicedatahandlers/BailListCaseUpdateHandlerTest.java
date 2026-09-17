@@ -122,7 +122,10 @@ class BailListCaseUpdateHandlerTest {
                 "Glasgow Tribunals Centre",
                 "231596",
                 "Y",
-                "Open"));
+                "Open",
+                "Atlantic Quay, 20 York Street",
+                "G2 8GT",
+                "Court"));
         when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(courtVenueList);
         when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(hearingLocationList);
 
