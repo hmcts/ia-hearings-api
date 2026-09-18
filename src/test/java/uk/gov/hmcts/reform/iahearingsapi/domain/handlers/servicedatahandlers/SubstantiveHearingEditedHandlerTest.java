@@ -47,6 +47,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -60,6 +61,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
@@ -165,12 +167,51 @@ class SubstantiveHearingEditedHandlerTest {
         assertFalse(substantiveHearingEditedHandler.canHandle(serviceData));
     }
 
-    @Test
-    void should_not_handle_if_case_status_unqualified() {
+    @ParameterizedTest
+    @EnumSource(value = State.class, names = {
+        "PREPARE_FOR_HEARING",
+        "FINAL_BUNDLING",
+        "PRE_HEARING",
+        "DECISION",
+        "RESPONDENT_REVIEW",
+        "AWAITING_RESPONDENT_EVIDENCE",
+        "CASE_BUILDING",
+        "CASE_UNDER_REVIEW",
+        "SUBMIT_HEARING_REQUIREMENTS",
+        "AWAITING_REASONS_FOR_APPEAL",
+        "REASONS_FOR_APPEAL_SUBMITTED",
+        "CLARIFYING_QUESTIONS_ANSWERS_SUBMITTED",
+        "AWAITING_CLARIFYING_QUESTIONS_ANSWERS"
+    }, mode = EnumSource.Mode.EXCLUDE)
+    void should_not_handle_if_case_state_invalid(State state) {
         when(coreCaseDataService.getCaseState(CASE_REFERENCE))
-            .thenReturn(APPEAL_SUBMITTED);
+            .thenReturn(state);
 
         assertFalse(substantiveHearingEditedHandler.canHandle(serviceData));
+    }
+
+
+    @ParameterizedTest
+    @EnumSource(value = State.class, names = {
+        "PREPARE_FOR_HEARING",
+        "FINAL_BUNDLING",
+        "PRE_HEARING",
+        "DECISION",
+        "RESPONDENT_REVIEW",
+        "AWAITING_RESPONDENT_EVIDENCE",
+        "CASE_BUILDING",
+        "CASE_UNDER_REVIEW",
+        "SUBMIT_HEARING_REQUIREMENTS",
+        "AWAITING_REASONS_FOR_APPEAL",
+        "REASONS_FOR_APPEAL_SUBMITTED",
+        "CLARIFYING_QUESTIONS_ANSWERS_SUBMITTED",
+        "AWAITING_CLARIFYING_QUESTIONS_ANSWERS"
+    })
+    void should_handle_if_case_state_valid(State state) {
+        when(coreCaseDataService.getCaseState(CASE_REFERENCE))
+            .thenReturn(state);
+
+        assertTrue(substantiveHearingEditedHandler.canHandle(serviceData));
     }
 
     @Test

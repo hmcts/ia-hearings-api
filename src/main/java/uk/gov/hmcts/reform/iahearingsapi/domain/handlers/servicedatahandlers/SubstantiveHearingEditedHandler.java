@@ -1,33 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
-import static java.util.Objects.requireNonNull;
-
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_HEARING_ID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.DECISION;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.FINAL_BUNDLING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PRE_HEARING;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.getHearingDateAndTime;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -48,6 +20,42 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.AWAITING_CLARIFYING_QUESTIONS_ANSWERS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.AWAITING_REASONS_FOR_APPEAL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.AWAITING_RESPONDENT_EVIDENCE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.CASE_BUILDING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.CASE_UNDER_REVIEW;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.CLARIFYING_QUESTIONS_ANSWERS_SUBMITTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.DECISION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.FINAL_BUNDLING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PREPARE_FOR_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.PRE_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.REASONS_FOR_APPEAL_SUBMITTED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.RESPONDENT_REVIEW;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State.SUBMIT_HEARING_REQUIREMENTS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.TEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel.VID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers.HandlerUtils.getHearingDateAndTime;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -67,7 +75,21 @@ public class SubstantiveHearingEditedHandler extends ListedHearingService implem
         String caseId = getCaseReference(serviceData);
         State caseState = coreCaseDataService
             .getCaseState(caseId);
-        List<State> targetStates = Arrays.asList(PREPARE_FOR_HEARING, FINAL_BUNDLING, PRE_HEARING, DECISION);
+        List<State> targetStates = List.of(
+            PREPARE_FOR_HEARING,
+            FINAL_BUNDLING,
+            PRE_HEARING,
+            DECISION,
+            RESPONDENT_REVIEW,
+            AWAITING_RESPONDENT_EVIDENCE,
+            CASE_BUILDING,
+            CASE_UNDER_REVIEW,
+            SUBMIT_HEARING_REQUIREMENTS,
+            AWAITING_REASONS_FOR_APPEAL,
+            REASONS_FOR_APPEAL_SUBMITTED,
+            CLARIFYING_QUESTIONS_ANSWERS_SUBMITTED,
+            AWAITING_CLARIFYING_QUESTIONS_ANSWERS
+        );
 
         return isSubstantiveListedHearing(serviceData) && targetStates.contains(caseState);
     }
@@ -111,9 +133,9 @@ public class SubstantiveHearingEditedHandler extends ListedHearingService implem
             asylumCase, serviceData, isNonRemoteToRemoteChannelUpdate, hearingId);
 
         boolean sendUpdate = hearingDateTimeUpdated
-                             || hearingChannelUpdated
-                             || hearingLocationUpdated
-                             || hearingDurationUpdated;
+            || hearingChannelUpdated
+            || hearingLocationUpdated
+            || hearingDurationUpdated;
 
         // Only trigger review interpreter task if the hearing location, date or channel are updated.
         // Don not trigger when hearing channel update is remote to remote
@@ -143,9 +165,11 @@ public class SubstantiveHearingEditedHandler extends ListedHearingService implem
 
         // the nextHearingDateTime has to be recalculated according to the actual physical venue (Glasgow / non-Glasgow)
         final String physicalNextHearingVenueId = getHearingVenueId(serviceData);
-        final LocalDateTime calculatedNextHearingDateTime = getHearingDateAndTime(nextHearingDateTime,
-                                                                                  physicalNextHearingVenueId);
-        boolean updated =  !Objects.equals(currentHearingDateTime, calculatedNextHearingDateTime);
+        final LocalDateTime calculatedNextHearingDateTime = getHearingDateAndTime(
+            nextHearingDateTime,
+            physicalNextHearingVenueId
+        );
+        boolean updated = !Objects.equals(currentHearingDateTime, calculatedNextHearingDateTime);
 
         if (updated) {
             asylumCase.write(
@@ -171,7 +195,8 @@ public class SubstantiveHearingEditedHandler extends ListedHearingService implem
         if (updated) {
             asylumCase.write(
                 HEARING_CHANNEL,
-                buildHearingChannelDynmicList(nextHearingChannelList));
+                buildHearingChannelDynmicList(nextHearingChannelList)
+            );
             log.info("Hearing channel updated for hearing " + hearingId);
             return true;
         } else {
@@ -236,14 +261,21 @@ public class SubstantiveHearingEditedHandler extends ListedHearingService implem
         asylumCase.write(AsylumCaseFieldDefinition.IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
         log.info("tryUpdateListCaseHearingDetails for Case ID `{}` serviceData contains '{}", caseId, serviceData);
 
-        asylumCase.write(AsylumCaseFieldDefinition.LISTING_LOCATION,
+        asylumCase.write(
+            AsylumCaseFieldDefinition.LISTING_LOCATION,
             new DynamicList(
-                new Value(getHearingVenueId(serviceData),
-                    getHearingCourtName(serviceData, locationRefDataService.getCourtVenuesAsServiceUser())),
-                        locationRefDataService.getHearingLocationsDynamicList(true).getListItems()));
+                new Value(
+                    getHearingVenueId(serviceData),
+                    getHearingCourtName(serviceData, locationRefDataService.getCourtVenuesAsServiceUser())
+                ),
+                locationRefDataService.getHearingLocationsDynamicList(true).getListItems()
+            )
+        );
 
-        log.info("tryUpdateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
-                 asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
+        log.info(
+            "tryUpdateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
+            asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString()
+        );
     }
 }
 
