@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum RequirementType {
@@ -11,6 +12,7 @@ public enum RequirementType {
     @JsonValue
     private final String requirementType;
 
+    @JsonCreator
     RequirementType(String requirementType) {
         this.requirementType = requirementType;
     }

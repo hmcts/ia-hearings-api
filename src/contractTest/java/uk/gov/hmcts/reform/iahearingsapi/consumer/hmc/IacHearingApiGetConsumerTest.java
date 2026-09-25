@@ -12,7 +12,6 @@ import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -33,7 +32,7 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
 
     @Pact(provider = IAC_PROVIDER, consumer = CONSUMER)
     public V4Pact getHearingServiceValues(
-        PactDslWithProvider builder) throws JsonProcessingException {
+        PactDslWithProvider builder) {
 
         Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
             .put("Connection", "close")
@@ -55,7 +54,7 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
 
     @Test
     @PactTestFor(pactMethod = "getHearingServiceValues", port = "8090")
-    public void shouldGetHearingServiceValues(MockServer mockServer) throws JsonProcessingException {
+    public void shouldGetHearingServiceValues(MockServer mockServer) {
 
         JsonPath response = RestAssured
             .given()
@@ -80,7 +79,7 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     }
 
     @Pact(provider = IAC_PROVIDER, consumer = CONSUMER)
-    public V4Pact getHearingLinkData(PactDslWithProvider builder) throws JsonProcessingException {
+    public V4Pact getHearingLinkData(PactDslWithProvider builder) {
 
         Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
             .put("Connection", "close")
@@ -102,7 +101,7 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
 
     @Test
     @PactTestFor(pactMethod = "getHearingLinkData")
-    public void shouldGetHearingLinkData(MockServer mockServer) throws JsonProcessingException {
+    public void shouldGetHearingLinkData(MockServer mockServer) {
 
         JsonPath response = RestAssured
             .given()

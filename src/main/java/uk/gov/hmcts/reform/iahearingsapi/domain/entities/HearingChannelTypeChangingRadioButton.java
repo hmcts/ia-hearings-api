@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Objects;
@@ -18,6 +19,7 @@ public enum HearingChannelTypeChangingRadioButton {
     @JsonValue
     private final String value;
 
+    @JsonCreator
     HearingChannelTypeChangingRadioButton(String value) {
         this.value = value;
     }

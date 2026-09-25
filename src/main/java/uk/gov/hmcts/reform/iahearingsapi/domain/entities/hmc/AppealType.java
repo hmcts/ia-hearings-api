@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum AppealType {
@@ -16,6 +17,7 @@ public enum AppealType {
 
     private String description;
 
+    @JsonCreator
     AppealType(String value, String description) {
         this.value = value;
         this.description = description;

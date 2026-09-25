@@ -3,9 +3,8 @@ package uk.gov.hmcts.reform.iahearingsapi.infrastructure.hmc.listeners;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import jakarta.jms.JMSException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.qpid.jms.message.JmsBytesMessage;
@@ -13,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.message.HmcMessage;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcEventProcessingException;
@@ -44,8 +44,7 @@ public class HmcHearingsEventTopicListener {
         this.hmctsDeploymentId = hmctsDeploymentId;
         this.isDeploymentFilterEnabled = isDeploymentFilterEnabled;
         this.hmcMessageProcessor = hmcMessageProcessor;
-        this.objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
+        this.objectMapper = new JsonMapper();
     }
 
     @JmsListener(
@@ -96,7 +95,7 @@ public class HmcHearingsEventTopicListener {
 
                 hmcMessageProcessor.processMessage(hmcMessage);
             }
-        }  catch (JsonProcessingException ex) {
+        }  catch (JacksonException ex) {
             throw new HmcEventProcessingException(
                 "Unable to successfully receive HMC message: %s".formatted(stringMessage), ex);
         }

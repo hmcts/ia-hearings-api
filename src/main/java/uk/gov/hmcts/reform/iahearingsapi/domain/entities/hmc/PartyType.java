@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum PartyType {
@@ -10,6 +11,7 @@ public enum PartyType {
     @JsonValue
     private final String partyType;
 
+    @JsonCreator
     PartyType(String partyType) {
         this.partyType = partyType;
     }
