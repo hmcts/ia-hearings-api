@@ -352,14 +352,18 @@ dependencyManagement {
 dependencies {
   rewrite("org.openrewrite.recipe:rewrite-spring:6.37.0")
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
-  implementation 'org.springframework.boot:spring-boot-starter-json'
+  implementation ('org.springframework.boot:spring-boot-starter-json') {
+    exclude group: 'org.springframework.boot', module: 'spring-boot-jackson'
+  }
   implementation 'org.springframework.boot:spring-boot-starter-webmvc'
   implementation 'org.springframework.boot:spring-boot-starter-validation'
   implementation 'org.springframework.boot:spring-boot-starter-security'
   implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
   implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
-  implementation "org.springframework.boot:spring-boot-starter-restclient:4.0.8"
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+  implementation ("org.springframework.boot:spring-boot-starter-restclient:4.0.8") {
+    exclude group: 'org.springframework.boot', module: 'spring-boot-jackson'
+  }
+  implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
   implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
   implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
@@ -367,7 +371,9 @@ dependencies {
   implementation 'org.springframework:spring-jms'
   implementation 'org.springframework:spring-messaging'
 
-  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '3.0.3'
+  implementation (group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '3.0.3') {
+    exclude group: 'org.springframework.boot', module: 'spring-boot-jackson'
+  }
 
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.20.0'
 
@@ -397,7 +403,7 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: '5.3.11'
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: '5.3.11'
 
-  testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock'
+  testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock:5.0.3'
 
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
 

@@ -1,9 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
-import static tools.jackson.databind.cfg.EnumFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
+import static com.fasterxml.jackson.databind.DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
 
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 
 import java.util.HashMap;
@@ -11,7 +10,7 @@ import java.util.Optional;
 
 public class BailCase extends HashMap<String, Object> implements CaseData {
 
-    private final ObjectMapper objectMapper = new JsonMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public BailCase() {
         objectMapper.enable(READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
