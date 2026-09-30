@@ -12,7 +12,6 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.context.ActiveProfiles;
@@ -22,7 +21,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.util.Retry;
 
 @Slf4j
-@Disabled
 @ActiveProfiles("functional")
 public class RecordAdjournmentDetailsPreparerFunctionalTest extends CcdCaseCreationTest {
 
