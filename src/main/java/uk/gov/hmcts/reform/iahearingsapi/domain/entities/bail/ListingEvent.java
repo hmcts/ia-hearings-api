@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ListingEvent {
@@ -11,7 +10,6 @@ public enum ListingEvent {
     @JsonValue
     private final String id;
 
-    @JsonCreator
     ListingEvent(String id) {
         this.id = id;
     }

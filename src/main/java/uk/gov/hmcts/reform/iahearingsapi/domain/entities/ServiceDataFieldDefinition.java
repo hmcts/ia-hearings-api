@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
-import tools.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.time.LocalDateTime;
 import java.util.List;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum DoW {
@@ -16,7 +15,6 @@ public enum DoW {
     @JsonValue
     private final String dayOfWeek;
 
-    @JsonCreator
     DoW(String dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
     }

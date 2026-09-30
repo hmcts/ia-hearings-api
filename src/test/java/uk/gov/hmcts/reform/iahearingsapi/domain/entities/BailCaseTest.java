@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -13,7 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 @SuppressWarnings("OperatorWrap")
 class BailCaseTest {
 
-    private final ObjectMapper objectMapper = new JsonMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     void reads_string() throws IOException {

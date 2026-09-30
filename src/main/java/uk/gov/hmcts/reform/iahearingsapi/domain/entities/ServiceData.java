@@ -1,16 +1,18 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Optional;
+
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 
 public class ServiceData extends HashMap<String, Object> implements CaseData {
 
-    private final ObjectMapper objectMapper = new JsonMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ServiceData() {
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
     public <T> Optional<T> read(ServiceDataFieldDefinition extractor, Class<T> type) {

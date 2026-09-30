@@ -11,6 +11,7 @@ import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ public class HmcHearingApiDeleteConsumerTest extends HmcHearingApiConsumerTestBa
 
     @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
     public V4Pact deleteHearing(
-        PactDslWithProvider builder) {
+        PactDslWithProvider builder) throws JsonProcessingException {
         return builder
             .given(HMC_PROVIDER + " successfully deletes a given hearing")
             .uponReceiving("A request to delete a hearing")
@@ -42,7 +43,7 @@ public class HmcHearingApiDeleteConsumerTest extends HmcHearingApiConsumerTestBa
 
     @Test
     @PactTestFor(pactMethod = "deleteHearing")
-    public void shouldDeleteHearing() {
+    public void shouldDeleteHearing() throws JsonProcessingException {
         ResponseEntity<HmcHearingResponse> response = hmcHearingApi
             .deleteHearing(authToken, serviceAuthToken, null, null, null, 12345L, deleteHearingRequest);
 

@@ -61,7 +61,7 @@ public class DownStreamHealthIndicator implements CompositeHealthContributor {
     }
 
     @Override
-    public Stream<Entry> stream(){
+    public Stream<Entry> stream() {
         return this.contributors.entrySet()
             .stream()
             .map(entry -> new HealthContributors.Entry(entry.getKey(), entry.getValue()));

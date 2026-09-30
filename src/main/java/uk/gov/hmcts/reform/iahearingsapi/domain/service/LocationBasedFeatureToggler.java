@@ -4,16 +4,14 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.NO;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo.YES;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.launchdarkly.sdk.LDValue;
 import java.util.Collections;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.CaseManagementLocation;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -24,7 +22,7 @@ public class LocationBasedFeatureToggler {
 
     private static final String AUTO_HEARING_REQUEST_LOCATIONS_LIST = "auto-hearing-request-locations-list";
     private static final LDValue DEFAULT_VALUE = LDValue.parse("{\"epimsIds\":[]}");
-    private static final ObjectMapper OBJECT_MAPPER = new JsonMapper();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private FeatureToggler featureToggler;
 
@@ -56,7 +54,7 @@ public class LocationBasedFeatureToggler {
         try {
             epimsIds = OBJECT_MAPPER.readValue(flagValueJsonString, ListAssistIntegratedLocations.class)
                 .getLocations();
-        } catch (JacksonException e) {
+        } catch (JsonProcessingException e) {
             log.error("Error parsing location EPIMS IDs from LaunchDarkly: {}",
                 flagValueJsonString);
         }
@@ -68,7 +66,6 @@ public class LocationBasedFeatureToggler {
 
         public Set<Long> epimsIds;
 
-        @JsonCreator
         ListAssistIntegratedLocations(@JsonProperty("epimsIds") Set<Long> epimsIds) {
             this.epimsIds = epimsIds;
         }

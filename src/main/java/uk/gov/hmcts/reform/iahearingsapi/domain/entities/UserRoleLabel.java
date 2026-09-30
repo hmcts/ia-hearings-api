@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum UserRoleLabel {
@@ -15,7 +14,6 @@ public enum UserRoleLabel {
     @JsonValue
     private final String id;
 
-    @JsonCreator
     UserRoleLabel(String id) {
         this.id = id;
     }

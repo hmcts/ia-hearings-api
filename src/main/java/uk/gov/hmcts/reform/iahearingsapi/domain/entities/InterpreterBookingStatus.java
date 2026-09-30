@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum InterpreterBookingStatus {
@@ -15,7 +14,6 @@ public enum InterpreterBookingStatus {
 
     private final String desc;
 
-    @JsonCreator
     InterpreterBookingStatus(String value, String desc) {
         this.value = value;
         this.desc = desc;

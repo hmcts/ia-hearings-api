@@ -18,9 +18,12 @@ import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.generateServiceHear
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.getDeleteHearingRequest;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingRequestPayload;
@@ -52,7 +55,9 @@ public class HmcHearingApiConsumerTestBase {
         SERVICE_AUTH_HEADER, SERVICE_AUTH_TOKEN
     );
 
-    protected ObjectMapper objectMapper = new JsonMapper();
+    protected ObjectMapper objectMapper = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     protected PartiesNotified partiesNotified = PartiesNotified.builder()
         .serviceData(new ServiceData())
@@ -78,17 +83,17 @@ public class HmcHearingApiConsumerTestBase {
     protected HearingRequestPayload hearingRequestPayload = HearingRequestPayload
         .builder().caseReference(CASE_REFERENCE).build();
 
-    protected  <T> T getExpectedResponse(String responseStr, Class<T> type) {
-        ObjectMapper objectMapper = new JsonMapper();
+    protected  <T> T getExpectedResponse(String responseStr, Class<T> type) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
 
         return objectMapper.readValue(responseStr, type);
     }
 
-    protected String getServiceHearingValues() {
+    protected String getServiceHearingValues() throws JsonProcessingException {
         return objectMapper.writeValueAsString(generateServiceHearingValues());
     }
 
-    protected String getHearingLinkDataList() {
+    protected String getHearingLinkDataList() throws JsonProcessingException {
         return objectMapper.writeValueAsString(generateHearingLinkData(CASE_REFERENCE));
     }
 }

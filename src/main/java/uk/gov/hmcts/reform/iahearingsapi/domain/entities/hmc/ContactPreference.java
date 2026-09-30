@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 import java.util.Optional;
 import static java.util.Arrays.stream;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ContactPreference {
@@ -16,7 +15,6 @@ public enum ContactPreference {
 
     private String description;
 
-    @JsonCreator
     ContactPreference(String value, String description) {
         this.value = value;
         this.description = description;

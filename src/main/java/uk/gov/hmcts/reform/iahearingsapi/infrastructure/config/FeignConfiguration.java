@@ -1,15 +1,13 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.config;
 
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.form.spring.SpringFormEncoder;
-import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
 import org.springframework.cloud.openfeign.support.SpringDecoder;
 import org.springframework.cloud.openfeign.support.SpringEncoder;
@@ -17,9 +15,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.cloud.openfeign.support.FeignHttpMessageConverters;
-import tools.jackson.databind.cfg.EnumFeature;
-import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.List;
+
 @Configuration
+@SuppressWarnings("removal")
 public class FeignConfiguration {
 
     @Bean
@@ -30,22 +32,42 @@ public class FeignConfiguration {
         return new SpringFormEncoder(new SpringEncoder(feignHttpMessageConverters));
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "removal"})
     @Bean
-    public Decoder decoder(ObjectProvider<FeignHttpMessageConverters> feignHttpMessageConverters) {
-        return new ResponseEntityDecoder(new SpringDecoder(feignHttpMessageConverters));
+    public Decoder decoder() {
+        HttpMessageConverter<?> jacksonConverter = new MappingJackson2HttpMessageConverter(objectMapper());
+
+        return new ResponseEntityDecoder(new SpringDecoder(singleConverter(jacksonConverter)));
 
     }
 
-    @Bean
-    public HttpMessageConverter<?> feignJacksonHttpMessageConverter (JsonMapper jsonMapper){
-        return new JacksonJsonHttpMessageConverter(jsonMapper);
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE, true);
+        objectMapper.registerModule(new Jdk8Module());
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper;
     }
 
-    public JsonMapper objectMapper(JsonMapper.Builder builder){
-        return builder
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .configure(EnumFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE, true)
-            .build();
+    private static ObjectProvider<FeignHttpMessageConverters> singleConverter(HttpMessageConverter<?> converter) {
+        FeignHttpMessageConverters converters =
+            new FeignHttpMessageConverters(
+                new ObjectProvider<>() {
+                }, new ObjectProvider<>() {
+                }
+            ) {
+                @Override
+                public List<HttpMessageConverter<?>> getConverters() {
+                    return List.of(converter);
+
+                }
+            };
+        return new ObjectProvider<>() {
+            @Override
+            public FeignHttpMessageConverters getObject() {
+                return converters;
+            }
+        };
     }
 }

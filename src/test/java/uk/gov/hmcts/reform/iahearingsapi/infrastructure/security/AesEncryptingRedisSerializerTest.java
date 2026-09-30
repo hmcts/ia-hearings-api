@@ -11,6 +11,7 @@ import java.util.Base64;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+@SuppressWarnings("removal")
 class AesEncryptingRedisSerializerTest {
 
     private static final String VALID_KEY_256 = Base64.getEncoder()

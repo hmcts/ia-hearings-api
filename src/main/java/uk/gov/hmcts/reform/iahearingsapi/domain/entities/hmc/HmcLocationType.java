@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum HmcLocationType {
@@ -12,7 +11,6 @@ public enum HmcLocationType {
     @JsonValue
     private final String locationType;
 
-    @JsonCreator
     HmcLocationType(String locationType) {
         this.locationType = locationType;
     }

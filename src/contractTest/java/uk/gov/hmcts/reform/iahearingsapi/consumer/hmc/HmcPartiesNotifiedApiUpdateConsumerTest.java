@@ -10,6 +10,7 @@ import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class HmcPartiesNotifiedApiUpdateConsumerTest extends HmcHearingApiConsum
 
     @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
     public V4Pact updatePartiesNotified(
-        PactDslWithProvider builder) {
+        PactDslWithProvider builder) throws JsonProcessingException {
         Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
             .put("Connection", "close")
             .build();

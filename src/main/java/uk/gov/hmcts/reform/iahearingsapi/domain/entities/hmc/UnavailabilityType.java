@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum UnavailabilityType {
@@ -12,7 +11,6 @@ public enum UnavailabilityType {
     @JsonValue
     private final String unavailabilityType;
 
-    @JsonCreator
     UnavailabilityType(String unavailabilityType) {
         this.unavailabilityType = unavailabilityType;
     }

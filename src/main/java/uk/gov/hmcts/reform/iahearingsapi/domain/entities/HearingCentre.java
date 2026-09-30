@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
 import static java.util.Arrays.stream;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +50,6 @@ public enum HearingCentre {
         }
     }
 
-    @JsonCreator
     HearingCentre(String value, String epimsId) {
         this.value = value;
         this.epimsId = epimsId;

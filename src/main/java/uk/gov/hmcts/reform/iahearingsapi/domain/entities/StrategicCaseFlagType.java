@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum StrategicCaseFlagType {
@@ -29,7 +28,6 @@ public enum StrategicCaseFlagType {
     private final String name;
     private final boolean hearingRelevant;
 
-    @JsonCreator
     StrategicCaseFlagType(String flagCode, String name, boolean hearingRelevant) {
         this.flagCode = flagCode;
         this.name = name;

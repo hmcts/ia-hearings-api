@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
 import java.time.LocalDate;
-import tools.jackson.databind.annotation.JsonDeserialize;
-import tools.jackson.databind.annotation.JsonSerialize;
-import tools.jackson.databind.ext.javatime.deser.LocalDateDeserializer;
-import tools.jackson.databind.ext.javatime.ser.LocalDateSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 
 public class DatesToAvoid {
 

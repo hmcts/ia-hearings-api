@@ -310,18 +310,6 @@ dependencyManagement {
     mavenBom "io.netty:netty-bom:4.2.18.Final"
   }
   dependencies {
-    dependencySet(group: 'org.junit.jupiter', version: '5.13.4') {
-      entry 'junit-jupiter'
-      entry 'junit-jupiter-api'
-      entry 'junit-jupiter-engine'
-      entry 'junit-jupiter-params'
-    }
-
-    dependencySet(group: 'org.junit.platform', version: '1.13.4') {
-      entry 'junit-platform-commons'
-      entry 'junit-platform-engine'
-      entry 'junit-platform-launcher'
-    }
 
     dependencySet(group: 'org.mockito', version: '5.24.0') {
       entry 'mockito-core'
@@ -385,13 +373,15 @@ dependencies {
 
   implementation 'org.springframework.boot:spring-boot-starter-cache'
 
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.5'
-  implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.2.0'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '6.0.1'
+  implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.4.0'
 
-  implementation 'tools.jackson.core:jackson-core'
+  implementation 'org.springframework.boot:spring-boot-jackson2'
+  implementation 'com.fasterxml.jackson.core:jackson-core'
   implementation 'com.fasterxml.jackson.core:jackson-annotations'
-  implementation 'tools.jackson.core:jackson-databind'
-  implementation 'tools.jackson.core:jackson-databind'
+  implementation 'com.fasterxml.jackson.core:jackson-databind'
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
   implementation 'com.azure:azure-messaging-servicebus'
   implementation 'com.azure:azure-core'
@@ -404,6 +394,7 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: '5.3.11'
 
   testImplementation 'org.springframework.cloud:spring-cloud-contract-wiremock:5.0.3'
+  testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
