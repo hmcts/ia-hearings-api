@@ -1,17 +1,20 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.health;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.health.contributor.HealthContributors;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.HealthCheckConfiguration;
 
@@ -55,6 +58,21 @@ class DownStreamHealthIndicatorTest {
                      ImmutableMap.of("uri", "http://service2uri", "response", "\"status\":\"UP\""));
 
         return services;
+    }
+
+    @Test
+    void should_stream_one_entry_per_configured_service() {
+        // given
+        when(healthCheckConfiguration.getServices()).thenReturn(getHealthCheckConfiguration());
+        downStreamHealthIndicator = new DownStreamHealthIndicator(restTemplate, healthCheckConfiguration);
+
+        // when
+        List<HealthContributors.Entry> entries = downStreamHealthIndicator.stream().toList();
+
+        // then
+        assertThat(entries)
+            .extracting(HealthContributors.Entry::name)
+            .containsExactlyInAnyOrder("service1", "service2");
     }
 
 }
