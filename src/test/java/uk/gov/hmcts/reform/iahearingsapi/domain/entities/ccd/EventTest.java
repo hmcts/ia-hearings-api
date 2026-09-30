@@ -35,6 +35,7 @@ public class EventTest {
             Arguments.of("updateHearingRequest", Event.UPDATE_HEARING_REQUEST.toString()),
             Arguments.of("handleHearingException", Event.HANDLE_HEARING_EXCEPTION.toString()),
             Arguments.of("cmrReListing", Event.CMR_RE_LISTING.toString()),
+            Arguments.of("cmrHearingCancelled", Event.CMR_HEARING_CANCELLED.toString()),
             Arguments.of("recordAdjournmentDetails", Event.RECORD_ADJOURNMENT_DETAILS.toString()),
             Arguments.of("endAppeal", Event.END_APPEAL.toString()),
             Arguments.of("editCaseListing", Event.EDIT_CASE_LISTING.toString()),

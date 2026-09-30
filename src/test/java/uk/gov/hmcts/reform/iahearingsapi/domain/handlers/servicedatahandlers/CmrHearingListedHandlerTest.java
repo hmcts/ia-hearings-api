@@ -1,0 +1,375 @@
+package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.DURATION;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_HEARING_CANCELLED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_CENTRE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_CHANNEL;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_HEARING_CENTRE_ADDRESS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.CASE_MANAGEMENT_REVIEW;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.SUBSTANTIVE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService.CASE_TYPE_ASYLUM;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CMR_IS_REMOTE_HEARING;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.ListAssistCaseStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
+import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
+
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class CmrHearingListedHandlerTest {
+
+    private static final String CASE_REF = "1234";
+    public static final String HEARING_ID = "1";
+    private static final String GLASGOW_EPIMMS_ID = "366559";
+    private static final String HEARING_VENUE_ID = GLASGOW_EPIMMS_ID;
+    private static final String GLASGOW_ADDRESS =
+        "Glasgow Tribunals Centre, Atlantic Quay, 20 York Street, G2 8GT";
+    private static final LocalDateTime NEXT_HEARING_DATE = LocalDateTime.of(2023, 9, 29, 12, 0);
+
+    @Mock
+    CoreCaseDataService coreCaseDataService;
+    @Mock
+    HearingService hearingService;
+    @Mock
+    ServiceData serviceData;
+    @Mock
+    StartEventResponse startEventResponse;
+    @Mock
+    AsylumCase asylumCase;
+    @Mock
+    LocationRefDataService locationRefDataService;
+    @Mock
+    CmrHearingIdListProcessor cmrHearingIdListProcessor;
+
+    private CmrHearingListedHandler cmrHearingListedHandler;
+
+    @BeforeEach
+    public void setUp() {
+
+        cmrHearingListedHandler = new CmrHearingListedHandler(
+            coreCaseDataService,
+            hearingService,
+            locationRefDataService,
+            cmrHearingIdListProcessor
+        );
+
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
+            .thenReturn(Optional.of(HmcStatus.LISTED));
+        when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
+            .thenReturn(Optional.of(ListAssistCaseStatus.LISTED));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
+            .thenReturn(Optional.of(CASE_MANAGEMENT_REVIEW.getKey()));
+        when(coreCaseDataService.getCaseState(CASE_REF)).thenReturn(State.LISTING);
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+    }
+
+    @Test
+    void should_have_early_dispatch_priority() {
+        assertEquals(DispatchPriority.EARLY, cmrHearingListedHandler.getDispatchPriority());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = HmcStatus.class, names = { "LISTED", "CANCELLED" })
+    void should_handle_only_if_service_data_qualifies(HmcStatus hmcStatus) {
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
+            .thenReturn(Optional.of(hmcStatus));
+
+        assertTrue(cmrHearingListedHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_not_handle_if_hearing_type_unqualified() {
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_TYPE, String.class))
+            .thenReturn(Optional.of(SUBSTANTIVE.getKey()));
+        assertFalse(cmrHearingListedHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_not_handle_if_hmc_status_unqualified() {
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
+            .thenReturn(Optional.of(HmcStatus.CLOSED));
+        assertFalse(cmrHearingListedHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_not_handle_if_hearing_channels_on_papers() {
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS, List.class))
+            .thenReturn(Optional.of(List.of(HearingChannel.ONPPRS)));
+        assertFalse(cmrHearingListedHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_not_handle_if_list_assist_case_status_unqualified() {
+        when(serviceData.read(ServiceDataFieldDefinition.LIST_ASSIST_CASE_STATUS, ListAssistCaseStatus.class))
+            .thenReturn(Optional.of(ListAssistCaseStatus.CASE_CLOSED));
+        assertFalse(cmrHearingListedHandler.canHandle(serviceData));
+    }
+
+    @Test
+    void should_trigger_cmr_listed_notification() {
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(coreCaseDataService.startCaseEvent(CMR_LISTING, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HEARING_VENUE_ID));
+        when(serviceData.read(DURATION, Integer.class))
+            .thenReturn(Optional.of(150));
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(NEXT_HEARING_DATE));
+
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
+            .thenReturn(Optional.of(HEARING_ID));
+
+        DynamicList cmrHearingChannel = new DynamicList(
+            new Value("INTER", "In Person"),
+            List.of(new Value("INTER", "In Person"))
+        );
+        when(asylumCase.read(CMR_HEARING_CHANNEL, DynamicList.class))
+            .thenReturn(Optional.of(cmrHearingChannel));
+
+        PartiesNotifiedResponses partiesNotifiedResponses =
+            PartiesNotifiedResponses.builder()
+                .responses(Collections.emptyList())
+                .hearingID(HEARING_ID).build();
+        when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
+        when(locationRefDataService.getHearingCentreAddress(HearingCentre.GLASGOW_TRIBUNALS_CENTRE))
+            .thenReturn(GLASGOW_ADDRESS);
+
+        cmrHearingListedHandler.handle(serviceData);
+
+        verify(coreCaseDataService).triggerSubmitEvent(
+            CMR_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
+        verify(asylumCase).write(CMR_HEARING_DATE, "2023-09-29T09:45:00.000");
+        verify(asylumCase).write(CMR_HEARING_LENGTH, new HoursMinutes(150));
+        verify(asylumCase).write(CMR_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
+        verify(asylumCase).write(CMR_HEARING_CHANNEL, cmrHearingChannel); // Replace with actual value
+        verify(asylumCase, never()).write(eq(CMR_HEARING_CENTRE_ADDRESS), anyString());
+        verify(coreCaseDataService).triggerSubmitEvent(CMR_LISTING, CASE_REF, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_trigger_cmr_listed_notification_with_appeals_location_ref_data_enabled() {
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(coreCaseDataService.startCaseEvent(CMR_LISTING, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HEARING_VENUE_ID));
+        when(serviceData.read(DURATION, Integer.class))
+            .thenReturn(Optional.of(150));
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(NEXT_HEARING_DATE));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
+            .thenReturn(Optional.of(HEARING_ID));
+        when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(Collections.emptyList());
+        when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(null);
+        CourtVenue mockCourtVenue = new CourtVenue(
+            "Glasgow Site", // siteName
+            "Glasgow Tribunals Centre", // courtName
+            "366559", // epimmsId
+            "Yes", // isHearingLocation
+            "Open", // courtStatus
+            "Atlantic Quay, 20 York Street", // courtAddress
+            "G2 8GT", // postcode
+            "Court" // locationType
+        );
+        when(locationRefDataService.getCourtVenuesAsServiceUser())
+            .thenReturn(List.of(mockCourtVenue));
+        DynamicList hearingLocationList = new DynamicList(
+            new Value("366559", "Glasgow Tribunals Centre"),
+            List.of(new Value("366559", "Glasgow Tribunals Centre"))
+        );
+        when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(hearingLocationList);
+
+
+        DynamicList cmrHearingChannel = new DynamicList(
+            new Value("INTER", "In Person"),
+            List.of(new Value("INTER", "In Person"))
+        );
+        when(asylumCase.read(CMR_HEARING_CHANNEL, DynamicList.class))
+            .thenReturn(Optional.of(cmrHearingChannel));
+
+        PartiesNotifiedResponses partiesNotifiedResponses =
+            PartiesNotifiedResponses.builder()
+                .responses(Collections.emptyList())
+                .hearingID(HEARING_ID).build();
+        when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
+        when(asylumCase.read(CMR_IS_REMOTE_HEARING, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(IS_CASE_USING_LOCATION_REF_DATA, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(locationRefDataService.getHearingCentreAddress(HearingCentre.GLASGOW_TRIBUNALS_CENTRE))
+            .thenReturn(GLASGOW_ADDRESS);
+
+
+        cmrHearingListedHandler.handle(serviceData);
+
+        verify(asylumCase).write(CMR_HEARING_CENTRE_ADDRESS, GLASGOW_ADDRESS);
+        verify(asylumCase).write(CMR_HEARING_DATE,"2023-09-29T09:45:00.000");
+        verify(asylumCase).write(CMR_HEARING_LENGTH, new HoursMinutes(150));
+        verify(asylumCase).write(CMR_HEARING_CENTRE, HearingCentre.GLASGOW_TRIBUNALS_CENTRE);
+        verify(asylumCase).write(AsylumCaseFieldDefinition.CMR_HEARING_CHANNEL, cmrHearingChannel);
+        verify(asylumCase).write(AsylumCaseFieldDefinition.CMR_IS_REMOTE_HEARING, YesOrNo.NO);
+        verify(coreCaseDataService).triggerSubmitEvent(CMR_LISTING, CASE_REF, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_trigger_cmr_reListed_notification_for_updated_cmr() {
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(coreCaseDataService.startCaseEvent(CMR_RE_LISTING, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HEARING_VENUE_ID));
+        when(serviceData.read(DURATION, Integer.class))
+            .thenReturn(Optional.of(150));
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(NEXT_HEARING_DATE));
+
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
+            .thenReturn(Optional.of(HEARING_ID));
+
+        PartiesNotifiedResponse response =
+            PartiesNotifiedResponse.builder()
+                .responseReceivedDateTime(LocalDateTime.parse("2024-09-20T10:09:19"))
+                .partiesNotified(LocalDateTime.parse("2024-09-20T10:09:19"))
+                .requestVersion(1)
+                .build();
+        PartiesNotifiedResponses partiesNotifiedResponses =
+            PartiesNotifiedResponses.builder()
+                .responses(List.of(response))
+                .hearingID(HEARING_ID).build();
+        when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
+        when(locationRefDataService.getHearingCentreAddress(HearingCentre.GLASGOW_TRIBUNALS_CENTRE))
+            .thenReturn(GLASGOW_ADDRESS);
+
+        cmrHearingListedHandler.handle(serviceData);
+
+        verify(coreCaseDataService).triggerSubmitEvent(
+            CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
+        verify(asylumCase, never()).write(eq(CMR_HEARING_CENTRE_ADDRESS), anyString());
+    }
+
+    @Test
+    void should_trigger_cmr_hearing_cancelled_for_cancelled_cmr() {
+        when(serviceData.read(ServiceDataFieldDefinition.HMC_STATUS, HmcStatus.class))
+            .thenReturn(Optional.of(HmcStatus.CANCELLED));
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(coreCaseDataService.startCaseEvent(CMR_RE_LISTING, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.startCaseEvent(CMR_HEARING_CANCELLED, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_VENUE_ID, String.class))
+            .thenReturn(Optional.of(HEARING_VENUE_ID));
+        when(serviceData.read(DURATION, Integer.class))
+            .thenReturn(Optional.of(150));
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(NEXT_HEARING_DATE));
+
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
+            .thenReturn(Optional.of(HEARING_ID));
+
+        cmrHearingListedHandler.handle(serviceData);
+
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_not_trigger_cmr_reListed_notification() {
+        when(serviceData.read(ServiceDataFieldDefinition.CASE_REF, String.class)).thenReturn(Optional.of(CASE_REF));
+        when(coreCaseDataService.startCaseEvent(CMR_RE_LISTING, CASE_REF, CASE_TYPE_ASYLUM))
+            .thenReturn(startEventResponse);
+        when(coreCaseDataService.getCaseFromStartedEvent(startEventResponse)).thenReturn(asylumCase);
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_CHANNELS))
+            .thenReturn(Optional.of(List.of(HearingChannel.INTER)));
+
+        when(serviceData.read(ServiceDataFieldDefinition.HEARING_ID, String.class))
+            .thenReturn(Optional.of(HEARING_ID));
+
+        ServiceData previousServiceData = new ServiceData();
+        previousServiceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS, List.of(HearingChannel.INTER));
+        PartiesNotifiedResponse response =
+            PartiesNotifiedResponse.builder()
+                .responseReceivedDateTime(LocalDateTime.parse("2024-09-20T10:09:19"))
+                .partiesNotified(LocalDateTime.parse("2024-09-20T10:09:19"))
+                .serviceData(previousServiceData)
+                .requestVersion(1)
+                .build();
+
+        PartiesNotifiedResponses partiesNotifiedResponses =
+            PartiesNotifiedResponses.builder()
+                .responses(List.of(response))
+                .hearingID(HEARING_ID).build();
+        when(hearingService.getPartiesNotified(HEARING_ID)).thenReturn(partiesNotifiedResponses);
+
+        cmrHearingListedHandler.handle(serviceData);
+
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            CMR_RE_LISTING, CASE_REF, startEventResponse, asylumCase);
+        verify(coreCaseDataService, never()).triggerSubmitEvent(
+            CMR_HEARING_CANCELLED, CASE_REF, startEventResponse, asylumCase);
+    }
+}

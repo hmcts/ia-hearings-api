@@ -99,7 +99,11 @@ class SubstantiveHearingListedHandlerTest {
             "Manchester Magistrates Court",
             "231596",
             "Y",
-            "Open"));
+            "Open",
+            "Priory Courts, 33 Bull Street",
+            "B4 6DS",
+            "Court"
+        ));
         when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(courtVenueList);
         when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(hearingLocationList);
     }

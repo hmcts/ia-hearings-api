@@ -91,7 +91,10 @@ class BailListCaseHandlerTest {
             "Manchester Magistrates Court",
             "231596",
             "Y",
-            "Open"));
+            "Open",
+            "Crown Square",
+            "M60 9DJ",
+            "Court"));
         when(locationRefDataService.getCourtVenuesAsServiceUser()).thenReturn(courtVenueList);
         when(locationRefDataService.getHearingLocationsDynamicList(true)).thenReturn(hearingLocationList);
 
