@@ -80,7 +80,7 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     }
 
     @Pact(provider = IAC_PROVIDER, consumer = CONSUMER)
-    public V4Pact getHearingLinkData(PactDslWithProvider builder) throws JsonProcessingException{
+    public V4Pact getHearingLinkData(PactDslWithProvider builder) throws JsonProcessingException {
 
         Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
             .put("Connection", "close")

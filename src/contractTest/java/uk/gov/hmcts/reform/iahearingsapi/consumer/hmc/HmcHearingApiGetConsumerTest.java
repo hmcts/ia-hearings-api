@@ -73,7 +73,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
 
     @Test
     @PactTestFor(pactMethod = "getHearingsRequest")
-    public void shouldGetHearingsRequest() throws JsonProcessingException{
+    public void shouldGetHearingsRequest() throws JsonProcessingException {
         HearingsGetResponse result =
             hmcHearingApi.getHearingsRequest(authToken, serviceAuthToken, null,null, null,  "2000000056");
 
@@ -100,7 +100,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
 
     @Test
     @PactTestFor(pactMethod = "getPartiesNotified")
-    public void verifyGetPartiesNotified() throws JsonProcessingException{
+    public void verifyGetPartiesNotified() throws JsonProcessingException {
         PartiesNotifiedResponses hearingGetResponse =
             hmcHearingApi.getPartiesNotifiedRequest(authToken, serviceAuthToken, null, null, null, "2000000056");
 
@@ -127,7 +127,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
 
     @Test
     @PactTestFor(pactMethod = "getUnNotifiedHearings")
-    public void verifyGetUnNotifiedHearings() throws JsonProcessingException{
+    public void verifyGetUnNotifiedHearings() throws JsonProcessingException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime fromDate = LocalDateTime.parse("2024-09-20 00:00:00", formatter);
         LocalDateTime toDate = LocalDateTime.parse("2024-10-20 00:00:00", formatter);
