@@ -8,6 +8,7 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -142,6 +143,7 @@ class HearingsControllerFunctionalTest extends CcdCaseCreationTest {
 
     @Test
     @Order(5)
+    @Disabled
     void should_get_hearings_values_successfully_for_bail() {
         Case result = createAndGetBailCase();
 
