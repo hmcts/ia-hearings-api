@@ -11,7 +11,6 @@ import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.CASE_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.IAC_PROVIDER;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.generateServiceHearingValues;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.generateHearingLinkData;
-import static wiremock.com.github.jknack.handlebars.helper.ConditionalHelpers.or;
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
