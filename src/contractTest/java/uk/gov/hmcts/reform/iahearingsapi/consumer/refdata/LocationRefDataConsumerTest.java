@@ -10,7 +10,6 @@ import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactDirectory;
-import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 
 import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONException;
