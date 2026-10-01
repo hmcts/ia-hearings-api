@@ -85,6 +85,7 @@ public class HmcHearingApiConsumerTestBase {
 
     protected  <T> T getExpectedResponse(String responseStr, Class<T> type) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
 
         return objectMapper.readValue(responseStr, type);
     }
