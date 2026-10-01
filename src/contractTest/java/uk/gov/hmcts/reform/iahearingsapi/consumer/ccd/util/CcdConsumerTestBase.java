@@ -4,7 +4,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
-import au.com.dius.pact.core.model.annotations.PactFolder;
+import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
