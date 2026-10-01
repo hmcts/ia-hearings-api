@@ -16,6 +16,7 @@ import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
+import au.com.dius.pact.core.model.annotations.PactDirectory;
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import au.com.dius.pact.consumer.dsl.LambdaDsl;
 import java.time.LocalDateTime;
@@ -36,7 +37,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.LinkedCasesApi;
 
 @ExtendWith(PactConsumerTestExt.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@PactFolder("pacts")
+@PactDirectory("pacts")
 @TestPropertySource(properties = {"core_case_data.api.url=http://localhost:4452", "idam.api.url=http://localhost:5000"})
 @SpringJUnitConfig(classes = {CoreCaseDataConsumerApplication.class})
 @PactTestFor(providerName = "linked-cases-api", port = "4452")

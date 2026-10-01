@@ -9,6 +9,7 @@ import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
+import au.com.dius.pact.core.model.annotations.PactDirectory;
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 
 import com.google.common.collect.ImmutableMap;
@@ -33,7 +34,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.RestTemplateConfi
 
 @ExtendWith(PactConsumerTestExt.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@PactFolder("pacts")
+@PactDirectory("pacts")
 @PactTestFor(providerName = "idamApi_oidc", port = "5000")
 @SpringJUnitConfig(classes = {IdamApiConsumerApplication.class})
 @TestPropertySource(properties = {"idam.baseUrl=localhost:5000"})

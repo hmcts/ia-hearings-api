@@ -9,6 +9,7 @@ import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
+import au.com.dius.pact.core.model.annotations.PactDirectory;
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 
 import org.apache.hc.core5.http.HttpStatus;
@@ -26,7 +27,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.refdata.Location
 
 @ExtendWith(PactConsumerTestExt.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@PactFolder("pacts")
+@PactDirectory("pacts")
 @TestPropertySource(properties = {"location.ref.data.url=http://localhost:8991"})
 @PactTestFor(providerName = "referenceData_location", port = "8991")
 @SpringJUnitConfig(classes = {RefDataConsumerApplication.class})

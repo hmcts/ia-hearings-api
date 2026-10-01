@@ -11,6 +11,7 @@ import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
+import au.com.dius.pact.core.model.annotations.PactDirectory;
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-@PactFolder("pacts")
+@PactDirectory("pacts")
 @ExtendWith(PactConsumerTestExt.class)
 public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase {
 
