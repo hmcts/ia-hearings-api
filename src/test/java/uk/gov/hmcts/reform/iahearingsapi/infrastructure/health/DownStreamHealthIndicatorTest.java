@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +75,28 @@ class DownStreamHealthIndicatorTest {
         assertThat(entries)
             .extracting(HealthContributors.Entry::name)
             .containsExactlyInAnyOrder("service1", "service2");
+    }
+
+    @Test
+    void should_iterate_one_entry_per_configured_service() {
+        // given
+        when(healthCheckConfiguration.getServices()).thenReturn(getHealthCheckConfiguration());
+        downStreamHealthIndicator = new DownStreamHealthIndicator(restTemplate, healthCheckConfiguration);
+
+        // when
+        Iterator<HealthContributors.Entry> iterator = downStreamHealthIndicator.iterator();
+        List<HealthContributors.Entry> entries = new ArrayList<>();
+        while (iterator.hasNext()) {
+            entries.add(iterator.next());
+        }
+
+        // then
+        assertThat(entries)
+            .extracting(HealthContributors.Entry::name)
+            .containsExactlyInAnyOrder("service1", "service2");
+        assertThat(entries)
+            .extracting(HealthContributors.Entry::contributor)
+            .allMatch(contributor -> contributor instanceof ServiceHealthIndicator);
     }
 
 }
