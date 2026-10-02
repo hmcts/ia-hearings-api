@@ -4,7 +4,11 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.http.converter.autoconfigure.ClientHttpMessageConvertersCustomizer;
-import org.springframework.cloud.openfeign.support.*;
+import org.springframework.cloud.openfeign.support.FeignHttpMessageConverters;
+import org.springframework.cloud.openfeign.support.HttpMessageConverterCustomizer;
+import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
+import org.springframework.cloud.openfeign.support.SpringEncoder;
+import org.springframework.cloud.openfeign.support.SpringDecoder;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import feign.codec.Decoder;
@@ -22,7 +26,7 @@ import java.util.List;
 @SuppressWarnings("removal")
 public class FeignConfiguration {
 
-//    needed to allow context encoder to fetch the beans of feign clients
+    //    needed to allow context encoder to fetch the beans of feign clients
     @Bean
     public FeignHttpMessageConverters feignHttpMessageConverters(
         ObjectProvider<ClientHttpMessageConvertersCustomizer> customizers,
