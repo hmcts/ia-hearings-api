@@ -9,8 +9,8 @@ import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import au.com.dius.pact.core.model.annotations.PactFolder;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import au.com.dius.pact.core.model.annotations.PactDirectory;
+
 import org.apache.hc.core5.http.HttpStatus;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.refdata.Location
 
 @ExtendWith(PactConsumerTestExt.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@PactFolder("pacts")
+@PactDirectory("pacts")
 @TestPropertySource(properties = {"location.ref.data.url=http://localhost:8991"})
 @PactTestFor(providerName = "referenceData_location", port = "8991")
 @SpringJUnitConfig(classes = {RefDataConsumerApplication.class})
@@ -45,7 +45,7 @@ public class LocationRefDataConsumerTest {
 
     @Pact(provider = "referenceData_location", consumer = "ia_hearingsApi")
     public V4Pact generatePactFragment(PactDslWithProvider builder)
-        throws JSONException, JsonProcessingException {
+        throws JSONException {
 
         return builder
             .given("Service ID")
