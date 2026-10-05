@@ -14,6 +14,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.ObjectMapperConfig;
+import io.restassured.config.RestAssuredConfig;
+import io.restassured.mapper.ObjectMapperType;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -135,6 +138,8 @@ public class CcdCaseCreationTest {
         hearingsSpecification = new RequestSpecBuilder()
             .setBaseUri(targetInstance)
             .setRelaxedHTTPSValidation()
+            .setConfig(RestAssuredConfig.config().objectMapperConfig(
+                ObjectMapperConfig.objectMapperConfig().defaultObjectMapperType(ObjectMapperType.JACKSON_2)))
             .build();
 
         log.info("targetInstance: " + targetInstance);
