@@ -16,6 +16,12 @@ plugins {
   id 'com.adarshr.test-logger' version '3.2.0'
   id 'org.gradle.test-retry' version '1.6.6'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
+  id 'org.openrewrite.rewrite' version '7.30.0'
+}
+
+rewrite {
+  activeRecipe("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
+  setExportDatatables(true)
 }
 
 apply plugin: 'java'
@@ -108,23 +114,6 @@ configurations {
 
   contractTestImplementation.extendsFrom testImplementation
   contractTestRuntimeOnly.extendsFrom runtimeOnly
-}
-
-configurations.configureEach {
-  resolutionStrategy {
-    // Enforce Groovy 4.x explicitly across all transitive configurations
-    force 'org.apache.groovy:groovy:4.0.28'
-    force 'org.apache.groovy:groovy-xml:4.0.28'
-    force 'org.apache.groovy:groovy-json:4.0.28'
-
-    // Prevent Groovy 5 BOM from overriding forced versions
-    eachDependency { DependencyResolveDetails details ->
-      if (details.requested.group == 'org.apache.groovy') {
-        details.useVersion '4.0.28'
-        details.because 'REST Assured requires Groovy 4.x and breaks with NPEs under Groovy 5'
-      }
-    }
-  }
 }
 
 // https://github.com/gradle/gradle/issues/16791
@@ -349,44 +338,6 @@ dependencyManagement {
 }
 
 dependencies {
-
-  /* these constraints are as of this open issue - https://github.com/rest-assured/rest-assured/issues/1846
-    * groovy 5 does not work with spring boot 4 just yet - so need to pin to version 4.
-    * */
-  constraints {
-    implementation('org.apache.groovy:groovy') {
-      version {
-        strictly '4.0.28'
-      }
-    }
-    implementation('org.apache.groovy:groovy-xml') {
-      version {
-        strictly '4.0.28'
-      }
-    }
-    implementation('org.apache.groovy:groovy-json') {
-      version {
-        strictly '4.0.28'
-      }
-    }
-
-    testImplementation('org.apache.groovy:groovy') {
-      version {
-        strictly '4.0.28'
-      }
-    }
-    testImplementation('org.apache.groovy:groovy-xml') {
-      version {
-        strictly '4.0.28'
-      }
-    }
-    testImplementation('org.apache.groovy:groovy-json') {
-      version {
-        strictly '4.0.28'
-      }
-    }
-  }
-
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation ('org.springframework.boot:spring-boot-starter-json') {
     exclude group: 'org.springframework.boot', module: 'spring-boot-jackson'
