@@ -145,9 +145,9 @@ public class CcdCaseCreationTest {
             systemUserToken,
             s2sToken,
             null,
-                null,
-                null,
-                caseReference
+            null,
+            null,
+            caseReference
         );
     }
 
@@ -278,15 +278,15 @@ public class CcdCaseCreationTest {
             .ignoreWarning(true)
             .build();
 
-        try { CaseResource caseResource = coreCaseDataApi.createEvent(
-            legalRepToken,
-            s2sToken,
-            String.valueOf(legalRepCaseId),
-            content);
+        try {
+            CaseResource caseResource = coreCaseDataApi.createEvent(
+                legalRepToken,
+                s2sToken,
+                String.valueOf(legalRepCaseId),
+                content);
 
             legalRepAppealCaseData = caseResource.getData();
-        }
-        catch (feign.FeignException e){
+        } catch (feign.FeignException e) {
             log.error("Failed ccd case creation test: {}", e.contentUTF8());
         }
 
@@ -363,8 +363,8 @@ public class CcdCaseCreationTest {
 
 
     /**
-        Submitting event for assigning values to mandatory fields which requires system/officer permission.
-    */
+     Submitting event for assigning values to mandatory fields which requires system/officer permission.
+     */
     protected void listCaseWithRequiredFields() {
         systemUserToken = idamAuthProvider.getSystemUserToken();
 
