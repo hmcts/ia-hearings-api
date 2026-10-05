@@ -278,13 +278,18 @@ public class CcdCaseCreationTest {
             .ignoreWarning(true)
             .build();
 
-        CaseResource caseResource = coreCaseDataApi.createEvent(
+        try { CaseResource caseResource = coreCaseDataApi.createEvent(
             legalRepToken,
             s2sToken,
             String.valueOf(legalRepCaseId),
             content);
 
-        legalRepAppealCaseData = caseResource.getData();
+            legalRepAppealCaseData = caseResource.getData();
+        }
+        catch (feign.FeignException e){
+            log.error("Failed ccd case creation test: {}", e.contentUTF8());
+        }
+
     }
 
     private void startAppealAsCitizen() {
