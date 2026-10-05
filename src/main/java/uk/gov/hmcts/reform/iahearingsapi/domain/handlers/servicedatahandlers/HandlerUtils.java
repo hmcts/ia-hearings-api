@@ -72,4 +72,8 @@ public class HandlerUtils {
         }
         return HearingCentre.getHearingCentreByEpimsId(venueId);
     }
+
+    public static HearingCentre getCmrLocation(List<HearingChannel> hearingChannels, String venueId) {
+        return HearingCentre.getHearingCentreByEpimsId(venueId);
+    }
 }
