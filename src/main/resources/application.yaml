@@ -118,6 +118,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     ctsc:
       - "listCase"
@@ -129,6 +130,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     ctsc-team-leader:
       - "listCase"
@@ -140,6 +142,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     national-business-centre:
       - "listCase"
@@ -151,6 +154,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     challenged-access-ctsc:
       - "listCase"
@@ -162,6 +166,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     challenged-access-admin:
       - "listCase"
@@ -173,6 +178,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     caseworker-ia-caseworker:
       - "listCase"
@@ -247,6 +253,7 @@ security:
       - "editCaseListing"
       - "UpdateNextHearingInfo"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     next-hearing-date-admin:
       - "UpdateNextHearingInfo"
