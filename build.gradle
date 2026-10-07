@@ -427,7 +427,8 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-jackson2'
   implementation 'com.fasterxml.jackson.core:jackson-core'
   implementation 'com.fasterxml.jackson.core:jackson-annotations'
-  implementation 'com.fasterxml.jackson.core:jackson-databind'
+  implementation ('com.fasterxml.jackson.core:jackson-databind'){
+    exclude group: 'org.springframework.boot', module: 'spring-boot-jackson'}
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
