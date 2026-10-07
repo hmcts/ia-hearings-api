@@ -138,6 +138,8 @@ public class CcdCaseCreationTest {
         hearingsSpecification = new RequestSpecBuilder()
             .setBaseUri(targetInstance)
             .setRelaxedHTTPSValidation()
+            .setConfig(RestAssuredConfig.config().objectMapperConfig(
+                ObjectMapperConfig.objectMapperConfig().defaultObjectMapperType(ObjectMapperType.JACKSON_2)))
             .build();
 
         log.info("targetInstance: " + targetInstance);
