@@ -339,9 +339,6 @@ dependencyManagement {
 
 dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
-  implementation ('org.springframework.boot:spring-boot-starter-json') {
-    exclude group: 'org.springframework.boot', module: 'spring-boot-jackson'
-  }
   implementation 'org.springframework.boot:spring-boot-starter-webmvc'
   implementation 'org.springframework.boot:spring-boot-starter-validation'
   implementation 'org.springframework.boot:spring-boot-starter-security'
