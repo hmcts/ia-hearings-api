@@ -9,7 +9,7 @@ import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import au.com.dius.pact.core.model.annotations.PactFolder;
+import au.com.dius.pact.core.model.annotations.PactDirectory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import java.time.LocalDateTime;
@@ -21,7 +21,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 @PactTestFor(providerName = HMC_PROVIDER, port = PORT)
 @ExtendWith(PactConsumerTestExt.class)
-@PactFolder("pacts")
+@PactDirectory("pacts")
 @SpringJUnitConfig(classes = {HmcHearingApiConsumerApplication.class})
 public class HmcPartiesNotifiedApiUpdateConsumerTest extends HmcHearingApiConsumerTestBase {
 
