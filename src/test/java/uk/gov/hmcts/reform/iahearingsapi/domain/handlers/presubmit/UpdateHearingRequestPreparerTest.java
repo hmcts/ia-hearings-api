@@ -102,11 +102,11 @@ class UpdateHearingRequestPreparerTest {
         );
         assertEquals(
             "1",
-            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(0).getCode()
+            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().getFirst().getCode()
         );
         assertEquals(
             "Substantive (Waiting to be listed)",
-            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().get(0).getLabel()
+            asylumCase.read(CHANGE_HEARINGS, DynamicList.class).get().getListItems().getFirst().getLabel()
         );
         assertEquals(
             "2",
@@ -163,11 +163,11 @@ class UpdateHearingRequestPreparerTest {
         assertEquals(1, asylumCase.read(CHANGE_HEARINGS, DynamicList.class)
             .get().getListItems().size());
         assertEquals("3", asylumCase.read(CHANGE_HEARINGS, DynamicList.class)
-            .get().getListItems().get(0).getCode());
+            .get().getListItems().getFirst().getCode());
         assertEquals(
             "Substantive (Update requested)",
             asylumCase.read(CHANGE_HEARINGS, DynamicList.class)
-                .get().getListItems().get(0).getLabel()
+                .get().getListItems().getFirst().getLabel()
         );
 
         assertEquals(asylumCase, callbackResponse.getData());

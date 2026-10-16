@@ -25,6 +25,12 @@ management:
       liveness:
         include: ping
 
+logging:
+  level:
+    io.lettuce.core: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{correlationId}] [%X{ccdCaseId}] %-5level %logger{36} - %msg%n"
+
 health:
   services:
     idam:
@@ -86,6 +92,7 @@ security:
     - "/swagger-resources/**"
     - "/v3/api-docs/**"
     - "/favicon.ico"
+    - "/actuator/health"
   authorisedRoles:
     - "caseworker-ia"
   roleEventAccess:
@@ -111,6 +118,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     ctsc:
       - "listCase"
@@ -122,6 +130,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     ctsc-team-leader:
       - "listCase"
@@ -133,6 +142,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     national-business-centre:
       - "listCase"
@@ -144,6 +154,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     challenged-access-ctsc:
       - "listCase"
@@ -155,6 +166,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     challenged-access-admin:
       - "listCase"
@@ -166,6 +178,7 @@ security:
       - "updateInterpreterBookingStatus"
       - "restoreStateFromAdjourn"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     caseworker-ia-caseworker:
       - "listCase"
@@ -240,6 +253,7 @@ security:
       - "editCaseListing"
       - "UpdateNextHearingInfo"
       - "hearingCancelled"
+      - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     next-hearing-date-admin:
       - "UpdateNextHearingInfo"
@@ -266,26 +280,6 @@ rd-commondata:
   api:
     url: ${REF_DATA_URL:http://localhost:8991}
 
-feign:
-  hystrix:
-    enabled: true
-  client:
-    config:
-      default:
-        connectTimeout: 160000000
-        readTimeout: 160000000
-        loggerLevel: full
-
-
-hystrix:
-  command:
-    default:
-      execution:
-        isolation:
-          thread:
-            timeoutInMilliseconds: 5000
-
-
 #OpenID
 idam:
   baseUrl: ${IDAM_URL:http://127.0.0.1:5000}
@@ -301,6 +295,36 @@ idam:
     password: ${IA_SYSTEM_PASSWORD:system-password}
     scope: "openid profile authorities acr roles create-user manage-user search-user"
 
+feign:
+  circuitbreaker:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: full
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      idam-api:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+      hmc-hearing:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 60s
+    instances:
+      idam-api:
+        timeoutDuration: 10s
+      hmc-hearing:
+        timeoutDuration: 10s
 #HMC
 hmc:
   baseUrl: ${HMC_API_URL:http://127.0.0.1:4561}
@@ -370,3 +394,4 @@ flags:
 
 pactbroker:
   url: ${PACT_BROKER_FULL_URL:http://localhost:80}
+

@@ -77,12 +77,18 @@ class ListedHearingServiceTest {
             "Glasgow Tribunals Centre",
             "366559",
             "Y",
-            "Open"),
+            "Open",
+            "Atlantic Quay, 20 York Street",
+            "G2 8GT",
+            "Court"),
         new CourtVenue("Hatton Cross Tribunal Hearing Centre",
             "Hatton Cross Tribunal Hearing Centre",
             "386417",
             "Y",
-            "Open"));
+            "Open",
+            "York House, 2-3 Dukes Green Avenue",
+            "TW14 0LS",
+            "Court"));
 
     private final DynamicList hearingLocationList = new DynamicList(
         new Value("745389", "Hendon Magistrates Court"),
@@ -254,20 +260,16 @@ class ListedHearingServiceTest {
         listedHearingService.updateRelistingBailCaseListing(serviceData, bailCase,
             fieldsToUpdate, isRefDataLocationEnabled, courtVenueList, hearingLocationList);
 
-        String refDataCourt = isRefDataLocationEnabled
-            ? courtVenueList.stream().filter(c -> c.getEpimmsId().equals(venueId))
-                .map(CourtVenue::getCourtName).findFirst().get()
-            : venueId;
-
-        DynamicList expectedRefDataListingLocation = new DynamicList(
-            new Value(venueId, refDataCourt),
-            hearingLocationList.getListItems());
-
         verify(bailCase).write(LISTING_HEARING_DATE, hearingDate);
         verify(bailCase).write(LISTING_HEARING_DURATION, "60");
         verify(bailCase).write(LISTING_EVENT, ListingEvent.RELISTING.toString());
         verify(bailCase).write(LISTING_LOCATION, expectedHearingCentre.getValue());
         if (isRefDataLocationEnabled) {
+            String refDataCourt = courtVenueList.stream().filter(c -> c.getEpimmsId().equals(venueId))
+                .map(CourtVenue::getCourtName).findFirst().orElse(venueId);
+            DynamicList expectedRefDataListingLocation = new DynamicList(
+                new Value(venueId, refDataCourt),
+                hearingLocationList.getListItems());
             verify(bailCase).write(IS_REMOTE_HEARING, expectedIsRemoteHearing);
             verify(bailCase).write(REF_DATA_LISTING_LOCATION, expectedRefDataListingLocation);
         } else {
@@ -359,7 +361,10 @@ class ListedHearingServiceTest {
             "Manchester Magistrates Court",
             "231596",
             "Y",
-            "Open"));
+            "Open",
+            "Crown Square",
+            "M60 9DJ",
+            "Court"));
 
         serviceData.write(HEARING_VENUE_ID, "231596");
 
@@ -373,7 +378,10 @@ class ListedHearingServiceTest {
             "Manchester Magistrates Court",
             "231596",
             "Y",
-            "Open"));
+            "Open",
+            "Crown Square",
+            "M60 9DJ",
+            "Court"));
 
         serviceData.write(HEARING_VENUE_ID, "unmatchedId");
 

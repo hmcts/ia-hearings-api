@@ -282,7 +282,7 @@ class UpdateHearingsRequestHandlerTest {
 
         verify(asylumCase).write(eq(CHANGE_HEARING_DATE), stringArgumentCaptor.capture());
         verify(asylumCase).write(eq(REQUEST_HEARING_DATE_1), stringArgumentCaptor.capture());
-        assertEquals("20 January 2023", stringArgumentCaptor.getAllValues().get(0));
+        assertEquals("20 January 2023", stringArgumentCaptor.getAllValues().getFirst());
         assertEquals("2023-01-20", stringArgumentCaptor.getAllValues().get(1));
     }
 
@@ -307,7 +307,7 @@ class UpdateHearingsRequestHandlerTest {
 
         verify(asylumCase).write(eq(CHANGE_HEARING_DATE), stringArgumentCaptor.capture());
         verify(asylumCase).write(eq(REQUEST_HEARING_DATE_1), stringArgumentCaptor.capture());
-        assertEquals("Date to be fixed: 20 January 2023", stringArgumentCaptor.getAllValues().get(0));
+        assertEquals("Date to be fixed: 20 January 2023", stringArgumentCaptor.getAllValues().getFirst());
         assertEquals("2023-01-20", stringArgumentCaptor.getAllValues().get(1));
     }
 

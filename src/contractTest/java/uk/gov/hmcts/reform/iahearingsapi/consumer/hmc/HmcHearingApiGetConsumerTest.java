@@ -8,32 +8,30 @@ import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.PORT;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
-import au.com.dius.pact.core.model.RequestResponsePact;
+import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
 
 @PactTestFor(providerName = HMC_PROVIDER, port = PORT)
-@ExtendWith(SpringExtension.class)
 @ExtendWith(PactConsumerTestExt.class)
 @PactFolder("pacts")
-@ContextConfiguration(classes = { HmcHearingApiConsumerApplication.class })
+@SpringJUnitConfig(classes = {HmcHearingApiConsumerApplication.class})
 public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase {
 
     @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
-    public RequestResponsePact getHearingRequest(
+    public V4Pact getHearingRequest(
         PactDslWithProvider builder) {
         return builder.given(HMC_PROVIDER + " successfully returns a hearing for a given case ref")
             .uponReceiving("A request to get a hearing for a given case reference")
@@ -43,7 +41,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
             .willRespondWith()
             .body(hearingGetResponseDsl)
             .status(HttpStatus.SC_OK)
-            .toPact();
+            .toPact(V4Pact.class);
     }
 
     @Test
@@ -59,7 +57,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     }
 
     @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
-    public RequestResponsePact getHearingsRequest(
+    public V4Pact getHearingsRequest(
         PactDslWithProvider builder) {
         return builder.given(HMC_PROVIDER + " successfully returns a list of hearings for a given case ref")
             .uponReceiving("A request to get the hearings for a given case reference")
@@ -69,7 +67,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
             .willRespondWith()
             .body(hearingsGetResponseDsl)
             .status(HttpStatus.SC_OK)
-            .toPact();
+            .toPact(V4Pact.class);
     }
 
     @Test
@@ -85,7 +83,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     }
 
     @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
-    public RequestResponsePact getPartiesNotified(
+    public V4Pact getPartiesNotified(
         PactDslWithProvider builder) {
         return builder
             .given(HMC_PROVIDER + " successfully returns parties notified entry for a given case ref")
@@ -96,7 +94,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
             .willRespondWith()
             .body(getPartiesNotifiedRequestDsl)
             .status(HttpStatus.SC_OK)
-            .toPact();
+            .toPact(V4Pact.class);
     }
 
     @Test
@@ -110,7 +108,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     }
 
     @Pact(provider = HMC_PROVIDER, consumer = CONSUMER)
-    public RequestResponsePact getUnNotifiedHearings(
+    public V4Pact getUnNotifiedHearings(
         PactDslWithProvider builder) {
         return builder
             .given(HMC_PROVIDER + " successfully returns unnotified hearings")
@@ -123,7 +121,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
             .willRespondWith()
             .body(getUnNotifiedHearingsResponseDsl)
             .status(HttpStatus.SC_OK)
-            .toPact();
+            .toPact(V4Pact.class);
     }
 
     @Test

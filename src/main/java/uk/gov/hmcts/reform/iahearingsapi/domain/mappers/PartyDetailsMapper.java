@@ -1,17 +1,20 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static java.util.Objects.requireNonNullElse;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_DETAILS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus.NOT_REQUESTED;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.InterpreterBookingStatus;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.NonLegalRepDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.bail.ApplicantDetailsMapper;
@@ -38,6 +41,7 @@ public class PartyDetailsMapper {
     private LegalRepOrgDetailsMapper legalRepOrgDetailsMapper;
     private RespondentDetailsMapper respondentDetailsMapper;
     private SponsorDetailsMapper sponsorDetailsMapper;
+    private NlrDetailsMapper nlrDetailsMapper;
     private WitnessDetailsMapper witnessDetailsMapper;
     private FinancialConditionSupporterDetailsMapper financialConditionSupporterDetailsMapper;
     private InterpreterDetailsMapper interpreterDetailsMapper;
@@ -63,9 +67,21 @@ public class PartyDetailsMapper {
             appellantDetailsMapper.map(asylumCase, caseFlagsMapper, caseDataMapper, persistedHearingDetails, event),
             respondentDetailsMapper.map(asylumCase, caseDataMapper)
         ));
-        if (MapperUtils.hasSponsor(asylumCase)) {
+        if (MapperUtils.hasSponsor(asylumCase) && MapperUtils.isSponsorPartyIdPresent(asylumCase)) {
             partyDetails.add(sponsorDetailsMapper.map(asylumCase, caseDataMapper, persistedHearingDetails, event));
         }
+        asylumCase.read(NLR_DETAILS, NonLegalRepDetails.class)
+            .ifPresent(nonLegalRepDetails -> {
+                if (nonLegalRepDetails.getIdamId() != null && !nonLegalRepDetails.getIdamId().isBlank()) {
+                    partyDetails.add(nlrDetailsMapper.map(
+                        asylumCase,
+                        nonLegalRepDetails,
+                        caseDataMapper,
+                        persistedHearingDetails,
+                        event
+                    ));
+                }
+            });
         if (!MapperUtils.isInternalCase(asylumCase)
             && MapperUtils.isRepJourney(asylumCase)
             && !MapperUtils.isChangeOrganisationRequestPresent(asylumCase)) {
@@ -107,8 +123,8 @@ public class PartyDetailsMapper {
     }
 
     public static PartyDetailsModel appendBookingStatus(Optional<InterpreterBookingStatus> spokenBookingStatus,
-                                                 Optional<InterpreterBookingStatus> signBookingStatus,
-                                                 PartyDetailsModel partyDetailsModel) {
+                                                        Optional<InterpreterBookingStatus> signBookingStatus,
+                                                        PartyDetailsModel partyDetailsModel) {
 
         //String status;
         StringBuilder status = new StringBuilder();
@@ -116,7 +132,7 @@ public class PartyDetailsMapper {
         if (spokenBookingStatus.isPresent()
             && signBookingStatus.isPresent()
             && (!spokenBookingStatus.get().equals(NOT_REQUESTED)
-                || !signBookingStatus.get().equals(NOT_REQUESTED))) {
+            || !signBookingStatus.get().equals(NOT_REQUESTED))) {
             status
                 .append(STATUS_SPOKEN)
                 .append(spokenBookingStatus.get().getDesc())
@@ -136,8 +152,10 @@ public class PartyDetailsMapper {
                 .append(";");
         }
 
-        String otherReasonableAdjustments = requireNonNullElse(partyDetailsModel.getIndividualDetails()
-            .getOtherReasonableAdjustmentDetails(), "");
+        String otherReasonableAdjustments = requireNonNullElse(
+            partyDetailsModel.getIndividualDetails()
+                .getOtherReasonableAdjustmentDetails(), ""
+        );
 
         partyDetailsModel.getIndividualDetails()
             .setOtherReasonableAdjustmentDetails((otherReasonableAdjustments + " " + status).trim());

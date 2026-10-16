@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import javax.jms.JMSException;
+import jakarta.jms.JMSException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.qpid.jms.message.JmsBytesMessage;
 import org.springframework.beans.factory.annotation.Value;
@@ -114,7 +114,7 @@ public class HmcHearingsEventTopicListener {
             }
         }  catch (JsonProcessingException ex) {
             throw new HmcEventProcessingException(
-                String.format("Unable to successfully receive HMC message: %s", stringMessage), ex);
+                "Unable to successfully receive HMC message: %s".formatted(stringMessage), ex);
         } catch (SecurityException | IllegalArgumentException ex) {
             throw new HmcEventProcessingException(
                 String.format("Unable to validate HMC message signature: %s", stringMessage), ex);

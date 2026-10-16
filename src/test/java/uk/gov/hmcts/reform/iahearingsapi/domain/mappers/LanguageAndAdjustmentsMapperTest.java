@@ -1,24 +1,29 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.FCS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.EVIDENCE_GIVEN_IN_PRIVATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.NlrDetailsMapper.NLR_PARTY_ROLE;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -58,8 +63,8 @@ public class LanguageAndAdjustmentsMapperTest {
     @Mock
     private IndividualDetailsModel individualDetailsModel;
 
-    @Mock
-    private List<String> reasonableAdjustments;
+    @Captor
+    private ArgumentCaptor<List<String>> reasonableAdjustmentsCaptor;
 
     private LanguageAndAdjustmentsMapper mapper;
 
@@ -72,24 +77,30 @@ public class LanguageAndAdjustmentsMapperTest {
     void should_add_flag_values_accordingly_to_appellant_party_details() {
 
         List<CaseFlagDetail> appellantCaseFlagDetails = new ArrayList<>();
-        appellantCaseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+        appellantCaseFlagDetails.add(new CaseFlagDetail(
+            "id1", CaseFlagValue.builder()
             .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
             .subTypeKey("bfi")
             .subTypeValue("British Sign Language")
             .status("Active")
-            .build()));
-        appellantCaseFlagDetails.add(new CaseFlagDetail("id2", CaseFlagValue.builder()
+            .build()
+        ));
+        appellantCaseFlagDetails.add(new CaseFlagDetail(
+            "id2", CaseFlagValue.builder()
             .subTypeKey("deu")
             .subTypeValue("German")
             .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
             .status("Active")
-            .build()));
-        appellantCaseFlagDetails.add(new CaseFlagDetail("id5", CaseFlagValue.builder()
+            .build()
+        ));
+        appellantCaseFlagDetails.add(new CaseFlagDetail(
+            "id5", CaseFlagValue.builder()
             .name("Support filling in forms")
             .flagComment("comment of r.a. flag")
             .flagCode("RA0018")
             .status("Active")
-            .build()));
+            .build()
+        ));
 
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(new StrategicCaseFlag(appellantCaseFlagDetails)));
@@ -97,39 +108,46 @@ public class LanguageAndAdjustmentsMapperTest {
         when(partyDetailsModel.getPartyRole()).thenReturn(APPELLANT_PARTY_ID);
         when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
-        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
+        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(new ArrayList<>());
 
         mapper.processAsylumPartyCaseFlags(asylumCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("bfi");
-        verify(reasonableAdjustments, times(1)).addAll(List.of("RA0042", "RA0018"));
+        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
+        assertThat(reasonableAdjustmentsCaptor.getValue()).containsExactly("RA0042", "RA0018");
         verify(individualDetailsModel, times(1))
             .setOtherReasonableAdjustmentDetails("Interpreter: German; "
-                                                 + "Support filling in forms: comment of r.a. flag;");
+                                                     + "Support filling in forms: comment of r.a. flag;");
     }
 
     @Test
     void should_add_flag_values_accordingly_to_applicant_party_details() {
 
         List<CaseFlagDetail> applicantCaseFlagDetails = new ArrayList<>();
-        applicantCaseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+        applicantCaseFlagDetails.add(new CaseFlagDetail(
+            "id1", CaseFlagValue.builder()
             .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
             .subTypeKey("bfi")
             .subTypeValue("British Sign Language")
             .status("Active")
-            .build()));
-        applicantCaseFlagDetails.add(new CaseFlagDetail("id2", CaseFlagValue.builder()
+            .build()
+        ));
+        applicantCaseFlagDetails.add(new CaseFlagDetail(
+            "id2", CaseFlagValue.builder()
             .subTypeKey("deu")
             .subTypeValue("German")
             .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
             .status("Active")
-            .build()));
-        applicantCaseFlagDetails.add(new CaseFlagDetail("id5", CaseFlagValue.builder()
+            .build()
+        ));
+        applicantCaseFlagDetails.add(new CaseFlagDetail(
+            "id5", CaseFlagValue.builder()
             .name("Support filling in forms")
             .flagComment("comment of r.a. flag")
             .flagCode("RA0018")
             .status("Active")
-            .build()));
+            .build()
+        ));
 
         when(bailCase.read(BailCaseFieldDefinition.APPELLANT_LEVEL_FLAGS, BailStrategicCaseFlag.class))
             .thenReturn(Optional.of(new BailStrategicCaseFlag(applicantCaseFlagDetails)));
@@ -137,12 +155,13 @@ public class LanguageAndAdjustmentsMapperTest {
         when(partyDetailsModel.getPartyRole()).thenReturn(APPLICANT_PARTY_ROLE);
         when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
-        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
+        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(new ArrayList<>());
 
         mapper.processBailPartyCaseFlags(bailCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("bfi");
-        verify(reasonableAdjustments, times(1)).addAll(List.of("RA0042", "RA0018"));
+        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
+        assertThat(reasonableAdjustmentsCaptor.getValue()).containsExactly("RA0042", "RA0018");
         verify(individualDetailsModel, times(1))
             .setOtherReasonableAdjustmentDetails("Interpreter: German; "
                                                      + "Support filling in forms: comment of r.a. flag;");
@@ -153,126 +172,91 @@ public class LanguageAndAdjustmentsMapperTest {
 
         when(asylumCase.read(WITNESS_LEVEL_FLAGS))
             .thenReturn(Optional.of(List.of(
-                new PartyFlagIdValue(PARTY_ID, new StrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id1", CaseFlagValue.builder()
-                        .flagCode(EVIDENCE_GIVEN_IN_PRIVATE.getFlagCode())
-                        .name("Evidence given in private")
-                        .flagComment("asking for privacy")
-                        .status("Active")
-                        .build())))),
-                new PartyFlagIdValue(PARTY_ID, new StrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id2", CaseFlagValue.builder()
-                        .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
-                        .subTypeValue("Sardinian")
-                        .status("Active")
-                        .build())))),
-                new PartyFlagIdValue(PARTY_ID, new StrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id3", CaseFlagValue.builder()
-                        .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
-                        .subTypeKey("ita")
-                        .subTypeValue("Italian")
-                        .status("Active")
-                        .build())))),
-                new PartyFlagIdValue(PARTY_ID, new StrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id4", CaseFlagValue.builder()
-                        .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
-                        .subTypeKey("por")
-                        .subTypeValue("Portuguese")
-                        .status("Active")
-                        .build())))),
-                new PartyFlagIdValue("Another name", new StrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id5", CaseFlagValue.builder()
-                        .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
-                        .subTypeKey("spa")
-                        .subTypeValue("Spanish")
-                        .status("Active")
-                        .build())))),
-                new PartyFlagIdValue(PARTY_ID, new StrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id6", CaseFlagValue.builder()
-                        .name("Support filling in forms")
-                        .flagComment("comment of r.a. flag")
-                        .flagCode("RA0018")
-                        .status("Active")
-                        .build()))))
+                new PartyFlagIdValue(
+                    PARTY_ID,
+                    new StrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id1", CaseFlagValue.builder()
+                            .flagCode(EVIDENCE_GIVEN_IN_PRIVATE.getFlagCode())
+                            .name("Evidence given in private")
+                            .flagComment("asking for privacy")
+                            .status("Active")
+                            .build()
+                        )))
+                ),
+                new PartyFlagIdValue(
+                    PARTY_ID,
+                    new StrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id2", CaseFlagValue.builder()
+                            .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+                            .subTypeValue("Sardinian")
+                            .status("Active")
+                            .build()
+                        )))
+                ),
+                new PartyFlagIdValue(
+                    PARTY_ID,
+                    new StrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id3", CaseFlagValue.builder()
+                            .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+                            .subTypeKey("ita")
+                            .subTypeValue("Italian")
+                            .status("Active")
+                            .build()
+                        )))
+                ),
+                new PartyFlagIdValue(
+                    PARTY_ID,
+                    new StrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id4", CaseFlagValue.builder()
+                            .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+                            .subTypeKey("por")
+                            .subTypeValue("Portuguese")
+                            .status("Active")
+                            .build()
+                        )))
+                ),
+                new PartyFlagIdValue(
+                    "Another name",
+                    new StrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id5", CaseFlagValue.builder()
+                            .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+                            .subTypeKey("spa")
+                            .subTypeValue("Spanish")
+                            .status("Active")
+                            .build()
+                        )))
+                ),
+                new PartyFlagIdValue(
+                    PARTY_ID,
+                    new StrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id6", CaseFlagValue.builder()
+                            .name("Support filling in forms")
+                            .flagComment("comment of r.a. flag")
+                            .flagCode("RA0018")
+                            .status("Active")
+                            .build()
+                        )))
+                )
             )));
 
         when(partyDetailsModel.getIndividualDetails()).thenReturn(individualDetailsModel);
         when(partyDetailsModel.getPartyRole()).thenReturn(WITNESS_PARTY_ID);
         when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
-        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
+        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(new ArrayList<>());
         when(partyDetailsModel.getPartyID()).thenReturn(PARTY_ID);
 
         mapper.processAsylumPartyCaseFlags(asylumCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage("ita");
-        verify(reasonableAdjustments, times(1)).addAll(List.of("SM0004", "RA0018"));
-        verify(individualDetailsModel, times(1))
-            .setOtherReasonableAdjustmentDetails("Interpreter: Portuguese; "
-                                                 + "Interpreter: Sardinian; "
-                                                 + "Evidence given in private: asking for privacy; "
-                                                 + "Support filling in forms: comment of r.a. flag;");
-    }
-
-    @Test
-    void should_add_flag_values_accordingly_to_fcs_party_details() {
-
-        when(bailCase.read(FCS_LEVEL_FLAGS))
-            .thenReturn(Optional.of(List.of(
-                new BailPartyFlagIdValue(PARTY_ID, new BailStrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id1", CaseFlagValue.builder()
-                        .flagCode(EVIDENCE_GIVEN_IN_PRIVATE.getFlagCode())
-                        .name("Evidence given in private")
-                        .flagComment("asking for privacy")
-                        .status("Active")
-                        .build())))),
-                new BailPartyFlagIdValue(PARTY_ID, new BailStrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id2", CaseFlagValue.builder()
-                        .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
-                        .subTypeValue("Sardinian")
-                        .status("Active")
-                        .build())))),
-                new BailPartyFlagIdValue(PARTY_ID, new BailStrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id3", CaseFlagValue.builder()
-                        .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
-                        .subTypeKey("ita")
-                        .subTypeValue("Italian")
-                        .status("Active")
-                        .build())))),
-                new BailPartyFlagIdValue(PARTY_ID, new BailStrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id4", CaseFlagValue.builder()
-                        .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
-                        .subTypeKey("por")
-                        .subTypeValue("Portuguese")
-                        .status("Active")
-                        .build())))),
-                new BailPartyFlagIdValue("Another name", new BailStrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id5", CaseFlagValue.builder()
-                        .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
-                        .subTypeKey("spa")
-                        .subTypeValue("Spanish")
-                        .status("Active")
-                        .build())))),
-                new BailPartyFlagIdValue(PARTY_ID, new BailStrategicCaseFlag(List.of(
-                    new CaseFlagDetail("id6", CaseFlagValue.builder()
-                        .name("Support filling in forms")
-                        .flagComment("comment of r.a. flag")
-                        .flagCode("RA0018")
-                        .status("Active")
-                        .build()))))
-            )));
-
-        when(partyDetailsModel.getIndividualDetails()).thenReturn(individualDetailsModel);
-        when(partyDetailsModel.getPartyRole()).thenReturn(FCS_PARTY_ROLE);
-        when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
-        when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
-        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
-        when(partyDetailsModel.getPartyID()).thenReturn(PARTY_ID);
-
-        mapper.processBailPartyCaseFlags(bailCase, partyDetailsModel);
-
-        verify(individualDetailsModel, times(1)).setInterpreterLanguage("ita");
-        verify(reasonableAdjustments, times(1)).addAll(List.of("SM0004", "RA0018"));
+        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
+        assertThat(reasonableAdjustmentsCaptor.getValue()).containsExactly("SM0004", "RA0018");
         verify(individualDetailsModel, times(1))
             .setOtherReasonableAdjustmentDetails("Interpreter: Portuguese; "
                                                      + "Interpreter: Sardinian; "
@@ -281,15 +265,160 @@ public class LanguageAndAdjustmentsMapperTest {
     }
 
     @Test
+    void should_add_flag_values_accordingly_to_fcs_party_details() {
+
+        when(bailCase.read(FCS_LEVEL_FLAGS))
+            .thenReturn(Optional.of(List.of(
+                new BailPartyFlagIdValue(
+                    PARTY_ID,
+                    new BailStrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id1", CaseFlagValue.builder()
+                            .flagCode(EVIDENCE_GIVEN_IN_PRIVATE.getFlagCode())
+                            .name("Evidence given in private")
+                            .flagComment("asking for privacy")
+                            .status("Active")
+                            .build()
+                        )))
+                ),
+                new BailPartyFlagIdValue(
+                    PARTY_ID,
+                    new BailStrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id2", CaseFlagValue.builder()
+                            .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+                            .subTypeValue("Sardinian")
+                            .status("Active")
+                            .build()
+                        )))
+                ),
+                new BailPartyFlagIdValue(
+                    PARTY_ID,
+                    new BailStrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id3", CaseFlagValue.builder()
+                            .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+                            .subTypeKey("ita")
+                            .subTypeValue("Italian")
+                            .status("Active")
+                            .build()
+                        )))
+                ),
+                new BailPartyFlagIdValue(
+                    PARTY_ID,
+                    new BailStrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id4", CaseFlagValue.builder()
+                            .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+                            .subTypeKey("por")
+                            .subTypeValue("Portuguese")
+                            .status("Active")
+                            .build()
+                        )))
+                ),
+                new BailPartyFlagIdValue(
+                    "Another name",
+                    new BailStrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id5", CaseFlagValue.builder()
+                            .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+                            .subTypeKey("spa")
+                            .subTypeValue("Spanish")
+                            .status("Active")
+                            .build()
+                        )))
+                ),
+                new BailPartyFlagIdValue(
+                    PARTY_ID,
+                    new BailStrategicCaseFlag(List.of(
+                        new CaseFlagDetail(
+                            "id6", CaseFlagValue.builder()
+                            .name("Support filling in forms")
+                            .flagComment("comment of r.a. flag")
+                            .flagCode("RA0018")
+                            .status("Active")
+                            .build()
+                        )))
+                )
+            )));
+
+        when(partyDetailsModel.getIndividualDetails()).thenReturn(individualDetailsModel);
+        when(partyDetailsModel.getPartyRole()).thenReturn(FCS_PARTY_ROLE);
+        when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
+        when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
+        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(new ArrayList<>());
+        when(partyDetailsModel.getPartyID()).thenReturn(PARTY_ID);
+
+        mapper.processBailPartyCaseFlags(bailCase, partyDetailsModel);
+
+        verify(individualDetailsModel, times(1)).setInterpreterLanguage("ita");
+        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
+        assertThat(reasonableAdjustmentsCaptor.getValue()).containsExactly("SM0004", "RA0018");
+        verify(individualDetailsModel, times(1))
+            .setOtherReasonableAdjustmentDetails("Interpreter: Portuguese; "
+                                                     + "Interpreter: Sardinian; "
+                                                     + "Evidence given in private: asking for privacy; "
+                                                     + "Support filling in forms: comment of r.a. flag;");
+    }
+
+    @Test
+    void should_add_flag_values_accordingly_to_nlr_party_details() {
+
+        List<CaseFlagDetail> nlrCaseFlagDetails = new ArrayList<>();
+        nlrCaseFlagDetails.add(new CaseFlagDetail(
+            "id1", CaseFlagValue.builder()
+            .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
+            .subTypeKey("bfi")
+            .subTypeValue("British Sign Language")
+            .status("Active")
+            .build()
+        ));
+        nlrCaseFlagDetails.add(new CaseFlagDetail(
+            "id2", CaseFlagValue.builder()
+            .subTypeKey("deu")
+            .subTypeValue("German")
+            .flagCode(LANGUAGE_INTERPRETER.getFlagCode())
+            .status("Active")
+            .build()
+        ));
+        nlrCaseFlagDetails.add(new CaseFlagDetail(
+            "id5", CaseFlagValue.builder()
+            .name("Support filling in forms")
+            .flagComment("comment of r.a. flag")
+            .flagCode("RA0018")
+            .status("Active")
+            .build()
+        ));
+
+        when(asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class))
+            .thenReturn(Optional.of(new StrategicCaseFlag(nlrCaseFlagDetails)));
+        when(partyDetailsModel.getIndividualDetails()).thenReturn(individualDetailsModel);
+        when(partyDetailsModel.getPartyRole()).thenReturn(NLR_PARTY_ROLE);
+        when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
+        when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
+
+        mapper.processAsylumPartyCaseFlags(asylumCase, partyDetailsModel);
+
+        verify(individualDetailsModel, times(1)).setInterpreterLanguage("bfi");
+        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
+        assertThat(reasonableAdjustmentsCaptor.getValue()).containsExactly("RA0042", "RA0018");
+        verify(individualDetailsModel, times(1))
+            .setOtherReasonableAdjustmentDetails("Interpreter: German; "
+                                                     + "Support filling in forms: comment of r.a. flag;");
+    }
+
+    @Test
     void should_add_nothing_to_individual_details_when_no_qualifying_active_flags_exist() {
 
         List<CaseFlagDetail> appellantCaseFlagDetails = new ArrayList<>();
-        appellantCaseFlagDetails.add(new CaseFlagDetail("id1", CaseFlagValue.builder()
+        appellantCaseFlagDetails.add(new CaseFlagDetail(
+            "id1", CaseFlagValue.builder()
             .flagCode(SIGN_LANGUAGE_INTERPRETER.getFlagCode())
             .subTypeKey("bfi")
             .subTypeValue("British Sign Language")
             .status("Inactive")
-            .build()));
+            .build()
+        ));
 
         when(asylumCase.read(APPELLANT_LEVEL_FLAGS, StrategicCaseFlag.class))
             .thenReturn(Optional.of(new StrategicCaseFlag(appellantCaseFlagDetails)));
@@ -297,12 +426,13 @@ public class LanguageAndAdjustmentsMapperTest {
         when(partyDetailsModel.getPartyRole()).thenReturn(APPELLANT_PARTY_ID);
         when(individualDetailsModel.getFirstName()).thenReturn(FIRST_NAME);
         when(individualDetailsModel.getLastName()).thenReturn(LAST_NAME);
-        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(reasonableAdjustments);
+        when(individualDetailsModel.getReasonableAdjustments()).thenReturn(null);
 
         mapper.processAsylumPartyCaseFlags(asylumCase, partyDetailsModel);
 
         verify(individualDetailsModel, times(1)).setInterpreterLanguage(null);
-        verify(reasonableAdjustments, times(1)).addAll(Collections.emptyList());
+        verify(individualDetailsModel, times(1)).setReasonableAdjustments(reasonableAdjustmentsCaptor.capture());
+        assertThat(reasonableAdjustmentsCaptor.getValue()).isEmpty();
         verify(individualDetailsModel, never()).setOtherReasonableAdjustmentDetails(anyString());
     }
 

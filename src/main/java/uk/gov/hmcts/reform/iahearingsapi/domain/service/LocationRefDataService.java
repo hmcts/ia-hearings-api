@@ -1,21 +1,21 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.UserDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtLocationCategory;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.refdata.CourtVenue;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.refdata.LocationRefDataApi;
-
 import java.util.Collections;
 import java.util.Objects;
 import java.util.List;
 
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
+
 @Service
-@RequiredArgsConstructor
 public class LocationRefDataService {
 
     private static final String OPEN = "Open";
@@ -25,8 +25,22 @@ public class LocationRefDataService {
     private final UserDetails userDetails;
     private final LocationRefDataApi locationRefDataApi;
     private final IdamService idamService;
-    @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}")
-    private String serviceId;
+    //    @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}")
+    private final String serviceId;
+
+    public LocationRefDataService(
+        AuthTokenGenerator authTokenGenerator,
+        UserDetails userDetails,
+        LocationRefDataApi locationRefDataApi,
+        IdamService idamService,
+        @org.springframework.beans.factory.annotation.Value("${ia.hmctsServiceId}") String serviceId
+    ) {
+        this.authTokenGenerator = authTokenGenerator;
+        this.userDetails = userDetails;
+        this.locationRefDataApi = locationRefDataApi;
+        this.idamService = idamService;
+        this.serviceId = serviceId;
+    }
 
     public DynamicList getHearingLocationsDynamicList(boolean isServiceUser) {
 
@@ -58,13 +72,32 @@ public class LocationRefDataService {
             : locationCategory.getCourtVenues();
     }
 
-    public void setServiceId(String serviceId) {
-        this.serviceId = serviceId;
+    public String getHearingCentreAddress(HearingCentre hearingCentre) {
+        if (hearingCentre == null) {
+            return "";
+        }
+
+        return getHearingCentreAddress(hearingCentre.getEpimsId());
     }
 
+    public String getHearingCentreAddress(String epimsId) {
+
+        return getCourtVenuesAsServiceUser()
+            .stream()
+            .filter(courtVenue -> Objects.equals(courtVenue.getEpimmsId(), epimsId))
+            .findFirst()
+            .map(this::assembleCourtVenueAddress)
+            .orElse("");
+    }
 
     private boolean isOpenHearingLocation(CourtVenue courtVenue) {
         return Objects.equals(courtVenue.getCourtStatus(), OPEN)
                && Objects.equals(courtVenue.getIsHearingLocation(), Y);
+    }
+
+    private String assembleCourtVenueAddress(CourtVenue courtVenue) {
+        return getIfNull(courtVenue.getCourtName(), "") + ", "
+            + getIfNull(courtVenue.getCourtAddress(), "") + ", "
+            + getIfNull(courtVenue.getPostcode(), "");
     }
 }

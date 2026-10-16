@@ -9,6 +9,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NEXT_HEARING_DETAILS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_HEARING_CANCELLED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.EDIT_CASE_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_LISTING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.CMR_RE_LISTING;
@@ -62,7 +63,7 @@ class NextHearingInfoHandlerTest {
 
     @ParameterizedTest
     @EnumSource(value = Event.class, names = {"LIST_CASE", "EDIT_CASE_LISTING", "UPDATE_NEXT_HEARING_INFO",
-        "CMR_LISTING", "CMR_RE_LISTING", "HEARING_CANCELLED"})
+        "CMR_LISTING", "CMR_RE_LISTING", "HEARING_CANCELLED", "CMR_HEARING_CANCELLED"})
     void should_set_next_hearing_details(Event event) {
 
         final long caseId = 1234L;
@@ -125,7 +126,8 @@ class NextHearingInfoHandlerTest {
                 boolean canHandle = nextHearingDateHandler.canHandle(callbackStage, callback);
 
                 if ((event == UPDATE_NEXT_HEARING_INFO && callbackStage == ABOUT_TO_START)
-                    || (List.of(LIST_CASE, EDIT_CASE_LISTING, CMR_LISTING, CMR_RE_LISTING, HEARING_CANCELLED)
+                    || (List.of(LIST_CASE, EDIT_CASE_LISTING, CMR_LISTING, CMR_RE_LISTING,
+                                HEARING_CANCELLED, CMR_HEARING_CANCELLED)
                     .contains(event) && callbackStage == ABOUT_TO_SUBMIT)) {
 
                     assertTrue(canHandle);

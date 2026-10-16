@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ADDITIONAL_INSTRUCTIONS_TRIBUNAL_RESPONSE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CASE_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.ANONYMITY;
@@ -147,6 +148,11 @@ public class CaseFlagsToServiceHearingValuesMapper {
         if (!appellantFlags.isEmpty()) {
             caseFlags.addAll(appellantFlags);
         }
+        List<StrategicCaseFlag> nlrFlags = asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .map(List::of).orElse(Collections.emptyList());
+        if (!nlrFlags.isEmpty()) {
+            caseFlags.addAll(nlrFlags);
+        }
         Optional<List<PartyFlagIdValue>> flagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
         flagsOptional.ifPresent(witnessFlagIdValues -> {
             List<StrategicCaseFlag> witnessFlags = witnessFlagIdValues
@@ -164,13 +170,14 @@ public class CaseFlagsToServiceHearingValuesMapper {
     public Caseflags getCaseFlags(
         AsylumCase asylumCase, String caseReference) {
 
-        Caseflags caseflags = Caseflags.builder().build();
         List<PartyFlagsModel> flags = new ArrayList<>();
 
         flags.addAll(getCaseLevelFlags(asylumCase));
         flags.addAll(getAppellantCaseFlags(asylumCase, caseDataMapper));
+        flags.addAll(getNlrCaseFlags(asylumCase, caseDataMapper));
         flags.addAll(getWitnessCaseFlags(asylumCase));
 
+        Caseflags caseflags = Caseflags.builder().build();
         if (!flags.isEmpty()) {
             caseflags.setFlags(flags);
             caseflags.setFlagAmendUrl("/cases/case-details/" + caseReference + "#Case%20flags");
@@ -225,6 +232,17 @@ public class CaseFlagsToServiceHearingValuesMapper {
             .map(flag -> buildCaseFlags(
                 flag.getDetails(),
                 caseDataMapper.getAppellantPartyId(asylumCase),
+                flag.getPartyName()))
+            .orElse(Collections.emptyList());
+    }
+
+    public List<PartyFlagsModel> getNlrCaseFlags(
+        AsylumCase asylumCase, CaseDataToServiceHearingValuesMapper caseDataMapper) {
+        return asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .filter(flag -> flag.getPartyName() != null && flag.getRoleOnCase() != null)
+            .map(flag -> buildCaseFlags(
+                flag.getDetails(),
+                caseDataMapper.getNlrPartyId(asylumCase),
                 flag.getPartyName()))
             .orElse(Collections.emptyList());
     }

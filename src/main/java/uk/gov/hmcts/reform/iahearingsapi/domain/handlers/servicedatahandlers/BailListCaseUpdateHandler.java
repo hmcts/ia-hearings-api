@@ -73,7 +73,7 @@ public class BailListCaseUpdateHandler extends ListedHearingService implements S
         ServiceData previousServiceData = null;
 
         if (!partiesNotifiedResponses.isEmpty()) {
-            previousServiceData = partiesNotifiedResponses.get(partiesNotifiedResponses.size() - 1)
+            previousServiceData = partiesNotifiedResponses.getLast()
                 .getServiceData();
         } else {
             previousServiceData = new ServiceData();

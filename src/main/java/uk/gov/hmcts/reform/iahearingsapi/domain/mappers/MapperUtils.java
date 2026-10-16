@@ -10,6 +10,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_ADMIN;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.JOURNEY_TYPE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.S94B_STATUS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SPONSOR_PARTY_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.AIP;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.JourneyType.REP;
 
@@ -66,6 +67,12 @@ public class MapperUtils {
 
     public static boolean hasSponsor(AsylumCase asylumCase) {
         return asylumCase.read(HAS_SPONSOR, YesOrNo.class).map(sponsor -> YesOrNo.YES == sponsor).orElse(false);
+    }
+
+    public static boolean isSponsorPartyIdPresent(AsylumCase asylumCase) {
+        return asylumCase.read(SPONSOR_PARTY_ID, String.class)
+            .map(id -> !id.isBlank())
+            .orElse(false);
     }
 
     public static String parseDateTimeStringWithoutNanos(String dateTimeString) {

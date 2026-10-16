@@ -37,6 +37,6 @@ public class HmcTopicConnectionParams {
     }
 
     public String getUrlString() {
-        return String.format("amqps://%1s?amqp.idleTimeout=%2d", namespace + connectionPostfix, idleTimeout);
+        return "amqps://%1s?amqp.idleTimeout=%2d".formatted(namespace + connectionPostfix, idleTimeout);
     }
 }

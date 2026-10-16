@@ -352,7 +352,7 @@ class HearingServiceTest {
 
         assertThat(result).isNotNull();
         assertEquals(expected.size(), expected.size());
-        assertThat(expected.get(0)).usingRecursiveComparison().isEqualTo(result.get(0));
+        assertThat(expected.getFirst()).usingRecursiveComparison().isEqualTo(result.getFirst());
     }
 
     @Test

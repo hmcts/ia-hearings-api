@@ -187,11 +187,11 @@ public class ListedHearingService {
 
     protected DynamicList buildHearingChannelDynmicList(List<HearingChannel> hearingChannels) {
         return new DynamicList(new Value(
-            hearingChannels.get(0).name(),
-            hearingChannels.get(0).getLabel()
+            hearingChannels.getFirst().name(),
+            hearingChannels.getFirst().getLabel()
         ), List.of(new Value(
-            hearingChannels.get(0).name(),
-            hearingChannels.get(0).getLabel()
+            hearingChannels.getFirst().name(),
+            hearingChannels.getFirst().getLabel()
         )));
     }
 
@@ -298,7 +298,7 @@ public class ListedHearingService {
     }
 
     protected boolean isRemoteHearing(ServiceData serviceData) {
-        final String nextHearingChannel = getHearingChannels(serviceData).get(0).name();
+        final String nextHearingChannel = getHearingChannels(serviceData).getFirst().name();
         final String hearingVenue = getHearingVenueId(serviceData);
 
         return !hearingVenue.equals(IAC_NATIONAL_VIRTUAL.getEpimsId())

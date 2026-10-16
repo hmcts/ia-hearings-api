@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.mappers;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.APPELLANT_LEVEL_FLAGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.NLR_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.WITNESS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.FCS_LEVEL_FLAGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.LANGUAGE_INTERPRETER;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.StrategicCaseFlagType.SIGN_LANGUAGE_INTERPRETER;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.mappers.NlrDetailsMapper.NLR_PARTY_ROLE;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -51,11 +53,14 @@ public class LanguageAndAdjustmentsMapper {
         if (individualDetails != null) {
             String partyRole = partyDetails.getPartyRole();
 
-            List<StrategicCaseFlag> caseFlags = Objects.equals(partyRole, PARTY_ROLE_APPELLANT)
-                ? getAppellantCaseFlags(asylumCase)
-                : Objects.equals(partyRole, PARTY_ROLE_WITNESS)
-                ? getWitnessCaseFlags(asylumCase, partyDetails.getPartyID())
-                : Collections.emptyList();
+            List<StrategicCaseFlag> caseFlags = Collections.emptyList();
+            if (Objects.equals(partyRole, PARTY_ROLE_APPELLANT)) {
+                caseFlags = getAppellantCaseFlags(asylumCase);
+            } else if (Objects.equals(partyRole, PARTY_ROLE_WITNESS)) {
+                caseFlags = getWitnessCaseFlags(asylumCase, partyDetails.getPartyID());
+            } else if (Objects.equals(partyRole, NLR_PARTY_ROLE)) {
+                caseFlags = getNlrCaseFlags(asylumCase);
+            }
 
             List<CaseFlagDetail> activeCaseFlagDetails = filterForAsylumActiveCaseFlagDetails(caseFlags);
             processPartyDetailsFlags(activeCaseFlagDetails, individualDetails);
@@ -88,16 +93,16 @@ public class LanguageAndAdjustmentsMapper {
     private void processPartyDetailsFlags(List<CaseFlagDetail> activeCaseFlagDetails,
                                           IndividualDetailsModel individualDetails) {
 
-        List<CaseFlagDetail> languageFlags = new ArrayList<>();
-        List<CaseFlagDetail> reasonableAdjustmentsFlags = new ArrayList<>();
-
-        separateLanguageAndReasonableAdjustmentFlags(activeCaseFlagDetails,
-                                                     languageFlags,
-                                                     reasonableAdjustmentsFlags);
+        List<CaseFlagDetail> languageFlags = activeCaseFlagDetails.stream()
+            .filter(this::isLanguageCaseFlag)
+            .toList();
+        List<CaseFlagDetail> reasonableAdjustmentsFlags = activeCaseFlagDetails.stream()
+            .filter(this::isReasonableAdjustmentFlag)
+            .toList();
 
         List<CaseFlagDetail> sortedLanguageFlags = sortLanguageFlagsByCode(languageFlags);
 
-        List<CaseFlagDetail> secondLanguageFlags = new ArrayList<>(Collections.emptyList());
+        List<CaseFlagDetail> secondLanguageFlags = new ArrayList<>();
         String interpreterLanguage = extractInterpreterLanguageField(sortedLanguageFlags, secondLanguageFlags);
 
         individualDetails.setInterpreterLanguage(interpreterLanguage);
@@ -114,32 +119,18 @@ public class LanguageAndAdjustmentsMapper {
         List<String> reasonableAdjustments = reasonableAdjustmentsFlags.stream()
             .map(flag -> flag.getCaseFlagValue().getFlagCode()).toList();
 
-        if (individualDetails.getReasonableAdjustments() != null) {
-            individualDetails.getReasonableAdjustments().addAll(reasonableAdjustments);
-        } else {
-            individualDetails.setReasonableAdjustments(reasonableAdjustments);
-        }
+        List<String> mergedReasonableAdjustments = Stream.concat(
+            Optional.ofNullable(individualDetails.getReasonableAdjustments())
+                .orElse(Collections.emptyList()).stream(),
+            reasonableAdjustments.stream()
+        ).toList();
+        individualDetails.setReasonableAdjustments(mergedReasonableAdjustments);
 
         if (!otherReasonableAdjustments.isEmpty()) {
             individualDetails.setOtherReasonableAdjustmentDetails(
                 Optional.ofNullable(individualDetails.getOtherReasonableAdjustmentDetails()).orElse("")
                     + otherReasonableAdjustments + ";");
         }
-    }
-
-    private void separateLanguageAndReasonableAdjustmentFlags(List<CaseFlagDetail> activeCaseFlagDetails,
-                                                              List<CaseFlagDetail> languageFlags,
-                                                              List<CaseFlagDetail> reasonableAdjustmentsFlags) {
-
-        activeCaseFlagDetails
-            .forEach(flagDetail -> {
-                if (isLanguageCaseFlag(flagDetail)) {
-                    languageFlags.add(flagDetail);
-                }
-                if (isReasonableAdjustmentFlag(flagDetail)) {
-                    reasonableAdjustmentsFlags.add(flagDetail);
-                }
-            });
     }
 
     private List<CaseFlagDetail> sortLanguageFlagsByCode(List<CaseFlagDetail> languageFlags) {
@@ -193,41 +184,32 @@ public class LanguageAndAdjustmentsMapper {
     }
 
     private List<StrategicCaseFlag> getWitnessCaseFlags(AsylumCase asylumCase, String partyId) {
-        List<StrategicCaseFlag> witnessCaseFlags = new ArrayList<>();
-
         Optional<List<PartyFlagIdValue>> caseFlagsOptional = asylumCase.read(WITNESS_LEVEL_FLAGS);
 
-        caseFlagsOptional.ifPresent(witnessFlagIdValues -> {
-            List<StrategicCaseFlag> caseFlags = witnessFlagIdValues
+        return caseFlagsOptional
+            .map(witnessFlagIdValues -> witnessFlagIdValues
                 .stream()
                 .filter(partyFlagIdValue -> partyFlagIdValue.getPartyId().equals(partyId))
                 .map(PartyFlagIdValue::getValue)
-                .toList();
-            if (!caseFlags.isEmpty()) {
-                witnessCaseFlags.addAll(caseFlags);
-            }
-        });
+                .toList())
+            .orElse(Collections.emptyList());
+    }
 
-        return witnessCaseFlags;
+    private List<StrategicCaseFlag> getNlrCaseFlags(AsylumCase asylumCase) {
+        return asylumCase.read(NLR_LEVEL_FLAGS, StrategicCaseFlag.class)
+            .map(Lists::newArrayList).orElse(new ArrayList<>());
     }
 
     private List<BailStrategicCaseFlag> getFcsCaseFlags(BailCase bailCase, String partyId) {
-        List<BailStrategicCaseFlag> fcsCaseFlags = new ArrayList<>();
-
         Optional<List<BailPartyFlagIdValue>> caseFlagsOptional = bailCase.read(FCS_LEVEL_FLAGS);
 
-        caseFlagsOptional.ifPresent(fcsFlagIdValues -> {
-            List<BailStrategicCaseFlag> caseFlags = fcsFlagIdValues
+        return caseFlagsOptional
+            .map(fcsFlagIdValues -> fcsFlagIdValues
                 .stream()
                 .filter(partyFlagIdValue -> partyFlagIdValue.getPartyId().equals(partyId))
                 .map(BailPartyFlagIdValue::getValue)
-                .toList();
-            if (!caseFlags.isEmpty()) {
-                fcsCaseFlags.addAll(caseFlags);
-            }
-        });
-
-        return fcsCaseFlags;
+                .toList())
+            .orElse(Collections.emptyList());
     }
 
     private List<CaseFlagDetail> filterForAsylumActiveCaseFlagDetails(List<StrategicCaseFlag> strategicCaseFlags) {
@@ -252,24 +234,20 @@ public class LanguageAndAdjustmentsMapper {
      * Find one eligible case flag to populate interpreterLanguage and add the remainder to a list
      * that will be used to populate otherReasonableAdjustmentDetails.
      * @param sortedLanguageFlags language flags sorted to have the ones with language-code at the top
-     * @param otherLanguageFlags collection initially empty and to be filled with the remaining flags
+     * @param otherLanguageFlags collection to be populated with the remaining flags
      * @return the value to be used to populate interpreterLanguage
      */
     private String extractInterpreterLanguageField(List<CaseFlagDetail> sortedLanguageFlags,
                                                    List<CaseFlagDetail> otherLanguageFlags) {
         CaseFlagDetail interpreterLanguageFlag = null;
 
-        int i = 0;
-        while (i < sortedLanguageFlags.size()) {
-            CaseFlagDetail flag = sortedLanguageFlags.get(i);
-
+        for (CaseFlagDetail flag : sortedLanguageFlags) {
             boolean isSelectedLanguage = flag.getCaseFlagValue().getSubTypeKey() != null;
             if (interpreterLanguageFlag == null && isSelectedLanguage) {
                 interpreterLanguageFlag = flag;
             } else {
                 otherLanguageFlags.add(flag);
             }
-            i++;
         }
 
         if (interpreterLanguageFlag == null) {

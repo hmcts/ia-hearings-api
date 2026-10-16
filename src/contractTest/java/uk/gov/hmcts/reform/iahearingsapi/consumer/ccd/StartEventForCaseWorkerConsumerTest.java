@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.consumer.ccd;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -11,7 +11,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.util.PactDslBuilder
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.PactSpecVersion;
-import au.com.dius.pact.core.model.RequestResponsePact;
+import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import java.util.Map;
 import org.json.JSONException;
@@ -31,7 +31,7 @@ public class StartEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
     }
 
     @Pact(provider = "ccdDataStoreAPI_Cases", consumer = "ia_hearingsApi")
-    public RequestResponsePact startEventForCaseWorker(PactDslWithProvider builder) throws JSONException {
+    public V4Pact startEventForCaseWorker(PactDslWithProvider builder) throws JSONException {
         return builder
             .given("A Start Event for a Caseworker is  requested",
                 setUpStateMapForProviderWithCaseData(caseDataContent)
@@ -46,11 +46,11 @@ public class StartEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
             .matchHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
             .status(200)
             .body(buildStartEventForCaseWorkerPactDsl(START_APPEAL))
-            .toPact();
+            .toPact(V4Pact.class);
     }
 
     @Test
-    @PactTestFor(pactMethod = "startEventForCaseWorker", pactVersion = PactSpecVersion.V3)
+    @PactTestFor(pactMethod = "startEventForCaseWorker", pactVersion = PactSpecVersion.V4)
     public void verifyStartEventForCaseworker() {
 
         final StartEventResponse startEventResponse = coreCaseDataApi.startEventForCaseWorker(
