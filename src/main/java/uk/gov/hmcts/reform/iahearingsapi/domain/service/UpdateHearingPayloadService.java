@@ -191,7 +191,7 @@ public class UpdateHearingPayloadService extends CreateHearingPayloadService {
             switch (event) {
                 case RECORD_ADJOURNMENT_DETAILS:
                     hearingDuration = caseDataMapper
-                        .getIntHearingDurationFromString(asylumCase, NEXT_HEARING_DURATION);
+                        .getIntHearingDurationFromHoursMinutes(asylumCase, NEXT_HEARING_DURATION);
                     break;
 
                 case UPDATE_HEARING_REQUEST:
