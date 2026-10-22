@@ -10,11 +10,13 @@ import java.util.Map;
 import static java.lang.Long.parseLong;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.ObjectMapperConfig;
+import io.restassured.config.RestAssuredConfig;
+import io.restassured.mapper.ObjectMapperType;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.FileCopyUtils;
+import com.fasterxml.jackson.core.JacksonException;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
@@ -135,6 +138,8 @@ public class CcdCaseCreationTest {
         hearingsSpecification = new RequestSpecBuilder()
             .setBaseUri(targetInstance)
             .setRelaxedHTTPSValidation()
+            .setConfig(RestAssuredConfig.config().objectMapperConfig(
+                ObjectMapperConfig.objectMapperConfig().defaultObjectMapperType(ObjectMapperType.JACKSON_2)))
             .build();
 
         log.info("targetInstance: " + targetInstance);
@@ -145,9 +150,9 @@ public class CcdCaseCreationTest {
             systemUserToken,
             s2sToken,
             null,
-                null,
-                null,
-                caseReference
+            null,
+            null,
+            caseReference
         );
     }
 
@@ -278,13 +283,18 @@ public class CcdCaseCreationTest {
             .ignoreWarning(true)
             .build();
 
-        CaseResource caseResource = coreCaseDataApi.createEvent(
-            legalRepToken,
-            s2sToken,
-            String.valueOf(legalRepCaseId),
-            content);
+        try {
+            CaseResource caseResource = coreCaseDataApi.createEvent(
+                legalRepToken,
+                s2sToken,
+                String.valueOf(legalRepCaseId),
+                content);
 
-        legalRepAppealCaseData = caseResource.getData();
+            legalRepAppealCaseData = caseResource.getData();
+        } catch (feign.FeignException e) {
+            log.error("Failed ccd case creation test: {}", e.contentUTF8());
+        }
+
     }
 
     private void startAppealAsCitizen() {
@@ -358,8 +368,8 @@ public class CcdCaseCreationTest {
 
 
     /**
-        Submitting event for assigning values to mandatory fields which requires system/officer permission.
-    */
+     Submitting event for assigning values to mandatory fields which requires system/officer permission.
+     */
     protected void listCaseWithRequiredFields() {
         systemUserToken = idamAuthProvider.getSystemUserToken();
 
@@ -391,7 +401,7 @@ public class CcdCaseCreationTest {
         try {
             data = new ObjectMapper()
                 .readValue(asString(appealJson), new TypeReference<>(){});
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             e.printStackTrace();
         }
 

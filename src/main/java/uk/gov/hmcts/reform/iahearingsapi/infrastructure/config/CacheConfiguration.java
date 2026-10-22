@@ -33,6 +33,7 @@ import java.time.Duration;
     havingValue = "true",
     matchIfMissing = true
 )
+@SuppressWarnings("removal")
 public class CacheConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(CacheConfiguration.class);
