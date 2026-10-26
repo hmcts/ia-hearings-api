@@ -15,7 +15,7 @@ import java.util.List;
 @Builder
 public class HearingPlanned {
 
-    private PlannedHearingType plannedHearingType;
+    private String plannedHearingType;
 
     private List<PlannedHearingDay> plannedHearingDays;
 }

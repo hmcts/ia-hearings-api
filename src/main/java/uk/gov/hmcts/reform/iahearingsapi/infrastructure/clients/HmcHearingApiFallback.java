@@ -4,9 +4,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingActualsRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
@@ -41,6 +43,30 @@ public class HmcHearingApiFallback implements HmcHearingApi {
         String dataStoreUrl, String roleAssignmentUrl,
         String hmctsDeploymentId, String id) {
         throw new HmcException("getHearingsRequest call failed after retries");
+    }
+
+    @Override
+    public HearingActualsResponse getHearingActualsRequest(
+        String authorisation, String serviceAuthorization,
+        String hmctsDeploymentId, String dataStoreUrl,
+        String roleAssignmentUrl, String id, Boolean isValid) {
+        throw new HmcException("getHearingActualsRequest call failed after retries");
+    }
+
+    @Override
+    public HearingActualsResponse updateHearingActualsRequest(
+        String authorisation, String serviceAuthorization,
+        String hmctsDeploymentId, String dataStoreUrl,
+        String roleAssignmentUrl, UpdateHearingActualsRequest updateHearingActualsRequest, String id) {
+        throw new HmcException("updateHearingActualsRequest call failed after retries");
+    }
+
+    @Override
+    public void createHearingActualsRequest(
+        String authorisation, String serviceAuthorization,
+        String hmctsDeploymentId, String dataStoreUrl,
+        String roleAssignmentUrl, String id) {
+        throw new HmcException("createHearingActualsRequest call failed after retries");
     }
 
     @Override
