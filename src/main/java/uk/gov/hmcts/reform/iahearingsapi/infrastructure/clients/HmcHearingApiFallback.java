@@ -4,7 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
@@ -46,7 +46,15 @@ public class HmcHearingApiFallback implements HmcHearingApi {
     }
 
     @Override
-    public HearingActualsResponse getHearingActualsRequest(
+    public HearingGetResponse updateHearingRequest(
+        String authorisation, String serviceAuthorization,
+        String hmctsDeploymentId, String dataStoreUrl,
+        String roleAssignmentUrl, UpdateHearingRequest updateHearingRequest, String id) {
+        throw new HmcException("updateHearingRequest call failed after retries");
+    }
+
+    @Override
+    public HearingActualsGetResponse getHearingActualsRequest(
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, String id, Boolean isValid) {
@@ -54,7 +62,7 @@ public class HmcHearingApiFallback implements HmcHearingApi {
     }
 
     @Override
-    public HearingActualsResponse updateHearingActualsRequest(
+    public HearingActualsGetResponse updateHearingActualsRequest(
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, UpdateHearingActualsRequest updateHearingActualsRequest, String id) {
@@ -67,14 +75,6 @@ public class HmcHearingApiFallback implements HmcHearingApi {
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, String id) {
         throw new HmcException("createHearingActualsRequest call failed after retries");
-    }
-
-    @Override
-    public HearingGetResponse updateHearingRequest(
-        String authorisation, String serviceAuthorization,
-        String hmctsDeploymentId, String dataStoreUrl,
-        String roleAssignmentUrl, UpdateHearingRequest updateHearingRequest, String id) {
-        throw new HmcException("updateHearingRequest call failed after retries");
     }
 
     @Override

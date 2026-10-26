@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
@@ -82,8 +82,19 @@ public interface HmcHearingApi {
         @PathVariable String id
     );
 
+    @PutMapping(HEARING_ENDPOINT + "/{id}")
+    HearingGetResponse updateHearingRequest(
+        @RequestHeader(AUTHORIZATION) String authorisation,
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
+        @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
+        @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
+        @RequestBody UpdateHearingRequest updateHearingRequest,
+        @PathVariable String id
+    );
+
     @GetMapping(HEARING_ACTUALS_ENDPOINT + "/{id}")
-    HearingActualsResponse getHearingActualsRequest(
+    HearingActualsGetResponse getHearingActualsRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
@@ -94,7 +105,7 @@ public interface HmcHearingApi {
     );
 
     @PutMapping(HEARING_ACTUALS_ENDPOINT + "/{id}")
-    HearingActualsResponse updateHearingActualsRequest(
+    HearingActualsGetResponse updateHearingActualsRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
@@ -111,17 +122,6 @@ public interface HmcHearingApi {
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
         @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
-        @PathVariable String id
-    );
-
-    @PutMapping(HEARING_ENDPOINT + "/{id}")
-    HearingGetResponse updateHearingRequest(
-        @RequestHeader(AUTHORIZATION) String authorisation,
-        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
-        @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
-        @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
-        @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
-        @RequestBody UpdateHearingRequest updateHearingRequest,
         @PathVariable String id
     );
 

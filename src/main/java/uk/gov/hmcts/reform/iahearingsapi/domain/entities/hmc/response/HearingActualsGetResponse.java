@@ -11,7 +11,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HearingActualsResponse {
+public class HearingActualsGetResponse {
 
     private HmcStatus hmcStatus;
 
