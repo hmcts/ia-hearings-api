@@ -4,12 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.*;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.State;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.DispatchPriority;
@@ -22,16 +17,14 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_HEARING_ID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.*;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre.REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition.NEXT_HEARING_DATE;
@@ -149,10 +142,48 @@ public class SubstantiveHearingEditedHandler extends ListedHearingService implem
         assignRefDataFields(asylumCase, serviceData, caseId);
 
         String newHearingId = getHearingId(serviceData);
-        log.info("Writing {} {} to bail case {}", CURRENT_HEARING_ID, newHearingId, caseId);
+        log.info("Writing {} {} to asylum case {}", CURRENT_HEARING_ID, newHearingId, caseId);
         asylumCase.write(CURRENT_HEARING_ID, newHearingId);
 
+        LocalDateTime nextHearingDate = getNextHearingDate(serviceData);
+        Integer duration = getDuration(serviceData);
+        Optional<List<HearingDetails>> maybeHearingDetailsList = asylumCase.read(HEARINGS);
+        List<HearingDetails> hearingDetailsList = maybeHearingDetailsList.orElse(new ArrayList<>());
+        List<HearingDetails> newHearingDetailsList = addOrReplaceHearingDetails(
+            hearingDetailsList,
+            newHearingId,
+            nextHearingDate,
+            duration
+        );
+        log.info("Writing {} {} to asylum case {}", HEARINGS, newHearingId, caseId);
+        asylumCase.write(HEARINGS, newHearingDetailsList);
+
         return sendUpdate;
+    }
+
+    private List<HearingDetails> addOrReplaceHearingDetails(
+        List<HearingDetails> hearingDetailsList,
+        String hearingId,
+        LocalDateTime nextHearingDate,
+        Integer duration
+    ) {
+        Optional<HearingDetails> hearingDetailsOpt = hearingDetailsList.stream()
+            .filter(hearingDetails -> hearingId.equals(hearingDetails.getHearingID()))
+            .findFirst();
+        if (hearingDetailsOpt.isPresent()) {
+            HearingDetails hearingDetails = hearingDetailsOpt.get();
+            hearingDetailsList.remove(hearingDetails);
+        }
+
+        hearingDetailsList.add(
+            HearingDetails.builder()
+                .hearingID(hearingId)
+                .hearingDateTime(nextHearingDate)
+                .duration(duration)
+                .build()
+        );
+
+        return hearingDetailsList;
     }
 
     private boolean tryUpdateHearingDateTime(AsylumCase asylumCase, ServiceData serviceData, String hearingId) {

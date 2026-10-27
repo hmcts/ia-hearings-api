@@ -144,6 +144,7 @@ public class ListedHearingService {
             nextHearingDate,
             duration
         );
+        log.info("Writing {} {} to asylum case {}", HEARINGS, newHearingId, caseId);
         asylumCase.write(HEARINGS, newHearingDetailsList);
 
         if (isAppealsLocationRefDataEnabled) {
