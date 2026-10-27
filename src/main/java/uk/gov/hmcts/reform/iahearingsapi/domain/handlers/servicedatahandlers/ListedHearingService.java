@@ -169,6 +169,8 @@ public class ListedHearingService {
         LocalDateTime nextHearingDate,
         Integer duration
     ) {
+        log.info("------2------hearingId {}", hearingId);
+        log.info("------2------hearingDetailsList.size() {}", hearingDetailsList.size());
         Optional<HearingDetails> hearingDetailsOpt = hearingDetailsList.stream()
             .filter(hearingDetails -> hearingId.equals(hearingDetails.getHearingID()))
             .findFirst();
@@ -185,6 +187,8 @@ public class ListedHearingService {
                 .build()
         );
 
+        log.info("------3------hearingId {}", hearingId);
+        log.info("------3------hearingDetailsList.size() {}", hearingDetailsList.size());
         return hearingDetailsList;
     }
 

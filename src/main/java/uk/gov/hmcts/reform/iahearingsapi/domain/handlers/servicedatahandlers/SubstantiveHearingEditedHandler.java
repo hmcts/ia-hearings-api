@@ -158,15 +158,23 @@ public class SubstantiveHearingEditedHandler extends ListedHearingService implem
 
         LocalDateTime nextHearingDate = getNextHearingDate(serviceData);
         Integer duration = getDuration(serviceData);
-        Optional<List<HearingDetails>> maybeHearingDetailsList = asylumCase.read(HEARINGS);
-        List<HearingDetails> hearingDetailsList = maybeHearingDetailsList.orElse(new ArrayList<>());
+        Optional<List<HearingDetails>> hearingDetailsListOpt = asylumCase.read(HEARINGS);
+        List<HearingDetails> hearingDetailsList = hearingDetailsListOpt.orElse(new ArrayList<>());
+        log.info("------1------hearingId {}", newHearingId);
+        log.info("------1------hearingDetailsList.size() {}", hearingDetailsList.size());
         List<HearingDetails> newHearingDetailsList = addOrReplaceHearingDetails(
             hearingDetailsList,
             newHearingId,
             nextHearingDate,
             duration
         );
-        log.info("Writing {} {} to asylum case {}", HEARINGS, newHearingId, caseId);
+        log.info(
+            "Writing {} (size {}) {} to asylum case {}",
+            HEARINGS,
+            hearingDetailsList.size(),
+            newHearingId,
+            caseId
+        );
         asylumCase.write(HEARINGS, newHearingDetailsList);
 
         return sendUpdate;
