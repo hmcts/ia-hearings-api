@@ -163,7 +163,7 @@ public class ListedHearingService {
         }
     }
 
-    private List<HearingDetails> addOrReplaceHearingDetails(
+    protected List<HearingDetails> addOrReplaceHearingDetails(
         List<HearingDetails> hearingDetailsList,
         String hearingId,
         LocalDateTime nextHearingDate,

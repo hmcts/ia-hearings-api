@@ -172,31 +172,6 @@ public class SubstantiveHearingEditedHandler extends ListedHearingService implem
         return sendUpdate;
     }
 
-    private List<HearingDetails> addOrReplaceHearingDetails(
-        List<HearingDetails> hearingDetailsList,
-        String hearingId,
-        LocalDateTime nextHearingDate,
-        Integer duration
-    ) {
-        Optional<HearingDetails> hearingDetailsOpt = hearingDetailsList.stream()
-            .filter(hearingDetails -> hearingId.equals(hearingDetails.getHearingID()))
-            .findFirst();
-        if (hearingDetailsOpt.isPresent()) {
-            HearingDetails hearingDetails = hearingDetailsOpt.get();
-            hearingDetailsList.remove(hearingDetails);
-        }
-
-        hearingDetailsList.add(
-            HearingDetails.builder()
-                .hearingID(hearingId)
-                .hearingDateTime(nextHearingDate)
-                .duration(duration)
-                .build()
-        );
-
-        return hearingDetailsList;
-    }
-
     private boolean tryUpdateHearingDateTime(AsylumCase asylumCase, ServiceData serviceData, String hearingId) {
         final LocalDateTime nextHearingDateTime = serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
             .orElseThrow(() -> new IllegalStateException("nextHearingDate can not be null"));
