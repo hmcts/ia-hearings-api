@@ -360,6 +360,9 @@ public enum AsylumCaseFieldDefinition {
     CURRENT_HEARING_ID(
         "currentHearingId", new TypeReference<String>() {}),
 
+    HEARINGS(
+        "hearings", new TypeReference<List<HearingDetails>>() {}),
+
     NLR_DETAILS(
         "nlrDetails", new TypeReference<NonLegalRepDetails>(){}),
 
