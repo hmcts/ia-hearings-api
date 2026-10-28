@@ -49,21 +49,25 @@ public class RecordAttendeesAndDurationMidEventHandler extends HearingsMidEventH
     @Override
     public PreSubmitCallbackResponse<AsylumCase> handle(
         PreSubmitCallbackStage callbackStage,
-        Callback<AsylumCase> callback) {
-
+        Callback<AsylumCase> callback
+    ) {
         if (!canHandle(callbackStage, callback)) {
             throw new IllegalStateException("Cannot handle callback");
         }
 
-        AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
-
         String pageId = callback.getPageId();
+
+        log.info("Handling record attendees and duration mid event, pageId {}", pageId);
+
+        AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
 
         if (Objects.equals(pageId, SELECT_ATTENDEES_AND_DURATION_HEARING_LIST_PAGE_ID)) {
             Optional<DynamicList> selectedHearingOptional = asylumCase.read(CHANGE_HEARINGS, DynamicList.class);
+            log.info("-----selectedHearingOptional {}", selectedHearingOptional);
             if (selectedHearingOptional.isPresent()) {
                 DynamicList selectedHearing = selectedHearingOptional.get();
                 String hearingId = selectedHearing.getValue().getCode();
+                log.info("-----selected hearingId {}", hearingId);
                 HearingDetails hearingDetails = hearingService.getHearing(hearingId).getHearingDetails();
                 setHearingChannelDetails(asylumCase, hearingDetails);
                 setHearingLocationDetails(asylumCase, hearingDetails);
