@@ -165,6 +165,8 @@ public enum AsylumCaseFieldDefinition {
         "changeHearingDateRangeLatest", new TypeReference<String>(){}),
     ADJOURNMENT_DETAILS_HEARING(
         "adjournmentDetailsHearing", new TypeReference<DynamicList>(){}),
+    ATTENDEES_AND_DURATION_HEARING(
+        "attendeesAndDurationHearing", new TypeReference<DynamicList>(){}),
     END_APPEAL_OUTCOME(
         "endAppealOutcome", new TypeReference<String>(){}),
     IS_INTEGRATED(
