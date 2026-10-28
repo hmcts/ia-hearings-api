@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 
 @Component
@@ -62,7 +62,8 @@ public class RecordAttendeesAndDurationMidEventHandler extends HearingsMidEventH
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
 
         if (Objects.equals(pageId, SELECT_ATTENDEES_AND_DURATION_HEARING_LIST_PAGE_ID)) {
-            Optional<DynamicList> selectedHearingOptional = asylumCase.read(CHANGE_HEARINGS, DynamicList.class);
+            Optional<DynamicList> selectedHearingOptional =
+                asylumCase.read(ATTENDEES_AND_DURATION_HEARING, DynamicList.class);
             log.info("-----selectedHearingOptional {}", selectedHearingOptional);
             if (selectedHearingOptional.isPresent()) {
                 DynamicList selectedHearing = selectedHearingOptional.get();

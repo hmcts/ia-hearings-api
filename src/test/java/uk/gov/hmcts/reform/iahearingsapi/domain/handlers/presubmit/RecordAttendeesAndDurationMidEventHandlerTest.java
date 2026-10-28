@@ -10,7 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARINGS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_EARLIEST;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CHANGE_HEARING_DATE_RANGE_LATEST;
@@ -111,7 +111,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(caseDetails.getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(RECORD_ATTENDEES_AND_DURATION);
-        when(asylumCase.read(CHANGE_HEARINGS, DynamicList.class))
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING, DynamicList.class))
             .thenReturn(Optional.of(new DynamicList(selectedHearingId)));
         when(asylumCase.read(HEARING_LOCATION, DynamicList.class)).thenReturn(Optional.of(hearingLocation));
         when(asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class)).thenReturn(Optional.of(GLASGOW));
@@ -133,7 +133,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
 
     @Test
     void should_not_initialize_hearing_details() {
-        when(asylumCase.read(CHANGE_HEARINGS, DynamicList.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING, DynamicList.class)).thenReturn(Optional.empty());
 
         handler.handle(MID_EVENT, callback);
 
