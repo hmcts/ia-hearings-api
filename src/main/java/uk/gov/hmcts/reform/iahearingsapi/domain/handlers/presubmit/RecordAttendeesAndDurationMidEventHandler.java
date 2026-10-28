@@ -86,8 +86,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             if (selectedHearingOptional.isPresent()) {
                 DynamicList selectedHearing = selectedHearingOptional.get();
                 String hearingId = selectedHearing.getValue().getCode();
-                HearingDetails hearingDetails = hearingService
-                    .getHearing(hearingId).getHearingDetails();
+                HearingDetails hearingDetails = hearingService.getHearing(hearingId).getHearingDetails();
                 setHearingChannelDetails(asylumCase, hearingDetails);
                 setHearingLocationDetails(asylumCase, hearingDetails);
                 setHearingDateDetails(asylumCase, hearingDetails.getHearingWindow());
@@ -99,6 +98,8 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
     }
 
     private void setHearingChannelDetails(AsylumCase asylumCase, HearingDetails hearingDetails) {
+        log.info("Setting hearing channel details for {}", hearingDetails);
+
         List<Value> allChannelsOptions = Arrays.stream(HearingChannel.values())
             .map(hearingChannel -> new Value(hearingChannel.name(), hearingChannel.getLabel()))
             .toList();
@@ -112,10 +113,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         }, () -> {
             List<String> hearingChannels = hearingDetails.getHearingChannels();
             if (!(hearingChannels == null || hearingChannels.isEmpty())) {
-                asylumCase.write(
-                    CHANGE_HEARING_TYPE,
-                    hearingDetails.getHearingChannelDescription()
-                );
+                asylumCase.write(CHANGE_HEARING_TYPE, hearingDetails.getHearingChannelDescription());
                 asylumCase.write(REQUEST_HEARING_CHANNEL, new DynamicList(
                     new Value(
                         hearingDetails.getHearingChannels().getFirst(),
@@ -128,6 +126,8 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
     }
 
     private void setHearingLocationDetails(AsylumCase asylumCase, HearingDetails hearingDetails) {
+        log.info("Setting hearing location details for {}", hearingDetails);
+
         DynamicList hearingLocation = asylumCase.read(HEARING_LOCATION, DynamicList.class)
             .orElseGet(() -> locationRefDataService.getHearingLocationsDynamicList(false));
         HearingCentre listCaseHearingCentre = asylumCase.read(LIST_CASE_HEARING_CENTRE, HearingCentre.class)
@@ -155,6 +155,8 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
     }
 
     private void setHearingDurationDetails(AsylumCase asylumCase, HearingDetails hearingDetails) {
+        log.info("Setting hearing duration details for {}", hearingDetails);
+
         Optional<HoursMinutes> optionalHoursMinutes = asylumCase.read(LISTING_LENGTH, HoursMinutes.class);
 
         Optional<HearingLength> optionalHearingLength;
@@ -178,6 +180,8 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
     }
 
     private void setHearingDateDetails(AsylumCase asylumCase, HearingWindowModel hearingWindow) {
+        log.info("Setting hearing duration details for {}", hearingWindow);
+
         boolean hearingDateDetailsSet = setHearingDateDetailsFromListedHearing(asylumCase);
 
         if (!(hearingDateDetailsSet || hearingWindow == null)) {
@@ -190,6 +194,8 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
     }
 
     private boolean setHearingDateDetailsFromListedHearing(AsylumCase asylumCase) {
+        log.info("Setting hearing duration details for {}", asylumCase);
+
         String listCaseHearingDate = asylumCase.read(LIST_CASE_HEARING_DATE, String.class).orElse("");
         if (listCaseHearingDate.isEmpty()) {
             return false;
@@ -202,8 +208,12 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         return true;
     }
 
-    public static boolean setHearingDateDetailsFromRequestedHearing(AsylumCase asylumCase,
-                                                                    HearingWindowModel hearingWindow) {
+    public static boolean setHearingDateDetailsFromRequestedHearing(
+        AsylumCase asylumCase,
+        HearingWindowModel hearingWindow
+    ) {
+        log.info("Setting hearing duration details for {}", hearingWindow);
+
         boolean hearingDateSet = false;
         final StringBuilder dateRangeBuilder = new StringBuilder("Choose a date range");
 
