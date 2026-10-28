@@ -36,6 +36,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.IdamApiException;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.security.idam.IdentityManagerResponseException;
 
+@SuppressWarnings("deprecation")
 @ExtendWith(MockitoExtension.class)
 class HearingsControllerAdviceTest {
 
