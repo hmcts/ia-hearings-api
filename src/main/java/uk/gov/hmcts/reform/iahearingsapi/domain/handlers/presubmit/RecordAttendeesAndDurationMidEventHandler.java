@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
-import uk.gov.hmcts.reform.iahearingsapi.domain.service.LocationRefDataService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 import java.util.Objects;
@@ -17,22 +16,23 @@ import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_METHOD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAPER_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 
 @Component
 @Slf4j
-public class RecordAttendeesAndDurationMidEventHandler extends HearingsMidEventHandler
-        implements PreSubmitCallbackHandler<AsylumCase> {
+public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallbackHandler<AsylumCase> {
     private static final String SELECT_ATTENDEES_AND_DURATION_HEARING_LIST_PAGE_ID =
         "selectHearingRecordAttendeesAndDuration";
 
     private final HearingService hearingService;
 
     public RecordAttendeesAndDurationMidEventHandler(
-        HearingService hearingService,
-        LocationRefDataService locationRefDataService
+        HearingService hearingService
     ) {
-        super(locationRefDataService);
         this.hearingService = hearingService;
     }
 
@@ -70,10 +70,10 @@ public class RecordAttendeesAndDurationMidEventHandler extends HearingsMidEventH
                 String hearingId = selectedHearing.getValue().getCode();
                 log.info("-----selected hearingId {}", hearingId);
                 HearingDetails hearingDetails = hearingService.getHearing(hearingId).getHearingDetails();
-                setHearingChannelDetails(asylumCase, hearingDetails);
-                setHearingLocationDetails(asylumCase, hearingDetails);
-                setHearingDateDetails(asylumCase, hearingDetails.getHearingWindow());
-                setHearingDurationDetails(asylumCase, hearingDetails);
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_ID, hearingId);
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_DATE, hearingId);
+                asylumCase.write(ATTENDEES_AND_DURATION_PAPER_HEARING, hearingId);
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_METHOD, hearingId);
             }
         }
 
