@@ -21,18 +21,23 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_DATE_OF_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_FINISH_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_JUDGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_METHODS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_RESULT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_START_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAPER_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 
 @Component
 @Slf4j
 public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallbackHandler<AsylumCase> {
-    private static final String SELECT_ATTENDEES_AND_DURATION_HEARING_LIST_PAGE_ID =
-        "selectHearingRecordAttendeesAndDuration";
+    private static final String SELECT_HEARING_PAGE_ID = "selectHearingRecordAttendeesAndDuration";
 
     private final HearingService hearingService;
     private final HearingActualsService hearingActualsService;
@@ -70,7 +75,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
 
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
 
-        if (Objects.equals(pageId, SELECT_ATTENDEES_AND_DURATION_HEARING_LIST_PAGE_ID)) {
+        if (Objects.equals(pageId, SELECT_HEARING_PAGE_ID)) {
             Optional<DynamicList> selectedHearingOptional =
                 asylumCase.read(ATTENDEES_AND_DURATION_HEARING, DynamicList.class);
             if (selectedHearingOptional.isPresent()) {
@@ -102,7 +107,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                     hearingChannel -> log.info("hearingChannel1 {}", hearingChannel)
                 );
                 hearingDetails.getHearingChannels().forEach(
-                    hearingChannel -> log.info("hearingChannel2 {}", HearingChannel.from(hearingChannel))
+                    hearingChannel -> log.info("hearingChannel2 {}", HearingChannel.valueOf(hearingChannel))
                 );
                 hearingDetails.getHearingChannels().forEach(hearingChannel -> {
                     Optional<HearingChannel> c = HearingChannel.from(hearingChannel);
@@ -116,9 +121,15 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                 asylumCase.write(
                     ATTENDEES_AND_DURATION_HEARING_METHODS,
                     hearingDetails.getHearingChannels().stream()
-                        .map(channelStr -> HearingChannel.from(channelStr).map(HearingChannel::getLabel).orElse(""))
+                        .map(channelStr -> HearingChannel.valueOf(channelStr).getLabel())
                         .collect(Collectors.joining(", "))
                 );
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_STAGE, "");
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_RESULT, "");
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_JUDGE, "");
+                asylumCase.write(ATTENDEES_AND_DURATION_DATE_OF_HEARING, "");
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_START_TIME, "");
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, "");
             }
         }
 
