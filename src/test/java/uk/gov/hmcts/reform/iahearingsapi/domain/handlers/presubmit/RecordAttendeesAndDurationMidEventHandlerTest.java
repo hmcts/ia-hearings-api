@@ -14,7 +14,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_METHOD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_METHODS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAPER_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_APPEAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
@@ -54,7 +54,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         ATTENDEES_AND_DURATION_HEARING_ID,
         ATTENDEES_AND_DURATION_HEARING_DATE,
         ATTENDEES_AND_DURATION_PAPER_HEARING,
-        ATTENDEES_AND_DURATION_HEARING_METHOD
+        ATTENDEES_AND_DURATION_HEARING_METHODS
     );
 
     @Mock
@@ -96,7 +96,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_ID, HEARING_ID);
         verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_HEARING_DATE), anyString());
         verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_PAPER_HEARING), anyString());
-        verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_HEARING_METHOD), anyString());
+        verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_HEARING_METHODS), anyString());
     }
 
     @Test

@@ -18,7 +18,7 @@ import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_METHOD;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_METHODS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAPER_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 
@@ -73,7 +73,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_ID, hearingId);
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_DATE, hearingId);
                 asylumCase.write(ATTENDEES_AND_DURATION_PAPER_HEARING, hearingId);
-                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_METHOD, hearingId);
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_METHODS, hearingId);
             }
         }
 
