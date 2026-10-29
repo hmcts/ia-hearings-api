@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -37,6 +38,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
@@ -106,8 +108,8 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         verify(hearingActualsService).getHearingActuals(HEARING_ID);
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_ID, HEARING_ID);
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE, PLANNED_START_TIME);
-        verify(asylumCase).write(ATTENDEES_AND_DURATION_PAPER_HEARING, false);
-        verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_HEARING_METHODS), any());
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PAPER_HEARING, YesOrNo.NO.toString());
+        verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_HEARING_METHODS), anyString());
     }
 
     @Test
@@ -116,7 +118,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
 
         handler.handle(MID_EVENT, callback);
 
-        verify(asylumCase).write(ATTENDEES_AND_DURATION_PAPER_HEARING, true);
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PAPER_HEARING, YesOrNo.YES.toString());
     }
 
     @Test

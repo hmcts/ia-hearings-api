@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
@@ -93,6 +94,8 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                 asylumCase.write(
                     ATTENDEES_AND_DURATION_PAPER_HEARING,
                     hearingDetails.getHearingChannels().contains(HearingChannel.ONPPRS.name())
+                        ? YesOrNo.YES.toString()
+                        : YesOrNo.NO.toString()
                 );
                 asylumCase.write(
                     ATTENDEES_AND_DURATION_HEARING_METHODS,
@@ -104,7 +107,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                                 return "";
                             }
                         }
-                    )
+                    ).toString()
                 );
             }
         }
