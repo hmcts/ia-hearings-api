@@ -11,11 +11,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class HearingOutcome {
 
-    private String hearingType;
+    private HearingType hearingType;
 
     private String hearingFinalFlag;
 
-    private String hearingResult;
+    private HearingResult hearingResult;
 
     private String hearingResultReasonType;
 
