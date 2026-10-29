@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
@@ -99,15 +100,9 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                 );
                 asylumCase.write(
                     ATTENDEES_AND_DURATION_HEARING_METHODS,
-                    hearingDetails.getHearingChannels().stream().map(channelStr -> {
-                            Optional<HearingChannel> channelOpt = HearingChannel.from(channelStr);
-                            if (channelOpt.isPresent()) {
-                                return channelOpt.get().getLabel();
-                            } else {
-                                return "";
-                            }
-                        }
-                    ).toString()
+                    hearingDetails.getHearingChannels().stream()
+                        .map(channelStr -> HearingChannel.from(channelStr).map(HearingChannel::getLabel).orElse(""))
+                        .collect(Collectors.joining(", "))
                 );
             }
         }

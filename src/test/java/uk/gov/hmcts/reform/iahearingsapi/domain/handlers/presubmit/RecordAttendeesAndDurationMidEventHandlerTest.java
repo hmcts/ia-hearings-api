@@ -113,6 +113,24 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     }
 
     @Test
+    void should_write_hearing_methods_as_comma_separated_labels() {
+        when(hearingDetails.getHearingChannels()).thenReturn(List.of("In Person", "Video"));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_METHODS, "In Person, Video");
+    }
+
+    @Test
+    void should_write_empty_label_for_unknown_hearing_method() {
+        when(hearingDetails.getHearingChannels()).thenReturn(List.of("In Person", "UNKNOWN"));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_METHODS, "In Person, ");
+    }
+
+    @Test
     void should_write_paper_hearing_true_when_hearing_is_on_the_papers() {
         when(hearingDetails.getHearingChannels()).thenReturn(List.of("ONPPRS"));
 
