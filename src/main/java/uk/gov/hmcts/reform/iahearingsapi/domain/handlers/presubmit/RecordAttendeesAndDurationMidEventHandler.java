@@ -7,6 +7,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
@@ -64,16 +66,15 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         if (Objects.equals(pageId, SELECT_ATTENDEES_AND_DURATION_HEARING_LIST_PAGE_ID)) {
             Optional<DynamicList> selectedHearingOptional =
                 asylumCase.read(ATTENDEES_AND_DURATION_HEARING, DynamicList.class);
-            log.info("-----selectedHearingOptional {}", selectedHearingOptional);
             if (selectedHearingOptional.isPresent()) {
                 DynamicList selectedHearing = selectedHearingOptional.get();
                 String hearingId = selectedHearing.getValue().getCode();
-                log.info("-----selected hearingId {}", hearingId);
                 HearingDetails hearingDetails = hearingService.getHearing(hearingId).getHearingDetails();
+                log.info("hearingDetails {}", hearingDetails);
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_ID, hearingId);
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_DATE, hearingId);
                 asylumCase.write(ATTENDEES_AND_DURATION_PAPER_HEARING, hearingId);
-                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_METHODS, hearingId);
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_METHODS, hearingDetails.getHearingChannels().toString());
             }
         }
 
