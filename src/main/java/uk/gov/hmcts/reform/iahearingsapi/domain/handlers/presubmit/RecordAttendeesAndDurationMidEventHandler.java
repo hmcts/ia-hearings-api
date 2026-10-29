@@ -7,7 +7,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
@@ -76,12 +78,33 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                 log.info("hearingDetails {}", hearingDetails);
                 HearingActualsGetResponse hearingActuals = hearingActualsService.getHearingActuals(hearingId);
                 log.info("hearingActuals {}", hearingActuals);
+
+                Optional<PlannedHearingDay> hearingDayOpt =
+                    hearingActuals.getHearingPlanned().getPlannedHearingDays().stream().findFirst();
+                String hearingDate;
+                if (hearingDayOpt.isPresent()) {
+                    hearingDate = hearingDayOpt.get().getPlannedStartTime();
+                } else {
+                    hearingDate = "";
+                }
+
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_ID, hearingId);
-                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_DATE, hearingId);
-                asylumCase.write(ATTENDEES_AND_DURATION_PAPER_HEARING, hearingId);
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_DATE, hearingDate);
+                asylumCase.write(
+                    ATTENDEES_AND_DURATION_PAPER_HEARING,
+                    hearingDetails.getHearingChannels().contains(HearingChannel.ONPPRS.name())
+                );
                 asylumCase.write(
                     ATTENDEES_AND_DURATION_HEARING_METHODS,
-                    hearingDetails.getHearingChannels().toString()
+                    hearingDetails.getHearingChannels().stream().map(channelStr -> {
+                            Optional<HearingChannel> channelOpt = HearingChannel.from(channelStr);
+                            if (channelOpt.isPresent()) {
+                                return channelOpt.get().getLabel();
+                            } else {
+                                return "";
+                            }
+                        }
+                    )
                 );
             }
         }

@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -40,6 +39,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
@@ -51,6 +52,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     private static final String SELECT_HEARING_PAGE_ID = "selectHearingRecordAttendeesAndDuration";
     private static final String OTHER_PAGE_ID = "recordAttendeesAndDuration";
     private static final String HEARING_ID = "2000000001";
+    private static final String PLANNED_START_TIME = "2023-01-20T10:00:00";
 
     private static final List<AsylumCaseFieldDefinition> HEARING_FIELDS = List.of(
         ATTENDEES_AND_DURATION_HEARING_ID,
@@ -72,8 +74,6 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     @Mock
     private HearingGetResponse hearingGetResponse;
     @Mock
-    private HearingActualsGetResponse hearingActualsGetResponse;
-    @Mock
     private HearingDetails hearingDetails;
 
     private RecordAttendeesAndDurationMidEventHandler handler;
@@ -90,7 +90,9 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         when(hearingService.getHearing(HEARING_ID)).thenReturn(hearingGetResponse);
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
         when(hearingDetails.getHearingChannels()).thenReturn(List.of("INTER", "VID"));
-        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActualsGetResponse);
+        PlannedHearingDay plannedHearingDay = PlannedHearingDay.builder().plannedStartTime(PLANNED_START_TIME).build();
+        when(hearingActualsService.getHearingActuals(HEARING_ID))
+            .thenReturn(hearingActuals(List.of(plannedHearingDay)));
 
         handler = new RecordAttendeesAndDurationMidEventHandler(hearingService, hearingActualsService);
     }
@@ -103,9 +105,27 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         verify(hearingService).getHearing(HEARING_ID);
         verify(hearingActualsService).getHearingActuals(HEARING_ID);
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_ID, HEARING_ID);
-        verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_HEARING_DATE), anyString());
-        verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_PAPER_HEARING), anyString());
-        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_METHODS, "[INTER, VID]");
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE, PLANNED_START_TIME);
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PAPER_HEARING, false);
+        verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_HEARING_METHODS), any());
+    }
+
+    @Test
+    void should_write_paper_hearing_true_when_hearing_is_on_the_papers() {
+        when(hearingDetails.getHearingChannels()).thenReturn(List.of("ONPPRS"));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PAPER_HEARING, true);
+    }
+
+    @Test
+    void should_write_empty_hearing_date_when_no_planned_hearing_days() {
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActuals(List.of()));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE, "");
     }
 
     @Test
@@ -165,5 +185,11 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         assertThatThrownBy(() -> handler.canHandle(MID_EVENT, null))
             .hasMessage("callback must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
+    }
+
+    private static HearingActualsGetResponse hearingActuals(List<PlannedHearingDay> plannedHearingDays) {
+        return HearingActualsGetResponse.builder()
+            .hearingPlanned(HearingPlanned.builder().plannedHearingDays(plannedHearingDays).build())
+            .build();
     }
 }
