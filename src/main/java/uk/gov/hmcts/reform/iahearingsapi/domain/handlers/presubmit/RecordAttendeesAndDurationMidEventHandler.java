@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
@@ -16,6 +17,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -103,21 +106,6 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                         ? YesOrNo.YES.toString()
                         : YesOrNo.NO.toString()
                 );
-                hearingDetails.getHearingChannels().forEach(
-                    hearingChannel -> log.info("hearingChannel1 {}", hearingChannel)
-                );
-                hearingDetails.getHearingChannels().forEach(
-                    hearingChannel -> log.info("hearingChannel2 {}", HearingChannel.valueOf(hearingChannel))
-                );
-                hearingDetails.getHearingChannels().forEach(hearingChannel -> {
-                    Optional<HearingChannel> c = HearingChannel.from(hearingChannel);
-                    if (c.isPresent()) {
-                        log.info("hearingChannel3 {}", c.get().getLabel());
-                    } else {
-                        log.info("hearingChannel3 {}", "--");
-                    }
-                    log.info("hearingChannel2 {}", HearingChannel.from(hearingChannel));
-                });
                 asylumCase.write(
                     ATTENDEES_AND_DURATION_HEARING_METHODS,
                     hearingDetails.getHearingChannels().stream()
@@ -127,7 +115,17 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_STAGE, "");
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_RESULT, "");
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_JUDGE, "");
-                asylumCase.write(ATTENDEES_AND_DURATION_DATE_OF_HEARING, "");
+
+                List<Value> hearingDates = new ArrayList<>();
+                hearingDates.add(new Value(hearingId, hearingDate));
+                List<Value> hearingValues =
+                    hearingActuals.getHearingActuals().getActualHearingDays().stream()
+                        .map(d -> new Value(d.getHearingDate(), d.getHearingDate()))
+                        .collect(Collectors.toList());
+                hearingValues.addAll(hearingDates);
+                DynamicList hearingDatesList = new DynamicList(new Value("", ""), hearingValues);
+                asylumCase.write(ATTENDEES_AND_DURATION_DATE_OF_HEARING, hearingDatesList);
+
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_START_TIME, "");
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, "");
             }
