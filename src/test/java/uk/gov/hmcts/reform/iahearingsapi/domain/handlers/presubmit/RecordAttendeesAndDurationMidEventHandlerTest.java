@@ -39,6 +39,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
@@ -66,7 +68,11 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     @Mock
     private HearingService hearingService;
     @Mock
+    private HearingActualsService hearingActualsService;
+    @Mock
     private HearingGetResponse hearingGetResponse;
+    @Mock
+    private HearingActualsGetResponse hearingActualsGetResponse;
     @Mock
     private HearingDetails hearingDetails;
 
@@ -83,8 +89,10 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
             .thenReturn(Optional.of(new DynamicList(selectedHearing, List.of(selectedHearing))));
         when(hearingService.getHearing(HEARING_ID)).thenReturn(hearingGetResponse);
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
+        when(hearingDetails.getHearingChannels()).thenReturn(List.of("INTER", "VID"));
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActualsGetResponse);
 
-        handler = new RecordAttendeesAndDurationMidEventHandler(hearingService);
+        handler = new RecordAttendeesAndDurationMidEventHandler(hearingService, hearingActualsService);
     }
 
     @Test
@@ -93,10 +101,11 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
 
         assertEquals(asylumCase, response.getData());
         verify(hearingService).getHearing(HEARING_ID);
+        verify(hearingActualsService).getHearingActuals(HEARING_ID);
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_ID, HEARING_ID);
         verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_HEARING_DATE), anyString());
         verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_PAPER_HEARING), anyString());
-        verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_HEARING_METHODS), anyString());
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_METHODS, "[INTER, VID]");
     }
 
     @Test
@@ -106,6 +115,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         handler.handle(MID_EVENT, callback);
 
         verifyNoInteractions(hearingService);
+        verifyNoInteractions(hearingActualsService);
         HEARING_FIELDS.forEach(field -> verify(asylumCase, never()).write(eq(field), any()));
     }
 
@@ -116,6 +126,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         handler.handle(MID_EVENT, callback);
 
         verifyNoInteractions(hearingService);
+        verifyNoInteractions(hearingActualsService);
         HEARING_FIELDS.forEach(field -> verify(asylumCase, never()).write(eq(field), any()));
     }
 

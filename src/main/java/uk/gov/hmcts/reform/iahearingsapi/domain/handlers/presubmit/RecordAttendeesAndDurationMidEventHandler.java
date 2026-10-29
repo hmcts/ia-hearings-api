@@ -7,9 +7,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
@@ -31,11 +31,14 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         "selectHearingRecordAttendeesAndDuration";
 
     private final HearingService hearingService;
+    private final HearingActualsService hearingActualsService;
 
     public RecordAttendeesAndDurationMidEventHandler(
-        HearingService hearingService
+        HearingService hearingService,
+        HearingActualsService hearingActualsService
     ) {
         this.hearingService = hearingService;
+        this.hearingActualsService = hearingActualsService;
     }
 
     @Override
@@ -71,10 +74,15 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                 String hearingId = selectedHearing.getValue().getCode();
                 HearingDetails hearingDetails = hearingService.getHearing(hearingId).getHearingDetails();
                 log.info("hearingDetails {}", hearingDetails);
+                HearingActualsGetResponse hearingActuals = hearingActualsService.getHearingActuals(hearingId);
+                log.info("hearingActuals {}", hearingActuals);
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_ID, hearingId);
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_DATE, hearingId);
                 asylumCase.write(ATTENDEES_AND_DURATION_PAPER_HEARING, hearingId);
-                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_METHODS, hearingDetails.getHearingChannels().toString());
+                asylumCase.write(
+                    ATTENDEES_AND_DURATION_HEARING_METHODS,
+                    hearingDetails.getHearingChannels().toString()
+                );
             }
         }
 
