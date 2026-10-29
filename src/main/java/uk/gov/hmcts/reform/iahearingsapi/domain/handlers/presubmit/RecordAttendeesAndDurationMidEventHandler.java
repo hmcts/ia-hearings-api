@@ -98,6 +98,21 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                         ? YesOrNo.YES.toString()
                         : YesOrNo.NO.toString()
                 );
+                hearingDetails.getHearingChannels().forEach(
+                    hearingChannel -> log.info("hearingChannel1 {}", hearingChannel)
+                );
+                hearingDetails.getHearingChannels().forEach(
+                    hearingChannel -> log.info("hearingChannel2 {}", HearingChannel.from(hearingChannel))
+                );
+                hearingDetails.getHearingChannels().forEach(hearingChannel -> {
+                    Optional<HearingChannel> c = HearingChannel.from(hearingChannel);
+                    if (c.isPresent()) {
+                        log.info("hearingChannel3 {}", c.get().getLabel());
+                    } else {
+                        log.info("hearingChannel3 {}", "--");
+                    }
+                    log.info("hearingChannel2 {}", HearingChannel.from(hearingChannel));
+                });
                 asylumCase.write(
                     ATTENDEES_AND_DURATION_HEARING_METHODS,
                     hearingDetails.getHearingChannels().stream()
