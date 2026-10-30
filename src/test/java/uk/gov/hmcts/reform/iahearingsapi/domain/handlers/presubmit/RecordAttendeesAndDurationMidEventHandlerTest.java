@@ -45,8 +45,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
@@ -62,8 +60,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     private static final String OTHER_PAGE_ID = "recordAttendeesAndDuration";
     private static final String HEARING_ID = "2000000001";
     private static final String PLANNED_START_TIME = "2023-01-20T10:00:00";
-    private static final String ACTUAL_HEARING_DATE_1 = "2023-01-20";
-    private static final String ACTUAL_HEARING_DATE_2 = "2023-01-21";
+    private static final String SECOND_PLANNED_START_TIME = "2023-01-21T10:00:00";
 
     private static final List<AsylumCaseFieldDefinition> HEARING_FIELDS = List.of(
         ATTENDEES_AND_DURATION_HEARING_ID,
@@ -116,12 +113,8 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         when(hearingGetResponse.getHearingDetails()).thenReturn(hearingDetails);
         when(hearingDetails.getHearingChannels()).thenReturn(List.of("INTER", "VID"));
         PlannedHearingDay plannedHearingDay = PlannedHearingDay.builder().plannedStartTime(PLANNED_START_TIME).build();
-        List<ActualHearingDay> actualHearingDays = List.of(
-            ActualHearingDay.builder().hearingDate(ACTUAL_HEARING_DATE_1).build(),
-            ActualHearingDay.builder().hearingDate(ACTUAL_HEARING_DATE_2).build()
-        );
         when(hearingActualsService.getHearingActuals(HEARING_ID))
-            .thenReturn(hearingActuals(List.of(plannedHearingDay), actualHearingDays));
+            .thenReturn(hearingActuals(List.of(plannedHearingDay)));
 
         handler = new RecordAttendeesAndDurationMidEventHandler(hearingService, hearingActualsService);
     }
@@ -141,41 +134,29 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_DATE_OF_HEARING,
             new DynamicList(new Value("", ""), List.of(
-                new Value(ACTUAL_HEARING_DATE_1, ACTUAL_HEARING_DATE_1),
-                new Value(ACTUAL_HEARING_DATE_2, ACTUAL_HEARING_DATE_2),
+                new Value(PLANNED_START_TIME, PLANNED_START_TIME),
                 new Value(HEARING_ID, PLANNED_START_TIME)
             ))
         );
     }
 
     @Test
-    void should_write_only_planned_date_of_hearing_when_no_actual_hearing_days() {
-        PlannedHearingDay plannedHearingDay = PlannedHearingDay.builder().plannedStartTime(PLANNED_START_TIME).build();
-        when(hearingActualsService.getHearingActuals(HEARING_ID))
-            .thenReturn(hearingActuals(List.of(plannedHearingDay), List.of()));
+    void should_write_all_planned_hearing_days_as_dates_of_hearing() {
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActuals(List.of(
+            PlannedHearingDay.builder().plannedStartTime(PLANNED_START_TIME).build(),
+            PlannedHearingDay.builder().plannedStartTime(SECOND_PLANNED_START_TIME).build()
+        )));
 
         handler.handle(MID_EVENT, callback);
 
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE, PLANNED_START_TIME);
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_DATE_OF_HEARING,
-            new DynamicList(new Value("", ""), List.of(new Value(HEARING_ID, PLANNED_START_TIME)))
-        );
-    }
-
-    @Test
-    void should_write_only_planned_date_of_hearing_when_hearing_actuals_are_null() {
-        PlannedHearingDay plannedHearingDay = PlannedHearingDay.builder().plannedStartTime(PLANNED_START_TIME).build();
-        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(
-            HearingActualsGetResponse.builder()
-                .hearingPlanned(HearingPlanned.builder().plannedHearingDays(List.of(plannedHearingDay)).build())
-                .build()
-        );
-
-        handler.handle(MID_EVENT, callback);
-
-        verify(asylumCase).write(
-            ATTENDEES_AND_DURATION_DATE_OF_HEARING,
-            new DynamicList(new Value("", ""), List.of(new Value(HEARING_ID, PLANNED_START_TIME)))
+            new DynamicList(new Value("", ""), List.of(
+                new Value(PLANNED_START_TIME, PLANNED_START_TIME),
+                new Value(SECOND_PLANNED_START_TIME, SECOND_PLANNED_START_TIME),
+                new Value(HEARING_ID, PLANNED_START_TIME)
+            ))
         );
     }
 
@@ -207,11 +188,15 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
 
     @Test
     void should_write_empty_hearing_date_when_no_planned_hearing_days() {
-        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActuals(List.of(), List.of()));
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActuals(List.of()));
 
         handler.handle(MID_EVENT, callback);
 
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE, "");
+        verify(asylumCase).write(
+            ATTENDEES_AND_DURATION_DATE_OF_HEARING,
+            new DynamicList(new Value("", ""), List.of(new Value(HEARING_ID, "")))
+        );
     }
 
     @Test
@@ -273,13 +258,9 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
             .isExactlyInstanceOf(NullPointerException.class);
     }
 
-    private static HearingActualsGetResponse hearingActuals(
-        List<PlannedHearingDay> plannedHearingDays,
-        List<ActualHearingDay> actualHearingDays
-    ) {
+    private static HearingActualsGetResponse hearingActuals(List<PlannedHearingDay> plannedHearingDays) {
         return HearingActualsGetResponse.builder()
             .hearingPlanned(HearingPlanned.builder().plannedHearingDays(plannedHearingDays).build())
-            .hearingActuals(HearingActuals.builder().actualHearingDays(actualHearingDays).build())
             .build();
     }
 }
