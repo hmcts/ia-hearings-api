@@ -53,6 +53,8 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
     public PreSubmitCallbackResponse<AsylumCase> handle(
         PreSubmitCallbackStage callbackStage, Callback<AsylumCase> callback) {
 
+        log.info("Handling RecordAttendeesAndDurationRequest");
+
         if (!canHandle(callbackStage, callback)) {
             throw new IllegalStateException("Cannot handle callback");
         }
@@ -61,10 +63,12 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
 
         Optional<DynamicList> selectedHearingDateOpt =
             asylumCase.read(ATTENDEES_AND_DURATION_DATE_OF_HEARING, DynamicList.class);
+        log.info("------selectedHearingDateOpt: {}", selectedHearingDateOpt);
         if (selectedHearingDateOpt.isPresent()) {
             String hearingDate = selectedHearingDateOpt.get().getValue().getCode();
             Optional<String> hearingIdOpt = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID);
             if (hearingIdOpt.isPresent()) {
+                log.info("------hearingIdOpt: {}", hearingIdOpt);
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_START_TIME, "");
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, "");
 
@@ -111,6 +115,8 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
 
                 String hearingId = hearingIdOpt.get();
                 hearingActualsService.updateHearingActuals(request, hearingId);
+
+                log.info("Updated hearing actuals {} for hearing id {}", request, hearingId);
             }
         }
 
