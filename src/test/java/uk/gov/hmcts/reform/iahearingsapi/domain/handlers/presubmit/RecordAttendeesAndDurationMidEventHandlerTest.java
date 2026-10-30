@@ -163,10 +163,13 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     }
 
     @Test
-    void should_write_only_planned_date_of_hearing_when_actual_hearing_days_are_null() {
+    void should_write_only_planned_date_of_hearing_when_hearing_actuals_are_null() {
         PlannedHearingDay plannedHearingDay = PlannedHearingDay.builder().plannedStartTime(PLANNED_START_TIME).build();
-        when(hearingActualsService.getHearingActuals(HEARING_ID))
-            .thenReturn(hearingActuals(List.of(plannedHearingDay), null));
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(
+            HearingActualsGetResponse.builder()
+                .hearingPlanned(HearingPlanned.builder().plannedHearingDays(List.of(plannedHearingDay)).build())
+                .build()
+        );
 
         handler.handle(MID_EVENT, callback);
 

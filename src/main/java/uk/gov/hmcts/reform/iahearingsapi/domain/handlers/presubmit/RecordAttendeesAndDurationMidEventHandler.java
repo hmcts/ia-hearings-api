@@ -118,16 +118,16 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
 
                 List<Value> hearingDates = new ArrayList<>();
                 hearingDates.add(new Value(hearingId, hearingDate));
-                List<Value> hearingValues;
-                if (hearingActuals.getHearingActuals().getActualHearingDays() == null) {
-                    hearingValues = new ArrayList<>();
+                List<Value> hearingDateValues;
+                if (hearingActuals.getHearingActuals() == null) {
+                    hearingDateValues = new ArrayList<>();
                 } else {
-                    hearingValues = hearingActuals.getHearingActuals().getActualHearingDays().stream()
+                    hearingDateValues = hearingActuals.getHearingActuals().getActualHearingDays().stream()
                         .map(d -> new Value(d.getHearingDate(), d.getHearingDate()))
                         .collect(Collectors.toList());
                 }
-                hearingValues.addAll(hearingDates);
-                DynamicList hearingDatesList = new DynamicList(new Value("", ""), hearingValues);
+                hearingDateValues.addAll(hearingDates);
+                DynamicList hearingDatesList = new DynamicList(new Value("", ""), hearingDateValues);
                 asylumCase.write(ATTENDEES_AND_DURATION_DATE_OF_HEARING, hearingDatesList);
 
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_START_TIME, "");
