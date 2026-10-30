@@ -5,30 +5,52 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_DATE_OF_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_FINISH_TIME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_START_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingActualsRequest;
+import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class RecordAttendeesAndDurationRequestHandlerTest {
+
+    private static final String HEARING_ID = "2000000001";
+    private static final String HEARING_DATE = "2023-01-20T10:00:00";
 
     @Mock
     private Callback<AsylumCase> callback;
@@ -39,28 +61,71 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     @Mock
     private HearingService hearingService;
     @Mock
+    private HearingActualsService hearingActualsService;
+    @Mock
     private UpdateHearingPayloadService updateHearingPayloadService;
+    @Captor
+    private ArgumentCaptor<UpdateHearingActualsRequest> requestCaptor;
 
     private RecordAttendeesAndDurationRequestHandler handler;
 
     @BeforeEach
     void setUp() {
+        Value selectedDate = new Value(HEARING_DATE, HEARING_DATE);
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(caseDetails.getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(RECORD_ATTENDEES_AND_DURATION);
+        when(asylumCase.read(ATTENDEES_AND_DURATION_DATE_OF_HEARING, DynamicList.class))
+            .thenReturn(Optional.of(new DynamicList(selectedDate, List.of(selectedDate))));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID)).thenReturn(Optional.of(HEARING_ID));
 
-        handler = new RecordAttendeesAndDurationRequestHandler(hearingService, updateHearingPayloadService);
+        handler = new RecordAttendeesAndDurationRequestHandler(
+            hearingService,
+            hearingActualsService,
+            updateHearingPayloadService
+        );
     }
 
     @Test
-    void should_return_case_data_unchanged() {
+    void should_update_hearing_actuals_for_selected_hearing_date() {
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(ABOUT_TO_SUBMIT, callback);
 
         assertNotNull(callbackResponse);
         assertEquals(asylumCase, callbackResponse.getData());
-        verifyNoInteractions(asylumCase);
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_START_TIME, "");
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, "");
+        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
         verifyNoInteractions(hearingService);
         verifyNoInteractions(updateHearingPayloadService);
+
+        UpdateHearingActualsRequest request = requestCaptor.getValue();
+        HearingOutcome hearingOutcome = request.getHearingOutcome();
+        assertEquals(HearingType.SUBSTANTIVE, hearingOutcome.getHearingType());
+        assertEquals(HearingResult.HEARD, hearingOutcome.getHearingResult());
+        assertEquals(HEARING_DATE, hearingOutcome.getHearingResultDate());
+        assertNotNull(request.getActualHearingDays());
+    }
+
+    @Test
+    void should_not_update_hearing_actuals_when_no_hearing_date_selected() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_DATE_OF_HEARING, DynamicList.class)).thenReturn(Optional.empty());
+
+        PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        assertEquals(asylumCase, callbackResponse.getData());
+        verifyNoInteractions(hearingActualsService);
+        verify(asylumCase, never()).write(any(), any());
+    }
+
+    @Test
+    void should_not_update_hearing_actuals_when_no_hearing_id() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID)).thenReturn(Optional.empty());
+
+        PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        assertEquals(asylumCase, callbackResponse.getData());
+        verifyNoInteractions(hearingActualsService);
+        verify(asylumCase, never()).write(any(), any());
     }
 
     @Test

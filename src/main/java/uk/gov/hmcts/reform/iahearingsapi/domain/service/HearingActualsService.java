@@ -80,15 +80,18 @@ public class HearingActualsService {
 
     public void createHearingActuals(String hearingId) {
         try {
-            log.debug(
-                "Creating Hearing Actuals for hearing {}",
-                hearingId
-            );
+            log.debug("Creating Hearing Actuals for hearing {}", hearingId);
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
-            hmcHearingApi.createHearingActualsRequest(serviceUserToken, serviceAuthToken,
-                                                      hmctsDeploymentId, dataStoreUrl, roleAssignmentUrl, hearingId);
+            hmcHearingApi.createHearingActualsRequest(
+                serviceUserToken,
+                serviceAuthToken,
+                hmctsDeploymentId,
+                dataStoreUrl,
+                roleAssignmentUrl,
+                hearingId
+            );
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new IllegalStateException("Service could not complete request to create hearing", e);

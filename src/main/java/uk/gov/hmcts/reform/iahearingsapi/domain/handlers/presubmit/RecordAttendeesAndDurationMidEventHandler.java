@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -116,12 +115,9 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_RESULT, "");
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_JUDGE, "");
 
-                List<Value> hearingDates = new ArrayList<>();
-                hearingDates.add(new Value(hearingId, hearingDate));
                 List<Value> hearingDateValues = hearingActuals.getHearingPlanned().getPlannedHearingDays().stream()
                         .map(d -> new Value(d.getPlannedStartTime(), d.getPlannedStartTime()))
                         .collect(Collectors.toList());
-                hearingDateValues.addAll(hearingDates);
                 DynamicList hearingDatesList = new DynamicList(new Value("", ""), hearingDateValues);
                 asylumCase.write(ATTENDEES_AND_DURATION_DATE_OF_HEARING, hearingDatesList);
 

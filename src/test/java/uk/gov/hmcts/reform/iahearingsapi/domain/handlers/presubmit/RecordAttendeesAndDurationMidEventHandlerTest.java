@@ -133,10 +133,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         BLANKED_FIELDS.forEach(field -> verify(asylumCase).write(field, ""));
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_DATE_OF_HEARING,
-            new DynamicList(new Value("", ""), List.of(
-                new Value(PLANNED_START_TIME, PLANNED_START_TIME),
-                new Value(HEARING_ID, PLANNED_START_TIME)
-            ))
+            new DynamicList(new Value("", ""), List.of(new Value(PLANNED_START_TIME, PLANNED_START_TIME)))
         );
     }
 
@@ -154,8 +151,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
             ATTENDEES_AND_DURATION_DATE_OF_HEARING,
             new DynamicList(new Value("", ""), List.of(
                 new Value(PLANNED_START_TIME, PLANNED_START_TIME),
-                new Value(SECOND_PLANNED_START_TIME, SECOND_PLANNED_START_TIME),
-                new Value(HEARING_ID, PLANNED_START_TIME)
+                new Value(SECOND_PLANNED_START_TIME, SECOND_PLANNED_START_TIME)
             ))
         );
     }
@@ -187,7 +183,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     }
 
     @Test
-    void should_write_empty_hearing_date_when_no_planned_hearing_days() {
+    void should_write_empty_hearing_date_and_dates_of_hearing_when_no_planned_hearing_days() {
         when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActuals(List.of()));
 
         handler.handle(MID_EVENT, callback);
@@ -195,7 +191,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE, "");
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_DATE_OF_HEARING,
-            new DynamicList(new Value("", ""), List.of(new Value(HEARING_ID, "")))
+            new DynamicList(new Value("", ""), List.of())
         );
     }
 
