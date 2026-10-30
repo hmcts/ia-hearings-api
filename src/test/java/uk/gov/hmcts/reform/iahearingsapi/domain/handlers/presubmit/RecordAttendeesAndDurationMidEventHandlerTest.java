@@ -163,6 +163,20 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     }
 
     @Test
+    void should_write_only_planned_date_of_hearing_when_actual_hearing_days_are_null() {
+        PlannedHearingDay plannedHearingDay = PlannedHearingDay.builder().plannedStartTime(PLANNED_START_TIME).build();
+        when(hearingActualsService.getHearingActuals(HEARING_ID))
+            .thenReturn(hearingActuals(List.of(plannedHearingDay), null));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(
+            ATTENDEES_AND_DURATION_DATE_OF_HEARING,
+            new DynamicList(new Value("", ""), List.of(new Value(HEARING_ID, PLANNED_START_TIME)))
+        );
+    }
+
+    @Test
     void should_write_hearing_methods_as_comma_separated_labels() {
         when(hearingDetails.getHearingChannels()).thenReturn(List.of("TEL", "NA", "ONPPRS"));
 
