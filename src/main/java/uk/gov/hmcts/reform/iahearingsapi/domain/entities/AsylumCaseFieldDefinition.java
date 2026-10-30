@@ -165,6 +165,28 @@ public enum AsylumCaseFieldDefinition {
         "changeHearingDateRangeLatest", new TypeReference<String>(){}),
     ADJOURNMENT_DETAILS_HEARING(
         "adjournmentDetailsHearing", new TypeReference<DynamicList>(){}),
+    ATTENDEES_AND_DURATION_HEARING(
+        "attendeesAndDurationHearing", new TypeReference<DynamicList>(){}),
+    ATTENDEES_AND_DURATION_HEARING_ID(
+        "attendeesAndDurationHearingId", new TypeReference<String>(){}),
+    ATTENDEES_AND_DURATION_HEARING_DATE(
+        "attendeesAndDurationHearingDate", new TypeReference<String>(){}),
+    ATTENDEES_AND_DURATION_PAPER_HEARING(
+        "attendeesAndDurationPaperHearing", new TypeReference<String>(){}),
+    ATTENDEES_AND_DURATION_HEARING_METHODS(
+        "attendeesAndDurationHearingMethods", new TypeReference<String>(){}),
+    ATTENDEES_AND_DURATION_HEARING_STAGE(
+        "attendeesAndDurationHearingStage", new TypeReference<String>(){}),
+    ATTENDEES_AND_DURATION_HEARING_RESULT(
+        "attendeesAndDurationHearingResult", new TypeReference<String>(){}),
+    ATTENDEES_AND_DURATION_HEARING_JUDGE(
+        "attendeesAndDurationHearingJudge", new TypeReference<String>(){}),
+    ATTENDEES_AND_DURATION_DATE_OF_HEARING(
+        "attendeesAndDurationDateOfHearing", new TypeReference<String>(){}),
+    ATTENDEES_AND_DURATION_HEARING_START_TIME(
+        "attendeesAndDurationHearingStartTime", new TypeReference<String>(){}),
+    ATTENDEES_AND_DURATION_HEARING_FINISH_TIME(
+        "attendeesAndDurationHearingFinishTime", new TypeReference<String>(){}),
     END_APPEAL_OUTCOME(
         "endAppealOutcome", new TypeReference<String>(){}),
     IS_INTEGRATED(
@@ -359,6 +381,9 @@ public enum AsylumCaseFieldDefinition {
 
     CURRENT_HEARING_ID(
         "currentHearingId", new TypeReference<String>() {}),
+
+    HEARINGS(
+        "hearings", new TypeReference<List<HearingDetails>>() {}),
 
     NLR_DETAILS(
         "nlrDetails", new TypeReference<NonLegalRepDetails>(){}),
