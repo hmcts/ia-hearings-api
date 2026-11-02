@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -152,7 +151,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @Test
-    void should_leave_hearing_type_and_result_null_when_stage_and_result_are_missing() {
+    void should_set_hearing_type_and_result_to_none_when_stage_and_result_are_missing() {
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class)).thenReturn(Optional.empty());
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class)).thenReturn(Optional.empty());
 
@@ -160,12 +159,12 @@ class RecordAttendeesAndDurationRequestHandlerTest {
 
         verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
         HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingActuals().getHearingOutcome();
-        assertNull(hearingOutcome.getHearingType());
-        assertNull(hearingOutcome.getHearingResult());
+        assertEquals("None", hearingOutcome.getHearingType());
+        assertEquals("None", hearingOutcome.getHearingResult());
     }
 
     @Test
-    void should_leave_hearing_type_and_result_null_when_stage_and_result_are_unknown() {
+    void should_set_hearing_type_and_result_to_none_when_stage_and_result_are_unknown() {
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class))
             .thenReturn(Optional.of("SUBSTANTIVE"));
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class)).thenReturn(Optional.of("HEARD"));
@@ -174,8 +173,8 @@ class RecordAttendeesAndDurationRequestHandlerTest {
 
         verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
         HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingActuals().getHearingOutcome();
-        assertNull(hearingOutcome.getHearingType());
-        assertNull(hearingOutcome.getHearingResult());
+        assertEquals("None", hearingOutcome.getHearingType());
+        assertEquals("None", hearingOutcome.getHearingResult());
     }
 
     @Test
