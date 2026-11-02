@@ -13,11 +13,11 @@ import lombok.ToString;
 @ToString
 public class HearingOutcome {
 
-    private HearingType hearingType;
+    private String hearingType;
 
     private String hearingFinalFlag;
 
-    private HearingResult hearingResult;
+    private String hearingResult;
 
     private String hearingResultReasonType;
 

@@ -126,8 +126,8 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         assertSame(hearingPlanned, request.getHearingPlanned());
         HearingActuals hearingActuals = request.getHearingActuals();
         HearingOutcome hearingOutcome = hearingActuals.getHearingOutcome();
-        assertEquals(HearingType.SUBSTANTIVE, hearingOutcome.getHearingType());
-        assertEquals(HearingResult.HEARD, hearingOutcome.getHearingResult());
+        assertEquals("BFA1-SUB", hearingOutcome.getHearingType());
+        assertEquals("HEARD", hearingOutcome.getHearingResult());
         assertEquals(HEARING_DATE, hearingOutcome.getHearingResultDate());
         assertEquals(1, hearingActuals.getActualHearingDays().size());
         ActualHearingDay actualHearingDay = hearingActuals.getActualHearingDays().iterator().next();
@@ -137,7 +137,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @Test
-    void should_map_hearing_stage_and_result_labels_to_outcome() {
+    void should_map_hearing_stage_and_result_labels_to_hmc_values() {
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class))
             .thenReturn(Optional.of(HearingType.CMR.getLabel()));
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class))
@@ -147,8 +147,8 @@ class RecordAttendeesAndDurationRequestHandlerTest {
 
         verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
         HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingActuals().getHearingOutcome();
-        assertEquals(HearingType.CMR, hearingOutcome.getHearingType());
-        assertEquals(HearingResult.PART_HEARD, hearingOutcome.getHearingResult());
+        assertEquals("BFA1-CMR", hearingOutcome.getHearingType());
+        assertEquals("PART_HEARD", hearingOutcome.getHearingResult());
     }
 
     @Test

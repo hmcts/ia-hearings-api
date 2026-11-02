@@ -24,6 +24,15 @@ class HearingTypeTest {
 
     @ParameterizedTest
     @CsvSource({
+        "SUBSTANTIVE, BFA1-SUB",
+        "CMR, BFA1-CMR"
+    })
+    void has_correct_hmc_value(HearingType hearingType, String hmcValue) {
+        assertEquals(hmcValue, hearingType.getHmcValue());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
         "substantive, SUBSTANTIVE",
         "cmr, CMR"
     })

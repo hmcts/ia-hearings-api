@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Test;
 class HearingOutcomeTest {
 
     private static final String JSON = "{"
-        + "\"hearingType\":\"substantive\","
+        + "\"hearingType\":\"BFA1-SUB\","
         + "\"hearingFinalFlag\":\"true\","
-        + "\"hearingResult\":\"partHeard\","
+        + "\"hearingResult\":\"PART_HEARD\","
         + "\"hearingResultReasonType\":\"reason\","
         + "\"hearingResultDate\":\"2023-01-20\""
         + "}";
@@ -20,27 +20,27 @@ class HearingOutcomeTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void deserialises_hearing_type_and_result_from_labels() throws JsonProcessingException {
+    void deserialises_hearing_outcome() throws JsonProcessingException {
         HearingOutcome hearingOutcome = objectMapper.readValue(JSON, HearingOutcome.class);
 
-        assertEquals(HearingType.SUBSTANTIVE, hearingOutcome.getHearingType());
-        assertEquals(HearingResult.PART_HEARD, hearingOutcome.getHearingResult());
+        assertEquals("BFA1-SUB", hearingOutcome.getHearingType());
+        assertEquals("PART_HEARD", hearingOutcome.getHearingResult());
         assertEquals("true", hearingOutcome.getHearingFinalFlag());
         assertEquals("reason", hearingOutcome.getHearingResultReasonType());
         assertEquals("2023-01-20", hearingOutcome.getHearingResultDate());
     }
 
     @Test
-    void serialises_hearing_type_and_result_as_labels() throws JsonProcessingException {
+    void serialises_hearing_outcome() throws JsonProcessingException {
         HearingOutcome hearingOutcome = HearingOutcome.builder()
-            .hearingType(HearingType.CMR)
-            .hearingResult(HearingResult.WITHDRAWN)
+            .hearingType(HearingType.CMR.getHmcValue())
+            .hearingResult(HearingResult.WITHDRAWN.name())
             .build();
 
         String json = objectMapper.writeValueAsString(hearingOutcome);
 
         assertThat(json)
-            .contains("\"hearingType\":\"cmr\"")
-            .contains("\"hearingResult\":\"withdrawn\"");
+            .contains("\"hearingType\":\"BFA1-CMR\"")
+            .contains("\"hearingResult\":\"WITHDRAWN\"");
     }
 }

@@ -66,11 +66,16 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         Optional<String> hearingIdOpt = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID);
         if (hearingIdOpt.isPresent()) {
             String hearingDate = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class).orElse("");
+
             HearingOutcome hearingOutcome = new HearingOutcome();
             String hearingTypeStr = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class).orElse("");
-            hearingOutcome.setHearingType(HearingType.from(hearingTypeStr).orElse(null));
+            if (HearingType.from(hearingTypeStr).isPresent()) {
+                hearingOutcome.setHearingType(HearingType.from(hearingTypeStr).get().getHmcValue());
+            }
             String hearingResultStr = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class).orElse("");
-            hearingOutcome.setHearingResult(HearingResult.from(hearingResultStr).orElse(null));
+            if (HearingResult.from(hearingResultStr).isPresent()) {
+                hearingOutcome.setHearingResult(HearingResult.from(hearingResultStr).get().name());
+            }
             hearingOutcome.setHearingResultDate(hearingDate);
 
             ActualHearingDay actualHearingDay = new ActualHearingDay();

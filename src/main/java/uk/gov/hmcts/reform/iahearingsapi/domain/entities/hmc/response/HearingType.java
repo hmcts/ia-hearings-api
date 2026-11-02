@@ -11,14 +11,18 @@ import static java.util.Arrays.stream;
 @Getter
 public enum HearingType {
 
-    SUBSTANTIVE("substantive"),
-    CMR("cmr");
+    SUBSTANTIVE("substantive", "BFA1-SUB"),
+    CMR("cmr", "BFA1-CMR");
 
     @JsonValue
     private final String label;
 
-    HearingType(String label) {
+    @JsonValue
+    private final String hmcValue;
+
+    HearingType(String label, String hmcValue) {
         this.label = label;
+        this.hmcValue = hmcValue;
     }
 
     public static Optional<HearingType> from(String value) {
