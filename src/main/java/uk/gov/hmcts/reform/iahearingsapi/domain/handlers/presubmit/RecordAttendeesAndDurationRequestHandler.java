@@ -18,6 +18,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +41,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD
 @Slf4j
 @RequiredArgsConstructor
 public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallbackHandler<AsylumCase> {
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
     private final HearingService hearingService;
     private final HearingActualsService hearingActualsService;
     private final UpdateHearingPayloadService updateHearingPayloadService;
@@ -66,8 +72,10 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         if (hearingIdOpt.isPresent()) {
             HearingOutcome hearingOutcome = new HearingOutcome();
 
-            String hearingDate = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class).orElse("");
-            hearingOutcome.setHearingResultDate("2026-10-28");
+            String hearingDateTime = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class).orElse("");
+            String hearingDate =
+                hearingDateTime.isEmpty() ? "" : LocalDateTime.parse(hearingDateTime).toLocalDate().toString();
+            hearingOutcome.setHearingResultDate(hearingDate);
 
             String hearingTypeStr = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class).orElse("");
             log.info("hearingTypeStr is {}", hearingTypeStr);
@@ -87,23 +95,20 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
                 log.info("hearingResultStr is {}", "None");
                 hearingOutcome.setHearingResult("None");
             }
-            // hearingOutcome.setHearingFinalFlag("None");
             hearingOutcome.setHearingFinalFlag(false);
 
             HearingActuals hearingActuals = new HearingActuals();
             hearingActuals.setHearingOutcome(hearingOutcome);
 
             ActualHearingDay actualHearingDay = new ActualHearingDay();
-            // actualHearingDay.setHearingDate(hearingDate);
-            actualHearingDay.setHearingDate("2026-10-28");
+            actualHearingDay.setHearingDate(hearingDate);
+
             String hearingStartTime =
                 asylumCase.read(ATTENDEES_AND_DURATION_HEARING_START_TIME, String.class).orElse("");
-            // actualHearingDay.setHearingStartTime(hearingStartTime);
-            actualHearingDay.setHearingStartTime("2026-10-28T10:21:00");
+            actualHearingDay.setHearingStartTime(toDateTime(hearingDate, hearingStartTime));
             String hearingEndTime =
                 asylumCase.read(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, String.class).orElse("");
-            // actualHearingDay.setHearingEndTime(hearingEndTime);
-            actualHearingDay.setHearingEndTime("2026-10-28T12:21:00");
+            actualHearingDay.setHearingEndTime(toDateTime(hearingDate, hearingEndTime));
 
             PauseDateTime pauseDateTime = new PauseDateTime();
             pauseDateTime.setPauseStartTime("2026-10-28T10:25:00");
@@ -112,7 +117,6 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             pauseDateTimes.add(pauseDateTime);
             actualHearingDay.setPauseDateTimes(pauseDateTimes);
 
-            // actualHearingDay.setNotRequired("No");
             actualHearingDay.setNotRequired(false);
 
             Set<ActualHearingDay> actualHearingDays = new HashSet<>();
@@ -129,5 +133,12 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);
+    }
+
+    private static String toDateTime(String date, String time) {
+        if (date.isEmpty() || time.isEmpty()) {
+            return "";
+        }
+        return LocalDateTime.of(LocalDate.parse(date), LocalTime.parse(time)).format(DATE_TIME_FORMATTER);
     }
 }
