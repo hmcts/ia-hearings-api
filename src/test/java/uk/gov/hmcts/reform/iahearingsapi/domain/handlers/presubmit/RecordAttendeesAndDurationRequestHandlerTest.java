@@ -4,9 +4,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -24,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -35,10 +38,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingActualsRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
@@ -62,16 +67,21 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     @Mock
     private UpdateHearingPayloadService updateHearingPayloadService;
     @Captor
-    private ArgumentCaptor<UpdateHearingActualsRequest> requestCaptor;
+    private ArgumentCaptor<HearingActualsGetResponse> requestCaptor;
+
+    private final HearingPlanned hearingPlanned = HearingPlanned.builder().plannedHearingType("SUBSTANTIVE").build();
+    private HearingActualsGetResponse existingHearingActuals;
 
     private RecordAttendeesAndDurationRequestHandler handler;
 
     @BeforeEach
     void setUp() {
+        existingHearingActuals = HearingActualsGetResponse.builder().hearingPlanned(hearingPlanned).build();
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(caseDetails.getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(RECORD_ATTENDEES_AND_DURATION);
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID)).thenReturn(Optional.of(HEARING_ID));
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(existingHearingActuals);
 
         handler = new RecordAttendeesAndDurationRequestHandler(
             hearingService,
@@ -81,25 +91,30 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @Test
-    void should_update_hearing_actuals_for_hearing() {
+    void should_add_outcome_and_actual_days_to_existing_hearing_actuals_and_update() {
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(ABOUT_TO_SUBMIT, callback);
 
         assertNotNull(callbackResponse);
         assertEquals(asylumCase, callbackResponse.getData());
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_START_TIME, "");
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, "");
-        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        InOrder inOrder = inOrder(hearingActualsService);
+        inOrder.verify(hearingActualsService).getHearingActuals(HEARING_ID);
+        inOrder.verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
         verifyNoMoreInteractions(hearingActualsService);
         verifyNoInteractions(hearingService);
         verifyNoInteractions(updateHearingPayloadService);
 
-        UpdateHearingActualsRequest request = requestCaptor.getValue();
-        HearingOutcome hearingOutcome = request.getHearingOutcome();
+        HearingActualsGetResponse request = requestCaptor.getValue();
+        assertSame(existingHearingActuals, request);
+        assertSame(hearingPlanned, request.getHearingPlanned());
+        HearingActuals hearingActuals = request.getHearingActuals();
+        HearingOutcome hearingOutcome = hearingActuals.getHearingOutcome();
         assertEquals(HearingType.SUBSTANTIVE, hearingOutcome.getHearingType());
         assertEquals(HearingResult.HEARD, hearingOutcome.getHearingResult());
         assertNotNull(hearingOutcome.getHearingResultDate());
-        assertEquals(1, request.getActualHearingDays().size());
-        ActualHearingDay actualHearingDay = request.getActualHearingDays().get(0);
+        assertEquals(1, hearingActuals.getActualHearingDays().size());
+        ActualHearingDay actualHearingDay = hearingActuals.getActualHearingDays().get(0);
         assertEquals(hearingOutcome.getHearingResultDate(), actualHearingDay.getHearingDate());
         assertEquals(1, actualHearingDay.getActualDayParties().size());
     }

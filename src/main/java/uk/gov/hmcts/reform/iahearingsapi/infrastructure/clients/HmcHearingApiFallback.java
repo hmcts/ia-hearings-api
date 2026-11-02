@@ -8,7 +8,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingAct
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingActualsRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
@@ -65,7 +64,7 @@ public class HmcHearingApiFallback implements HmcHearingApi {
     public HearingActualsGetResponse updateHearingActualsRequest(
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
-        String roleAssignmentUrl, UpdateHearingActualsRequest updateHearingActualsRequest, String id) {
+        String roleAssignmentUrl, HearingActualsGetResponse updateHearingActualsRequest, String id) {
         throw new HmcException("updateHearingActualsRequest call failed after retries");
     }
 

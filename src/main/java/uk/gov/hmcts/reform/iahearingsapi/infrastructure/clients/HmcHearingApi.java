@@ -25,7 +25,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingAct
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingActualsRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
@@ -111,7 +110,7 @@ public interface HmcHearingApi {
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
         @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
-        @RequestBody UpdateHearingActualsRequest updateHearingActualsRequest,
+        @RequestBody HearingActualsGetResponse updateHearingActualsRequest,
         @PathVariable String id
     );
 

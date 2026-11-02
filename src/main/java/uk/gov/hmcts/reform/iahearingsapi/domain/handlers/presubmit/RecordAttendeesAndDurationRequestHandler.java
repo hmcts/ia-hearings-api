@@ -10,11 +10,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualDayParty;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualIndividualDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PausedDateTime;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingActualsRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
@@ -103,14 +104,18 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             List<ActualHearingDay> actualHearingDays = new ArrayList<>();
             actualHearingDays.add(actualHearingDay);
 
-            UpdateHearingActualsRequest request = new UpdateHearingActualsRequest();
-            request.setHearingOutcome(hearingOutcome);
-            request.setActualHearingDays(actualHearingDays);
-
             String hearingId = hearingIdOpt.get();
-            log.info("Updating hearing actuals {} for hearing id {}", request, hearingId);
-            hearingActualsService.updateHearingActuals(request, hearingId);
-            log.info("Updated hearing actuals {} for hearing id {}", request, hearingId);
+            HearingActualsGetResponse hearingActuals = hearingActualsService.getHearingActuals(hearingId);
+            log.info("hearingActuals {}", hearingActuals);
+
+            HearingActuals ha = new HearingActuals();
+            ha.setHearingOutcome(hearingOutcome);
+            ha.setActualHearingDays(actualHearingDays);
+            hearingActuals.setHearingActuals(ha);
+
+            log.info("Updating hearing actuals {} for hearing id {}", hearingActuals, hearingId);
+            hearingActualsService.updateHearingActuals(hearingActuals, hearingId);
+            log.info("Updated hearing actuals {} for hearing id {}", hearingActuals, hearingId);
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);

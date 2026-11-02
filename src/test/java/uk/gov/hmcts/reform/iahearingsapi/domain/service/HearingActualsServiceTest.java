@@ -20,7 +20,6 @@ import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingActualsRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
@@ -79,7 +78,7 @@ class HearingActualsServiceTest {
 
     @Test
     void testUpdateHearingActuals() {
-        UpdateHearingActualsRequest request = UpdateHearingActualsRequest.builder().build();
+        HearingActualsGetResponse request = HearingActualsGetResponse.builder().build();
         HearingActualsGetResponse response = new HearingActualsGetResponse();
         when(hmcHearingApi.updateHearingActualsRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, DEPLOYMENT_ID,
                                                        DATA_STORE_URL, ROLE_ASSIGNMENT_URL, request, HEARING_ID))
@@ -92,9 +91,9 @@ class HearingActualsServiceTest {
 
     @Test
     void testUpdateHearingActualsException() {
-        UpdateHearingActualsRequest request = UpdateHearingActualsRequest.builder().build();
+        HearingActualsGetResponse request = HearingActualsGetResponse.builder().build();
         when(hmcHearingApi.updateHearingActualsRequest(anyString(), anyString(), anyString(), anyString(),
-                                                       anyString(), any(UpdateHearingActualsRequest.class),
+                                                       anyString(), any(HearingActualsGetResponse.class),
                                                        anyString()))
             .thenThrow(FeignException.class);
 

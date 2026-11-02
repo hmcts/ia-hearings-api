@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingActualsRequest;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HmcHearingResponse;
@@ -68,7 +68,7 @@ class HmcHearingApiFallbackTest {
 
     @Test
     void updateHearingActualsRequest_throws_HmcException() {
-        UpdateHearingActualsRequest someRequest = UpdateHearingActualsRequest.builder().build();
+        HearingActualsGetResponse someRequest = HearingActualsGetResponse.builder().build();
         HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.updateHearingActualsRequest(
             "auth", "serviceAuth", "URL", "role", "depID", someRequest, "id"));
         assertEquals(HmcException.MESSAGE_TEMPLATE + "updateHearingActualsRequest call failed after retries",

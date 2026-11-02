@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingActualsRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
@@ -50,7 +49,7 @@ public class HearingActualsService {
     }
 
     public HearingActualsGetResponse updateHearingActuals(
-        UpdateHearingActualsRequest updateHearingActualsRequest,
+        HearingActualsGetResponse updateHearingActualsRequest,
         String hearingId
     ) throws HmcException {
         log.info(
