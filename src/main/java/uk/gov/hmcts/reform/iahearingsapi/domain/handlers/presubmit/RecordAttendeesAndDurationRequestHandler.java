@@ -7,9 +7,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualDayParty;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualIndividualDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
@@ -28,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_FINISH_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_START_TIME;
@@ -62,24 +61,22 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
 
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
 
-        String hearingDate = "10-10-2026";
         Optional<String> hearingIdOpt = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID);
         if (hearingIdOpt.isPresent()) {
-            log.info("------hearingIdOpt: {}", hearingIdOpt);
-            asylumCase.write(ATTENDEES_AND_DURATION_HEARING_START_TIME, "");
-            asylumCase.write(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, "");
-
+            String hearingDate = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class).orElse("");
             HearingOutcome hearingOutcome = new HearingOutcome();
             hearingOutcome.setHearingType(HearingType.SUBSTANTIVE);
-            hearingOutcome.setHearingFinalFlag("No");
             hearingOutcome.setHearingResult(HearingResult.HEARD);
-            hearingOutcome.setHearingResultReasonType("Reason");
             hearingOutcome.setHearingResultDate(hearingDate);
 
             ActualHearingDay actualHearingDay = new ActualHearingDay();
             actualHearingDay.setHearingDate(hearingDate);
-            actualHearingDay.setHearingStartTime("10:00");
-            actualHearingDay.setHearingEndTime("12:00");
+            String hearingStartTime =
+                asylumCase.read(ATTENDEES_AND_DURATION_HEARING_START_TIME, String.class).orElse("");
+            actualHearingDay.setHearingStartTime(hearingStartTime);
+            String hearingEndTime =
+                asylumCase.read(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, String.class).orElse("");
+            actualHearingDay.setHearingEndTime(hearingEndTime);
 
             PausedDateTime pausedDateTime = new PausedDateTime();
             pausedDateTime.setPauseStartTime("10:10");
@@ -87,20 +84,6 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             List<PausedDateTime> pausedDateTimes = new ArrayList<>();
             pausedDateTimes.add(pausedDateTime);
             actualHearingDay.setPausedDateTimes(pausedDateTimes);
-
-            ActualDayParty actualDayParty = new ActualDayParty();
-            actualDayParty.setActualPartyId("123");
-            actualDayParty.setPartyRole("Role");
-            ActualIndividualDetails actualIndividualDetails = new ActualIndividualDetails();
-            actualIndividualDetails.setFirstName("John");
-            actualIndividualDetails.setLastName("Smith");
-            actualDayParty.setIndividualDetails(actualIndividualDetails);
-            actualDayParty.setPartyChannelSubType("INTER");
-            actualDayParty.setDidNotAttendFlag("No");
-            actualDayParty.setRepresentedParty("RepresentedParty");
-            List<ActualDayParty> actualDayParties = new ArrayList<>();
-            actualDayParties.add(actualDayParty);
-            actualHearingDay.setActualDayParties(actualDayParties);
 
             actualHearingDay.setNotRequired("No");
             Set<ActualHearingDay> actualHearingDays = new HashSet<>();
