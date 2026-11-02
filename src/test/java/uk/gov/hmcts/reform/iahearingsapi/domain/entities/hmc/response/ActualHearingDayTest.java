@@ -18,15 +18,15 @@ class ActualHearingDayTest {
             .hearingDate(HEARING_DATE)
             .hearingStartTime("10:00")
             .hearingEndTime("12:00")
-            .pausedDateTimes(List.of(new PausedDateTime()))
+            .pauseDateTimes(List.of(new PauseDateTime()))
             .actualDayParties(List.of(new ActualDayParty()))
-            .notRequired("No")
+            .notRequired(false)
             .build();
         ActualHearingDay otherDay = ActualHearingDay.builder()
             .hearingDate(HEARING_DATE)
             .hearingStartTime("14:00")
             .hearingEndTime("16:00")
-            .notRequired("Yes")
+            .notRequired(true)
             .build();
 
         assertEquals(day, otherDay);

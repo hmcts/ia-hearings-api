@@ -15,7 +15,7 @@ public class HearingOutcome {
 
     private String hearingType;
 
-    private String hearingFinalFlag;
+    private boolean hearingFinalFlag;
 
     private String hearingResult;
 

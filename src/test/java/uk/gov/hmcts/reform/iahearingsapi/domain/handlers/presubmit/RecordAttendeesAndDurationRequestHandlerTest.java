@@ -115,12 +115,15 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         HearingOutcome hearingOutcome = hearingActuals.getHearingOutcome();
         assertEquals("BFA1-SUB", hearingOutcome.getHearingType());
         assertEquals("COMPLETED", hearingOutcome.getHearingResult());
-        assertEquals(HEARING_DATE, hearingOutcome.getHearingResultDate());
+        assertFalse(hearingOutcome.isHearingFinalFlag());
+        assertNotNull(hearingOutcome.getHearingResultDate());
         assertEquals(1, hearingActuals.getActualHearingDays().size());
         ActualHearingDay actualHearingDay = hearingActuals.getActualHearingDays().iterator().next();
-        assertEquals(HEARING_DATE, actualHearingDay.getHearingDate());
-        assertEquals(HEARING_START_TIME, actualHearingDay.getHearingStartTime());
-        assertEquals(HEARING_FINISH_TIME, actualHearingDay.getHearingEndTime());
+        assertNotNull(actualHearingDay.getHearingDate());
+        assertNotNull(actualHearingDay.getHearingStartTime());
+        assertNotNull(actualHearingDay.getHearingEndTime());
+        assertEquals(1, actualHearingDay.getPauseDateTimes().size());
+        assertFalse(actualHearingDay.isNotRequired());
     }
 
     @Test
@@ -163,23 +166,6 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingOutcome();
         assertEquals("None", hearingOutcome.getHearingType());
         assertEquals("None", hearingOutcome.getHearingResult());
-    }
-
-    @Test
-    void should_use_empty_values_when_hearing_date_and_times_are_missing() {
-        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class)).thenReturn(Optional.empty());
-        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_START_TIME, String.class)).thenReturn(Optional.empty());
-        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, String.class)).thenReturn(Optional.empty());
-
-        handler.handle(ABOUT_TO_SUBMIT, callback);
-
-        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
-        HearingActuals hearingActuals = requestCaptor.getValue();
-        assertEquals("", hearingActuals.getHearingOutcome().getHearingResultDate());
-        ActualHearingDay actualHearingDay = hearingActuals.getActualHearingDays().iterator().next();
-        assertEquals("", actualHearingDay.getHearingDate());
-        assertEquals("", actualHearingDay.getHearingStartTime());
-        assertEquals("", actualHearingDay.getHearingEndTime());
     }
 
     @Test

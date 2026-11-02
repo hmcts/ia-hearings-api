@@ -24,9 +24,9 @@ public class ActualHearingDay {
 
     private String hearingEndTime;
 
-    private List<PausedDateTime> pausedDateTimes;
+    private List<PauseDateTime> pauseDateTimes;
 
     private List<ActualDayParty> actualDayParties;
 
-    private String notRequired;
+    private boolean notRequired;
 }

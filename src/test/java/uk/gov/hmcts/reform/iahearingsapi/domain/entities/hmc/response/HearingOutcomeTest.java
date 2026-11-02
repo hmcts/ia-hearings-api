@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +12,7 @@ class HearingOutcomeTest {
 
     private static final String JSON = "{"
         + "\"hearingType\":\"BFA1-SUB\","
-        + "\"hearingFinalFlag\":\"true\","
+        + "\"hearingFinalFlag\":true,"
         + "\"hearingResult\":\"ADJOURNED\","
         + "\"hearingResultReasonType\":\"reason\","
         + "\"hearingResultDate\":\"2023-01-20\""
@@ -25,7 +26,7 @@ class HearingOutcomeTest {
 
         assertEquals("BFA1-SUB", hearingOutcome.getHearingType());
         assertEquals("ADJOURNED", hearingOutcome.getHearingResult());
-        assertEquals("true", hearingOutcome.getHearingFinalFlag());
+        assertTrue(hearingOutcome.isHearingFinalFlag());
         assertEquals("reason", hearingOutcome.getHearingResultReasonType());
         assertEquals("2023-01-20", hearingOutcome.getHearingResultDate());
     }

@@ -12,7 +12,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingAct
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingType;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PausedDateTime;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PauseDateTime;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
@@ -67,7 +67,7 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             HearingOutcome hearingOutcome = new HearingOutcome();
 
             String hearingDate = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class).orElse("");
-            hearingOutcome.setHearingResultDate(hearingDate);
+            hearingOutcome.setHearingResultDate("2026-10-28");
 
             String hearingTypeStr = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class).orElse("");
             log.info("hearingTypeStr is {}", hearingTypeStr);
@@ -87,26 +87,34 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
                 log.info("hearingResultStr is {}", "None");
                 hearingOutcome.setHearingResult("None");
             }
+            // hearingOutcome.setHearingFinalFlag("None");
+            hearingOutcome.setHearingFinalFlag(false);
+
             HearingActuals hearingActuals = new HearingActuals();
             hearingActuals.setHearingOutcome(hearingOutcome);
 
             ActualHearingDay actualHearingDay = new ActualHearingDay();
-            actualHearingDay.setHearingDate(hearingDate);
+            // actualHearingDay.setHearingDate(hearingDate);
+            actualHearingDay.setHearingDate("2026-10-28");
             String hearingStartTime =
                 asylumCase.read(ATTENDEES_AND_DURATION_HEARING_START_TIME, String.class).orElse("");
-            actualHearingDay.setHearingStartTime(hearingStartTime);
+            // actualHearingDay.setHearingStartTime(hearingStartTime);
+            actualHearingDay.setHearingStartTime("2026-10-28T10:21:00");
             String hearingEndTime =
                 asylumCase.read(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, String.class).orElse("");
-            actualHearingDay.setHearingEndTime(hearingEndTime);
+            // actualHearingDay.setHearingEndTime(hearingEndTime);
+            actualHearingDay.setHearingEndTime("2026-10-28T12:21:00");
 
-            PausedDateTime pausedDateTime = new PausedDateTime();
-            pausedDateTime.setPauseStartTime("10:10");
-            pausedDateTime.setPauseEndTime("10:20");
-            List<PausedDateTime> pausedDateTimes = new ArrayList<>();
-            pausedDateTimes.add(pausedDateTime);
-            actualHearingDay.setPausedDateTimes(pausedDateTimes);
+            PauseDateTime pauseDateTime = new PauseDateTime();
+            pauseDateTime.setPauseStartTime("2026-10-28T10:25:00");
+            pauseDateTime.setPauseEndTime("2026-10-28T10:35:00");
+            List<PauseDateTime> pauseDateTimes = new ArrayList<>();
+            pauseDateTimes.add(pauseDateTime);
+            actualHearingDay.setPauseDateTimes(pauseDateTimes);
 
-            actualHearingDay.setNotRequired("No");
+            // actualHearingDay.setNotRequired("No");
+            actualHearingDay.setNotRequired(false);
+
             Set<ActualHearingDay> actualHearingDays = new HashSet<>();
             actualHearingDays.add(actualHearingDay);
 

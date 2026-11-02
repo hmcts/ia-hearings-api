@@ -11,7 +11,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder
 @ToString
-public class PausedDateTime {
+public class PauseDateTime {
 
     private String pauseStartTime;
 
