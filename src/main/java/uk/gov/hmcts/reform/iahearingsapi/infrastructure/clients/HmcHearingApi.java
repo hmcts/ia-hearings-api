@@ -110,7 +110,7 @@ public interface HmcHearingApi {
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
         @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
-        @RequestBody HearingActualsData updateHearingActualsRequest,
+        @RequestBody HearingActualsData hearingActualsData,
         @PathVariable String id
     );
 

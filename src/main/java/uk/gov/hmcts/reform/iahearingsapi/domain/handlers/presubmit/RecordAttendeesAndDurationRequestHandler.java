@@ -118,8 +118,9 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             hearingActualsData.setHearingActuals(hearingActuals);
 
             log.info("Updating hearing actuals {} for hearing id {}", hearingActualsData, hearingId);
-            hearingActualsService.updateHearingActuals(hearingActualsData, hearingId);
-            log.info("Updated hearing actuals {} for hearing id {}", hearingActualsData, hearingId);
+            HearingActualsData hearingActualsResponse =
+                hearingActualsService.updateHearingActuals(hearingActualsData, hearingId);
+            log.info("Updated hearing actuals {} for hearing id {}", hearingActualsResponse, hearingId);
             hearingActualsService.completeHearingActuals(hearingId);
             log.info("Completed hearing actuals for hearing id {}", hearingId);
         }
