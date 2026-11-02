@@ -107,7 +107,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @Test
-    void should_add_outcome_and_actual_days_to_existing_hearing_actuals_and_update() {
+    void should_add_outcome_and_actual_days_to_existing_hearing_actuals_then_update_and_complete() {
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(ABOUT_TO_SUBMIT, callback);
 
         assertNotNull(callbackResponse);
@@ -116,6 +116,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         InOrder inOrder = inOrder(hearingActualsService);
         inOrder.verify(hearingActualsService).getHearingActuals(HEARING_ID);
         inOrder.verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        inOrder.verify(hearingActualsService).completeHearingActuals(HEARING_ID);
         verifyNoMoreInteractions(hearingActualsService);
         verifyNoInteractions(hearingService);
         verifyNoInteractions(updateHearingPayloadService);

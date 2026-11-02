@@ -105,6 +105,8 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             log.info("Updating hearing actuals {} for hearing id {}", hearingActualsData, hearingId);
             hearingActualsService.updateHearingActuals(hearingActualsData, hearingId);
             log.info("Updated hearing actuals {} for hearing id {}", hearingActualsData, hearingId);
+            hearingActualsService.completeHearingActuals(hearingId);
+            log.info("Completed hearing actuals for hearing id {}", hearingId);
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);
