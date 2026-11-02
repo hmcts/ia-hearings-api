@@ -70,14 +70,6 @@ public class HmcHearingApiFallback implements HmcHearingApi {
     }
 
     @Override
-    public HearingActualsGetResponse createHearingActualsRequest(
-        String authorisation, String serviceAuthorization,
-        String hmctsDeploymentId, String dataStoreUrl,
-        String roleAssignmentUrl, UpdateHearingActualsRequest updateHearingActualsRequest, String id) {
-        throw new HmcException("createHearingActualsRequest call failed after retries");
-    }
-
-    @Override
     public void completeHearingActualsRequest(
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,

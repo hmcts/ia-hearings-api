@@ -103,31 +103,6 @@ class HearingActualsServiceTest {
     }
 
     @Test
-    void testCreateHearingActuals() {
-        UpdateHearingActualsRequest request = UpdateHearingActualsRequest.builder().build();
-        HearingActualsGetResponse response = new HearingActualsGetResponse();
-        when(hmcHearingApi.createHearingActualsRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, DEPLOYMENT_ID,
-                                                       DATA_STORE_URL, ROLE_ASSIGNMENT_URL, request, HEARING_ID))
-            .thenReturn(response);
-
-        HearingActualsGetResponse result = hearingActualsService.createHearingActuals(request, HEARING_ID);
-
-        assertThat(result).isSameAs(response);
-    }
-
-    @Test
-    void testCreateHearingActualsException() {
-        UpdateHearingActualsRequest request = UpdateHearingActualsRequest.builder().build();
-        when(hmcHearingApi.createHearingActualsRequest(anyString(), anyString(), anyString(), anyString(),
-                                                       anyString(), any(UpdateHearingActualsRequest.class),
-                                                       anyString()))
-            .thenThrow(FeignException.class);
-
-        assertThatThrownBy(() -> hearingActualsService.createHearingActuals(request, HEARING_ID))
-            .isInstanceOf(HmcException.class);
-    }
-
-    @Test
     void testCompleteHearingActuals() {
         hearingActualsService.completeHearingActuals(HEARING_ID);
 

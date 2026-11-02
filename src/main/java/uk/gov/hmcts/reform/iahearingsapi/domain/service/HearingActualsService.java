@@ -49,35 +49,6 @@ public class HearingActualsService {
         }
     }
 
-    public HearingActualsGetResponse createHearingActuals(
-        UpdateHearingActualsRequest updateHearingActualsRequest,
-        String hearingId
-    ) throws HmcException {
-        log.info(
-            "Create Hearing Actuals for hearing ID {}, hmctsDeploymentId: '{}' and request:\n{}",
-            hearingId,
-            hmctsDeploymentId,
-            updateHearingActualsRequest
-        );
-        try {
-            String serviceUserToken = idamService.getServiceUserToken();
-            String serviceAuthToken = serviceAuthTokenGenerator.generate();
-
-            return hmcHearingApi.createHearingActualsRequest(
-                serviceUserToken,
-                serviceAuthToken,
-                hmctsDeploymentId,
-                dataStoreUrl,
-                roleAssignmentUrl,
-                updateHearingActualsRequest,
-                hearingId
-            );
-        } catch (FeignException ex) {
-            log.error("Failed to update hearing with Id: {} from HMC. Error: {}", hearingId, ex.getMessage());
-            throw new HmcException(ex);
-        }
-    }
-
     public HearingActualsGetResponse updateHearingActuals(
         UpdateHearingActualsRequest updateHearingActualsRequest,
         String hearingId
