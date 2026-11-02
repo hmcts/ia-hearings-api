@@ -126,7 +126,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         HearingActuals hearingActuals = request.getHearingActuals();
         HearingOutcome hearingOutcome = hearingActuals.getHearingOutcome();
         assertEquals("BFA1-SUB", hearingOutcome.getHearingType());
-        assertEquals("HEARD", hearingOutcome.getHearingResult());
+        assertEquals("COMPLETED", hearingOutcome.getHearingResult());
         assertEquals(HEARING_DATE, hearingOutcome.getHearingResultDate());
         assertEquals(1, hearingActuals.getActualHearingDays().size());
         ActualHearingDay actualHearingDay = hearingActuals.getActualHearingDays().iterator().next();
@@ -147,7 +147,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
         HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingActuals().getHearingOutcome();
         assertEquals("BFA1-CMR", hearingOutcome.getHearingType());
-        assertEquals("PART_HEARD", hearingOutcome.getHearingResult());
+        assertEquals("ADJOURNED", hearingOutcome.getHearingResult());
     }
 
     @Test

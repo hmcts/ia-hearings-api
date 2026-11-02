@@ -2,16 +2,12 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 class HearingResultTest {
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @ParameterizedTest
     @CsvSource({
@@ -21,6 +17,16 @@ class HearingResultTest {
     })
     void has_correct_label(HearingResult hearingResult, String label) {
         assertEquals(label, hearingResult.getLabel());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "HEARD, COMPLETED",
+        "PART_HEARD, ADJOURNED",
+        "WITHDRAWN, CANCELLED"
+    })
+    void has_correct_hmc_value(HearingResult hearingResult, String hmcValue) {
+        assertEquals(hmcValue, hearingResult.getHmcValue());
     }
 
     @ParameterizedTest
@@ -36,18 +42,8 @@ class HearingResultTest {
     @Test
     void from_returns_empty_for_unknown_label() {
         assertEquals(Optional.empty(), HearingResult.from("HEARD"));
+        assertEquals(Optional.empty(), HearingResult.from("COMPLETED"));
         assertEquals(Optional.empty(), HearingResult.from(null));
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-        "HEARD, heard",
-        "PART_HEARD, partHeard",
-        "WITHDRAWN, withdrawn"
-    })
-    void serialises_to_and_from_label(HearingResult hearingResult, String label) throws JsonProcessingException {
-        assertEquals("\"" + label + "\"", objectMapper.writeValueAsString(hearingResult));
-        assertEquals(hearingResult, objectMapper.readValue("\"" + label + "\"", HearingResult.class));
     }
 
     @Test

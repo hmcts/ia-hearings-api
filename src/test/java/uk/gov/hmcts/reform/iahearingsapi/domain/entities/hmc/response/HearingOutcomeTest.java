@@ -12,7 +12,7 @@ class HearingOutcomeTest {
     private static final String JSON = "{"
         + "\"hearingType\":\"BFA1-SUB\","
         + "\"hearingFinalFlag\":\"true\","
-        + "\"hearingResult\":\"PART_HEARD\","
+        + "\"hearingResult\":\"ADJOURNED\","
         + "\"hearingResultReasonType\":\"reason\","
         + "\"hearingResultDate\":\"2023-01-20\""
         + "}";
@@ -24,7 +24,7 @@ class HearingOutcomeTest {
         HearingOutcome hearingOutcome = objectMapper.readValue(JSON, HearingOutcome.class);
 
         assertEquals("BFA1-SUB", hearingOutcome.getHearingType());
-        assertEquals("PART_HEARD", hearingOutcome.getHearingResult());
+        assertEquals("ADJOURNED", hearingOutcome.getHearingResult());
         assertEquals("true", hearingOutcome.getHearingFinalFlag());
         assertEquals("reason", hearingOutcome.getHearingResultReasonType());
         assertEquals("2023-01-20", hearingOutcome.getHearingResultDate());
@@ -34,13 +34,13 @@ class HearingOutcomeTest {
     void serialises_hearing_outcome() throws JsonProcessingException {
         HearingOutcome hearingOutcome = HearingOutcome.builder()
             .hearingType(HearingType.CMR.getHmcValue())
-            .hearingResult(HearingResult.WITHDRAWN.name())
+            .hearingResult(HearingResult.WITHDRAWN.getHmcValue())
             .build();
 
         String json = objectMapper.writeValueAsString(hearingOutcome);
 
         assertThat(json)
             .contains("\"hearingType\":\"BFA1-CMR\"")
-            .contains("\"hearingResult\":\"WITHDRAWN\"");
+            .contains("\"hearingResult\":\"CANCELLED\"");
     }
 }

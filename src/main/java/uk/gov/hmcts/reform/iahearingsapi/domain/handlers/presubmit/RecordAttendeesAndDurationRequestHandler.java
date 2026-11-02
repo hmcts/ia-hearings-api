@@ -83,7 +83,7 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             log.info("hearingResultStr is {}", hearingResultStr);
             if (HearingResult.from(hearingResultStr).isPresent()) {
                 log.info("hearingResultStr is {}", HearingResult.from(hearingResultStr).get());
-                hearingOutcome.setHearingResult(HearingResult.from(hearingResultStr).get().name());
+                hearingOutcome.setHearingResult(HearingResult.from(hearingResultStr).get().getHmcValue());
             } else {
                 log.info("hearingResultStr is {}", "None");
                 hearingOutcome.setHearingResult("None");

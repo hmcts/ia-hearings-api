@@ -11,15 +11,19 @@ import static java.util.Arrays.stream;
 @Getter
 public enum HearingResult {
 
-    HEARD("heard"),
-    PART_HEARD("partHeard"),
-    WITHDRAWN("withdrawn");
+    HEARD("heard", "COMPLETED"),
+    PART_HEARD("partHeard", "ADJOURNED"),
+    WITHDRAWN("withdrawn", "CANCELLED");
 
     @JsonValue
     private final String label;
 
-    HearingResult(String label) {
+    @JsonValue
+    private final String hmcValue;
+
+    HearingResult(String label, String hmcValue) {
         this.label = label;
+        this.hmcValue = hmcValue;
     }
 
     public static Optional<HearingResult> from(String value) {
