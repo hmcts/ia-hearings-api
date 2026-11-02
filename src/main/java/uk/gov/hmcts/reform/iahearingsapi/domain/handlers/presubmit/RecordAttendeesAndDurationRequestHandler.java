@@ -65,18 +65,31 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
 
         Optional<String> hearingIdOpt = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID);
         if (hearingIdOpt.isPresent()) {
-            String hearingDate = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class).orElse("");
-
             HearingOutcome hearingOutcome = new HearingOutcome();
+
+            String hearingDate = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class).orElse("");
+            hearingOutcome.setHearingResultDate(hearingDate);
+
             String hearingTypeStr = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class).orElse("");
+            log.info("hearingTypeStr is {}", hearingTypeStr);
             if (HearingType.from(hearingTypeStr).isPresent()) {
+                log.info("hearingTypeStr is {}", HearingType.from(hearingTypeStr).get());
                 hearingOutcome.setHearingType(HearingType.from(hearingTypeStr).get().getHmcValue());
+            } else {
+                log.info("hearingTypeStr is {}", "None");
+                hearingOutcome.setHearingType("None");
             }
             String hearingResultStr = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class).orElse("");
+            log.info("hearingResultStr is {}", hearingResultStr);
             if (HearingResult.from(hearingResultStr).isPresent()) {
+                log.info("hearingResultStr is {}", HearingResult.from(hearingResultStr).get());
                 hearingOutcome.setHearingResult(HearingResult.from(hearingResultStr).get().name());
+            } else {
+                log.info("hearingResultStr is {}", "None");
+                hearingOutcome.setHearingResult("None");
             }
-            hearingOutcome.setHearingResultDate(hearingDate);
+            HearingActuals hearingActuals = new HearingActuals();
+            hearingActuals.setHearingOutcome(hearingOutcome);
 
             ActualHearingDay actualHearingDay = new ActualHearingDay();
             actualHearingDay.setHearingDate(hearingDate);
@@ -101,9 +114,6 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             String hearingId = hearingIdOpt.get();
             HearingActualsData hearingActualsData = hearingActualsService.getHearingActuals(hearingId);
             log.info("hearingActualsData {}", hearingActualsData);
-
-            HearingActuals hearingActuals = new HearingActuals();
-            hearingActuals.setHearingOutcome(hearingOutcome);
             hearingActuals.setActualHearingDays(actualHearingDays);
             hearingActualsData.setHearingActuals(hearingActuals);
 
