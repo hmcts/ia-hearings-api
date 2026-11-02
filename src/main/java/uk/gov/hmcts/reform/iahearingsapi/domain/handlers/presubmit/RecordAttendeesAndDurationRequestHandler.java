@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingType;
@@ -112,15 +111,11 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             actualHearingDays.add(actualHearingDay);
 
             String hearingId = hearingIdOpt.get();
-            HearingActualsData hearingActualsData = hearingActualsService.getHearingActuals(hearingId);
-            log.info("hearingActualsData {}", hearingActualsData);
             hearingActuals.setActualHearingDays(actualHearingDays);
-            hearingActualsData.setHearingActuals(hearingActuals);
 
-            log.info("Updating hearing actuals {} for hearing id {}", hearingActualsData, hearingId);
-            HearingActualsData hearingActualsResponse =
-                hearingActualsService.updateHearingActuals(hearingActualsData, hearingId);
-            log.info("Updated hearing actuals {} for hearing id {}", hearingActualsResponse, hearingId);
+            log.info("Updating hearing actuals {} for hearing id {}", hearingActuals, hearingId);
+            hearingActualsService.updateHearingActuals(hearingActuals, hearingId);
+            log.info("Updated hearing actuals for hearing id {}", hearingId);
             hearingActualsService.completeHearingActuals(hearingId);
             log.info("Completed hearing actuals for hearing id {}", hearingId);
         }

@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
@@ -78,7 +79,7 @@ class HearingActualsServiceTest {
 
     @Test
     void testUpdateHearingActuals() {
-        HearingActualsData request = HearingActualsData.builder().build();
+        HearingActuals request = HearingActuals.builder().build();
         HearingActualsData response = new HearingActualsData();
         when(hmcHearingApi.updateHearingActuals(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, DEPLOYMENT_ID,
                                                 DATA_STORE_URL, ROLE_ASSIGNMENT_URL, request, HEARING_ID))
@@ -91,9 +92,9 @@ class HearingActualsServiceTest {
 
     @Test
     void testUpdateHearingActualsException() {
-        HearingActualsData request = HearingActualsData.builder().build();
+        HearingActuals request = HearingActuals.builder().build();
         when(hmcHearingApi.updateHearingActuals(anyString(), anyString(), anyString(), anyString(),
-                                                anyString(), any(HearingActualsData.class),
+                                                anyString(), any(HearingActuals.class),
                                                 anyString()))
             .thenThrow(FeignException.class);
 

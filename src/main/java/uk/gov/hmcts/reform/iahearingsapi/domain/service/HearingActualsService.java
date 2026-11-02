@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
@@ -49,14 +50,14 @@ public class HearingActualsService {
     }
 
     public HearingActualsData updateHearingActuals(
-        HearingActualsData hearingActualsData,
+        HearingActuals hearingActuals,
         String hearingId
     ) throws HmcException {
         log.info(
             "Update Hearing Actuals for hearing ID {}, hmctsDeploymentId: '{}' and request:\n{}",
             hearingId,
             hmctsDeploymentId,
-            hearingActualsData
+            hearingActuals
         );
         try {
             String serviceUserToken = idamService.getServiceUserToken();
@@ -68,7 +69,7 @@ public class HearingActualsService {
                 hmctsDeploymentId,
                 dataStoreUrl,
                 roleAssignmentUrl,
-                hearingActualsData,
+                hearingActuals,
                 hearingId
             );
         } catch (FeignException ex) {

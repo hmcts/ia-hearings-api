@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
@@ -110,7 +111,7 @@ public interface HmcHearingApi {
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
         @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
         @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
-        @RequestBody HearingActualsData hearingActualsData,
+        @RequestBody HearingActuals hearingActuals,
         @PathVariable String id
     );
 

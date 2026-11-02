@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
@@ -64,8 +65,8 @@ public class HmcHearingApiFallback implements HmcHearingApi {
     public HearingActualsData updateHearingActuals(
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
-        String roleAssignmentUrl, HearingActualsData updateHearingActualsRequest, String id) {
-        throw new HmcException("updateHearingActualsRequest call failed after retries");
+        String roleAssignmentUrl, HearingActuals hearingActuals, String id) {
+        throw new HmcException("updateHearingActuals call failed after retries");
     }
 
     @Override
@@ -73,7 +74,7 @@ public class HmcHearingApiFallback implements HmcHearingApi {
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, String id) {
-        throw new HmcException("createHearingActualsRequest call failed after retries");
+        throw new HmcException("completeHearingActuals call failed after retries");
     }
 
     @Override

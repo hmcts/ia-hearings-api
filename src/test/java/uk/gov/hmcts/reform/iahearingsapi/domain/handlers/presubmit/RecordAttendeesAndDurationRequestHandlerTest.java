@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,9 +41,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
@@ -73,16 +70,12 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     @Mock
     private UpdateHearingPayloadService updateHearingPayloadService;
     @Captor
-    private ArgumentCaptor<HearingActualsData> requestCaptor;
-
-    private final HearingPlanned hearingPlanned = HearingPlanned.builder().plannedHearingType("SUBSTANTIVE").build();
-    private HearingActualsData existingHearingActuals;
+    private ArgumentCaptor<HearingActuals> requestCaptor;
 
     private RecordAttendeesAndDurationRequestHandler handler;
 
     @BeforeEach
     void setUp() {
-        existingHearingActuals = HearingActualsData.builder().hearingPlanned(hearingPlanned).build();
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(caseDetails.getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(RECORD_ATTENDEES_AND_DURATION);
@@ -96,7 +89,6 @@ class RecordAttendeesAndDurationRequestHandlerTest {
             .thenReturn(Optional.of(HearingType.SUBSTANTIVE.getLabel()));
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class))
             .thenReturn(Optional.of(HearingResult.HEARD.getLabel()));
-        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(existingHearingActuals);
 
         handler = new RecordAttendeesAndDurationRequestHandler(
             hearingService,
@@ -106,24 +98,20 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @Test
-    void should_add_outcome_and_actual_days_to_existing_hearing_actuals_then_update_and_complete() {
+    void should_send_outcome_and_actual_days_as_hearing_actuals_then_complete() {
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = handler.handle(ABOUT_TO_SUBMIT, callback);
 
         assertNotNull(callbackResponse);
         assertEquals(asylumCase, callbackResponse.getData());
         verify(asylumCase, never()).write(any(), any());
         InOrder inOrder = inOrder(hearingActualsService);
-        inOrder.verify(hearingActualsService).getHearingActuals(HEARING_ID);
         inOrder.verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
         inOrder.verify(hearingActualsService).completeHearingActuals(HEARING_ID);
         verifyNoMoreInteractions(hearingActualsService);
         verifyNoInteractions(hearingService);
         verifyNoInteractions(updateHearingPayloadService);
 
-        HearingActualsData request = requestCaptor.getValue();
-        assertSame(existingHearingActuals, request);
-        assertSame(hearingPlanned, request.getHearingPlanned());
-        HearingActuals hearingActuals = request.getHearingActuals();
+        HearingActuals hearingActuals = requestCaptor.getValue();
         HearingOutcome hearingOutcome = hearingActuals.getHearingOutcome();
         assertEquals("BFA1-SUB", hearingOutcome.getHearingType());
         assertEquals("COMPLETED", hearingOutcome.getHearingResult());
@@ -145,7 +133,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
         verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
-        HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingActuals().getHearingOutcome();
+        HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingOutcome();
         assertEquals("BFA1-CMR", hearingOutcome.getHearingType());
         assertEquals("ADJOURNED", hearingOutcome.getHearingResult());
     }
@@ -158,7 +146,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
         verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
-        HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingActuals().getHearingOutcome();
+        HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingOutcome();
         assertEquals("None", hearingOutcome.getHearingType());
         assertEquals("None", hearingOutcome.getHearingResult());
     }
@@ -172,7 +160,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
         verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
-        HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingActuals().getHearingOutcome();
+        HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingOutcome();
         assertEquals("None", hearingOutcome.getHearingType());
         assertEquals("None", hearingOutcome.getHearingResult());
     }
@@ -186,7 +174,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
         verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
-        HearingActuals hearingActuals = requestCaptor.getValue().getHearingActuals();
+        HearingActuals hearingActuals = requestCaptor.getValue();
         assertEquals("", hearingActuals.getHearingOutcome().getHearingResultDate());
         ActualHearingDay actualHearingDay = hearingActuals.getActualHearingDays().iterator().next();
         assertEquals("", actualHearingDay.getHearingDate());
