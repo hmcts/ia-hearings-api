@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -17,6 +18,8 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_FINISH_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_RESULT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_START_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
@@ -90,6 +93,10 @@ class RecordAttendeesAndDurationRequestHandlerTest {
             .thenReturn(Optional.of(HEARING_START_TIME));
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, String.class))
             .thenReturn(Optional.of(HEARING_FINISH_TIME));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class))
+            .thenReturn(Optional.of(HearingType.SUBSTANTIVE.getLabel()));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class))
+            .thenReturn(Optional.of(HearingResult.HEARD.getLabel()));
         when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(existingHearingActuals);
 
         handler = new RecordAttendeesAndDurationRequestHandler(
@@ -126,6 +133,48 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         assertEquals(HEARING_DATE, actualHearingDay.getHearingDate());
         assertEquals(HEARING_START_TIME, actualHearingDay.getHearingStartTime());
         assertEquals(HEARING_FINISH_TIME, actualHearingDay.getHearingEndTime());
+    }
+
+    @Test
+    void should_map_hearing_stage_and_result_labels_to_outcome() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class))
+            .thenReturn(Optional.of(HearingType.CMR.getLabel()));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class))
+            .thenReturn(Optional.of(HearingResult.PART_HEARD.getLabel()));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingActuals().getHearingOutcome();
+        assertEquals(HearingType.CMR, hearingOutcome.getHearingType());
+        assertEquals(HearingResult.PART_HEARD, hearingOutcome.getHearingResult());
+    }
+
+    @Test
+    void should_leave_hearing_type_and_result_null_when_stage_and_result_are_missing() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class)).thenReturn(Optional.empty());
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingActuals().getHearingOutcome();
+        assertNull(hearingOutcome.getHearingType());
+        assertNull(hearingOutcome.getHearingResult());
+    }
+
+    @Test
+    void should_leave_hearing_type_and_result_null_when_stage_and_result_are_unknown() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class))
+            .thenReturn(Optional.of("SUBSTANTIVE"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class)).thenReturn(Optional.of("HEARD"));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        HearingOutcome hearingOutcome = requestCaptor.getValue().getHearingActuals().getHearingOutcome();
+        assertNull(hearingOutcome.getHearingType());
+        assertNull(hearingOutcome.getHearingResult());
     }
 
     @Test

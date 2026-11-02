@@ -29,6 +29,8 @@ import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_FINISH_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_RESULT;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_START_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 
@@ -65,8 +67,10 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         if (hearingIdOpt.isPresent()) {
             String hearingDate = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class).orElse("");
             HearingOutcome hearingOutcome = new HearingOutcome();
-            hearingOutcome.setHearingType(HearingType.SUBSTANTIVE);
-            hearingOutcome.setHearingResult(HearingResult.HEARD);
+            String hearingTypeStr = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class).orElse("");
+            hearingOutcome.setHearingType(HearingType.from(hearingTypeStr).orElse(null));
+            String hearingResultStr = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class).orElse("");
+            hearingOutcome.setHearingResult(HearingResult.from(hearingResultStr).orElse(null));
             hearingOutcome.setHearingResultDate(hearingDate);
 
             ActualHearingDay actualHearingDay = new ActualHearingDay();
