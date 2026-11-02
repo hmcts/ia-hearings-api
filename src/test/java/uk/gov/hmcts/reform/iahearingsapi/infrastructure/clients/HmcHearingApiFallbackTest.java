@@ -77,7 +77,16 @@ class HmcHearingApiFallbackTest {
 
     @Test
     void createHearingActualsRequest_throws_HmcException() {
+        UpdateHearingActualsRequest someRequest = UpdateHearingActualsRequest.builder().build();
         HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.createHearingActualsRequest(
+            "auth", "serviceAuth", "URL", "role", "depID", someRequest, "id"));
+        assertEquals(HmcException.MESSAGE_TEMPLATE + "createHearingActualsRequest call failed after retries",
+                     e.getMessage());
+    }
+
+    @Test
+    void completeHearingActualsRequest_throws_HmcException() {
+        HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.completeHearingActualsRequest(
             "auth", "serviceAuth", "URL", "role", "depID", "id"));
         assertEquals(HmcException.MESSAGE_TEMPLATE + "createHearingActualsRequest call failed after retries",
                      e.getMessage());

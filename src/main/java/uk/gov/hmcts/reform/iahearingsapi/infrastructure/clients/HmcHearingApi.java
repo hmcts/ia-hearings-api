@@ -104,6 +104,17 @@ public interface HmcHearingApi {
         @RequestParam(name = "isValid", required = false) Boolean isValid
     );
 
+    @PostMapping(HEARING_ACTUALS_ENDPOINT + "/{id}")
+    HearingActualsGetResponse createHearingActualsRequest(
+        @RequestHeader(AUTHORIZATION) String authorisation,
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
+        @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,
+        @RequestHeader(value = DATA_STORE_URL, required = false) String dataStoreUrl,
+        @RequestHeader(value = ROLE_ASSIGNMENT_URL, required = false) String roleAssignmentUrl,
+        @RequestBody UpdateHearingActualsRequest updateHearingActualsRequest,
+        @PathVariable String id
+    );
+
     @PutMapping(HEARING_ACTUALS_ENDPOINT + "/{id}")
     HearingActualsGetResponse updateHearingActualsRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
@@ -116,7 +127,7 @@ public interface HmcHearingApi {
     );
 
     @PostMapping(value = HEARING_ACTUALS_COMPLETION_ENDPOINT + "/{id}")
-    void createHearingActualsRequest(
+    void completeHearingActualsRequest(
         @RequestHeader(AUTHORIZATION) String authorisation,
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorization,
         @RequestHeader(value = HMCTS_DEPLOYMENT_ID, required = false) String hmctsDeploymentId,

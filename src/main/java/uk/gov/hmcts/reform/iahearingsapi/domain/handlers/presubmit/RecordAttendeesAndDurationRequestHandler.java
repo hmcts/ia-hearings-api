@@ -108,7 +108,7 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             request.setActualHearingDays(actualHearingDays);
 
             String hearingId = hearingIdOpt.get();
-            hearingActualsService.createHearingActuals(hearingId);
+            hearingActualsService.createHearingActuals(request, hearingId);
             log.info("Created hearing actuals for hearing id {}", hearingId);
 
             hearingActualsService.updateHearingActuals(request, hearingId);
