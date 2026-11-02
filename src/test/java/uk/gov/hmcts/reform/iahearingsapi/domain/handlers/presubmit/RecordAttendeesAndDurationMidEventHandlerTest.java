@@ -45,7 +45,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
@@ -254,8 +254,8 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
             .isExactlyInstanceOf(NullPointerException.class);
     }
 
-    private static HearingActualsGetResponse hearingActuals(List<PlannedHearingDay> plannedHearingDays) {
-        return HearingActualsGetResponse.builder()
+    private static HearingActualsData hearingActuals(List<PlannedHearingDay> plannedHearingDays) {
+        return HearingActualsData.builder()
             .hearingPlanned(HearingPlanned.builder().plannedHearingDays(plannedHearingDays).build())
             .build();
     }

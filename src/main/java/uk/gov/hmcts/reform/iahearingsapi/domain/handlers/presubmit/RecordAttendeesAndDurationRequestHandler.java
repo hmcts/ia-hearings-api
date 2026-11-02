@@ -11,7 +11,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualDayP
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualIndividualDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingType;
@@ -22,8 +22,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_FINISH_TIME;
@@ -101,21 +103,21 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             actualHearingDay.setActualDayParties(actualDayParties);
 
             actualHearingDay.setNotRequired("No");
-            List<ActualHearingDay> actualHearingDays = new ArrayList<>();
+            Set<ActualHearingDay> actualHearingDays = new HashSet<>();
             actualHearingDays.add(actualHearingDay);
 
             String hearingId = hearingIdOpt.get();
-            HearingActualsGetResponse hearingActuals = hearingActualsService.getHearingActuals(hearingId);
-            log.info("hearingActuals {}", hearingActuals);
+            HearingActualsData hearingActualsData = hearingActualsService.getHearingActuals(hearingId);
+            log.info("hearingActualsData {}", hearingActualsData);
 
-            HearingActuals ha = new HearingActuals();
-            ha.setHearingOutcome(hearingOutcome);
-            ha.setActualHearingDays(actualHearingDays);
-            hearingActuals.setHearingActuals(ha);
+            HearingActuals hearingActuals = new HearingActuals();
+            hearingActuals.setHearingOutcome(hearingOutcome);
+            hearingActuals.setActualHearingDays(actualHearingDays);
+            hearingActualsData.setHearingActuals(hearingActuals);
 
-            log.info("Updating hearing actuals {} for hearing id {}", hearingActuals, hearingId);
-            hearingActualsService.updateHearingActuals(hearingActuals, hearingId);
-            log.info("Updated hearing actuals {} for hearing id {}", hearingActuals, hearingId);
+            log.info("Updating hearing actuals {} for hearing id {}", hearingActualsData, hearingId);
+            hearingActualsService.updateHearingActuals(hearingActualsData, hearingId);
+            log.info("Updated hearing actuals {} for hearing id {}", hearingActualsData, hearingId);
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);

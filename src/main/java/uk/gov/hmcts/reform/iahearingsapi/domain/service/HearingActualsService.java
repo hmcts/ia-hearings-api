@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
@@ -26,14 +26,14 @@ public class HearingActualsService {
     @Value("${role-assignment.api.url:#{null}}")
     private String roleAssignmentUrl;
 
-    public HearingActualsGetResponse getHearingActuals(String hearingId) throws HmcException {
+    public HearingActualsData getHearingActuals(String hearingId) throws HmcException {
         log.info("Sending GetHearingActuals request with Hearing ID {}, hmctsDeploymentId: '{}'",
                  hearingId, hmctsDeploymentId);
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
-            return hmcHearingApi.getHearingActualsRequest(
+            return hmcHearingApi.getHearingActuals(
                 serviceUserToken,
                 serviceAuthToken,
                 hmctsDeploymentId,
@@ -48,27 +48,27 @@ public class HearingActualsService {
         }
     }
 
-    public HearingActualsGetResponse updateHearingActuals(
-        HearingActualsGetResponse updateHearingActualsRequest,
+    public HearingActualsData updateHearingActuals(
+        HearingActualsData hearingActualsData,
         String hearingId
     ) throws HmcException {
         log.info(
             "Update Hearing Actuals for hearing ID {}, hmctsDeploymentId: '{}' and request:\n{}",
             hearingId,
             hmctsDeploymentId,
-            updateHearingActualsRequest
+            hearingActualsData
         );
         try {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
-            return hmcHearingApi.updateHearingActualsRequest(
+            return hmcHearingApi.updateHearingActuals(
                 serviceUserToken,
                 serviceAuthToken,
                 hmctsDeploymentId,
                 dataStoreUrl,
                 roleAssignmentUrl,
-                updateHearingActualsRequest,
+                hearingActualsData,
                 hearingId
             );
         } catch (FeignException ex) {
@@ -83,7 +83,7 @@ public class HearingActualsService {
             String serviceUserToken = idamService.getServiceUserToken();
             String serviceAuthToken = serviceAuthTokenGenerator.generate();
 
-            hmcHearingApi.completeHearingActualsRequest(
+            hmcHearingApi.completeHearingActuals(
                 serviceUserToken,
                 serviceAuthToken,
                 hmctsDeploymentId,

@@ -39,7 +39,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
@@ -67,16 +67,16 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     @Mock
     private UpdateHearingPayloadService updateHearingPayloadService;
     @Captor
-    private ArgumentCaptor<HearingActualsGetResponse> requestCaptor;
+    private ArgumentCaptor<HearingActualsData> requestCaptor;
 
     private final HearingPlanned hearingPlanned = HearingPlanned.builder().plannedHearingType("SUBSTANTIVE").build();
-    private HearingActualsGetResponse existingHearingActuals;
+    private HearingActualsData existingHearingActuals;
 
     private RecordAttendeesAndDurationRequestHandler handler;
 
     @BeforeEach
     void setUp() {
-        existingHearingActuals = HearingActualsGetResponse.builder().hearingPlanned(hearingPlanned).build();
+        existingHearingActuals = HearingActualsData.builder().hearingPlanned(hearingPlanned).build();
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(caseDetails.getCaseData()).thenReturn(asylumCase);
         when(callback.getEvent()).thenReturn(RECORD_ATTENDEES_AND_DURATION);
@@ -105,7 +105,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         verifyNoInteractions(hearingService);
         verifyNoInteractions(updateHearingPayloadService);
 
-        HearingActualsGetResponse request = requestCaptor.getValue();
+        HearingActualsData request = requestCaptor.getValue();
         assertSame(existingHearingActuals, request);
         assertSame(hearingPlanned, request.getHearingPlanned());
         HearingActuals hearingActuals = request.getHearingActuals();
@@ -114,7 +114,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         assertEquals(HearingResult.HEARD, hearingOutcome.getHearingResult());
         assertNotNull(hearingOutcome.getHearingResultDate());
         assertEquals(1, hearingActuals.getActualHearingDays().size());
-        ActualHearingDay actualHearingDay = hearingActuals.getActualHearingDays().get(0);
+        ActualHearingDay actualHearingDay = hearingActuals.getActualHearingDays().iterator().next();
         assertEquals(hearingOutcome.getHearingResultDate(), actualHearingDay.getHearingDate());
         assertEquals(1, actualHearingDay.getActualDayParties().size());
     }

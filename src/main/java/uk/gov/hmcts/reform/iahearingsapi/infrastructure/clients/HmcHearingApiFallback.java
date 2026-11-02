@@ -4,7 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
@@ -53,7 +53,7 @@ public class HmcHearingApiFallback implements HmcHearingApi {
     }
 
     @Override
-    public HearingActualsGetResponse getHearingActualsRequest(
+    public HearingActualsData getHearingActuals(
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, String id, Boolean isValid) {
@@ -61,15 +61,15 @@ public class HmcHearingApiFallback implements HmcHearingApi {
     }
 
     @Override
-    public HearingActualsGetResponse updateHearingActualsRequest(
+    public HearingActualsData updateHearingActuals(
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
-        String roleAssignmentUrl, HearingActualsGetResponse updateHearingActualsRequest, String id) {
+        String roleAssignmentUrl, HearingActualsData updateHearingActualsRequest, String id) {
         throw new HmcException("updateHearingActualsRequest call failed after retries");
     }
 
     @Override
-    public void completeHearingActualsRequest(
+    public void completeHearingActuals(
         String authorisation, String serviceAuthorization,
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, String id) {

@@ -19,7 +19,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.exception.HmcException;
 
@@ -56,20 +56,20 @@ class HearingActualsServiceTest {
 
     @Test
     void testGetHearingActuals() {
-        HearingActualsGetResponse response = new HearingActualsGetResponse();
-        when(hmcHearingApi.getHearingActualsRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, DEPLOYMENT_ID,
-                                                    DATA_STORE_URL, ROLE_ASSIGNMENT_URL, HEARING_ID, null))
+        HearingActualsData response = new HearingActualsData();
+        when(hmcHearingApi.getHearingActuals(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, DEPLOYMENT_ID,
+                                             DATA_STORE_URL, ROLE_ASSIGNMENT_URL, HEARING_ID, null))
             .thenReturn(response);
 
-        HearingActualsGetResponse result = hearingActualsService.getHearingActuals(HEARING_ID);
+        HearingActualsData result = hearingActualsService.getHearingActuals(HEARING_ID);
 
         assertThat(result).isSameAs(response);
     }
 
     @Test
     void testGetHearingActualsException() {
-        when(hmcHearingApi.getHearingActualsRequest(anyString(), anyString(), anyString(), anyString(),
-                                                    anyString(), anyString(), any()))
+        when(hmcHearingApi.getHearingActuals(anyString(), anyString(), anyString(), anyString(),
+                                             anyString(), anyString(), any()))
             .thenThrow(FeignException.class);
 
         assertThatThrownBy(() -> hearingActualsService.getHearingActuals(HEARING_ID))
@@ -78,23 +78,23 @@ class HearingActualsServiceTest {
 
     @Test
     void testUpdateHearingActuals() {
-        HearingActualsGetResponse request = HearingActualsGetResponse.builder().build();
-        HearingActualsGetResponse response = new HearingActualsGetResponse();
-        when(hmcHearingApi.updateHearingActualsRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, DEPLOYMENT_ID,
-                                                       DATA_STORE_URL, ROLE_ASSIGNMENT_URL, request, HEARING_ID))
+        HearingActualsData request = HearingActualsData.builder().build();
+        HearingActualsData response = new HearingActualsData();
+        when(hmcHearingApi.updateHearingActuals(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, DEPLOYMENT_ID,
+                                                DATA_STORE_URL, ROLE_ASSIGNMENT_URL, request, HEARING_ID))
             .thenReturn(response);
 
-        HearingActualsGetResponse result = hearingActualsService.updateHearingActuals(request, HEARING_ID);
+        HearingActualsData result = hearingActualsService.updateHearingActuals(request, HEARING_ID);
 
         assertThat(result).isSameAs(response);
     }
 
     @Test
     void testUpdateHearingActualsException() {
-        HearingActualsGetResponse request = HearingActualsGetResponse.builder().build();
-        when(hmcHearingApi.updateHearingActualsRequest(anyString(), anyString(), anyString(), anyString(),
-                                                       anyString(), any(HearingActualsGetResponse.class),
-                                                       anyString()))
+        HearingActualsData request = HearingActualsData.builder().build();
+        when(hmcHearingApi.updateHearingActuals(anyString(), anyString(), anyString(), anyString(),
+                                                anyString(), any(HearingActualsData.class),
+                                                anyString()))
             .thenThrow(FeignException.class);
 
         assertThatThrownBy(() -> hearingActualsService.updateHearingActuals(request, HEARING_ID))
@@ -105,15 +105,15 @@ class HearingActualsServiceTest {
     void testCompleteHearingActuals() {
         hearingActualsService.completeHearingActuals(HEARING_ID);
 
-        verify(hmcHearingApi).completeHearingActualsRequest(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, DEPLOYMENT_ID,
-                                                            DATA_STORE_URL, ROLE_ASSIGNMENT_URL, HEARING_ID);
+        verify(hmcHearingApi).completeHearingActuals(IDAM_OAUTH2_TOKEN, SERVICE_AUTHORIZATION, DEPLOYMENT_ID,
+                                                     DATA_STORE_URL, ROLE_ASSIGNMENT_URL, HEARING_ID);
     }
 
     @Test
     void testCompleteHearingActualsException() {
         doThrow(FeignException.class).when(hmcHearingApi)
-            .completeHearingActualsRequest(anyString(), anyString(), anyString(), anyString(), anyString(),
-                                           anyString());
+            .completeHearingActuals(anyString(), anyString(), anyString(), anyString(), anyString(),
+                                    anyString());
 
         assertThatThrownBy(() -> hearingActualsService.completeHearingActuals(HEARING_ID))
             .isInstanceOf(IllegalStateException.class)

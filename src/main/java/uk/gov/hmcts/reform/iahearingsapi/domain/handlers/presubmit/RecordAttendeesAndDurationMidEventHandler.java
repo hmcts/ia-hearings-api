@@ -10,7 +10,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
@@ -85,7 +85,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                 String hearingId = selectedHearing.getValue().getCode();
                 HearingDetails hearingDetails = hearingService.getHearing(hearingId).getHearingDetails();
                 log.info("hearingDetails {}", hearingDetails);
-                HearingActualsGetResponse hearingActuals = hearingActualsService.getHearingActuals(hearingId);
+                HearingActualsData hearingActuals = hearingActualsService.getHearingActuals(hearingId);
                 log.info("hearingActuals {}", hearingActuals);
 
                 Optional<PlannedHearingDay> hearingDayOpt =

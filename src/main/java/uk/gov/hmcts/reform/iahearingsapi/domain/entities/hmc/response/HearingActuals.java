@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -15,5 +15,5 @@ public class HearingActuals {
 
     private HearingOutcome hearingOutcome;
 
-    private List<ActualHearingDay> actualHearingDays;
+    private Set<ActualHearingDay> actualHearingDays;
 }
