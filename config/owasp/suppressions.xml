@@ -40,4 +40,12 @@
   <suppress>
     <cve>CVE-2026-41707</cve>
   </suppress>
+  <suppress>
+    <notes><![CDATA[
+        Affects azure-security-keyvault-keys < 4.10.6.
+        Its on our classpath owasp matches azure-core/servicebus from a broad CPE
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.azure/azure-.*@.*$</packageUrl>
+    <cve>CVE-2026-33117</cve>
+  </suppress>
 </suppressions>
