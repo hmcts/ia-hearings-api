@@ -4,9 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingPause;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
@@ -22,7 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +38,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_RESULT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_START_TIME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 
 @Component
@@ -110,12 +115,7 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
                 asylumCase.read(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, String.class).orElse("");
             actualHearingDay.setHearingEndTime(toDateTime(hearingDate, hearingEndTime));
 
-            PauseDateTime pauseDateTime = new PauseDateTime();
-            pauseDateTime.setPauseStartTime("2026-10-28T10:25:00");
-            pauseDateTime.setPauseEndTime("2026-10-28T10:35:00");
-            List<PauseDateTime> pauseDateTimes = new ArrayList<>();
-            pauseDateTimes.add(pauseDateTime);
-            actualHearingDay.setPauseDateTimes(pauseDateTimes);
+            actualHearingDay.setPauseDateTimes(readPauseDateTimes(asylumCase, hearingDate));
 
             actualHearingDay.setNotRequired(false);
 
@@ -133,6 +133,24 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);
+    }
+
+    private static List<PauseDateTime> readPauseDateTimes(AsylumCase asylumCase, String hearingDate) {
+        boolean pausedTimeRequired = asylumCase.read(ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED, YesOrNo.class)
+            .map(YesOrNo.YES::equals)
+            .orElse(false);
+        if (!pausedTimeRequired) {
+            return Collections.emptyList();
+        }
+
+        Optional<List<IdValue<HearingPause>>> pausesOpt = asylumCase.read(ATTENDEES_AND_DURATION_PAUSES);
+        return pausesOpt.orElse(Collections.emptyList()).stream()
+            .map(IdValue::getValue)
+            .map(pause -> new PauseDateTime(
+                toDateTime(hearingDate, Optional.ofNullable(pause.getPauseStartTime()).orElse("")),
+                toDateTime(hearingDate, Optional.ofNullable(pause.getPauseEndTime()).orElse(""))
+            ))
+            .toList();
     }
 
     private static String toDateTime(String date, String time) {
