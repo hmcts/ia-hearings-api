@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingPause;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
@@ -32,9 +33,11 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_FINISH_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_RESULT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_START_TIME;
@@ -94,12 +97,27 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             String hearingResultStr = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class).orElse("");
             log.info("hearingResultStr is {}", hearingResultStr);
             if (HearingResult.from(hearingResultStr).isPresent()) {
-                log.info("hearingResultStr is {}", HearingResult.from(hearingResultStr).get());
-                hearingOutcome.setHearingResult(HearingResult.from(hearingResultStr).get().getHmcValue());
-            } else {
-                log.info("hearingResultStr is {}", "None");
-                hearingOutcome.setHearingResult("None");
+                HearingResult hearingResult = HearingResult.from(hearingResultStr).get();
+                log.info("hearingResultStr is {}", hearingResult);
+                hearingOutcome.setHearingResult(hearingResult.getHmcValue());
+
+                if (hearingResult.equals(HearingResult.PART_HEARD)) {
+                    if (asylumCase.read(ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON).isPresent()) {
+                        hearingOutcome.setHearingResultReasonType(asylumCase.read(
+                            ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON,
+                            DynamicList.class
+                        ).get().getValue().getCode());
+                    }
+                } else if (hearingResult.equals(HearingResult.WITHDRAWN)) {
+                    if (asylumCase.read(ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON).isPresent()) {
+                        hearingOutcome.setHearingResultReasonType(asylumCase.read(
+                            ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON,
+                            DynamicList.class
+                        ).get().getValue().getCode());
+                    }
+                }
             }
+
             hearingOutcome.setHearingFinalFlag(false);
 
             HearingActuals hearingActuals = new HearingActuals();
