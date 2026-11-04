@@ -230,11 +230,11 @@ class CaseDataToServiceHearingValuesMapperTest {
         assertNull(mapper.getHearingDuration(asylumCase));
     }
 
-    @ParameterizedTest
-    @CsvSource({"0", "-20"})
-    void getHearingDuration_should_return_null_when_is_adjourned(String duration) {
+    @Test
+    void getHearingDuration_should_return_null_when_is_adjourned() {
 
-        when(asylumCase.read(NEXT_HEARING_DURATION, String.class)).thenReturn(Optional.of(duration));
+        when(asylumCase.read(NEXT_HEARING_DURATION, HoursMinutes.class))
+            .thenReturn(Optional.of(new HoursMinutes(0, 0)));
 
         assertNull(mapper.getHearingDuration(asylumCase));
     }
@@ -654,6 +654,22 @@ class CaseDataToServiceHearingValuesMapperTest {
 
         assertEquals(List.of(expectedResult),
                      mapper.getHearingChannels(asylumCase, persistedHearingDetails, event));
+    }
+
+    @Test
+    void getIntHearingDurationFromHoursMinutes_should_return_duration_in_minutes() {
+        when(asylumCase.read(NEXT_HEARING_DURATION, HoursMinutes.class))
+            .thenReturn(Optional.of(new HoursMinutes(2, 30)));
+
+        assertEquals(150, mapper.getIntHearingDurationFromHoursMinutes(asylumCase, NEXT_HEARING_DURATION));
+    }
+
+    @Test
+    void getIntHearingDurationFromHoursMinutes_should_return_zero_when_not_present() {
+        when(asylumCase.read(NEXT_HEARING_DURATION, HoursMinutes.class))
+            .thenReturn(Optional.empty());
+
+        assertEquals(0, mapper.getIntHearingDurationFromHoursMinutes(asylumCase, NEXT_HEARING_DURATION));
     }
 
 }
