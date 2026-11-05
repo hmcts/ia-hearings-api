@@ -374,10 +374,4 @@ public class CaseDataToServiceHearingValuesMapper {
             .map(duration -> duration.isBlank() ? 0 : Integer.parseInt(duration))
             .orElse(0);
     }
-
-    public int getIntHearingDurationFromHoursMinutes(AsylumCase asylumCase, AsylumCaseFieldDefinition caseField) {
-        return asylumCase.read(caseField, HoursMinutes.class)
-            .map(HoursMinutes::convertToIntegerMinutes)
-            .orElse(0);
-    }
 }

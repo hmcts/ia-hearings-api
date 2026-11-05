@@ -281,7 +281,7 @@ public enum AsylumCaseFieldDefinition {
     NEXT_HEARING_FORMAT(
         "nextHearingFormat", new TypeReference<DynamicList>(){}),
     NEXT_HEARING_DURATION(
-        "nextHearingDuration", new TypeReference<HoursMinutes>(){}),
+        "nextHearingDuration", new TypeReference<String>(){}),
     NEXT_HEARING_VENUE(
         "nextHearingVenue", new TypeReference<DynamicList>(){}),
 
