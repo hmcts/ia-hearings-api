@@ -238,8 +238,8 @@ public class UpdateHearingRequestHandler implements PreSubmitCallbackHandler<Asy
 
     private boolean isPhysicalHearingCentre(HearingCentre listCaseHearingCentre) {
         return listCaseHearingCentre != null
-               && listCaseHearingCentre != REMOTE_HEARING
-               && listCaseHearingCentre != DECISION_WITHOUT_HEARING;
+            && listCaseHearingCentre != REMOTE_HEARING
+            && listCaseHearingCentre != DECISION_WITHOUT_HEARING;
     }
 
     private void initializeWithListCaseHearingCentre(
