@@ -4,7 +4,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
-import au.com.dius.pact.core.model.annotations.PactFolder;
+import au.com.dius.pact.core.model.annotations.PactDirectory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ import uk.gov.hmcts.reform.iahearingsapi.consumer.ccd.CoreCaseDataConsumerApplic
 @Slf4j
 @SpringJUnitConfig(classes = {CoreCaseDataConsumerApplication.class})
 @PactTestFor(providerName = "ccdDataStoreAPI_Cases", port = "8891")
-@PactFolder("pacts")
+@PactDirectory("pacts")
 @ExtendWith(PactConsumerTestExt.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource(locations = {"classpath:application.properties"})

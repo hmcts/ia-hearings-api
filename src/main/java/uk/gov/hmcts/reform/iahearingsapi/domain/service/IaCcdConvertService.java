@@ -21,6 +21,7 @@ public class IaCcdConvertService {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
 
+
         try {
             return mapper.convertValue(dataMap, AsylumCase.class);
         } catch (Exception ex) {
