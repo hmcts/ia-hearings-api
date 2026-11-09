@@ -23,7 +23,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_START_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_END;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_START;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 
@@ -44,14 +45,12 @@ import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingPause;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
@@ -144,31 +143,26 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @Test
-    void should_send_pauses_when_paused_time_is_required() {
+    void should_send_pause_when_paused_time_is_required() {
         when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
-        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSES)).thenReturn(Optional.of(List.of(
-            new IdValue<>("1", new HearingPause("10:25", "10:35")),
-            new IdValue<>("2", new HearingPause("11:00", "11:15"))
-        )));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_START, String.class)).thenReturn(Optional.of("10:25"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_END, String.class)).thenReturn(Optional.of("10:35"));
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
         verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
         ActualHearingDay actualHearingDay = requestCaptor.getValue().getActualHearingDays().iterator().next();
-        assertEquals(List.of(
-            new PauseDateTime("2023-01-20T10:25:00", "2023-01-20T10:35:00"),
-            new PauseDateTime("2023-01-20T11:00:00", "2023-01-20T11:15:00")
-        ), actualHearingDay.getPauseDateTimes());
+        assertEquals(List.of(new PauseDateTime("2023-01-20T10:25:00", "2023-01-20T10:35:00")),
+            actualHearingDay.getPauseDateTimes());
     }
 
     @Test
     void should_not_send_pauses_when_paused_time_is_not_required() {
         when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.NO));
-        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSES)).thenReturn(Optional.of(List.of(
-            new IdValue<>("1", new HearingPause("10:25", "10:35"))
-        )));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_START, String.class)).thenReturn(Optional.of("10:25"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_END, String.class)).thenReturn(Optional.of("10:35"));
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
@@ -181,7 +175,8 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     void should_send_no_pauses_when_paused_time_is_required_but_none_entered() {
         when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
-        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSES)).thenReturn(Optional.empty());
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_START, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_END, String.class)).thenReturn(Optional.empty());
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
@@ -321,9 +316,8 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         when(asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class)).thenReturn(Optional.of("13"));
         when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
-        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSES)).thenReturn(Optional.of(List.of(
-            new IdValue<>("1", new HearingPause("11", "11:30"))
-        )));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_START, String.class)).thenReturn(Optional.of("11"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_END, String.class)).thenReturn(Optional.of("11:30"));
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 

@@ -5,11 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingPause;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
@@ -42,7 +40,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_START_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSES;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_END;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_START;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 
 @Component
@@ -162,14 +161,13 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             return Collections.emptyList();
         }
 
-        Optional<List<IdValue<HearingPause>>> pausesOpt = asylumCase.read(ATTENDEES_AND_DURATION_PAUSES);
-        return pausesOpt.orElse(Collections.emptyList()).stream()
-            .map(IdValue::getValue)
-            .map(pause -> new PauseDateTime(
-                toDateTime(hearingDate, Optional.ofNullable(pause.getPauseStartTime()).orElse("")),
-                toDateTime(hearingDate, Optional.ofNullable(pause.getPauseEndTime()).orElse(""))
-            ))
-            .toList();
+        String pauseStart = asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_START, String.class).orElse("");
+        String pauseEnd = asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_END, String.class).orElse("");
+        if (pauseStart.isEmpty() || pauseEnd.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return List.of(new PauseDateTime(toDateTime(hearingDate, pauseStart), toDateTime(hearingDate, pauseEnd)));
     }
 
     private static String toDateTime(String date, String time) {
