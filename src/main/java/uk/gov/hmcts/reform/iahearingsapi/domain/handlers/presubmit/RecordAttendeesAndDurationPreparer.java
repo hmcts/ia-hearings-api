@@ -9,11 +9,13 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.HearingsToDynamicListMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 
 import java.util.Objects;
+import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
@@ -49,7 +51,10 @@ public class RecordAttendeesAndDurationPreparer implements PreSubmitCallbackHand
         HearingsGetResponse hearings = hearingService.getHearings(callback.getCaseDetails().getId());
         AsylumCase asylumCase = callback.getCaseDetails().getCaseData();
 
-        asylumCase.write(ATTENDEES_AND_DURATION_HEARING, HearingsToDynamicListMapper.map(hearings));
+        asylumCase.write(
+            ATTENDEES_AND_DURATION_HEARING,
+            HearingsToDynamicListMapper.map(hearings, Set.of(HmcStatus.AWAITING_ACTUALS))
+        );
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
 }

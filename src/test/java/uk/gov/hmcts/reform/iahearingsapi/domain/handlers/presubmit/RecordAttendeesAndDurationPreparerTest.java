@@ -12,6 +12,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_START;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingDaySchedule;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
@@ -53,6 +55,8 @@ class RecordAttendeesAndDurationPreparerTest {
     @Mock
     private CaseHearing substantiveHearing;
     @Mock
+    private CaseHearing listedHearing;
+    @Mock
     private CaseHearing cancelledHearing;
     @Mock
     private CaseHearing costsHearing;
@@ -70,15 +74,17 @@ class RecordAttendeesAndDurationPreparerTest {
     }
 
     @Test
-    void should_write_attendees_and_duration_hearing_list_from_case_hearings() {
+    void should_write_only_substantive_hearings_awaiting_hearing_details() {
         mockHearing(substantiveHearing, "1", HearingType.SUBSTANTIVE.getKey(), "Substantive",
+            HmcStatus.AWAITING_ACTUALS);
+        mockHearing(listedHearing, "2", HearingType.SUBSTANTIVE.getKey(), "Substantive",
+            HmcStatus.LISTED);
+        mockHearing(cancelledHearing, "3", HearingType.SUBSTANTIVE.getKey(), "Substantive",
             HmcStatus.AWAITING_LISTING);
-        mockHearing(cancelledHearing, "2", HearingType.SUBSTANTIVE.getKey(), "Substantive",
-            HmcStatus.CANCELLATION_SUBMITTED);
-        mockHearing(costsHearing, "3", HearingType.COSTS.getKey(), "Costs",
-            HmcStatus.AWAITING_LISTING);
+        mockHearing(costsHearing, "4", HearingType.COSTS.getKey(), "Costs",
+            HmcStatus.AWAITING_ACTUALS);
         when(hearingsGetResponse.getCaseHearings())
-            .thenReturn(List.of(substantiveHearing, cancelledHearing, costsHearing));
+            .thenReturn(List.of(substantiveHearing, listedHearing, cancelledHearing, costsHearing));
         when(hearingService.getHearings(CASE_ID)).thenReturn(hearingsGetResponse);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = preparer.handle(ABOUT_TO_START, callback);
@@ -92,7 +98,8 @@ class RecordAttendeesAndDurationPreparerTest {
         DynamicList result = captor.getValue();
         assertEquals(1, result.getListItems().size());
         assertEquals("1", result.getListItems().getFirst().getCode());
-        assertEquals("Substantive (Waiting to be listed)", result.getListItems().getFirst().getLabel());
+        assertEquals("Substantive (Awaiting hearing details) - 20 January 2023",
+            result.getListItems().getFirst().getLabel());
     }
 
     @Test
@@ -112,6 +119,9 @@ class RecordAttendeesAndDurationPreparerTest {
         when(hearing.getHearingType()).thenReturn(hearingType);
         when(hearing.getHearingTypeDescription()).thenReturn(hearingTypeDescription);
         when(hearing.getHmcStatus()).thenReturn(hmcStatus);
+        when(hearing.getHearingDaySchedule()).thenReturn(List.of(HearingDaySchedule.builder()
+            .hearingStartDateTime(LocalDateTime.of(2023, 1, 20, 10, 0))
+            .build()));
     }
 
     @Test
