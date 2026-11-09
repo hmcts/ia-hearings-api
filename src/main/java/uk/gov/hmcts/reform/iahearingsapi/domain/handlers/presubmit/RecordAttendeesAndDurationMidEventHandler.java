@@ -17,12 +17,15 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils.convertFromUTC;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils.convertToLocalStringFormat;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_DATE_OF_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
@@ -116,7 +119,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_JUDGE, "");
 
                 List<Value> hearingDateValues = hearingActuals.getHearingPlanned().getPlannedHearingDays().stream()
-                        .map(d -> new Value(d.getPlannedStartTime(), d.getPlannedStartTime()))
+                        .map(d -> new Value(d.getPlannedStartTime(), toDateLabel(d.getPlannedStartTime())))
                         .collect(Collectors.toList());
                 DynamicList hearingDatesList = new DynamicList(new Value("", ""), hearingDateValues);
                 asylumCase.write(ATTENDEES_AND_DURATION_DATE_OF_HEARING, hearingDatesList);
@@ -127,5 +130,12 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);
+    }
+
+    private static String toDateLabel(String plannedStartTime) {
+        if (plannedStartTime == null || plannedStartTime.isEmpty()) {
+            return "";
+        }
+        return convertToLocalStringFormat(convertFromUTC(LocalDateTime.parse(plannedStartTime)));
     }
 }

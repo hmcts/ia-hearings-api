@@ -133,7 +133,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         BLANKED_FIELDS.forEach(field -> verify(asylumCase).write(field, ""));
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_DATE_OF_HEARING,
-            new DynamicList(new Value("", ""), List.of(new Value(PLANNED_START_TIME, PLANNED_START_TIME)))
+            new DynamicList(new Value("", ""), List.of(new Value(PLANNED_START_TIME, "20 January 2023")))
         );
     }
 
@@ -150,9 +150,24 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_DATE_OF_HEARING,
             new DynamicList(new Value("", ""), List.of(
-                new Value(PLANNED_START_TIME, PLANNED_START_TIME),
-                new Value(SECOND_PLANNED_START_TIME, SECOND_PLANNED_START_TIME)
+                new Value(PLANNED_START_TIME, "20 January 2023"),
+                new Value(SECOND_PLANNED_START_TIME, "21 January 2023")
             ))
+        );
+    }
+
+    @Test
+    void should_label_dates_of_hearing_in_uk_time() {
+        String lateEveningUtcInSummer = "2023-06-20T23:30:00";
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActuals(List.of(
+            PlannedHearingDay.builder().plannedStartTime(lateEveningUtcInSummer).build()
+        )));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(
+            ATTENDEES_AND_DURATION_DATE_OF_HEARING,
+            new DynamicList(new Value("", ""), List.of(new Value(lateEveningUtcInSummer, "21 June 2023")))
         );
     }
 
