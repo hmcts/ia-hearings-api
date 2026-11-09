@@ -16,12 +16,12 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_FINISH_TIME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_FINISH_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_RESULT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_START_TIME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_START_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
@@ -98,9 +98,9 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         when(callback.getEvent()).thenReturn(RECORD_ATTENDEES_AND_DURATION);
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID)).thenReturn(Optional.of(HEARING_ID));
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class)).thenReturn(Optional.of(HEARING_DATE));
-        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_START_TIME, String.class))
+        when(asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class))
             .thenReturn(Optional.of(HEARING_START_TIME));
-        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, String.class))
+        when(asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class))
             .thenReturn(Optional.of(HEARING_FINISH_TIME));
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class))
             .thenReturn(Optional.of(HearingType.SUBSTANTIVE.getLabel()));
@@ -303,8 +303,8 @@ class RecordAttendeesAndDurationRequestHandlerTest {
 
     @Test
     void should_use_empty_start_and_end_times_when_times_are_missing() {
-        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_START_TIME, String.class)).thenReturn(Optional.empty());
-        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class)).thenReturn(Optional.empty());
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
@@ -317,8 +317,8 @@ class RecordAttendeesAndDurationRequestHandlerTest {
 
     @Test
     void should_accept_hours_only_times() {
-        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_START_TIME, String.class)).thenReturn(Optional.of("10"));
-        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, String.class)).thenReturn(Optional.of("13"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class)).thenReturn(Optional.of("10"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class)).thenReturn(Optional.of("13"));
         when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED, YesOrNo.class))
             .thenReturn(Optional.of(YesOrNo.YES));
         when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSES)).thenReturn(Optional.of(List.of(
@@ -337,8 +337,8 @@ class RecordAttendeesAndDurationRequestHandlerTest {
 
     @Test
     void should_accept_single_digit_hours() {
-        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_START_TIME, String.class)).thenReturn(Optional.of("9"));
-        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, String.class)).thenReturn(Optional.of("9:45"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class)).thenReturn(Optional.of("9"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class)).thenReturn(Optional.of("9:45"));
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 

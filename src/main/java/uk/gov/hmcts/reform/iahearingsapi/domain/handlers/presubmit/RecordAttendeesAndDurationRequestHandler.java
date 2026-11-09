@@ -35,12 +35,12 @@ import java.util.Set;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_FINISH_TIME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_FINISH_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_RESULT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_START_TIME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_START_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSES;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
@@ -128,10 +128,10 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             actualHearingDay.setHearingDate(hearingDate);
 
             String hearingStartTime =
-                asylumCase.read(ATTENDEES_AND_DURATION_HEARING_START_TIME, String.class).orElse("");
+                asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class).orElse("");
             actualHearingDay.setHearingStartTime(toDateTime(hearingDate, hearingStartTime));
             String hearingEndTime =
-                asylumCase.read(ATTENDEES_AND_DURATION_HEARING_FINISH_TIME, String.class).orElse("");
+                asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class).orElse("");
             actualHearingDay.setHearingEndTime(toDateTime(hearingDate, hearingEndTime));
 
             actualHearingDay.setPauseDateTimes(readPauseDateTimes(asylumCase, hearingDate));
