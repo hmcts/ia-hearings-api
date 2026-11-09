@@ -188,9 +188,9 @@ public enum AsylumCaseFieldDefinition {
     ATTENDEES_AND_DURATION_DATE_OF_HEARING(
         "attendeesAndDurationDateOfHearing", new TypeReference<String>(){}),
     ATTENDEES_AND_DURATION_HEARING_START_TIME(
-        "attendeesAndDurationHearingStartTime", new TypeReference<String>(){}),
+        "attendeesAndDurationStartTime", new TypeReference<String>(){}),
     ATTENDEES_AND_DURATION_HEARING_FINISH_TIME(
-        "attendeesAndDurationHearingFinishTime", new TypeReference<String>(){}),
+        "attendeesAndDurationFinishTime", new TypeReference<String>(){}),
     ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED(
         "attendeesAndDurationPausedTimeRequired", new TypeReference<YesOrNo>(){}),
     ATTENDEES_AND_DURATION_PAUSES(
