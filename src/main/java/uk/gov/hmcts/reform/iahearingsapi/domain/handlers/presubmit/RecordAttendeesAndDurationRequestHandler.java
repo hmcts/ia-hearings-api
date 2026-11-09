@@ -50,6 +50,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD
 @RequiredArgsConstructor
 public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallbackHandler<AsylumCase> {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private static final DateTimeFormatter HOURS_AND_MINUTES_FORMATTER = DateTimeFormatter.ofPattern("H:mm");
 
     private final HearingService hearingService;
     private final HearingActualsService hearingActualsService;
@@ -175,6 +176,8 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         if (date.isEmpty() || time.isEmpty()) {
             return "";
         }
-        return LocalDateTime.of(LocalDate.parse(date), LocalTime.parse(time)).format(DATE_TIME_FORMATTER);
+        String hoursAndMinutes = time.contains(":") ? time : time + ":00";
+        return LocalDateTime.of(LocalDate.parse(date), LocalTime.parse(hoursAndMinutes, HOURS_AND_MINUTES_FORMATTER))
+            .format(DATE_TIME_FORMATTER);
     }
 }
