@@ -258,7 +258,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = HearingResult.class, names = {"PART_HEARD", "WITHDRAWN"})
+    @EnumSource(value = HearingResult.class, names = {"ADJOURNED", "CANCELLED"})
     void should_leave_result_reason_type_null_when_reason_is_missing(HearingResult hearingResult) {
         givenHearingResult(hearingResult);
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON)).thenReturn(Optional.empty());
