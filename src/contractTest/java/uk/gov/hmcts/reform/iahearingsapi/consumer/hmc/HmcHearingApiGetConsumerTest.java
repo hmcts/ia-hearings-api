@@ -10,11 +10,12 @@ import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import au.com.dius.pact.core.model.annotations.PactFolder;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import au.com.dius.pact.core.model.annotations.PactDirectory;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +27,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotified
 
 @PactTestFor(providerName = HMC_PROVIDER, port = PORT)
 @ExtendWith(PactConsumerTestExt.class)
-@PactFolder("pacts")
+@PactDirectory("pacts")
 @SpringJUnitConfig(classes = {HmcHearingApiConsumerApplication.class})
 public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase {
 

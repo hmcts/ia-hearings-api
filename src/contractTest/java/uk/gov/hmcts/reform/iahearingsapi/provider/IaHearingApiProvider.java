@@ -17,7 +17,7 @@ import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvide
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
-import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
+import au.com.dius.pact.provider.spring.spring7.Spring7MockMvcTestTarget;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -66,8 +66,7 @@ public class IaHearingApiProvider {
             .build();
 
         context.setTarget(
-            new MockMvcTestTarget(mockMvc)
-        );
+            new Spring7MockMvcTestTarget(mockMvc, List.of(), List.of(), List.of(), true, ""));
     }
 
     @AfterEach

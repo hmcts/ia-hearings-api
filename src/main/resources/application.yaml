@@ -63,6 +63,13 @@ spring:
     date-format: yyyy-MM-dd
     serialization:
       FAIL_ON_EMPTY_BEANS: false
+  jackson2:
+    date-format: yyyy-MM-dd
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
+  http:
+    converters:
+      preferred-json-mapper: jackson2
   main:
     allow-bean-definition-overriding: true
   security:
