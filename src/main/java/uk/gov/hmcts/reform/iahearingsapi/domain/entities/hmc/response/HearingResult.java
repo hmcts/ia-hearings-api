@@ -11,9 +11,9 @@ import static java.util.Arrays.stream;
 @Getter
 public enum HearingResult {
 
-    HEARD("heard", "COMPLETED"),
-    PART_HEARD("partHeard", "ADJOURNED"),
-    WITHDRAWN("withdrawn", "CANCELLED");
+    HEARD("COMPLETED", "COMPLETED"),
+    ADJOURNED("ADJOURNED", "ADJOURNED"),
+    CANCELLED("CANCELLED", "CANCELLED");
 
     @JsonValue
     private final String label;

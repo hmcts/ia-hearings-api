@@ -101,14 +101,14 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
                 log.info("hearingResultStr is {}", hearingResult);
                 hearingOutcome.setHearingResult(hearingResult.getHmcValue());
 
-                if (hearingResult.equals(HearingResult.PART_HEARD)) {
+                if (hearingResult.equals(HearingResult.ADJOURNED)) {
                     if (asylumCase.read(ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON).isPresent()) {
                         hearingOutcome.setHearingResultReasonType(asylumCase.read(
                             ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON,
                             DynamicList.class
                         ).get().getValue().getCode());
                     }
-                } else if (hearingResult.equals(HearingResult.WITHDRAWN)) {
+                } else if (hearingResult.equals(HearingResult.CANCELLED)) {
                     if (asylumCase.read(ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON).isPresent()) {
                         hearingOutcome.setHearingResultReasonType(asylumCase.read(
                             ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON,

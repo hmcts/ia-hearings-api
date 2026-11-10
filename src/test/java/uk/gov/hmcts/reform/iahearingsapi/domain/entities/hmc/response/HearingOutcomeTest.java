@@ -35,7 +35,7 @@ class HearingOutcomeTest {
     void serialises_hearing_outcome() throws JsonProcessingException {
         HearingOutcome hearingOutcome = HearingOutcome.builder()
             .hearingType(HearingType.CMR.getHmcValue())
-            .hearingResult(HearingResult.WITHDRAWN.getHmcValue())
+            .hearingResult(HearingResult.CANCELLED.getHmcValue())
             .build();
 
         String json = objectMapper.writeValueAsString(hearingOutcome);

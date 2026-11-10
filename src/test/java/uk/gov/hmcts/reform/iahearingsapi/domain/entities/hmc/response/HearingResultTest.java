@@ -11,9 +11,9 @@ class HearingResultTest {
 
     @ParameterizedTest
     @CsvSource({
-        "HEARD, heard",
-        "PART_HEARD, partHeard",
-        "WITHDRAWN, withdrawn"
+        "HEARD, COMPLETED",
+        "ADJOURNED, ADJOURNED",
+        "CANCELLED, CANCELLED"
     })
     void has_correct_label(HearingResult hearingResult, String label) {
         assertEquals(label, hearingResult.getLabel());
@@ -22,8 +22,8 @@ class HearingResultTest {
     @ParameterizedTest
     @CsvSource({
         "HEARD, COMPLETED",
-        "PART_HEARD, ADJOURNED",
-        "WITHDRAWN, CANCELLED"
+        "ADJOURNED, ADJOURNED",
+        "CANCELLED, CANCELLED"
     })
     void has_correct_hmc_value(HearingResult hearingResult, String hmcValue) {
         assertEquals(hmcValue, hearingResult.getHmcValue());
@@ -31,9 +31,9 @@ class HearingResultTest {
 
     @ParameterizedTest
     @CsvSource({
-        "heard, HEARD",
-        "partHeard, PART_HEARD",
-        "withdrawn, WITHDRAWN"
+        "COMPLETED, HEARD",
+        "ADJOURNED, ADJOURNED",
+        "CANCELLED, CANCELLED"
     })
     void from_returns_hearing_result_for_label(String label, HearingResult expected) {
         assertEquals(Optional.of(expected), HearingResult.from(label));
@@ -42,7 +42,7 @@ class HearingResultTest {
     @Test
     void from_returns_empty_for_unknown_label() {
         assertEquals(Optional.empty(), HearingResult.from("HEARD"));
-        assertEquals(Optional.empty(), HearingResult.from("COMPLETED"));
+        assertEquals(Optional.empty(), HearingResult.from("heard"));
         assertEquals(Optional.empty(), HearingResult.from(null));
     }
 

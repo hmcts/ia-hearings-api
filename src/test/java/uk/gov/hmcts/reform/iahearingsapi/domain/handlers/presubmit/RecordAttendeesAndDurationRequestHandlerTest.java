@@ -190,7 +190,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class))
             .thenReturn(Optional.of(HearingType.CMR.getLabel()));
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_RESULT, String.class))
-            .thenReturn(Optional.of(HearingResult.PART_HEARD.getLabel()));
+            .thenReturn(Optional.of(HearingResult.ADJOURNED.getLabel()));
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
@@ -231,7 +231,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
 
     @Test
     void should_set_part_heard_reason_as_result_reason_type_when_part_heard() {
-        givenHearingResult(HearingResult.PART_HEARD);
+        givenHearingResult(HearingResult.ADJOURNED);
         givenReason(ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON, PART_HEARD_REASON_CODE);
         givenReason(ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON, CANCELLATION_REASON_CODE);
 
@@ -245,7 +245,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
 
     @Test
     void should_set_cancellation_reason_as_result_reason_type_when_withdrawn() {
-        givenHearingResult(HearingResult.WITHDRAWN);
+        givenHearingResult(HearingResult.CANCELLED);
         givenReason(ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON, PART_HEARD_REASON_CODE);
         givenReason(ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON, CANCELLATION_REASON_CODE);
 
