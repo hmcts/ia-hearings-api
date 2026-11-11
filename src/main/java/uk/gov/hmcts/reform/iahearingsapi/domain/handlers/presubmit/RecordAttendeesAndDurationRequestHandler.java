@@ -5,11 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualDayParty;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualIndividualDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
@@ -42,6 +47,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_END;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_START;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PARTICIPANTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 
 @Component
@@ -135,6 +141,8 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
 
             actualHearingDay.setPauseDateTimes(readPauseDateTimes(asylumCase, hearingDate));
 
+            actualHearingDay.setActualDayParties(readActualDayParties(asylumCase));
+
             actualHearingDay.setNotRequired(false);
 
             Set<ActualHearingDay> actualHearingDays = new HashSet<>();
@@ -151,6 +159,46 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);
+    }
+
+    private static List<ActualDayParty> readActualDayParties(AsylumCase asylumCase) {
+        List<IdValue<HearingParticipant>> participants =
+            asylumCase.<List<IdValue<HearingParticipant>>>read(ATTENDEES_AND_DURATION_PARTICIPANTS)
+                .orElse(Collections.emptyList());
+
+        return participants.stream()
+            .map(IdValue::getValue)
+            .map(RecordAttendeesAndDurationRequestHandler::toActualDayParty)
+            .toList();
+    }
+
+    private static ActualDayParty toActualDayParty(HearingParticipant participant) {
+        boolean didNotAttend = HearingChannel.NA.name().equals(participant.getAttendanceType());
+        boolean hasName = isNotBlank(participant.getFirstName()) || isNotBlank(participant.getLastName());
+
+        return ActualDayParty.builder()
+            .actualPartyId(blankToNull(participant.getPartyId()))
+            .partyRole(toHmcPartyRole(participant.getRole()))
+            .individualDetails(hasName
+                ? new ActualIndividualDetails(participant.getFirstName(), participant.getLastName())
+                : null)
+            .actualOrganisationName(blankToNull(participant.getOrganisation()))
+            .partyChannelSubType(didNotAttend ? null : participant.getAttendanceType())
+            .didNotAttendFlag(didNotAttend)
+            .build();
+    }
+
+    private static String toHmcPartyRole(String role) {
+        // IA sends legal representatives to HMC with the LGRP role code
+        return "LR".equals(role) ? "LGRP" : role;
+    }
+
+    private static boolean isNotBlank(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private static String blankToNull(String value) {
+        return isNotBlank(value) ? value : null;
     }
 
     private static List<PauseDateTime> readPauseDateTimes(AsylumCase asylumCase, String hearingDate) {

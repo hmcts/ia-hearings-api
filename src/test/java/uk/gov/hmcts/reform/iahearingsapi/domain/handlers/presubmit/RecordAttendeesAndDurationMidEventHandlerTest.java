@@ -21,6 +21,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_START_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAPER_HEARING;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PARTICIPANTS;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.END_APPEAL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.MID_EVENT;
@@ -48,6 +50,12 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.IndividualDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.OrganisationDetails;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.Party;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartyOneOff;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
@@ -58,6 +66,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
 
     private static final String SELECT_HEARING_PAGE_ID = "selectHearingRecordAttendeesAndDuration";
     private static final String OTHER_PAGE_ID = "recordAttendeesAndDuration";
+    private static final String TIMES_PAGE_ID = "timesRecordAttendeesAndDuration";
     private static final String HEARING_ID = "2000000001";
     private static final String PLANNED_START_TIME = "2023-01-20T10:00:00";
     private static final String SECOND_PLANNED_START_TIME = "2023-01-21T10:00:00";
@@ -233,6 +242,128 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     }
 
     @Test
+    void should_populate_participants_from_selected_hearing_day_on_times_page() {
+        when(callback.getPageId()).thenReturn(TIMES_PAGE_ID);
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
+        Value selectedDay = new Value(SECOND_PLANNED_START_TIME, "21 January 2023");
+        when(asylumCase.read(ATTENDEES_AND_DURATION_DATE_OF_HEARING, DynamicList.class))
+            .thenReturn(Optional.of(new DynamicList(selectedDay, List.of(selectedDay))));
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActuals(List.of(
+            PlannedHearingDay.builder().plannedStartTime(PLANNED_START_TIME)
+                .parties(List.of(individual("p0", "WITN", "TEL", "Not", "Selected"))).build(),
+            PlannedHearingDay.builder().plannedStartTime(SECOND_PLANNED_START_TIME).parties(List.of(
+                individual("p1", "APEL", "VIDTEAMS", "John", "Smith"),
+                individual("p2", "LGRP", "INTER", "Jane", "Doe"),
+                individual("p3", "INTP", "TELCVP", "Ivan", "Petrov"),
+                Party.builder().partyId("p4").partyRole("RESP").partyChannelSubType("NA")
+                    .oneOf(List.of(PartyOneOff.builder()
+                        .organisationDetails(OrganisationDetails.builder().name("Home Office").build())
+                        .build()))
+                    .build()
+            )).build()
+        )));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
+            new IdValue<>("1", new HearingParticipant("p1", "John", "Smith", "APEL", "VID", null)),
+            new IdValue<>("2", new HearingParticipant("p2", "Jane", "Doe", "LR", "INTER", null)),
+            new IdValue<>("3", new HearingParticipant("p3", "Ivan", "Petrov", null, "TEL", null)),
+            new IdValue<>("4", new HearingParticipant("p4", null, null, "RESP", "NA", "Home Office"))
+        ));
+        verify(asylumCase).write(
+            ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, HEARING_ID + "|" + SECOND_PLANNED_START_TIME);
+        verifyNoInteractions(hearingService);
+        HEARING_FIELDS.forEach(field -> verify(asylumCase, never()).write(eq(field), any()));
+    }
+
+    @Test
+    void should_keep_participants_when_already_populated_for_same_hearing_day() {
+        when(callback.getPageId()).thenReturn(TIMES_PAGE_ID);
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
+        Value selectedDay = new Value(PLANNED_START_TIME, "20 January 2023");
+        when(asylumCase.read(ATTENDEES_AND_DURATION_DATE_OF_HEARING, DynamicList.class))
+            .thenReturn(Optional.of(new DynamicList(selectedDay, List.of(selectedDay))));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, String.class))
+            .thenReturn(Optional.of(HEARING_ID + "|" + PLANNED_START_TIME));
+
+        handler.handle(MID_EVENT, callback);
+
+        verifyNoInteractions(hearingActualsService);
+        verify(asylumCase, never()).write(eq(ATTENDEES_AND_DURATION_PARTICIPANTS), any());
+        verify(asylumCase, never()).write(eq(ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE), any());
+    }
+
+    @Test
+    void should_repopulate_participants_when_selected_hearing_day_changed() {
+        when(callback.getPageId()).thenReturn(TIMES_PAGE_ID);
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
+        Value selectedDay = new Value(SECOND_PLANNED_START_TIME, "21 January 2023");
+        when(asylumCase.read(ATTENDEES_AND_DURATION_DATE_OF_HEARING, DynamicList.class))
+            .thenReturn(Optional.of(new DynamicList(selectedDay, List.of(selectedDay))));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, String.class))
+            .thenReturn(Optional.of(HEARING_ID + "|" + PLANNED_START_TIME));
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActuals(List.of(
+            PlannedHearingDay.builder().plannedStartTime(SECOND_PLANNED_START_TIME)
+                .parties(List.of(individual("p1", "RESP", "INTER", "Ann", "Lee"))).build()
+        )));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
+            new IdValue<>("1", new HearingParticipant("p1", "Ann", "Lee", "RESP", "INTER", null))
+        ));
+        verify(asylumCase).write(
+            ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, HEARING_ID + "|" + SECOND_PLANNED_START_TIME);
+    }
+
+    @Test
+    void should_reset_participants_source_on_select_hearing_page() {
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, "");
+    }
+
+    @Test
+    void should_populate_participants_from_first_hearing_day_when_no_day_selected() {
+        when(callback.getPageId()).thenReturn(TIMES_PAGE_ID);
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_DATE_OF_HEARING, DynamicList.class)).thenReturn(Optional.empty());
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActuals(List.of(
+            PlannedHearingDay.builder().plannedStartTime(PLANNED_START_TIME)
+                .parties(List.of(individual("p1", "RESP", "ONPPRS", "Ann", "Lee"))).build()
+        )));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
+            new IdValue<>("1", new HearingParticipant("p1", "Ann", "Lee", "RESP", "ONPPRS", null))
+        ));
+    }
+
+    @Test
+    void should_write_empty_participants_when_no_planned_hearing_days() {
+        when(callback.getPageId()).thenReturn(TIMES_PAGE_ID);
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActuals(List.of()));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of());
+    }
+
+    @Test
+    void should_not_populate_participants_when_no_hearing_id() {
+        when(callback.getPageId()).thenReturn(TIMES_PAGE_ID);
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID, String.class)).thenReturn(Optional.empty());
+
+        handler.handle(MID_EVENT, callback);
+
+        verifyNoInteractions(hearingActualsService);
+        verify(asylumCase, never()).write(eq(ATTENDEES_AND_DURATION_PARTICIPANTS), any());
+    }
+
+    @Test
     void should_fail_to_handle_if_invalid_event() {
         when(callback.getEvent()).thenReturn(END_APPEAL);
 
@@ -267,6 +398,17 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         assertThatThrownBy(() -> handler.canHandle(MID_EVENT, null))
             .hasMessage("callback must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
+    }
+
+    private static Party individual(String partyId, String role, String channel, String firstName, String lastName) {
+        return Party.builder()
+            .partyId(partyId)
+            .partyRole(role)
+            .partyChannelSubType(channel)
+            .oneOf(List.of(PartyOneOff.builder()
+                .individualDetails(IndividualDetails.builder().firstName(firstName).lastName(lastName).build())
+                .build()))
+            .build();
     }
 
     private static HearingActualsData hearingActuals(List<PlannedHearingDay> plannedHearingDays) {

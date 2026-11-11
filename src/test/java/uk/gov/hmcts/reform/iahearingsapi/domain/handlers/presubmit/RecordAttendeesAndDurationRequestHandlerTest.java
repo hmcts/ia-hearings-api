@@ -25,6 +25,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_END;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_START;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PARTICIPANTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 
@@ -52,7 +53,11 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualDayParty;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualIndividualDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
@@ -140,6 +145,45 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         assertEquals("2023-01-20T12:30:00", actualHearingDay.getHearingEndTime());
         assertTrue(actualHearingDay.getPauseDateTimes().isEmpty());
         assertFalse(actualHearingDay.isNotRequired());
+    }
+
+    @Test
+    void should_send_participants_as_actual_day_parties() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PARTICIPANTS)).thenReturn(Optional.of(List.of(
+            new IdValue<>("1", new HearingParticipant("p1", "John", "Smith", "APEL", "VID", null)),
+            new IdValue<>("2", new HearingParticipant("p2", "Jane", "Doe", "LR", "INTER", "Law Firm")),
+            new IdValue<>("3", new HearingParticipant("p3", null, null, "RESP", "NA", "Home Office")),
+            new IdValue<>("4", new HearingParticipant(null, "Ann", "Lee", "WITN", "TEL", " "))
+        )));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        ActualHearingDay actualHearingDay = requestCaptor.getValue().getActualHearingDays().iterator().next();
+        assertEquals(List.of(
+            ActualDayParty.builder().actualPartyId("p1").partyRole("APEL")
+                .individualDetails(new ActualIndividualDetails("John", "Smith"))
+                .partyChannelSubType("VID").didNotAttendFlag(false).build(),
+            ActualDayParty.builder().actualPartyId("p2").partyRole("LGRP")
+                .individualDetails(new ActualIndividualDetails("Jane", "Doe"))
+                .actualOrganisationName("Law Firm")
+                .partyChannelSubType("INTER").didNotAttendFlag(false).build(),
+            ActualDayParty.builder().actualPartyId("p3").partyRole("RESP")
+                .actualOrganisationName("Home Office")
+                .didNotAttendFlag(true).build(),
+            ActualDayParty.builder().partyRole("WITN")
+                .individualDetails(new ActualIndividualDetails("Ann", "Lee"))
+                .partyChannelSubType("TEL").didNotAttendFlag(false).build()
+        ), actualHearingDay.getActualDayParties());
+    }
+
+    @Test
+    void should_send_no_actual_day_parties_when_no_participants() {
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        ActualHearingDay actualHearingDay = requestCaptor.getValue().getActualHearingDays().iterator().next();
+        assertTrue(actualHearingDay.getActualDayParties().isEmpty());
     }
 
     @Test
