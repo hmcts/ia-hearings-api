@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum CustodyStatus {
@@ -10,6 +11,7 @@ public enum CustodyStatus {
     @JsonValue
     private final String value;
 
+    @JsonCreator
     CustodyStatus(String value) {
         this.value = value;
     }

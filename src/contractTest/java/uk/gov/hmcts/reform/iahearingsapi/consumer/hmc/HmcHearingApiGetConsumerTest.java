@@ -11,7 +11,6 @@ import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -46,7 +45,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
 
     @Test
     @PactTestFor(pactMethod = "getHearingRequest")
-    public void shouldGetHearingRequest() throws JsonProcessingException {
+    public void shouldGetHearingRequest() {
         HearingGetResponse result =
             hmcHearingApi.getHearingRequest(authToken, serviceAuthToken, null, null, null, "2000000056", null);
 
@@ -72,7 +71,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
 
     @Test
     @PactTestFor(pactMethod = "getHearingsRequest")
-    public void shouldGetHearingsRequest() throws JsonProcessingException {
+    public void shouldGetHearingsRequest() {
         HearingsGetResponse result =
             hmcHearingApi.getHearingsRequest(authToken, serviceAuthToken, null,null, null,  "2000000056");
 
@@ -99,7 +98,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
 
     @Test
     @PactTestFor(pactMethod = "getPartiesNotified")
-    public void verifyGetPartiesNotified() throws JsonProcessingException {
+    public void verifyGetPartiesNotified() {
         PartiesNotifiedResponses hearingGetResponse =
             hmcHearingApi.getPartiesNotifiedRequest(authToken, serviceAuthToken, null, null, null, "2000000056");
 
@@ -126,7 +125,7 @@ public class HmcHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
 
     @Test
     @PactTestFor(pactMethod = "getUnNotifiedHearings")
-    public void verifyGetUnNotifiedHearings() throws JsonProcessingException {
+    public void verifyGetUnNotifiedHearings() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime fromDate = LocalDateTime.parse("2024-09-20 00:00:00", formatter);
         LocalDateTime toDate = LocalDateTime.parse("2024-10-20 00:00:00", formatter);

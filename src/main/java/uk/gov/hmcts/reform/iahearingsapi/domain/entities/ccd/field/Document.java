@@ -1,7 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -17,6 +18,7 @@ public class Document {
     private String documentFilename;
     private String documentHash;
 
+    @JsonCreator
     private Document() {
         // noop -- for deserializer
     }

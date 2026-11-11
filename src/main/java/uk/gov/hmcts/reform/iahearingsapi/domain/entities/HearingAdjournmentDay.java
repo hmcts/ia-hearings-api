@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum HearingAdjournmentDay {
@@ -10,6 +11,7 @@ public enum HearingAdjournmentDay {
     @JsonValue
     private final String value;
 
+    @JsonCreator
     HearingAdjournmentDay(String value) {
         this.value = value;
     }
