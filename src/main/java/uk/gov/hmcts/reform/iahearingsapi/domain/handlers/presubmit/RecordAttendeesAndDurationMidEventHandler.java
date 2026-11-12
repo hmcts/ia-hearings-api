@@ -27,6 +27,8 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,6 +40,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils.conve
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_DATE_OF_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_FINISH_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_JUDGE;
@@ -55,6 +58,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD
 public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallbackHandler<AsylumCase> {
     private static final String SELECT_HEARING_PAGE_ID = "selectHearingRecordAttendeesAndDuration";
     private static final String TIMES_PAGE_ID = "timesRecordAttendeesAndDuration";
+    private static final DateTimeFormatter DATE_TIME_LABEL_FORMATTER =
+        DateTimeFormatter.ofPattern("d MMMM yyyy, HH:mm", Locale.UK);
 
     private final HearingService hearingService;
     private final HearingActualsService hearingActualsService;
@@ -114,6 +119,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
 
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_ID, hearingId);
                 asylumCase.write(ATTENDEES_AND_DURATION_HEARING_DATE, hearingDate);
+                asylumCase.write(ATTENDEES_AND_DURATION_HEARING_DATE_DISPLAY, toDateTimeLabel(hearingDate));
                 asylumCase.write(
                     ATTENDEES_AND_DURATION_PAPER_HEARING,
                     hearingDetails.getHearingChannels().contains(HearingChannel.ONPPRS.name())
@@ -248,5 +254,12 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             return "";
         }
         return convertToLocalStringFormat(convertFromUTC(LocalDateTime.parse(plannedStartTime)));
+    }
+
+    private static String toDateTimeLabel(String plannedStartTime) {
+        if (plannedStartTime == null || plannedStartTime.isEmpty()) {
+            return "";
+        }
+        return convertFromUTC(LocalDateTime.parse(plannedStartTime)).format(DATE_TIME_LABEL_FORMATTER);
     }
 }

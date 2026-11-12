@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_DATE_OF_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_FINISH_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_JUDGE;
@@ -74,6 +75,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     private static final List<AsylumCaseFieldDefinition> HEARING_FIELDS = List.of(
         ATTENDEES_AND_DURATION_HEARING_ID,
         ATTENDEES_AND_DURATION_HEARING_DATE,
+        ATTENDEES_AND_DURATION_HEARING_DATE_DISPLAY,
         ATTENDEES_AND_DURATION_PAPER_HEARING,
         ATTENDEES_AND_DURATION_HEARING_METHODS,
         ATTENDEES_AND_DURATION_HEARING_STAGE,
@@ -137,6 +139,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         verify(hearingActualsService).getHearingActuals(HEARING_ID);
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_ID, HEARING_ID);
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE, PLANNED_START_TIME);
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE_DISPLAY, "20 January 2023, 10:00");
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PAPER_HEARING, YesOrNo.NO.toString());
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_METHODS, "In Person, Video");
         BLANKED_FIELDS.forEach(field -> verify(asylumCase).write(field, ""));
@@ -178,6 +181,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
             ATTENDEES_AND_DURATION_DATE_OF_HEARING,
             new DynamicList(new Value("", ""), List.of(new Value(lateEveningUtcInSummer, "21 June 2023")))
         );
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE_DISPLAY, "21 June 2023, 00:30");
     }
 
     @Test
@@ -213,6 +217,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         handler.handle(MID_EVENT, callback);
 
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE, "");
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE_DISPLAY, "");
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_DATE_OF_HEARING,
             new DynamicList(new Value("", ""), List.of())

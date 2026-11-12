@@ -171,6 +171,8 @@ public enum AsylumCaseFieldDefinition {
         "attendeesAndDurationHearingId", new TypeReference<String>(){}),
     ATTENDEES_AND_DURATION_HEARING_DATE(
         "attendeesAndDurationHearingDate", new TypeReference<String>(){}),
+    ATTENDEES_AND_DURATION_HEARING_DATE_DISPLAY(
+        "attendeesAndDurationHearingDateDisplay", new TypeReference<String>(){}),
     ATTENDEES_AND_DURATION_PAPER_HEARING(
         "attendeesAndDurationPaperHearing", new TypeReference<String>(){}),
     ATTENDEES_AND_DURATION_HEARING_METHODS(
@@ -197,6 +199,8 @@ public enum AsylumCaseFieldDefinition {
         "attendeesAndDurationPauseStart", new TypeReference<String>(){}),
     ATTENDEES_AND_DURATION_PAUSE_END(
         "attendeesAndDurationPauseEnd", new TypeReference<String>(){}),
+    ATTENDEES_AND_DURATION_HEARING_DAY_REQUIRED(
+        "attendeesAndDurationHearingDayRequired", new TypeReference<YesOrNo>(){}),
     ATTENDEES_AND_DURATION_PARTICIPANTS(
         "attendeesAndDurationParticipants", new TypeReference<List<IdValue<HearingParticipant>>>(){}),
     ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE(

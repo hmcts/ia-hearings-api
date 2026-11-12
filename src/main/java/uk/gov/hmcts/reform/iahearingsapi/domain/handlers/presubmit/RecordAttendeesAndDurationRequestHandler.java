@@ -16,7 +16,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualDayP
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualIndividualDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PauseDateTime;
@@ -44,6 +47,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_RESULT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_START_TIME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DAY_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_END;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_START;
@@ -86,7 +90,9 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         if (hearingIdOpt.isPresent()) {
             HearingOutcome hearingOutcome = new HearingOutcome();
 
-            String hearingDateTime = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class).orElse("");
+            String hearingDateTime = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class)
+                .filter(dateTime -> !dateTime.isEmpty())
+                .orElseGet(() -> readFirstPlannedStartTime(hearingIdOpt.get()));
             String hearingDate =
                 hearingDateTime.isEmpty() ? "" : LocalDateTime.parse(hearingDateTime).toLocalDate().toString();
             hearingOutcome.setHearingResultDate(hearingDate);
@@ -132,18 +138,28 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             ActualHearingDay actualHearingDay = new ActualHearingDay();
             actualHearingDay.setHearingDate(hearingDate);
 
-            String hearingStartTime =
-                asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class).orElse("");
-            actualHearingDay.setHearingStartTime(toDateTime(hearingDate, hearingStartTime));
-            String hearingEndTime =
-                asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class).orElse("");
-            actualHearingDay.setHearingEndTime(toDateTime(hearingDate, hearingEndTime));
+            boolean hearingDayRequired = asylumCase
+                .read(ATTENDEES_AND_DURATION_HEARING_DAY_REQUIRED, YesOrNo.class)
+                .map(YesOrNo.YES::equals)
+                .orElse(true);
 
-            actualHearingDay.setPauseDateTimes(readPauseDateTimes(asylumCase, hearingDate));
+            if (hearingDayRequired) {
+                String hearingStartTime =
+                    asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class).orElse("");
+                actualHearingDay.setHearingStartTime(toDateTime(hearingDate, hearingStartTime));
+                String hearingEndTime =
+                    asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class).orElse("");
+                actualHearingDay.setHearingEndTime(toDateTime(hearingDate, hearingEndTime));
+
+                actualHearingDay.setPauseDateTimes(readPauseDateTimes(asylumCase, hearingDate));
+            } else {
+                actualHearingDay.setPauseDateTimes(Collections.emptyList());
+            }
 
             actualHearingDay.setActualDayParties(readActualDayParties(asylumCase));
 
             actualHearingDay.setNotRequired(false);
+            actualHearingDay.setNotRequired(!hearingDayRequired);
 
             Set<ActualHearingDay> actualHearingDays = new HashSet<>();
             actualHearingDays.add(actualHearingDay);
@@ -159,6 +175,15 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);
+    }
+
+    private String readFirstPlannedStartTime(String hearingId) {
+        return Optional.ofNullable(hearingActualsService.getHearingActuals(hearingId))
+            .map(HearingActualsData::getHearingPlanned)
+            .map(HearingPlanned::getPlannedHearingDays)
+            .flatMap(days -> days.stream().findFirst())
+            .map(PlannedHearingDay::getPlannedStartTime)
+            .orElse("");
     }
 
     private static List<ActualDayParty> readActualDayParties(AsylumCase asylumCase) {
