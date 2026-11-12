@@ -22,6 +22,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_RESULT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_START_TIME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DAY_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_END;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_START;
@@ -140,6 +141,41 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         assertEquals("2023-01-20T12:30:00", actualHearingDay.getHearingEndTime());
         assertTrue(actualHearingDay.getPauseDateTimes().isEmpty());
         assertFalse(actualHearingDay.isNotRequired());
+    }
+
+    @Test
+    void should_send_not_required_false_when_hearing_day_was_required() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DAY_REQUIRED, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        ActualHearingDay actualHearingDay = requestCaptor.getValue().getActualHearingDays().iterator().next();
+        assertFalse(actualHearingDay.isNotRequired());
+        assertEquals("2023-01-20T10:00:00", actualHearingDay.getHearingStartTime());
+        assertEquals("2023-01-20T12:30:00", actualHearingDay.getHearingEndTime());
+    }
+
+    @Test
+    void should_send_not_required_true_without_times_when_hearing_day_was_not_required() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DAY_REQUIRED, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.NO));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.YES));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_START, String.class)).thenReturn(Optional.of("10:25"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PAUSE_END, String.class)).thenReturn(Optional.of("10:35"));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        verify(hearingActualsService).completeHearingActuals(HEARING_ID);
+        ActualHearingDay actualHearingDay = requestCaptor.getValue().getActualHearingDays().iterator().next();
+        assertTrue(actualHearingDay.isNotRequired());
+        assertEquals("2023-01-20", actualHearingDay.getHearingDate());
+        assertNull(actualHearingDay.getHearingStartTime());
+        assertNull(actualHearingDay.getHearingEndTime());
+        assertTrue(actualHearingDay.getPauseDateTimes().isEmpty());
     }
 
     @Test
