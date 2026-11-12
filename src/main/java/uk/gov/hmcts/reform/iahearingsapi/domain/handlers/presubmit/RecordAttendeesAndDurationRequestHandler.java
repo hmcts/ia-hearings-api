@@ -11,7 +11,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PauseDateTime;
@@ -81,7 +84,9 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         if (hearingIdOpt.isPresent()) {
             HearingOutcome hearingOutcome = new HearingOutcome();
 
-            String hearingDateTime = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class).orElse("");
+            String hearingDateTime = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class)
+                .filter(dateTime -> !dateTime.isEmpty())
+                .orElseGet(() -> readFirstPlannedStartTime(hearingIdOpt.get()));
             String hearingDate =
                 hearingDateTime.isEmpty() ? "" : LocalDateTime.parse(hearingDateTime).toLocalDate().toString();
             hearingOutcome.setHearingResultDate(hearingDate);
@@ -161,6 +166,16 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);
+    }
+
+    // the raw hearing date is not on any page of the event, so CCD may not carry it through to submit
+    private String readFirstPlannedStartTime(String hearingId) {
+        return Optional.ofNullable(hearingActualsService.getHearingActuals(hearingId))
+            .map(HearingActualsData::getHearingPlanned)
+            .map(HearingPlanned::getPlannedHearingDays)
+            .flatMap(days -> days.stream().findFirst())
+            .map(PlannedHearingDay::getPlannedStartTime)
+            .orElse("");
     }
 
     private static List<PauseDateTime> readPauseDateTimes(AsylumCase asylumCase, String hearingDate) {

@@ -55,7 +55,10 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingResult;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PauseDateTime;
@@ -318,8 +321,32 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @Test
+    void should_take_hearing_date_from_first_planned_day_when_not_in_case_data() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class)).thenReturn(Optional.empty());
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(HearingActualsData.builder()
+            .hearingPlanned(HearingPlanned.builder().plannedHearingDays(List.of(
+                PlannedHearingDay.builder().plannedStartTime("2023-02-15T09:30:00").build(),
+                PlannedHearingDay.builder().plannedStartTime("2023-02-16T09:30:00").build()
+            )).build())
+            .build());
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        HearingActuals hearingActuals = requestCaptor.getValue();
+        assertEquals("2023-02-15", hearingActuals.getHearingOutcome().getHearingResultDate());
+        ActualHearingDay actualHearingDay = hearingActuals.getActualHearingDays().iterator().next();
+        assertEquals("2023-02-15", actualHearingDay.getHearingDate());
+        assertEquals("2023-02-15T10:00:00", actualHearingDay.getHearingStartTime());
+        assertEquals("2023-02-15T12:30:00", actualHearingDay.getHearingEndTime());
+    }
+
+    @Test
     void should_use_empty_dates_and_times_when_hearing_date_is_missing() {
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DATE, String.class)).thenReturn(Optional.empty());
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(HearingActualsData.builder()
+            .hearingPlanned(HearingPlanned.builder().plannedHearingDays(List.of()).build())
+            .build());
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
