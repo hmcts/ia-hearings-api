@@ -175,7 +175,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         asylumCase.write(ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, source);
     }
 
-    private static Optional<PlannedHearingDay> selectedHearingDay(
+    private Optional<PlannedHearingDay> selectedHearingDay(
         HearingActualsData actuals,
         String selectedStartTime
     ) {
@@ -189,7 +189,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             .or(() -> days.stream().findFirst());
     }
 
-    private static List<IdValue<HearingParticipant>> toParticipants(Optional<PlannedHearingDay> day) {
+    private List<IdValue<HearingParticipant>> toParticipants(Optional<PlannedHearingDay> day) {
         List<Party> parties = day.map(PlannedHearingDay::getParties).orElse(List.of());
         List<IdValue<HearingParticipant>> participants = new ArrayList<>();
         for (Party party : parties) {
@@ -198,7 +198,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         return participants;
     }
 
-    private static HearingParticipant toParticipant(Party party) {
+    private HearingParticipant toParticipant(Party party) {
         List<PartyOneOff> details = Optional.ofNullable(party.getOneOf()).orElse(List.of());
         Optional<IndividualDetails> individual = details.stream()
             .map(PartyOneOff::getIndividualDetails)
@@ -219,7 +219,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             .build();
     }
 
-    private static String toRole(String partyRole) {
+    private String toRole(String partyRole) {
         if (partyRole == null) {
             return null;
         }
@@ -232,7 +232,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         };
     }
 
-    private static String toAttendanceType(String partyChannelSubType) {
+    private String toAttendanceType(String partyChannelSubType) {
         if (partyChannelSubType == null) {
             return null;
         }
@@ -249,14 +249,14 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             .orElse(null);
     }
 
-    private static String toDateLabel(String plannedStartTime) {
+    private String toDateLabel(String plannedStartTime) {
         if (plannedStartTime == null || plannedStartTime.isEmpty()) {
             return "";
         }
         return convertToLocalStringFormat(convertFromUTC(LocalDateTime.parse(plannedStartTime)));
     }
 
-    private static String toDateTimeLabel(String plannedStartTime) {
+    private String toDateTimeLabel(String plannedStartTime) {
         if (plannedStartTime == null || plannedStartTime.isEmpty()) {
             return "";
         }

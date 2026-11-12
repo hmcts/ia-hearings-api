@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseHearing;
@@ -16,6 +18,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
+@Slf4j
 public class HearingsToDynamicListMapper {
 
     public static DynamicList map(HearingsGetResponse hearings) {
@@ -32,6 +35,7 @@ public class HearingsToDynamicListMapper {
             .filter(value -> !Strings.isNullOrEmpty(value.getLabel()))
             .collect(Collectors.toList());
 
+        log.info("--------------Hearing values found: {}", hearingValues);
         return new DynamicList(new Value("", ""), hearingValues);
     }
 
