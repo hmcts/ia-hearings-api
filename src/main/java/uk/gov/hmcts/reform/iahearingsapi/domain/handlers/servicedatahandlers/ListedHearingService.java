@@ -2,9 +2,10 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandlers;
 
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
-import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_DATE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.IS_REMOTE_HEARING;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_EVENT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.LISTING_HEARING_DATE;
@@ -36,6 +37,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.handlers.servicedatahandl
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -51,6 +53,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefiniti
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
@@ -131,6 +134,19 @@ public class ListedHearingService {
         );
         asylumCase.write(AsylumCaseFieldDefinition.CURRENT_HEARING_ID, newHearingId);
 
+        LocalDateTime nextHearingDate = getNextHearingDate(serviceData);
+        Integer duration = getDuration(serviceData);
+        Optional<List<HearingDetails>> maybeHearingDetailsList = asylumCase.read(HEARINGS);
+        List<HearingDetails> hearingDetailsList = maybeHearingDetailsList.orElse(new ArrayList<>());
+        List<HearingDetails> newHearingDetailsList = addOrReplaceHearingDetails(
+            hearingDetailsList,
+            newHearingId,
+            nextHearingDate,
+            duration
+        );
+        log.info("Writing {} {} to asylum case {}", HEARINGS, newHearingId, caseId);
+        asylumCase.write(HEARINGS, newHearingDetailsList);
+
         if (isAppealsLocationRefDataEnabled) {
             asylumCase.write(AsylumCaseFieldDefinition.IS_REMOTE_HEARING, isRemoteHearing(serviceData) ? YES : NO);
             log.info("updateListCaseHearingDetails for Case ID `{}` serviceData contains '{}", caseId, serviceData);
@@ -145,6 +161,35 @@ public class ListedHearingService {
             log.info("updateListCaseHearingDetails for Case ID `{}` listingLocation contains '{}'", caseId,
                 asylumCase.read(AsylumCaseFieldDefinition.LISTING_LOCATION).toString());
         }
+    }
+
+    protected List<HearingDetails> addOrReplaceHearingDetails(
+        List<HearingDetails> hearingDetailsList,
+        String hearingId,
+        LocalDateTime nextHearingDate,
+        Integer duration
+    ) {
+        log.info("------2------hearingId {}", hearingId);
+        log.info("------2------hearingDetailsList.size() {}", hearingDetailsList.size());
+        Optional<HearingDetails> hearingDetailsOpt = hearingDetailsList.stream()
+            .filter(hearingDetails -> hearingId.equals(hearingDetails.getHearingID()))
+            .findFirst();
+        if (hearingDetailsOpt.isPresent()) {
+            HearingDetails hearingDetails = hearingDetailsOpt.get();
+            hearingDetailsList.remove(hearingDetails);
+        }
+
+        hearingDetailsList.add(
+            HearingDetails.builder()
+                .hearingID(hearingId)
+                .hearingDateTime(nextHearingDate)
+                .duration(duration)
+                .build()
+        );
+
+        log.info("------3------hearingId {}", hearingId);
+        log.info("------3------hearingDetailsList.size() {}", hearingDetailsList.size());
+        return hearingDetailsList;
     }
 
     protected List<HearingChannel> getHearingChannels(ServiceData serviceData) {
@@ -198,6 +243,16 @@ public class ListedHearingService {
     protected String getHearingId(ServiceData serviceData) {
         return serviceData.read(HEARING_ID, String.class)
             .orElseThrow(() -> new IllegalStateException("hearing ID can not be null"));
+    }
+
+    protected LocalDateTime getNextHearingDate(ServiceData serviceData) {
+        return serviceData.read(NEXT_HEARING_DATE, LocalDateTime.class)
+            .orElseThrow(() -> new IllegalStateException("next hearing date can not be null"));
+    }
+
+    protected Integer getDuration(ServiceData serviceData) {
+        return serviceData.read(DURATION, Integer.class)
+            .orElseThrow(() -> new IllegalStateException("hearing duration can not be null"));
     }
 
     protected boolean isCaseManagementReview(ServiceData serviceData) {

@@ -11,6 +11,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_CASE_USING_LOCATION_REF_DATA;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.IS_REMOTE_HEARING;
@@ -36,6 +38,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.service.CoreCaseDataServi
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +60,7 @@ import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
@@ -504,6 +508,64 @@ class SubstantiveHearingEditedHandlerTest {
         verify(asylumCase, never()).write(SHOULD_TRIGGER_REVIEW_INTERPRETER_TASK, YES);
         verify(coreCaseDataService).triggerSubmitEvent(
             EDIT_CASE_LISTING, CASE_REFERENCE, startEventResponse, asylumCase);
+    }
+
+    @Test
+    void should_write_current_hearing_id_and_add_hearing_details_when_no_hearings_exist() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+
+        substantiveHearingEditedHandler.handle(serviceData);
+
+        verify(asylumCase).write(CURRENT_HEARING_ID, HEARING_ID);
+        verify(asylumCase).write(HEARINGS, List.of(hearingDetails(HEARING_ID, NEXT_HEARING_DATE, 150)));
+    }
+
+    @Test
+    void should_replace_hearing_details_with_same_hearing_id_and_keep_others() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+        when(serviceData.read(ServiceDataFieldDefinition.NEXT_HEARING_DATE, LocalDateTime.class))
+            .thenReturn(Optional.of(NEXT_HEARING_DATE.plusDays(1)));
+        when(serviceData.read(DURATION, Integer.class))
+            .thenReturn(Optional.of(100));
+
+        HearingDetails otherHearing = hearingDetails("67890", NEXT_HEARING_DATE.minusDays(10), 60);
+        HearingDetails previousVersionOfHearing = hearingDetails(HEARING_ID, NEXT_HEARING_DATE, 150);
+        when(asylumCase.read(HEARINGS))
+            .thenReturn(Optional.of(new ArrayList<>(List.of(otherHearing, previousVersionOfHearing))));
+
+        substantiveHearingEditedHandler.handle(serviceData);
+
+        verify(asylumCase).write(HEARINGS, List.of(
+            otherHearing,
+            hearingDetails(HEARING_ID, NEXT_HEARING_DATE.plusDays(1), 100)
+        ));
+    }
+
+    @Test
+    void should_add_hearing_details_when_hearing_id_not_in_existing_hearings() {
+        initializeServiceData();
+        initializeAsylumCaseData();
+
+        HearingDetails otherHearing = hearingDetails("67890", NEXT_HEARING_DATE.minusDays(10), 60);
+        when(asylumCase.read(HEARINGS))
+            .thenReturn(Optional.of(new ArrayList<>(List.of(otherHearing))));
+
+        substantiveHearingEditedHandler.handle(serviceData);
+
+        verify(asylumCase).write(HEARINGS, List.of(
+            otherHearing,
+            hearingDetails(HEARING_ID, NEXT_HEARING_DATE, 150)
+        ));
+    }
+
+    private static HearingDetails hearingDetails(String hearingId, LocalDateTime hearingDateTime, int duration) {
+        return HearingDetails.builder()
+            .hearingID(hearingId)
+            .hearingDateTime(hearingDateTime)
+            .duration(duration)
+            .build();
     }
 
     @ParameterizedTest

@@ -4,6 +4,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotifiedResponses;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UnNotifiedHearingsResponse;
@@ -49,6 +51,30 @@ public class HmcHearingApiFallback implements HmcHearingApi {
         String hmctsDeploymentId, String dataStoreUrl,
         String roleAssignmentUrl, UpdateHearingRequest updateHearingRequest, String id) {
         throw new HmcException("updateHearingRequest call failed after retries");
+    }
+
+    @Override
+    public HearingActualsData getHearingActuals(
+        String authorisation, String serviceAuthorization,
+        String hmctsDeploymentId, String dataStoreUrl,
+        String roleAssignmentUrl, String id, Boolean isValid) {
+        throw new HmcException("getHearingActualsRequest call failed after retries");
+    }
+
+    @Override
+    public HearingActualsData updateHearingActuals(
+        String authorisation, String serviceAuthorization,
+        String hmctsDeploymentId, String dataStoreUrl,
+        String roleAssignmentUrl, HearingActuals hearingActuals, String id) {
+        throw new HmcException("updateHearingActuals call failed after retries");
+    }
+
+    @Override
+    public void completeHearingActuals(
+        String authorisation, String serviceAuthorization,
+        String hmctsDeploymentId, String dataStoreUrl,
+        String roleAssignmentUrl, String id) {
+        throw new HmcException("completeHearingActuals call failed after retries");
     }
 
     @Override
