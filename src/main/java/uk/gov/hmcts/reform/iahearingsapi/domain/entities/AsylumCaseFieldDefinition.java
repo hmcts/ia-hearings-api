@@ -188,7 +188,7 @@ public enum AsylumCaseFieldDefinition {
     ATTENDEES_AND_DURATION_HEARING_JUDGE(
         "attendeesAndDurationHearingJudge", new TypeReference<String>(){}),
     ATTENDEES_AND_DURATION_DATE_OF_HEARING(
-        "attendeesAndDurationDateOfHearing", new TypeReference<String>(){}),
+        "attendeesAndDurationDateOfHearing", new TypeReference<DynamicList>(){}),
     ATTENDEES_AND_DURATION_START_TIME(
         "attendeesAndDurationStartTime", new TypeReference<String>(){}),
     ATTENDEES_AND_DURATION_FINISH_TIME(
@@ -201,6 +201,10 @@ public enum AsylumCaseFieldDefinition {
         "attendeesAndDurationPauseEnd", new TypeReference<String>(){}),
     ATTENDEES_AND_DURATION_HEARING_DAY_REQUIRED(
         "attendeesAndDurationHearingDayRequired", new TypeReference<YesOrNo>(){}),
+    ATTENDEES_AND_DURATION_PARTICIPANTS(
+        "attendeesAndDurationParticipants", new TypeReference<List<IdValue<HearingParticipant>>>(){}),
+    ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE(
+        "attendeesAndDurationParticipantsSource", new TypeReference<String>(){}),
     END_APPEAL_OUTCOME(
         "endAppealOutcome", new TypeReference<String>(){}),
     IS_INTEGRATED(
