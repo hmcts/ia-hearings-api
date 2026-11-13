@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.consumer.hmc;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.APPLICATION_JSON;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.AUTH_TOKEN;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.CASE_REFERENCE;
@@ -52,7 +53,9 @@ public class HmcHearingApiConsumerTestBase {
         SERVICE_AUTH_HEADER, SERVICE_AUTH_TOKEN
     );
 
-    protected ObjectMapper objectMapper = new JsonMapper();
+    protected ObjectMapper objectMapper = JsonMapper.builder()
+        .disable(WRITE_DATES_AS_TIMESTAMPS)
+        .build();
 
     protected PartiesNotified partiesNotified = PartiesNotified.builder()
         .serviceData(new ServiceData())
