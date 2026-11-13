@@ -209,10 +209,10 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         // attendee with that role, which is what HMC expects in representedParty
         Map<String, Value> itemsByRole = new LinkedHashMap<>();
         for (HearingParticipant participant : participants) {
-            String role = participant.getRole();
+            String roleLabel = participant.getRoleLabel();
             String partyId = participant.getPartyId();
-            if (role != null && partyId != null && !partyId.isBlank()) {
-                itemsByRole.putIfAbsent(role, new Value(partyId, participant.getRoleLabel()));
+            if (roleLabel != null && partyId != null && !partyId.isBlank()) {
+                itemsByRole.putIfAbsent(roleLabel, new Value(partyId, roleLabel));
             }
         }
         return new ArrayList<>(itemsByRole.values());
@@ -229,14 +229,20 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             .filter(Objects::nonNull)
             .findFirst();
 
-        String role = toRole(party.getPartyRole());
+        String partyRole = Optional.ofNullable(party.getPartyRole())
+            .map(String::trim)
+            .map(value -> value.toUpperCase(Locale.UK))
+            .filter(value -> !value.isEmpty())
+            .orElse(null);
+        String role = toRole(partyRole);
 
         return HearingParticipant.builder()
             .partyId(party.getPartyId())
             .firstName(individual.map(IndividualDetails::getFirstName).orElse(null))
             .lastName(individual.map(IndividualDetails::getLastName).orElse(null))
             .role(role)
-            .roleLabel(toRoleLabel(role))
+            // fall back to HMC's own code so a pre-filled attendee always shows a role
+            .roleLabel(Optional.ofNullable(toRoleLabel(role)).orElse(partyRole))
             .prefilled(YesOrNo.YES)
             .attendanceType(toAttendanceType(party.getPartyChannelSubType()))
             .organisation(organisation.map(OrganisationDetails::getName).orElse(null))

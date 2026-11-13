@@ -257,7 +257,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
             PlannedHearingDay.builder().plannedStartTime(PLANNED_START_TIME)
                 .parties(List.of(individual("p0", "WITN", "TEL", "Not", "Selected"))).build(),
             PlannedHearingDay.builder().plannedStartTime(SECOND_PLANNED_START_TIME).parties(List.of(
-                individual("p1", "APEL", "VIDTEAMS", "John", "Smith"),
+                individual("p1", " apel ", "VIDTEAMS", "John", "Smith"),
                 individual("p2", "LGRP", "INTER", "Jane", "Doe"),
                 individual("p3", "INTP", "TELCVP", "Ivan", "Petrov"),
                 Party.builder().partyId("p4").partyRole("RESP").partyChannelSubType("NA")
@@ -273,13 +273,14 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         List<Value> representing = List.of(
             new Value("p1", "Appellant"),
             new Value("p2", "Legal Representative"),
+            new Value("p3", "INTP"),
             new Value("p4", "Respondent")
         );
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
             new IdValue<>("1", prefilled("p1", "John", "Smith", "APEL", "Appellant", "VID", null, representing)),
             new IdValue<>("2", prefilled("p2", "Jane", "Doe", "LGRP", "Legal Representative", "INTER", null,
                 representing)),
-            new IdValue<>("3", prefilled("p3", "Ivan", "Petrov", null, null, "TEL", null, representing)),
+            new IdValue<>("3", prefilled("p3", "Ivan", "Petrov", null, "INTP", "TEL", null, representing)),
             new IdValue<>("4", prefilled("p4", null, null, "RESP", "Respondent", "NA", "Home Office", representing))
         ));
         verify(asylumCase).write(
