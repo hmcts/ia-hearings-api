@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.Document;
@@ -18,7 +17,6 @@ public class DocumentWithMetadata implements HasDocument {
     private DocumentTag tag;
     private String suppliedBy;
 
-    @JsonCreator
     private DocumentWithMetadata() {
         // noop -- for deserializer
     }

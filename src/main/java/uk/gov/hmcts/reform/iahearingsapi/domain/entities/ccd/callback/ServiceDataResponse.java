@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback;
 
 import static java.util.Objects.requireNonNull;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -14,7 +13,6 @@ public class ServiceDataResponse<T extends ServiceData> {
     private T data;
     private final Set<String> errors = new LinkedHashSet<>();
 
-    @JsonCreator
     private ServiceDataResponse() {
     }
 

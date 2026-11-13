@@ -3,12 +3,13 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 import tools.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Optional;
+
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
-import uk.gov.hmcts.reform.iahearingsapi.infrastructure.config.JsonMapperFactory;
 
 public class AsylumCase extends HashMap<String, Object> implements CaseData {
 
-    private final ObjectMapper objectMapper = JsonMapperFactory.CUSTOM_MAPPER;
+    private static final ObjectMapper objectMapper = new JsonMapper();
 
     public AsylumCase() {
     }
