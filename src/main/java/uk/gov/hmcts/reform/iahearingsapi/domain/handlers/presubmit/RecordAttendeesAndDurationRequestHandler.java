@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
@@ -210,7 +211,20 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             .actualOrganisationName(blankToNull(participant.getOrganisation()))
             .partyChannelSubType(didNotAttend ? null : participant.getAttendanceType())
             .didNotAttendFlag(didNotAttend)
+            .representedParty(readRepresentedParty(participant))
             .build();
+    }
+
+    private static String readRepresentedParty(HearingParticipant participant) {
+        // only attendees added on the page choose who they represent; pre-filled ones come from HMC as is
+        if (participant.getPrefilled() == YesOrNo.YES) {
+            return null;
+        }
+        return Optional.ofNullable(participant.getRepresentedParty())
+            .map(DynamicList::getValue)
+            .map(Value::getCode)
+            .map(RecordAttendeesAndDurationRequestHandler::blankToNull)
+            .orElse(null);
     }
 
     private static String toHmcPartyRole(String role) {

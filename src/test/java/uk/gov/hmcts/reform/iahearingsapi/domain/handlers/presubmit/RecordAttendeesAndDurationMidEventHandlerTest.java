@@ -270,11 +270,17 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
 
         handler.handle(MID_EVENT, callback);
 
+        List<Value> representing = List.of(
+            new Value("p1", "Appellant"),
+            new Value("p2", "Legal Representative"),
+            new Value("p4", "Respondent")
+        );
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", new HearingParticipant("p1", "John", "Smith", "APEL", "VID", null)),
-            new IdValue<>("2", new HearingParticipant("p2", "Jane", "Doe", "LR", "INTER", null)),
-            new IdValue<>("3", new HearingParticipant("p3", "Ivan", "Petrov", null, "TEL", null)),
-            new IdValue<>("4", new HearingParticipant("p4", null, null, "RESP", "NA", "Home Office"))
+            new IdValue<>("1", prefilled("p1", "John", "Smith", "APEL", "Appellant", "VID", null, representing)),
+            new IdValue<>("2", prefilled("p2", "Jane", "Doe", "LR", "Legal Representative", "INTER", null,
+                representing)),
+            new IdValue<>("3", prefilled("p3", "Ivan", "Petrov", null, null, "TEL", null, representing)),
+            new IdValue<>("4", prefilled("p4", null, null, "RESP", "Respondent", "NA", "Home Office", representing))
         ));
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, HEARING_ID + "|" + SECOND_PLANNED_START_TIME);
@@ -316,7 +322,8 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         handler.handle(MID_EVENT, callback);
 
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", new HearingParticipant("p1", "Ann", "Lee", "RESP", "INTER", null))
+            new IdValue<>("1", prefilled("p1", "Ann", "Lee", "RESP", "Respondent", "INTER", null,
+                List.of(new Value("p1", "Respondent"))))
         ));
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, HEARING_ID + "|" + SECOND_PLANNED_START_TIME);
@@ -342,7 +349,8 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         handler.handle(MID_EVENT, callback);
 
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", new HearingParticipant("p1", "Ann", "Lee", "RESP", "ONPPRS", null))
+            new IdValue<>("1", prefilled("p1", "Ann", "Lee", "RESP", "Respondent", "ONPPRS", null,
+                List.of(new Value("p1", "Respondent"))))
         ));
     }
 
@@ -413,6 +421,22 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
             .oneOf(List.of(PartyOneOff.builder()
                 .individualDetails(IndividualDetails.builder().firstName(firstName).lastName(lastName).build())
                 .build()))
+            .build();
+    }
+
+    private static HearingParticipant prefilled(String partyId, String firstName, String lastName, String role,
+                                                String roleLabel, String attendanceType, String organisation,
+                                                List<Value> representing) {
+        return HearingParticipant.builder()
+            .partyId(partyId)
+            .firstName(firstName)
+            .lastName(lastName)
+            .role(role)
+            .roleLabel(roleLabel)
+            .representedParty(new DynamicList(new Value("", ""), representing))
+            .attendanceType(attendanceType)
+            .organisation(organisation)
+            .prefilled(YesOrNo.YES)
             .build();
     }
 

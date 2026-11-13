@@ -27,6 +27,8 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.List;
@@ -191,11 +193,29 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
 
     private List<IdValue<HearingParticipant>> toParticipants(Optional<PlannedHearingDay> day) {
         List<Party> parties = day.map(PlannedHearingDay::getParties).orElse(List.of());
+        List<HearingParticipant> prefilled = parties.stream().map(this::toParticipant).toList();
+        List<Value> representedPartyItems = toRepresentedPartyItems(prefilled);
+
         List<IdValue<HearingParticipant>> participants = new ArrayList<>();
-        for (Party party : parties) {
-            participants.add(new IdValue<>(String.valueOf(participants.size() + 1), toParticipant(party)));
+        for (HearingParticipant participant : prefilled) {
+            participant.setRepresentedParty(new DynamicList(new Value("", ""), representedPartyItems));
+            participants.add(new IdValue<>(String.valueOf(participants.size() + 1), participant));
         }
         return participants;
+    }
+
+    private List<Value> toRepresentedPartyItems(List<HearingParticipant> participants) {
+        // one item per role of the pre-filled attendees; the code is the HMC party id of the first
+        // attendee with that role, which is what HMC expects in representedParty
+        Map<String, Value> itemsByRole = new LinkedHashMap<>();
+        for (HearingParticipant participant : participants) {
+            String role = participant.getRole();
+            String partyId = participant.getPartyId();
+            if (role != null && partyId != null && !partyId.isBlank()) {
+                itemsByRole.putIfAbsent(role, new Value(partyId, participant.getRoleLabel()));
+            }
+        }
+        return new ArrayList<>(itemsByRole.values());
     }
 
     private HearingParticipant toParticipant(Party party) {
@@ -209,11 +229,15 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             .filter(Objects::nonNull)
             .findFirst();
 
+        String role = toRole(party.getPartyRole());
+
         return HearingParticipant.builder()
             .partyId(party.getPartyId())
             .firstName(individual.map(IndividualDetails::getFirstName).orElse(null))
             .lastName(individual.map(IndividualDetails::getLastName).orElse(null))
-            .role(toRole(party.getPartyRole()))
+            .role(role)
+            .roleLabel(toRoleLabel(role))
+            .prefilled(YesOrNo.YES)
             .attendanceType(toAttendanceType(party.getPartyChannelSubType()))
             .organisation(organisation.map(OrganisationDetails::getName).orElse(null))
             .build();
@@ -228,6 +252,19 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             case "APEL", "APPL" -> "APEL";
             case "WITN" -> "WITN";
             case "LGRP", "LR" -> "LR";
+            default -> null;
+        };
+    }
+
+    private String toRoleLabel(String role) {
+        if (role == null) {
+            return null;
+        }
+        return switch (role) {
+            case "RESP" -> "Respondent";
+            case "APEL" -> "Appellant";
+            case "WITN" -> "Witness";
+            case "LR" -> "Legal Representative";
             default -> null;
         };
     }
