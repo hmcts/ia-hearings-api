@@ -27,8 +27,6 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.List;
@@ -193,29 +191,11 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
 
     private List<IdValue<HearingParticipant>> toParticipants(Optional<PlannedHearingDay> day) {
         List<Party> parties = day.map(PlannedHearingDay::getParties).orElse(List.of());
-        List<HearingParticipant> prefilled = parties.stream().map(this::toParticipant).toList();
-        List<Value> representedPartyItems = toRepresentedPartyItems(prefilled);
-
         List<IdValue<HearingParticipant>> participants = new ArrayList<>();
-        for (HearingParticipant participant : prefilled) {
-            participant.setRepresentedParty(new DynamicList(new Value("", ""), representedPartyItems));
-            participants.add(new IdValue<>(String.valueOf(participants.size() + 1), participant));
+        for (Party party : parties) {
+            participants.add(new IdValue<>(String.valueOf(participants.size() + 1), toParticipant(party)));
         }
         return participants;
-    }
-
-    private List<Value> toRepresentedPartyItems(List<HearingParticipant> participants) {
-        // one item per role of the pre-filled attendees; the code is the HMC party id of the first
-        // attendee with that role, which is what HMC expects in representedParty
-        Map<String, Value> itemsByRole = new LinkedHashMap<>();
-        for (HearingParticipant participant : participants) {
-            String roleLabel = participant.getRoleLabel();
-            String partyId = participant.getPartyId();
-            if (roleLabel != null && partyId != null && !partyId.isBlank()) {
-                itemsByRole.putIfAbsent(roleLabel, new Value(partyId, roleLabel));
-            }
-        }
-        return new ArrayList<>(itemsByRole.values());
     }
 
     private HearingParticipant toParticipant(Party party) {

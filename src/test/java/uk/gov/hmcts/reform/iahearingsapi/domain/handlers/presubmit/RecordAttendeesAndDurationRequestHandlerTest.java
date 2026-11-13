@@ -190,12 +190,12 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     void should_send_participants_as_actual_day_parties() {
         when(asylumCase.read(ATTENDEES_AND_DURATION_PARTICIPANTS)).thenReturn(Optional.of(List.of(
             new IdValue<>("1", participant("p1", "John", "Smith", "APEL", "VID", null, YesOrNo.YES,
-                representing(""))),
+                null)),
             new IdValue<>("2", participant("p2", "Jane", "Doe", "LR", "INTER", "Law Firm", YesOrNo.YES,
-                representing(""))),
+                null)),
             new IdValue<>("3", participant("p3", null, null, "RESP", "NA", "Home Office", YesOrNo.YES, null)),
-            new IdValue<>("4", participant(null, "Ann", "Lee", "WITN", "TEL", " ", null, representing("p1"))),
-            new IdValue<>("5", participant(null, "Bob", "Ray", "LR", "VID", null, null, representing("")))
+            new IdValue<>("4", participant(null, "Ann", "Lee", "WITN", "TEL", " ", null, "APEL")),
+            new IdValue<>("5", participant(null, "Bob", "Ray", "LR", "VID", null, null, null))
         )));
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
@@ -215,7 +215,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
                 .didNotAttendFlag(true).build(),
             ActualDayParty.builder().partyRole("WITN")
                 .individualDetails(new ActualIndividualDetails("Ann", "Lee"))
-                .partyChannelSubType("TEL").didNotAttendFlag(false).representedParty("p1").build(),
+                .partyChannelSubType("TEL").didNotAttendFlag(false).representedParty("APEL").build(),
             ActualDayParty.builder().partyRole("LGRP")
                 .individualDetails(new ActualIndividualDetails("Bob", "Ray"))
                 .partyChannelSubType("VID").didNotAttendFlag(false).build()
@@ -224,7 +224,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
 
     private static HearingParticipant participant(String partyId, String firstName, String lastName, String role,
                                                   String attendanceType, String organisation, YesOrNo prefilled,
-                                                  DynamicList representedParty) {
+                                                  String representedParty) {
         return HearingParticipant.builder()
             .partyId(partyId)
             .firstName(firstName)
@@ -235,11 +235,6 @@ class RecordAttendeesAndDurationRequestHandlerTest {
             .prefilled(prefilled)
             .representedParty(representedParty)
             .build();
-    }
-
-    private static DynamicList representing(String selectedPartyId) {
-        List<Value> items = List.of(new Value("p1", "Appellant"), new Value("p3", "Respondent"));
-        return new DynamicList(new Value(selectedPartyId, ""), items);
     }
 
     @Test

@@ -17,7 +17,7 @@ public class HearingParticipant {
     private String lastName;
     private String roleLabel;
     private String role;
-    private DynamicList representedParty;
+    private String representedParty;
     private String attendanceType;
     private String organisation;
     private YesOrNo prefilled;

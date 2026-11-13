@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
@@ -220,11 +219,7 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         if (participant.getPrefilled() == YesOrNo.YES) {
             return null;
         }
-        return Optional.ofNullable(participant.getRepresentedParty())
-            .map(DynamicList::getValue)
-            .map(Value::getCode)
-            .map(RecordAttendeesAndDurationRequestHandler::blankToNull)
-            .orElse(null);
+        return blankToNull(participant.getRepresentedParty());
     }
 
     private static String toHmcPartyRole(String role) {
