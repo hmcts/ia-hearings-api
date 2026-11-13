@@ -12,6 +12,7 @@ import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import au.com.dius.pact.core.model.annotations.PactFolder;
+import com.google.common.collect.ImmutableMap;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
@@ -33,6 +34,10 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     public V4Pact getHearingServiceValues(
         PactDslWithProvider builder) {
 
+        Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
+            .put("Connection", "close")
+            .build();
+
         return builder.given(IAC_PROVIDER + " successfully returns serviceHearingValue for a given case reference")
             .uponReceiving("A request to get serviceHearingValue for a given case reference")
             .method("POST")
@@ -42,6 +47,7 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
             .headers(authorisedHeadersGet)
             .willRespondWith()
             .body(getServiceHearingValues())
+            .headers(responseHeaders)
             .status(org.springframework.http.HttpStatus.OK.value())
             .toPact(V4Pact.class);
     }
@@ -75,6 +81,10 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
     @Pact(provider = IAC_PROVIDER, consumer = CONSUMER)
     public V4Pact getHearingLinkData(PactDslWithProvider builder) {
 
+        Map<String, String> responseHeaders = ImmutableMap.<String, String>builder()
+            .put("Connection", "close")
+            .build();
+
         return builder.given(IAC_PROVIDER + " successfully returns hearings link data for a given case reference")
             .uponReceiving("A request to get hearings link data for a given case reference")
             .method("POST")
@@ -84,6 +94,7 @@ public class IacHearingApiGetConsumerTest extends HmcHearingApiConsumerTestBase 
             .headers(authorisedHeaders)
             .willRespondWith()
             .body(getHearingLinkDataList())
+            .headers(responseHeaders)
             .status(org.springframework.http.HttpStatus.OK.value())
             .toPact(V4Pact.class);
     }
