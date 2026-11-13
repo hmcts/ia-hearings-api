@@ -31,6 +31,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage.ABOUT_TO_SUBMIT;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.HashSet;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -195,13 +197,28 @@ class RecordAttendeesAndDurationRequestHandlerTest {
                 null)),
             new IdValue<>("3", participant("p3", null, null, "RESP", "NA", "Home Office", YesOrNo.YES, null)),
             new IdValue<>("4", participant(null, "Ann", "Lee", "WITN", "TEL", " ", null, "APEL")),
-            new IdValue<>("5", participant(null, "Bob", "Ray", "LR", "VID", null, null, null))
+            new IdValue<>("5", participant(null, "Bob", "Ray", "LR", "VID", null, null, "RESP")),
+            new IdValue<>("6", participant(null, "Eve", "Moss", "LGRP", "VID", null, null, "WITN")),
+            new IdValue<>("7", participant(null, "Tom", "Hart", "WITN", "TEL", null, null, null))
         )));
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
         verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
         ActualHearingDay actualHearingDay = requestCaptor.getValue().getActualHearingDays().iterator().next();
+        List<ActualDayParty> parties = actualHearingDay.getActualDayParties();
+
+        // attendees added on the page get new, distinct UUIDs as their party ids
+        List<String> addedIds = parties.subList(3, 7).stream().map(ActualDayParty::getActualPartyId).toList();
+        addedIds.forEach(id -> assertEquals(id, UUID.fromString(id).toString()));
+        assertEquals(4, new HashSet<>(addedIds).size());
+        // a selected role points at the party id of the first attendee with that role
+        assertEquals("p1", parties.get(3).getRepresentedParty());
+        assertEquals("p3", parties.get(4).getRepresentedParty());
+        assertEquals(addedIds.get(0), parties.get(5).getRepresentedParty());
+
+        parties.subList(3, 7).forEach(party -> party.setActualPartyId(null));
+        parties.subList(3, 6).forEach(party -> party.setRepresentedParty(null));
         assertEquals(List.of(
             ActualDayParty.builder().actualPartyId("p1").partyRole("APEL")
                 .individualDetails(new ActualIndividualDetails("John", "Smith"))
@@ -215,11 +232,31 @@ class RecordAttendeesAndDurationRequestHandlerTest {
                 .didNotAttendFlag(true).build(),
             ActualDayParty.builder().partyRole("WITN")
                 .individualDetails(new ActualIndividualDetails("Ann", "Lee"))
-                .partyChannelSubType("TEL").didNotAttendFlag(false).representedParty("APEL").build(),
+                .partyChannelSubType("TEL").didNotAttendFlag(false).build(),
             ActualDayParty.builder().partyRole("LGRP")
                 .individualDetails(new ActualIndividualDetails("Bob", "Ray"))
-                .partyChannelSubType("VID").didNotAttendFlag(false).build()
-        ), actualHearingDay.getActualDayParties());
+                .partyChannelSubType("VID").didNotAttendFlag(false).build(),
+            ActualDayParty.builder().partyRole("LGRP")
+                .individualDetails(new ActualIndividualDetails("Eve", "Moss"))
+                .partyChannelSubType("VID").didNotAttendFlag(false).build(),
+            ActualDayParty.builder().partyRole("WITN")
+                .individualDetails(new ActualIndividualDetails("Tom", "Hart"))
+                .partyChannelSubType("TEL").didNotAttendFlag(false).build()
+        ), parties);
+    }
+
+    @Test
+    void should_not_send_represented_party_when_no_attendee_has_selected_role() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PARTICIPANTS)).thenReturn(Optional.of(List.of(
+            new IdValue<>("1", participant("p1", "John", "Smith", "APEL", "VID", null, YesOrNo.YES, null)),
+            new IdValue<>("2", participant(null, "Ann", "Lee", "LGRP", "TEL", null, null, "RESP"))
+        )));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        ActualHearingDay actualHearingDay = requestCaptor.getValue().getActualHearingDays().iterator().next();
+        assertNull(actualHearingDay.getActualDayParties().get(1).getRepresentedParty());
     }
 
     private static HearingParticipant participant(String partyId, String firstName, String lastName, String role,

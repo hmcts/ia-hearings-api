@@ -32,11 +32,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON;
@@ -187,22 +191,46 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
     }
 
     private static List<ActualDayParty> readActualDayParties(AsylumCase asylumCase) {
-        List<IdValue<HearingParticipant>> participants =
+        List<HearingParticipant> participants =
             asylumCase.<List<IdValue<HearingParticipant>>>read(ATTENDEES_AND_DURATION_PARTICIPANTS)
-                .orElse(Collections.emptyList());
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(IdValue::getValue)
+                .toList();
 
-        return participants.stream()
-            .map(IdValue::getValue)
-            .map(RecordAttendeesAndDurationRequestHandler::toActualDayParty)
+        // HMC needs an id for every party, so attendees added on the page get a new one
+        List<String> partyIds = participants.stream()
+            .map(participant -> Optional.ofNullable(blankToNull(participant.getPartyId()))
+                .orElseGet(() -> UUID.randomUUID().toString()))
             .toList();
+
+        // HMC expects representedParty to be the id of a party in this list, so the selected role
+        // becomes the id of the first attendee with that role
+        Map<String, String> partyIdByRole = new HashMap<>();
+        for (int i = 0; i < participants.size(); i++) {
+            String role = toHmcPartyRole(participants.get(i).getRole());
+            if (role != null) {
+                partyIdByRole.putIfAbsent(role, partyIds.get(i));
+            }
+        }
+
+        List<ActualDayParty> parties = new ArrayList<>();
+        for (int i = 0; i < participants.size(); i++) {
+            parties.add(toActualDayParty(participants.get(i), partyIds.get(i), partyIdByRole));
+        }
+        return parties;
     }
 
-    private static ActualDayParty toActualDayParty(HearingParticipant participant) {
+    private static ActualDayParty toActualDayParty(
+        HearingParticipant participant,
+        String partyId,
+        Map<String, String> partyIdByRole
+    ) {
         boolean didNotAttend = HearingChannel.NA.name().equals(participant.getAttendanceType());
         boolean hasName = isNotBlank(participant.getFirstName()) || isNotBlank(participant.getLastName());
 
         return ActualDayParty.builder()
-            .actualPartyId(blankToNull(participant.getPartyId()))
+            .actualPartyId(partyId)
             .partyRole(toHmcPartyRole(participant.getRole()))
             .individualDetails(hasName
                 ? new ActualIndividualDetails(participant.getFirstName(), participant.getLastName())
@@ -210,16 +238,23 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             .actualOrganisationName(blankToNull(participant.getOrganisation()))
             .partyChannelSubType(didNotAttend ? null : participant.getAttendanceType())
             .didNotAttendFlag(didNotAttend)
-            .representedParty(readRepresentedParty(participant))
+            .representedParty(readRepresentedParty(participant, partyId, partyIdByRole))
             .build();
     }
 
-    private static String readRepresentedParty(HearingParticipant participant) {
+    private static String readRepresentedParty(
+        HearingParticipant participant,
+        String partyId,
+        Map<String, String> partyIdByRole
+    ) {
         // only attendees added on the page choose who they represent; pre-filled ones come from HMC as is
         if (participant.getPrefilled() == YesOrNo.YES) {
             return null;
         }
-        return blankToNull(participant.getRepresentedParty());
+        return Optional.ofNullable(blankToNull(participant.getRepresentedParty()))
+            .map(code -> partyIdByRole.get(toHmcPartyRole(code)))
+            .filter(representedId -> !representedId.equals(partyId))
+            .orElse(null);
     }
 
     private static String toHmcPartyRole(String role) {
