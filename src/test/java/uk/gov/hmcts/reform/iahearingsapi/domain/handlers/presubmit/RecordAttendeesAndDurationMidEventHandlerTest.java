@@ -277,7 +277,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         );
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
             new IdValue<>("1", prefilled("p1", "John", "Smith", "APEL", "Appellant", "VID", null, representing)),
-            new IdValue<>("2", prefilled("p2", "Jane", "Doe", "LR", "Legal Representative", "INTER", null,
+            new IdValue<>("2", prefilled("p2", "Jane", "Doe", "LGRP", "Legal Representative", "INTER", null,
                 representing)),
             new IdValue<>("3", prefilled("p3", "Ivan", "Petrov", null, null, "TEL", null, representing)),
             new IdValue<>("4", prefilled("p4", null, null, "RESP", "Respondent", "NA", "Home Office", representing))

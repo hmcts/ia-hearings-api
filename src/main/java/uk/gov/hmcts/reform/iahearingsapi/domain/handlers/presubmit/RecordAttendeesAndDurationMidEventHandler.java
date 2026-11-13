@@ -251,7 +251,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             case "RESP" -> "RESP";
             case "APEL", "APPL" -> "APEL";
             case "WITN" -> "WITN";
-            case "LGRP", "LR" -> "LR";
+            case "LGRP", "LR" -> "LGRP";
             default -> null;
         };
     }
@@ -264,7 +264,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             case "RESP" -> "Respondent";
             case "APEL" -> "Appellant";
             case "WITN" -> "Witness";
-            case "LR" -> "Legal Representative";
+            case "LGRP" -> "Legal Representative";
             default -> null;
         };
     }
