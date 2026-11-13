@@ -10,7 +10,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.HE
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.LISTED;
 import static uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.HmcHearingApi.HMCTS_DEPLOYMENT_ID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.apache.qpid.jms.message.JmsBytesMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ class HmcHearingsEventTopicListenerTest {
     @Mock
     private JmsBytesMessage mockJmsBytesMessage;
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = new JsonMapper();
 
     @BeforeEach
     public void setUp() {

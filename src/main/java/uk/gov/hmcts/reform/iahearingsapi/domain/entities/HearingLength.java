@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
 import static java.util.Arrays.stream;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
@@ -26,6 +27,7 @@ public enum HearingLength {
     @JsonValue
     private final int value;
 
+    @JsonCreator
     HearingLength(int value) {
         this.value = value;
     }

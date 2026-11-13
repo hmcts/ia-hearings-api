@@ -15,7 +15,7 @@ public enum ErrorCode {
     HMC_SERVICE_ERROR("HMC_SERVICE_ERROR", HttpStatus.SERVICE_UNAVAILABLE, "HMC service error"),
     IDAM_SERVICE_ERROR("IDAM_SERVICE_ERROR", HttpStatus.SERVICE_UNAVAILABLE, "IDAM service error"),
     IDENTITY_MANAGER_ERROR("IDENTITY_MANAGER_ERROR", HttpStatus.UNAUTHORIZED, "Identity manager error"),
-    CCD_DATA_ERROR("CCD_DATA_ERROR", HttpStatus.UNPROCESSABLE_ENTITY, "CCD data processing error"),
+    CCD_DATA_ERROR("CCD_DATA_ERROR", HttpStatus.UNPROCESSABLE_CONTENT, "CCD data processing error"),
     EXTERNAL_SERVICE_ERROR("EXTERNAL_SERVICE_ERROR", HttpStatus.SERVICE_UNAVAILABLE, "External service error"),
     ACCESS_DENIED("ACCESS_DENIED", HttpStatus.FORBIDDEN, "Access denied"),
     UNAUTHORIZED("UNAUTHORIZED", HttpStatus.UNAUTHORIZED, "Unauthorized access");

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.iahearingsapi.consumer.hmc;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static tools.jackson.databind.cfg.DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.APPLICATION_JSON;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.AUTH_TOKEN;
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.CASE_REFERENCE;
@@ -18,10 +19,8 @@ import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.generateServiceHear
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.getDeleteHearingRequest;
 
 import au.com.dius.pact.consumer.dsl.DslPart;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -54,9 +53,9 @@ public class HmcHearingApiConsumerTestBase {
         SERVICE_AUTH_HEADER, SERVICE_AUTH_TOKEN
     );
 
-    protected ObjectMapper objectMapper = new ObjectMapper()
-        .registerModule(new JavaTimeModule())
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    protected ObjectMapper objectMapper = JsonMapper.builder()
+        .disable(WRITE_DATES_AS_TIMESTAMPS)
+        .build();
 
     protected PartiesNotified partiesNotified = PartiesNotified.builder()
         .serviceData(new ServiceData())
@@ -82,18 +81,17 @@ public class HmcHearingApiConsumerTestBase {
     protected HearingRequestPayload hearingRequestPayload = HearingRequestPayload
         .builder().caseReference(CASE_REFERENCE).build();
 
-    protected  <T> T getExpectedResponse(String responseStr, Class<T> type) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
+    protected  <T> T getExpectedResponse(String responseStr, Class<T> type) {
+        ObjectMapper objectMapper = new JsonMapper();
 
         return objectMapper.readValue(responseStr, type);
     }
 
-    protected String getServiceHearingValues() throws JsonProcessingException {
+    protected String getServiceHearingValues() {
         return objectMapper.writeValueAsString(generateServiceHearingValues());
     }
 
-    protected String getHearingLinkDataList() throws JsonProcessingException {
+    protected String getHearingLinkDataList() {
         return objectMapper.writeValueAsString(generateHearingLinkData(CASE_REFERENCE));
     }
 }
