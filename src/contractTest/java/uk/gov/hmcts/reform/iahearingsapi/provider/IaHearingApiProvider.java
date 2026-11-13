@@ -13,11 +13,11 @@ import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.generateServiceHear
 import static uk.gov.hmcts.reform.iahearingsapi.DataProvider.generateHearingLinkData;
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
+import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
-import au.com.dius.pact.provider.spring.spring7.PactVerificationSpring7Provider;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -76,7 +76,7 @@ public class IaHearingApiProvider {
     }
 
     @TestTemplate
-    @ExtendWith(PactVerificationSpring7Provider.class)
+    @ExtendWith(PactVerificationInvocationContextProvider.class)
     public void pactVerificationTestTemplate(PactVerificationContext context) {
         if (null != context) {
             context.verifyInteraction();
