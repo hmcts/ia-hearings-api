@@ -20,10 +20,8 @@ class IdValueTest {
 
     @Test
     void should_throw() {
-
-        assertThatThrownBy(() -> new IdValue<>(null, value))
+        assertThatThrownBy(() -> new IdValue<>(id, null))
             .isExactlyInstanceOf(NullPointerException.class);
-
     }
 
 }
