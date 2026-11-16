@@ -381,8 +381,7 @@ dependencies {
   //pact contract testing
   contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: '4.7.7'
   contractTestImplementation group: 'au.com.dius.pact.provider', name: 'junit5', version: '4.7.7'
-  contractTestImplementation group: 'au.com.dius.pact.provider', name: 'spring', version: '4.7.7'
-  contractTestImplementation group: 'au.com.dius.pact.provider', name: 'junit5spring', version: '4.7.7'
+  contractTestImplementation group: 'au.com.dius.pact.provider', name: 'spring7', version: '4.7.7'
 
   contractTestImplementation sourceSets.main.runtimeClasspath
   contractTestImplementation sourceSets.test.runtimeClasspath
