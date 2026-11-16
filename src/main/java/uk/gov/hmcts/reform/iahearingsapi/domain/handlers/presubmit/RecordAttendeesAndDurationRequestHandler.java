@@ -5,11 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualDayParty;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualIndividualDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
@@ -27,11 +32,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON;
@@ -46,6 +55,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_END;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_START;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_PARTICIPANTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event.RECORD_ATTENDEES_AND_DURATION;
 
 @Component
@@ -150,6 +160,9 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
                 actualHearingDay.setPauseDateTimes(Collections.emptyList());
             }
 
+            actualHearingDay.setActualDayParties(readActualDayParties(asylumCase));
+
+            actualHearingDay.setNotRequired(false);
             actualHearingDay.setNotRequired(!hearingDayRequired);
 
             Set<ActualHearingDay> actualHearingDays = new HashSet<>();
@@ -168,7 +181,6 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
 
-    // the raw hearing date is not on any page of the event, so CCD may not carry it through to submit
     private String readFirstPlannedStartTime(String hearingId) {
         return Optional.ofNullable(hearingActualsService.getHearingActuals(hearingId))
             .map(HearingActualsData::getHearingPlanned)
@@ -176,6 +188,86 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             .flatMap(days -> days.stream().findFirst())
             .map(PlannedHearingDay::getPlannedStartTime)
             .orElse("");
+    }
+
+    private static List<ActualDayParty> readActualDayParties(AsylumCase asylumCase) {
+        List<HearingParticipant> participants =
+            asylumCase.<List<IdValue<HearingParticipant>>>read(ATTENDEES_AND_DURATION_PARTICIPANTS)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(IdValue::getValue)
+                .toList();
+
+        // HMC needs an id for every party, so attendees added on the page get a new one
+        List<String> partyIds = participants.stream()
+            .map(participant -> Optional.ofNullable(blankToNull(participant.getPartyId()))
+                .orElseGet(() -> UUID.randomUUID().toString()))
+            .toList();
+
+        // HMC expects representedParty to be the id of a party in this list, so the selected role
+        // becomes the id of the first attendee with that role
+        Map<String, String> partyIdByRole = new HashMap<>();
+        for (int i = 0; i < participants.size(); i++) {
+            String role = toHmcPartyRole(participants.get(i).getRole());
+            if (role != null) {
+                partyIdByRole.putIfAbsent(role, partyIds.get(i));
+            }
+        }
+
+        List<ActualDayParty> parties = new ArrayList<>();
+        for (int i = 0; i < participants.size(); i++) {
+            parties.add(toActualDayParty(participants.get(i), partyIds.get(i), partyIdByRole));
+        }
+        return parties;
+    }
+
+    private static ActualDayParty toActualDayParty(
+        HearingParticipant participant,
+        String partyId,
+        Map<String, String> partyIdByRole
+    ) {
+        boolean didNotAttend = HearingChannel.NA.name().equals(participant.getAttendanceType());
+        boolean hasName = isNotBlank(participant.getFirstName()) || isNotBlank(participant.getLastName());
+
+        return ActualDayParty.builder()
+            .actualPartyId(partyId)
+            .partyRole(toHmcPartyRole(participant.getRole()))
+            .individualDetails(hasName
+                ? new ActualIndividualDetails(participant.getFirstName(), participant.getLastName())
+                : null)
+            .actualOrganisationName(blankToNull(participant.getOrganisation()))
+            .partyChannelSubType(didNotAttend ? null : participant.getAttendanceType())
+            .didNotAttendFlag(didNotAttend)
+            .representedParty(readRepresentedParty(participant, partyId, partyIdByRole))
+            .build();
+    }
+
+    private static String readRepresentedParty(
+        HearingParticipant participant,
+        String partyId,
+        Map<String, String> partyIdByRole
+    ) {
+        // only attendees added on the page choose who they represent; pre-filled ones come from HMC as is
+        if (participant.getPrefilled() == YesOrNo.YES) {
+            return null;
+        }
+        return Optional.ofNullable(blankToNull(participant.getRepresentedParty()))
+            .map(code -> partyIdByRole.get(toHmcPartyRole(code)))
+            .filter(representedId -> !representedId.equals(partyId))
+            .orElse(null);
+    }
+
+    private static String toHmcPartyRole(String role) {
+        // IA sends legal representatives to HMC with the LGRP role code
+        return "LR".equals(role) ? "LGRP" : role;
+    }
+
+    private static boolean isNotBlank(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private static String blankToNull(String value) {
+        return isNotBlank(value) ? value : null;
     }
 
     private static List<PauseDateTime> readPauseDateTimes(AsylumCase asylumCase, String hearingDate) {

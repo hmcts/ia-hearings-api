@@ -19,9 +19,11 @@ public class ActualDayParty {
 
     private ActualIndividualDetails individualDetails;
 
+    private String actualOrganisationName;
+
     private String partyChannelSubType;
 
-    private String didNotAttendFlag;
+    private Boolean didNotAttendFlag;
 
     private String representedParty;
 }
