@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.iahearingsapi.infrastructure.config;
 
+import feign.codec.Decoder;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.http.converter.autoconfigure.ClientHttpMessageConvertersCustomizer;
 import org.springframework.cloud.openfeign.support.FeignHttpMessageConverters;
 import org.springframework.cloud.openfeign.support.HttpMessageConverterCustomizer;
+import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
 import org.springframework.cloud.openfeign.support.SpringEncoder;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -31,9 +33,8 @@ public class FeignConfiguration {
         return new SpringFormEncoder(new SpringEncoder(messageConverters));
     }
 
-    public ObjectMapper objectMapper() {
-        return JsonMapper.builder()
-            .configure(EnumFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE, true)
-            .build();
+    @Bean
+    public Decoder feignDecoder() {
+        return new ResponseEntityDecoder(new Jackson3Decoder(JsonMapperFactory.CUSTOM_MAPPER));
     }
 }
