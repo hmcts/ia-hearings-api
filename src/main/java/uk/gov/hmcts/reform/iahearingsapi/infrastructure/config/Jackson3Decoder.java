@@ -29,13 +29,15 @@ public class Jackson3Decoder implements Decoder {
                 return Util.toString(reader);
             }
         }
-        if (type == byte[].class) {
-            try (InputStream in = response.body().asInputStream()) {
-                return in.readAllBytes();
-            }
-        }
         try (InputStream in = response.body().asInputStream()) {
-            return mapper.readValue(in, mapper.constructType(type));
+            byte[] bytes = in.readAllBytes();
+            if (bytes.length == 0) {
+                return null;
+            }
+            if (type == byte[].class) {
+                return bytes;
+            }
+            return mapper.readValue(bytes, mapper.constructType(type));
         }
     }
 }
