@@ -17,7 +17,6 @@ import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvide
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
-import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import au.com.dius.pact.provider.spring.spring7.Spring7MockMvcTestTarget;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
@@ -40,7 +39,6 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.controllers.HearingsCont
 @ExtendWith(SpringExtension.class)
 @ExtendWith(MockitoExtension.class)
 @Provider(IAC_PROVIDER)
-@PactFolder("pacts")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",
     host = "${PACT_BROKER_URL:localhost}",
     port = "${PACT_BROKER_PORT:80}")

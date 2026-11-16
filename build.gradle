@@ -429,7 +429,7 @@ pact {
         pactBrokerUrl = System.getenv("PACT_BROKER_FULL_URL") ?: 'http://localhost:80'
     }
     publish {
-        pactDirectory = 'pacts'
+        pactDirectory = file('pacts').absolutePath
         tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
         version = project.pacticipantVersion + '_' + System.nanoTime().toString()
     }
