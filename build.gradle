@@ -159,6 +159,7 @@ tasks.register('contract', Test) {
   useJUnitPlatform()
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
+  systemProperty 'pact.rootDir', layout.buildDirectory.dir("pacts").get().asFile.path
 }
 
 checkstyle {
@@ -420,6 +421,8 @@ idea {
 
 tasks.register('runAndPublishConsumerPactTests', Test) {
   logger.lifecycle("Runs pact Tests")
+  useJUnitPlatform()
+  systemProperty 'pact.rootDir', layout.buildDirectory.dir("pacts").get().asFile.path
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
 }
@@ -429,7 +432,7 @@ pact {
         pactBrokerUrl = System.getenv("PACT_BROKER_FULL_URL") ?: 'http://localhost:80'
     }
     publish {
-        pactDirectory = file('pacts').absolutePath
+        pactDirectory = layout.buildDirectory.dir("pacts").get().asFile.path
         tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
         version = project.pacticipantVersion + '_' + System.nanoTime().toString()
     }
