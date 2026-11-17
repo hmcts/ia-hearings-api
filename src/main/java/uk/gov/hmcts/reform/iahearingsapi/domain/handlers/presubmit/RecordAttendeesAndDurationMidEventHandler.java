@@ -178,7 +178,6 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             .map(source::equals)
             .orElse(false);
         if (alreadyPopulated) {
-            // keep the user's edits when they come back through this page for the same hearing day
             return;
         }
 
@@ -203,8 +202,6 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             .or(() -> days.stream().findFirst());
     }
 
-    // HMC hearing actuals do not always carry the parties' names, so fill in the missing names of the appellant,
-    // legal representative (individual and organisation) and witnesses from the case data
     private void populatePartyDetailsFromCaseData(PlannedHearingDay day, CaseDetails<AsylumCase> caseDetails) {
         List<Party> parties = Optional.ofNullable(day.getParties()).orElse(List.of());
         if (parties.isEmpty()) {
@@ -220,8 +217,33 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             return;
         }
 
+        List<Party> unmatchedWitnesses = new ArrayList<>();
+        List<PartyDetailsModel> matchedCaseParties = new ArrayList<>();
         for (Party party : parties) {
-            findCaseParty(party, caseParties).ifPresent(caseParty -> fillPartyDetails(party, caseParty));
+            Optional<PartyDetailsModel> caseParty = findCaseParty(party, caseParties);
+            if (caseParty.isPresent()) {
+                fillPartyDetails(party, caseParty.get());
+                matchedCaseParties.add(caseParty.get());
+            } else if (PartyNamesMapper.WITNESS_ROLE.equals(toRole(normalise(party.getPartyRole())))) {
+                unmatchedWitnesses.add(party);
+            }
+        }
+
+        // HMC hearing actuals do not return party ids, so witnesses (a case can have several) are paired with
+        // the case witnesses in the order they were sent to HMC - but only when the numbers agree, otherwise
+        // the names could end up on the wrong attendees
+        List<PartyDetailsModel> caseWitnesses = caseParties.stream()
+            .filter(caseParty -> PartyNamesMapper.WITNESS_ROLE.equals(caseParty.getPartyRole()))
+            .filter(caseParty -> matchedCaseParties.stream().noneMatch(matched -> matched == caseParty))
+            .toList();
+        if (!unmatchedWitnesses.isEmpty() && unmatchedWitnesses.size() == caseWitnesses.size()) {
+            for (int i = 0; i < unmatchedWitnesses.size(); i++) {
+                fillPartyDetails(unmatchedWitnesses.get(i), caseWitnesses.get(i));
+            }
+        } else if (!unmatchedWitnesses.isEmpty()) {
+            log.warn("Case {} has {} witnesses not matched by party id but the hearing has {}, witness names "
+                     + "will not be pre-populated", caseDetails.getId(), caseWitnesses.size(),
+                     unmatchedWitnesses.size());
         }
     }
 
@@ -232,8 +254,6 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         if (byId.isPresent()) {
             return byId;
         }
-        // fall back to the role for parties a case only has one of: the appellant, and the legal rep's
-        // individual and organisation (told apart by party type). Witnesses can only be matched by id.
         String role = toRole(normalise(party.getPartyRole()));
         if (PartyNamesMapper.APPELLANT_ROLE.equals(role)) {
             return onlyOne(caseParties.stream()
@@ -250,11 +270,11 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         return Optional.empty();
     }
 
-    private static Optional<PartyDetailsModel> onlyOne(List<PartyDetailsModel> candidates) {
+    private Optional<PartyDetailsModel> onlyOne(List<PartyDetailsModel> candidates) {
         return candidates.size() == 1 ? Optional.of(candidates.get(0)) : Optional.empty();
     }
 
-    private static boolean isOrganisation(Party party) {
+    private boolean isOrganisation(Party party) {
         if (party.getPartyType() != null && !party.getPartyType().isBlank()) {
             return PartyType.ORG.getPartyType().equalsIgnoreCase(party.getPartyType().trim());
         }
@@ -263,6 +283,10 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
     }
 
     private void fillPartyDetails(Party party, PartyDetailsModel caseParty) {
+        // HMC hearing actuals do not return party ids, so use the id the party was sent to HMC with;
+        // it is what gets sent back as the attendee's actual party id when the event is submitted
+        party.setPartyId(firstNonBlank(party.getPartyId(), caseParty.getPartyID()));
+
         List<PartyOneOff> oneOf = new ArrayList<>(Optional.ofNullable(party.getOneOf()).orElse(List.of()));
 
         IndividualDetailsModel caseIndividual = caseParty.getIndividualDetails();
@@ -340,7 +364,6 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             .firstName(individual.map(IndividualDetails::getFirstName).orElse(null))
             .lastName(individual.map(IndividualDetails::getLastName).orElse(null))
             .role(role)
-            // fall back to HMC's own code so a pre-filled attendee always shows a role
             .roleLabel(Optional.ofNullable(toRoleLabel(role)).orElse(partyRole))
             .prefilled(YesOrNo.YES)
             .attendanceType(toAttendanceType(party.getPartyChannelSubType()))
