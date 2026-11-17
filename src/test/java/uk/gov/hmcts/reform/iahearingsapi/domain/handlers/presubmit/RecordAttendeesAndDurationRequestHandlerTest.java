@@ -229,7 +229,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
                 .partyChannelSubType("INTER").didNotAttendFlag(false).build(),
             ActualDayParty.builder().actualPartyId("p3").partyRole("RESP")
                 .actualOrganisationName("Home Office")
-                .didNotAttendFlag(true).build(),
+                .partyChannelSubType("NA").didNotAttendFlag(true).build(),
             ActualDayParty.builder().partyRole("WITN")
                 .individualDetails(new ActualIndividualDetails("Ann", "Lee"))
                 .partyChannelSubType("TEL").didNotAttendFlag(false).build(),

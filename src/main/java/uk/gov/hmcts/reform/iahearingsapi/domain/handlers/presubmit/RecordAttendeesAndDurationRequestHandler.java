@@ -198,14 +198,11 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
                 .map(IdValue::getValue)
                 .toList();
 
-        // HMC needs an id for every party, so attendees added on the page get a new one
         List<String> partyIds = participants.stream()
             .map(participant -> Optional.ofNullable(blankToNull(participant.getPartyId()))
                 .orElseGet(() -> UUID.randomUUID().toString()))
             .toList();
 
-        // HMC expects representedParty to be the id of a party in this list, so the selected role
-        // becomes the id of the first attendee with that role
         Map<String, String> partyIdByRole = new HashMap<>();
         for (int i = 0; i < participants.size(); i++) {
             String role = toHmcPartyRole(participants.get(i).getRole());
@@ -236,7 +233,7 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
                 ? new ActualIndividualDetails(participant.getFirstName(), participant.getLastName())
                 : null)
             .actualOrganisationName(blankToNull(participant.getOrganisation()))
-            .partyChannelSubType(didNotAttend ? null : participant.getAttendanceType())
+            .partyChannelSubType(participant.getAttendanceType())
             .didNotAttendFlag(didNotAttend)
             .representedParty(readRepresentedParty(participant, partyId, partyIdByRole))
             .build();
