@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.List;
 
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursAndMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
@@ -207,6 +208,10 @@ public enum AsylumCaseFieldDefinition {
         "attendeesAndDurationParticipants", new TypeReference<List<IdValue<HearingParticipant>>>(){}),
     ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE(
         "attendeesAndDurationParticipantsSource", new TypeReference<String>(){}),
+    ACTUAL_CASE_HEARING_LENGTH(
+        "actualCaseHearingLength", new TypeReference<HoursAndMinutes>(){}),
+    ATTENDING_JUDGE(
+        "attendingJudge", new TypeReference<String>(){}),
     END_APPEAL_OUTCOME(
         "endAppealOutcome", new TypeReference<String>(){}),
     IS_INTEGRATED(

@@ -14,7 +14,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ACTUAL_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDING_JUDGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_JUDGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_FINISH_TIME;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
@@ -52,6 +55,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursAndMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
@@ -130,7 +134,8 @@ class RecordAttendeesAndDurationRequestHandlerTest {
 
         assertNotNull(callbackResponse);
         assertEquals(asylumCase, callbackResponse.getData());
-        verify(asylumCase, never()).write(any(), any());
+        verify(asylumCase).write(ACTUAL_CASE_HEARING_LENGTH, new HoursAndMinutes("2", "30"));
+        verify(asylumCase, never()).write(eq(ATTENDING_JUDGE), any());
         InOrder inOrder = inOrder(hearingActualsService);
         inOrder.verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
         inOrder.verify(hearingActualsService).completeHearingActuals(HEARING_ID);
@@ -505,6 +510,95 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         ActualHearingDay actualHearingDay = requestCaptor.getValue().getActualHearingDays().iterator().next();
         assertEquals("2023-01-20T09:00:00", actualHearingDay.getHearingStartTime());
         assertEquals("2023-01-20T09:45:00", actualHearingDay.getHearingEndTime());
+    }
+
+    @Test
+    void should_populate_hearing_length_and_judge_for_substantive_hearing_after_submitting_actuals() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class)).thenReturn(Optional.of("10:00"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class)).thenReturn(Optional.of("11:20"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class))
+            .thenReturn(Optional.of(" Judge Smith "));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        InOrder inOrder = inOrder(hearingActualsService, asylumCase);
+        inOrder.verify(hearingActualsService).updateHearingActuals(any(), eq(HEARING_ID));
+        inOrder.verify(hearingActualsService).completeHearingActuals(HEARING_ID);
+        inOrder.verify(asylumCase).write(ACTUAL_CASE_HEARING_LENGTH, new HoursAndMinutes("1", "20"));
+        inOrder.verify(asylumCase).write(ATTENDING_JUDGE, "Judge Smith");
+    }
+
+    @Test
+    void should_derive_hearing_length_from_hours_only_and_single_digit_times() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class)).thenReturn(Optional.of("9"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class)).thenReturn(Optional.of("9:45"));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(asylumCase).write(ACTUAL_CASE_HEARING_LENGTH, new HoursAndMinutes("0", "45"));
+    }
+
+    @Test
+    void should_not_change_hearing_length_and_judge_when_hearing_is_not_substantive() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class))
+            .thenReturn(Optional.of(HearingType.CMR.getLabel()));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class))
+            .thenReturn(Optional.of("Judge Smith"));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).completeHearingActuals(HEARING_ID);
+        verify(asylumCase, never()).write(eq(ACTUAL_CASE_HEARING_LENGTH), any());
+        verify(asylumCase, never()).write(eq(ATTENDING_JUDGE), any());
+        verify(asylumCase, never()).clear(any());
+    }
+
+    @Test
+    void should_not_change_hearing_length_and_judge_when_hearing_stage_is_missing() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class))
+            .thenReturn(Optional.of("Judge Smith"));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(asylumCase, never()).write(eq(ACTUAL_CASE_HEARING_LENGTH), any());
+        verify(asylumCase, never()).write(eq(ATTENDING_JUDGE), any());
+    }
+
+    @Test
+    void should_only_populate_judge_when_hearing_day_was_not_required() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_DAY_REQUIRED, YesOrNo.class))
+            .thenReturn(Optional.of(YesOrNo.NO));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class))
+            .thenReturn(Optional.of("Judge Smith"));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(asylumCase, never()).write(eq(ACTUAL_CASE_HEARING_LENGTH), any());
+        verify(asylumCase).write(ATTENDING_JUDGE, "Judge Smith");
+    }
+
+    @Test
+    void should_not_populate_hearing_length_when_times_are_missing_or_finish_is_before_start() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class)).thenReturn(Optional.of("12:00"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class)).thenReturn(Optional.of("11:00"));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        when(asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class)).thenReturn(Optional.of(""));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(asylumCase, never()).write(eq(ACTUAL_CASE_HEARING_LENGTH), any());
+    }
+
+    @Test
+    void should_not_populate_judge_when_blank() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class)).thenReturn(Optional.of("  "));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(asylumCase, never()).write(eq(ATTENDING_JUDGE), any());
     }
 
     @Test

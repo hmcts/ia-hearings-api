@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.IndividualDetails;
@@ -24,9 +25,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.Party;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartyOneOff;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
-import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
-import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
-import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyNamesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
@@ -68,26 +67,19 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
     private static final String TIMES_PAGE_ID = "timesRecordAttendeesAndDuration";
     private static final DateTimeFormatter DATE_TIME_LABEL_FORMATTER =
         DateTimeFormatter.ofPattern("d MMMM yyyy, HH:mm", Locale.UK);
-    private static final String APPELLANT_ROLE = "APEL";
 
     private final HearingService hearingService;
     private final HearingActualsService hearingActualsService;
-    private final PartyDetailsMapper partyDetailsMapper;
-    private final CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
-    private final CaseDataToServiceHearingValuesMapper caseDataMapper;
+    private final PartyNamesMapper partyNamesMapper;
 
     public RecordAttendeesAndDurationMidEventHandler(
         HearingService hearingService,
         HearingActualsService hearingActualsService,
-        PartyDetailsMapper partyDetailsMapper,
-        CaseFlagsToServiceHearingValuesMapper caseFlagsMapper,
-        CaseDataToServiceHearingValuesMapper caseDataMapper
+        PartyNamesMapper partyNamesMapper
     ) {
         this.hearingService = hearingService;
         this.hearingActualsService = hearingActualsService;
-        this.partyDetailsMapper = partyDetailsMapper;
-        this.caseFlagsMapper = caseFlagsMapper;
-        this.caseDataMapper = caseDataMapper;
+        this.partyNamesMapper = partyNamesMapper;
     }
 
     @Override
@@ -211,6 +203,8 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             .or(() -> days.stream().findFirst());
     }
 
+    // HMC hearing actuals do not always carry the parties' names, so fill in the missing names of the appellant,
+    // legal representative (individual and organisation) and witnesses from the case data
     private void populatePartyDetailsFromCaseData(PlannedHearingDay day, CaseDetails<AsylumCase> caseDetails) {
         List<Party> parties = Optional.ofNullable(day.getParties()).orElse(List.of());
         if (parties.isEmpty()) {
@@ -219,11 +213,9 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
 
         List<PartyDetailsModel> caseParties;
         try {
-            caseParties = Optional.ofNullable(partyDetailsMapper.mapAsylumPartyDetails(
-                    caseDetails.getCaseData(), caseFlagsMapper, caseDataMapper))
-                .orElse(List.of());
+            caseParties = partyNamesMapper.mapAsylumPartyNames(caseDetails.getCaseData());
         } catch (RuntimeException e) {
-            log.warn("Unable to build party details from case data for case {}, participants will not be "
+            log.warn("Unable to read party names from case data for case {}, participants will not be "
                      + "pre-populated with names", caseDetails.getId(), e);
             return;
         }
@@ -240,14 +232,34 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         if (byId.isPresent()) {
             return byId;
         }
-        // there is only ever one appellant on a case, so it is safe to match it by role
+        // fall back to the role for parties a case only has one of: the appellant, and the legal rep's
+        // individual and organisation (told apart by party type). Witnesses can only be matched by id.
         String role = toRole(normalise(party.getPartyRole()));
-        if (APPELLANT_ROLE.equals(role)) {
-            return caseParties.stream()
-                .filter(caseParty -> APPELLANT_ROLE.equals(toRole(normalise(caseParty.getPartyRole()))))
-                .findFirst();
+        if (PartyNamesMapper.APPELLANT_ROLE.equals(role)) {
+            return onlyOne(caseParties.stream()
+                .filter(caseParty -> PartyNamesMapper.APPELLANT_ROLE.equals(caseParty.getPartyRole()))
+                .toList());
+        }
+        if (PartyNamesMapper.LEGAL_REP_ROLE.equals(role)) {
+            boolean organisation = isOrganisation(party);
+            return onlyOne(caseParties.stream()
+                .filter(caseParty -> PartyNamesMapper.LEGAL_REP_ROLE.equals(caseParty.getPartyRole()))
+                .filter(caseParty -> organisation == (caseParty.getOrganisationDetails() != null))
+                .toList());
         }
         return Optional.empty();
+    }
+
+    private static Optional<PartyDetailsModel> onlyOne(List<PartyDetailsModel> candidates) {
+        return candidates.size() == 1 ? Optional.of(candidates.get(0)) : Optional.empty();
+    }
+
+    private static boolean isOrganisation(Party party) {
+        if (party.getPartyType() != null && !party.getPartyType().isBlank()) {
+            return PartyType.ORG.getPartyType().equalsIgnoreCase(party.getPartyType().trim());
+        }
+        return Optional.ofNullable(party.getOneOf()).orElse(List.of()).stream()
+            .anyMatch(o -> o.getOrganisationDetails() != null && o.getIndividualDetails() == null);
     }
 
     private void fillPartyDetails(Party party, PartyDetailsModel caseParty) {

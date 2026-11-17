@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursAndMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -43,6 +45,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ACTUAL_CASE_HEARING_LENGTH;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDING_JUDGE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_JUDGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_CANCELLATION_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_FINISH_TIME;
@@ -176,9 +181,47 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             log.info("Updated hearing actuals for hearing id {}", hearingId);
             hearingActualsService.completeHearingActuals(hearingId);
             log.info("Completed hearing actuals for hearing id {}", hearingId);
+
+            if (HearingType.from(hearingTypeStr).filter(HearingType.SUBSTANTIVE::equals).isPresent()) {
+                writeSubstantiveHearingDetails(asylumCase, hearingDayRequired);
+            }
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);
+    }
+
+    // only a substantive hearing records its length and judge on the case; for any other hearing
+    // the fields are left as they are, so values from an earlier substantive hearing are kept
+    private static void writeSubstantiveHearingDetails(AsylumCase asylumCase, boolean hearingDayRequired) {
+        if (hearingDayRequired) {
+            readHearingLength(asylumCase)
+                .ifPresent(length -> asylumCase.write(ACTUAL_CASE_HEARING_LENGTH, new HoursAndMinutes(
+                    String.valueOf(length.toHours()), String.valueOf(length.toMinutesPart()))));
+        }
+        asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class)
+            .map(String::trim)
+            .filter(judge -> !judge.isEmpty())
+            .ifPresent(judge -> asylumCase.write(ATTENDING_JUDGE, judge));
+    }
+
+    private static Optional<Duration> readHearingLength(AsylumCase asylumCase) {
+        Optional<LocalTime> start = asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class)
+            .flatMap(RecordAttendeesAndDurationRequestHandler::toLocalTime);
+        Optional<LocalTime> end = asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class)
+            .flatMap(RecordAttendeesAndDurationRequestHandler::toLocalTime);
+        if (start.isEmpty() || end.isEmpty() || end.get().isBefore(start.get())) {
+            return Optional.empty();
+        }
+        return Optional.of(Duration.between(start.get(), end.get()));
+    }
+
+    private static Optional<LocalTime> toLocalTime(String time) {
+        if (time == null || time.isBlank()) {
+            return Optional.empty();
+        }
+        String trimmed = time.trim();
+        String hoursAndMinutes = trimmed.contains(":") ? trimmed : trimmed + ":00";
+        return Optional.of(LocalTime.parse(hoursAndMinutes, HOURS_AND_MINUTES_FORMATTER));
     }
 
     private String readFirstPlannedStartTime(String hearingId) {
