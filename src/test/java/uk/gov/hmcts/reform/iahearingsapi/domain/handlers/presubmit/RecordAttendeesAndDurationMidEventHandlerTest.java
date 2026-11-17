@@ -15,6 +15,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldD
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_DATE_DISPLAY;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_FINISH_TIME;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_CASE_REFERENCE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_ID;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_JUDGE;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_METHODS;
@@ -69,10 +70,12 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     private static final String OTHER_PAGE_ID = "recordAttendeesAndDuration";
     private static final String TIMES_PAGE_ID = "timesRecordAttendeesAndDuration";
     private static final String HEARING_ID = "2000000001";
+    private static final long CASE_ID = 1792753454172580L;
     private static final String PLANNED_START_TIME = "2023-01-20T10:00:00";
     private static final String SECOND_PLANNED_START_TIME = "2023-01-21T10:00:00";
 
     private static final List<AsylumCaseFieldDefinition> HEARING_FIELDS = List.of(
+        ATTENDEES_AND_DURATION_CASE_REFERENCE,
         ATTENDEES_AND_DURATION_HEARING_ID,
         ATTENDEES_AND_DURATION_HEARING_DATE,
         ATTENDEES_AND_DURATION_HEARING_DATE_DISPLAY,
@@ -116,6 +119,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         Value selectedHearing = new Value(HEARING_ID, "Substantive (Listed) - 20 January 2023");
         when(callback.getCaseDetails()).thenReturn(caseDetails);
         when(caseDetails.getCaseData()).thenReturn(asylumCase);
+        when(caseDetails.getId()).thenReturn(CASE_ID);
         when(callback.getEvent()).thenReturn(RECORD_ATTENDEES_AND_DURATION);
         when(callback.getPageId()).thenReturn(SELECT_HEARING_PAGE_ID);
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING, DynamicList.class))
@@ -137,6 +141,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         assertEquals(asylumCase, response.getData());
         verify(hearingService).getHearing(HEARING_ID);
         verify(hearingActualsService).getHearingActuals(HEARING_ID);
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_CASE_REFERENCE, "1792753454172580");
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_ID, HEARING_ID);
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE, PLANNED_START_TIME);
         verify(asylumCase).write(ATTENDEES_AND_DURATION_HEARING_DATE_DISPLAY, "20 January 2023, 10:00");
