@@ -182,26 +182,44 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             hearingActualsService.completeHearingActuals(hearingId);
             log.info("Completed hearing actuals for hearing id {}", hearingId);
 
-            if (HearingType.from(hearingTypeStr).filter(HearingType.SUBSTANTIVE::equals).isPresent()) {
+            if (isSubstantiveHearing(hearingTypeStr, hearingId)) {
                 writeSubstantiveHearingDetails(asylumCase, hearingDayRequired);
+            } else {
+                log.info("Hearing {} is not substantive, actual hearing length and attending judge not updated",
+                         hearingId);
             }
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
 
-    // only a substantive hearing records its length and judge on the case; for any other hearing
-    // the fields are left as they are, so values from an earlier substantive hearing are kept
-    private static void writeSubstantiveHearingDetails(AsylumCase asylumCase, boolean hearingDayRequired) {
-        if (hearingDayRequired) {
-            readHearingLength(asylumCase)
-                .ifPresent(length -> asylumCase.write(ACTUAL_CASE_HEARING_LENGTH, new HoursAndMinutes(
-                    String.valueOf(length.toHours()), String.valueOf(length.toMinutesPart()))));
+    private boolean isSubstantiveHearing(String hearingStage, String hearingId) {
+        Optional<HearingType> stage = HearingType.from(hearingStage);
+        if (stage.isPresent()) {
+            return stage.get() == HearingType.SUBSTANTIVE;
         }
-        asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class)
+        String plannedHearingType = Optional.ofNullable(hearingActualsService.getHearingActuals(hearingId))
+            .map(HearingActualsData::getHearingPlanned)
+            .map(HearingPlanned::getPlannedHearingType)
+            .orElse(null);
+        log.info("Hearing stage '{}' not recognised, using planned hearing type '{}' for hearing {}",
+                 hearingStage, plannedHearingType, hearingId);
+        return HearingType.SUBSTANTIVE.getHmcValue().equals(plannedHearingType);
+    }
+
+    private static void writeSubstantiveHearingDetails(AsylumCase asylumCase, boolean hearingDayRequired) {
+        Optional<Duration> length = hearingDayRequired ? readHearingLength(asylumCase) : Optional.empty();
+        length.ifPresent(value -> asylumCase.write(ACTUAL_CASE_HEARING_LENGTH, new HoursAndMinutes(
+            String.valueOf(value.toHours()), String.valueOf(value.toMinutesPart()))));
+
+        Optional<String> judge = asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class)
             .map(String::trim)
-            .filter(judge -> !judge.isEmpty())
-            .ifPresent(judge -> asylumCase.write(ATTENDING_JUDGE, judge));
+            .filter(value -> !value.isEmpty());
+        judge.ifPresent(value -> asylumCase.write(ATTENDING_JUDGE, value));
+
+        log.info("Substantive hearing: actual hearing length {}, attending judge {}",
+                 length.map(Duration::toString).orElse("not updated (no valid start and finish time)"),
+                 judge.isPresent() ? "updated" : "not updated (none entered)");
     }
 
     private static Optional<Duration> readHearingLength(AsylumCase asylumCase) {

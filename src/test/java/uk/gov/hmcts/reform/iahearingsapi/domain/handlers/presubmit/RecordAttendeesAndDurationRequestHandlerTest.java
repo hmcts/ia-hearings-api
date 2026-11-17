@@ -554,15 +554,61 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @Test
-    void should_not_change_hearing_length_and_judge_when_hearing_stage_is_missing() {
+    void should_populate_hearing_length_and_judge_when_stage_is_missing_but_hmc_hearing_is_substantive() {
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class)).thenReturn(Optional.empty());
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class))
             .thenReturn(Optional.of("Judge Smith"));
+        givenPlannedHearingType("BFA1-SUB");
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(asylumCase).write(ACTUAL_CASE_HEARING_LENGTH, new HoursAndMinutes("2", "30"));
+        verify(asylumCase).write(ATTENDING_JUDGE, "Judge Smith");
+    }
+
+    @Test
+    void should_populate_hearing_length_and_judge_when_stage_is_unknown_but_hmc_hearing_is_substantive() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class)).thenReturn(Optional.of("BFA1-SUB"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class))
+            .thenReturn(Optional.of("Judge Smith"));
+        givenPlannedHearingType("BFA1-SUB");
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(asylumCase).write(ACTUAL_CASE_HEARING_LENGTH, new HoursAndMinutes("2", "30"));
+        verify(asylumCase).write(ATTENDING_JUDGE, "Judge Smith");
+    }
+
+    @Test
+    void should_not_change_hearing_length_and_judge_when_stage_is_missing_and_hmc_hearing_is_not_substantive() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class))
+            .thenReturn(Optional.of("Judge Smith"));
+        givenPlannedHearingType("BFA1-CMR");
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
         verify(asylumCase, never()).write(eq(ACTUAL_CASE_HEARING_LENGTH), any());
         verify(asylumCase, never()).write(eq(ATTENDING_JUDGE), any());
+    }
+
+    @Test
+    void should_not_change_hearing_length_and_judge_when_stage_is_missing_and_hmc_returns_no_actuals() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class))
+            .thenReturn(Optional.of("Judge Smith"));
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(null);
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(asylumCase, never()).write(eq(ACTUAL_CASE_HEARING_LENGTH), any());
+        verify(asylumCase, never()).write(eq(ATTENDING_JUDGE), any());
+    }
+
+    private void givenPlannedHearingType(String plannedHearingType) {
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(HearingActualsData.builder()
+            .hearingPlanned(HearingPlanned.builder().plannedHearingType(plannedHearingType).build())
+            .build());
     }
 
     @Test

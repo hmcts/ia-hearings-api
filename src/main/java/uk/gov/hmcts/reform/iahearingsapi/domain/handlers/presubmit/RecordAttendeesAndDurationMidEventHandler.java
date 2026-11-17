@@ -229,9 +229,6 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             }
         }
 
-        // HMC hearing actuals do not return party ids, so witnesses (a case can have several) are paired with
-        // the case witnesses in the order they were sent to HMC - but only when the numbers agree, otherwise
-        // the names could end up on the wrong attendees
         List<PartyDetailsModel> caseWitnesses = caseParties.stream()
             .filter(caseParty -> PartyNamesMapper.WITNESS_ROLE.equals(caseParty.getPartyRole()))
             .filter(caseParty -> matchedCaseParties.stream().noneMatch(matched -> matched == caseParty))
@@ -283,8 +280,6 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
     }
 
     private void fillPartyDetails(Party party, PartyDetailsModel caseParty) {
-        // HMC hearing actuals do not return party ids, so use the id the party was sent to HMC with;
-        // it is what gets sent back as the attendee's actual party id when the event is submitted
         party.setPartyId(firstNonBlank(party.getPartyId(), caseParty.getPartyID()));
 
         List<PartyOneOff> oneOf = new ArrayList<>(Optional.ofNullable(party.getOneOf()).orElse(List.of()));
