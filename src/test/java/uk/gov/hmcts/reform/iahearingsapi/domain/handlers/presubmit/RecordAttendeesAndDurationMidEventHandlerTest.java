@@ -49,6 +49,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
@@ -60,6 +63,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.Party;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartyOneOff;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseDataToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.CaseFlagsToServiceHearingValuesMapper;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyDetailsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @ExtendWith(MockitoExtension.class)
@@ -108,6 +114,12 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     @Mock
     private HearingActualsService hearingActualsService;
     @Mock
+    private PartyDetailsMapper partyDetailsMapper;
+    @Mock
+    private CaseFlagsToServiceHearingValuesMapper caseFlagsMapper;
+    @Mock
+    private CaseDataToServiceHearingValuesMapper caseDataMapper;
+    @Mock
     private HearingGetResponse hearingGetResponse;
     @Mock
     private HearingDetails hearingDetails;
@@ -131,7 +143,10 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         when(hearingActualsService.getHearingActuals(HEARING_ID))
             .thenReturn(hearingActuals(List.of(plannedHearingDay)));
 
-        handler = new RecordAttendeesAndDurationMidEventHandler(hearingService, hearingActualsService);
+        givenCaseParties(List.of());
+
+        handler = new RecordAttendeesAndDurationMidEventHandler(
+            hearingService, hearingActualsService, partyDetailsMapper, caseFlagsMapper, caseDataMapper);
     }
 
     @Test
@@ -374,6 +389,93 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     }
 
     @Test
+    void should_populate_missing_party_names_from_case_data() {
+        givenTimesPageForFirstHearingDay(List.of(
+            Party.builder().partyId("appellant-id").partyRole("APEL").partyChannelSubType("INTER").build(),
+            Party.builder().partyId("lr-org-id").partyRole("LGRP").partyChannelSubType("VIDTEAMS")
+                .oneOf(List.of(PartyOneOff.builder().organisationDetails(new OrganisationDetails()).build()))
+                .build()
+        ));
+        givenCaseParties(List.of(
+            individualCaseParty("appellant-id", "APEL", "John", "Smith"),
+            PartyDetailsModel.builder().partyID("lr-org-id").partyRole("LGRP")
+                .organisationDetails(OrganisationDetailsModel.builder().name("Law Firm").build())
+                .build()
+        ));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(partyDetailsMapper).mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper);
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
+            new IdValue<>("1", prefilled(
+                "appellant-id", "John", "Smith", "APEL", "Appellant", "INTER", null)),
+            new IdValue<>("2", prefilled(
+                "lr-org-id", null, null, "LGRP", "Legal Representative", "VID", "Law Firm"))
+        ));
+    }
+
+    @Test
+    void should_match_appellant_by_role_when_party_id_differs() {
+        givenTimesPageForFirstHearingDay(List.of(
+            Party.builder().partyId("hmc-appellant-id").partyRole("APPL").partyChannelSubType("INTER").build(),
+            Party.builder().partyId("unknown-witness").partyRole("WITN").partyChannelSubType("INTER").build()
+        ));
+        givenCaseParties(List.of(
+            individualCaseParty("case-appellant-id", "APEL", "John", "Smith"),
+            individualCaseParty("case-witness-id", "WITN", "Will", "Ness")
+        ));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
+            new IdValue<>("1", prefilled(
+                "hmc-appellant-id", "John", "Smith", "APEL", "Appellant", "INTER", null)),
+            new IdValue<>("2", prefilled(
+                "unknown-witness", null, null, "WITN", "Witness", "INTER", null))
+        ));
+    }
+
+    @Test
+    void should_keep_party_names_returned_by_hmc() {
+        givenTimesPageForFirstHearingDay(List.of(
+            Party.builder().partyId("appellant-id").partyRole("APEL").partyChannelSubType("INTER")
+                .oneOf(List.of(PartyOneOff.builder()
+                    .individualDetails(IndividualDetails.builder().firstName("Hmc").lastName("").build())
+                    .build()))
+                .build()
+        ));
+        givenCaseParties(List.of(individualCaseParty("appellant-id", "APEL", "John", "Smith")));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
+            new IdValue<>("1", prefilled("appellant-id", "Hmc", "Smith", "APEL", "Appellant", "INTER", null))
+        ));
+    }
+
+    @Test
+    void should_still_populate_participants_when_case_party_details_cannot_be_built() {
+        givenTimesPageForFirstHearingDay(List.of(
+            Party.builder().partyId("appellant-id").partyRole("APEL").partyChannelSubType("INTER").build()
+        ));
+        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
+            .thenThrow(new IllegalStateException("appellantPartyId is a required field"));
+
+        handler.handle(MID_EVENT, callback);
+
+        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
+            new IdValue<>("1", prefilled("appellant-id", null, null, "APEL", "Appellant", "INTER", null))
+        ));
+    }
+
+    @Test
+    void should_not_build_case_party_details_on_select_hearing_page() {
+        handler.handle(MID_EVENT, callback);
+
+        verifyNoInteractions(partyDetailsMapper);
+    }
+
+    @Test
     void should_fail_to_handle_if_invalid_event() {
         when(callback.getEvent()).thenReturn(END_APPEAL);
 
@@ -408,6 +510,29 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         assertThatThrownBy(() -> handler.canHandle(MID_EVENT, null))
             .hasMessage("callback must not be null")
             .isExactlyInstanceOf(NullPointerException.class);
+    }
+
+    private void givenTimesPageForFirstHearingDay(List<Party> parties) {
+        when(callback.getPageId()).thenReturn(TIMES_PAGE_ID);
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_ID, String.class)).thenReturn(Optional.of(HEARING_ID));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_DATE_OF_HEARING, DynamicList.class)).thenReturn(Optional.empty());
+        when(hearingActualsService.getHearingActuals(HEARING_ID)).thenReturn(hearingActuals(List.of(
+            PlannedHearingDay.builder().plannedStartTime(PLANNED_START_TIME).parties(parties).build()
+        )));
+    }
+
+    private void givenCaseParties(List<PartyDetailsModel> parties) {
+        when(partyDetailsMapper.mapAsylumPartyDetails(asylumCase, caseFlagsMapper, caseDataMapper))
+            .thenReturn(parties);
+    }
+
+    private static PartyDetailsModel individualCaseParty(String partyId, String role,
+                                                         String firstName, String lastName) {
+        return PartyDetailsModel.builder()
+            .partyID(partyId)
+            .partyRole(role)
+            .individualDetails(IndividualDetailsModel.builder().firstName(firstName).lastName(lastName).build())
+            .build();
     }
 
     private static Party individual(String partyId, String role, String channel, String firstName, String lastName) {
