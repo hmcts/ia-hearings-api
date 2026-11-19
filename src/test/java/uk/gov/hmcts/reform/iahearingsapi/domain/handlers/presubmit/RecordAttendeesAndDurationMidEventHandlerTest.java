@@ -384,7 +384,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
 
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
             new IdValue<>("1", prefilled("appellant-id", "Hmc", "Smith", "APEL", "Appellant", "INTER", null)),
-            new IdValue<>("2", prefilled("witness-id", null, null, "WITN", "Witness", null, null))
+            new IdValue<>("2", prefilled("witness-id", null, null, "WITN", "Witness", "UNKNOWN", null))
         ));
     }
 
@@ -478,7 +478,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
             .lastNameLabel(lastName)
             .role(role)
             .roleLabel(roleLabel)
-            .attendanceType(attendanceType)
+            .attendanceType(attendance(attendanceType))
             .organisation(organisation)
             .prefilled(YesOrNo.YES)
             .build();
@@ -488,5 +488,9 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         return HearingActualsData.builder()
             .hearingPlanned(HearingPlanned.builder().plannedHearingDays(plannedHearingDays).build())
             .build();
+    }
+
+    private static DynamicList attendance(String code) {
+        return code == null ? null : new DynamicList(new Value(code, code), List.of());
     }
 }

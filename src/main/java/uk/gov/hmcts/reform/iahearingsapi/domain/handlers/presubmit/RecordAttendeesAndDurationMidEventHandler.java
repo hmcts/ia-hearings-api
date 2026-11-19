@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingSubChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
@@ -29,7 +28,6 @@ import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.Hearin
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.List;
@@ -281,12 +279,12 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         };
     }
 
-    private String toAttendanceType(String partyChannelSubType) {
-        // keep HMC's sub-channel (e.g. TELCVP) as is, so it is preselected and sent back unchanged
-        return Arrays.stream(HearingSubChannel.values())
-            .map(HearingSubChannel::name)
-            .filter(name -> name.equals(partyChannelSubType))
-            .findFirst()
+    private DynamicList toAttendanceType(String partyChannelSubType) {
+        // preselects HMC's sub-channel (e.g. TELCVP); ia-case-api adds the ref data list items and label
+        return Optional.ofNullable(partyChannelSubType)
+            .map(String::trim)
+            .filter(code -> !code.isEmpty())
+            .map(code -> new DynamicList(new Value(code, code), List.of()))
             .orElse(null);
     }
 

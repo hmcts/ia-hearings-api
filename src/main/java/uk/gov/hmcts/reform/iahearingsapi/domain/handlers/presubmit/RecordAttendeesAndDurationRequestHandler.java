@@ -303,19 +303,12 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
     }
 
     private static String readChannel(HearingParticipant participant) {
-        // pre-filled attendees pick from the ref data list, attendees added on the page from the fixed list
-        if (participant.getPrefilled() == YesOrNo.YES) {
-            String selected = Optional.ofNullable(participant.getAttendanceTypeList())
-                .map(DynamicList::getValue)
-                .map(Value::getCode)
-                .map(String::trim)
-                .filter(code -> !code.isEmpty())
-                .orElse(null);
-            if (selected != null) {
-                return selected;
-            }
-        }
-        return blankToNull(participant.getAttendanceType());
+        return Optional.ofNullable(participant.getAttendanceType())
+            .map(DynamicList::getValue)
+            .map(Value::getCode)
+            .map(String::trim)
+            .filter(code -> !code.isEmpty())
+            .orElse(null);
     }
 
     private static String readRepresentedParty(

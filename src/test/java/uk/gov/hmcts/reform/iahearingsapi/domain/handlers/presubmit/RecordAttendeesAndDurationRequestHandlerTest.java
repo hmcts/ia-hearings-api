@@ -35,6 +35,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Pre
 
 import java.util.List;
 import java.util.UUID;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -265,25 +266,13 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @Test
-    void should_send_ref_data_sub_channel_selected_for_pre_filled_participants() {
-        Value cvp = new Value("VIDCVP", "Video - CVP");
-        HearingParticipant prefilledWithSelection = withList(
-            participant("p1", "John", "Smith", "APEL", "VIDTEAMS", null, YesOrNo.YES, null),
-            new DynamicList(cvp, List.of(cvp)));
-        HearingParticipant prefilledNotInAttendance = withList(
-            participant("p2", "Jane", "Doe", "WITN", "TELCVP", null, YesOrNo.YES, null),
-            new DynamicList(new Value("NA", "Not in Attendance"), List.of()));
-        HearingParticipant prefilledWithoutSelection = withList(
-            participant("p3", "Ivan", "Petrov", "WITN", "TELCVP", null, YesOrNo.YES, null),
-            new DynamicList(new Value(" ", ""), List.of()));
-        HearingParticipant addedWithStaleList = withList(
-            participant(null, "Ann", "Lee", "WITN", "TELBTM", null, null, null),
-            new DynamicList(cvp, List.of(cvp)));
+    void should_send_sub_channel_selected_from_ref_data_list() {
+        HearingParticipant notSelected = participant(null, "Ann", "Lee", "WITN", null, null, null, null);
+        notSelected.setAttendanceType(new DynamicList(new Value(" ", ""), List.of(new Value("TELCVP", "CVP"))));
         when(asylumCase.read(ATTENDEES_AND_DURATION_PARTICIPANTS)).thenReturn(Optional.of(List.of(
-            new IdValue<>("1", prefilledWithSelection),
-            new IdValue<>("2", prefilledNotInAttendance),
-            new IdValue<>("3", prefilledWithoutSelection),
-            new IdValue<>("4", addedWithStaleList)
+            new IdValue<>("1", participant("p1", "John", "Smith", "APEL", "VIDCVP", null, YesOrNo.YES, null)),
+            new IdValue<>("2", participant("p2", "Jane", "Doe", "WITN", "NA", null, YesOrNo.YES, null)),
+            new IdValue<>("3", notSelected)
         )));
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
@@ -291,15 +280,10 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
         List<ActualDayParty> parties =
             requestCaptor.getValue().getActualHearingDays().iterator().next().getActualDayParties();
-        assertEquals(List.of("VIDCVP", "NA", "TELCVP", "TELBTM"),
+        assertEquals(Arrays.asList("VIDCVP", "NA", null),
             parties.stream().map(ActualDayParty::getPartyChannelSubType).toList());
-        assertEquals(List.of(false, true, false, false),
+        assertEquals(List.of(false, true, false),
             parties.stream().map(ActualDayParty::getDidNotAttendFlag).toList());
-    }
-
-    private static HearingParticipant withList(HearingParticipant participant, DynamicList attendanceTypeList) {
-        participant.setAttendanceTypeList(attendanceTypeList);
-        return participant;
     }
 
     private static HearingParticipant participant(String partyId, String firstName, String lastName, String role,
@@ -310,7 +294,8 @@ class RecordAttendeesAndDurationRequestHandlerTest {
             .firstName(firstName)
             .lastName(lastName)
             .role(role)
-            .attendanceType(attendanceType)
+            .attendanceType(attendanceType == null ? null
+                : new DynamicList(new Value(attendanceType, attendanceType), List.of()))
             .organisation(organisation)
             .prefilled(prefilled)
             .representedParty(representedParty)
