@@ -56,7 +56,6 @@ public class NextHearingDateService {
     }
 
     protected LocalDateTime getHearingDateTime(CaseHearing caseHearing) {
-        // Get the earliest hearing start date
         if (caseHearing.getHearingDaySchedule() == null) {
             return null;
         }
