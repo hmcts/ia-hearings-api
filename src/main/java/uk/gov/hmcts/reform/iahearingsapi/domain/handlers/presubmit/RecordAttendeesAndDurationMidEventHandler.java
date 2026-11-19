@@ -235,6 +235,7 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
 
         String partyRole = normalise(party.getPartyRole());
         String role = toRole(partyRole);
+        String roleLabel = Optional.ofNullable(toRoleLabel(role)).orElse(partyRole);
 
         String firstName = individual.map(IndividualDetails::getFirstName).orElse(null);
         String lastName = individual.map(IndividualDetails::getLastName).orElse(null);
@@ -245,8 +246,8 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             .lastName(lastName)
             .firstNameLabel(firstName)
             .lastNameLabel(lastName)
-            .role(role)
-            .roleLabel(Optional.ofNullable(toRoleLabel(role)).orElse(partyRole))
+            .role(role == null ? null : new DynamicList(new Value(role, roleLabel), List.of()))
+            .roleLabel(roleLabel)
             .prefilled(YesOrNo.YES)
             .attendanceType(toAttendanceType(party.getPartyChannelSubType()))
             .organisation(organisation.map(OrganisationDetails::getName).orElse(null))
@@ -257,12 +258,11 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         if (partyRole == null) {
             return null;
         }
+        // HMC's EntityRoleCode, with IA's older codes mapped to the ones used in ref data
         return switch (partyRole) {
-            case "RESP" -> "RESP";
-            case "APEL", "APPL" -> "APEL";
-            case "WITN" -> "WITN";
-            case "LGRP", "LR" -> "LGRP";
-            default -> null;
+            case "APPL" -> "APEL";
+            case "LR" -> "LGRP";
+            default -> partyRole;
         };
     }
 

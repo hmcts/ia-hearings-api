@@ -267,7 +267,7 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
 
         Map<String, String> partyIdByRole = new HashMap<>();
         for (int i = 0; i < participants.size(); i++) {
-            String role = toHmcPartyRole(participants.get(i).getRole());
+            String role = toHmcPartyRole(code(participants.get(i).getRole()));
             if (role != null) {
                 partyIdByRole.putIfAbsent(role, partyIds.get(i));
             }
@@ -291,7 +291,7 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
 
         return ActualDayParty.builder()
             .actualPartyId(partyId)
-            .partyRole(toHmcPartyRole(participant.getRole()))
+            .partyRole(toHmcPartyRole(code(participant.getRole())))
             .individualDetails(hasName
                 ? new ActualIndividualDetails(participant.getFirstName(), participant.getLastName())
                 : null)
@@ -303,7 +303,11 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
     }
 
     private static String readChannel(HearingParticipant participant) {
-        return Optional.ofNullable(participant.getAttendanceType())
+        return code(participant.getAttendanceType());
+    }
+
+    private static String code(DynamicList list) {
+        return Optional.ofNullable(list)
             .map(DynamicList::getValue)
             .map(Value::getCode)
             .map(String::trim)
@@ -320,7 +324,7 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         if (participant.getPrefilled() == YesOrNo.YES) {
             return null;
         }
-        return Optional.ofNullable(blankToNull(participant.getRepresentedParty()))
+        return Optional.ofNullable(code(participant.getRepresentedParty()))
             .map(code -> partyIdByRole.get(toHmcPartyRole(code)))
             .filter(representedId -> !representedId.equals(partyId))
             .orElse(null);

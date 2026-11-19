@@ -278,7 +278,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
             new IdValue<>("1", prefilled("p1", "John", "Smith", "APEL", "Appellant", "VIDTEAMS", null)),
             new IdValue<>("2", prefilled("p2", "Jane", "Doe", "LGRP", "Legal Representative", "INTER", null)),
-            new IdValue<>("3", prefilled("p3", "Ivan", "Petrov", null, "INTP", "TELCVP", null))
+            new IdValue<>("3", prefilled("p3", "Ivan", "Petrov", "INTP", "INTP", "TELCVP", null))
         ));
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, HEARING_ID + "|" + SECOND_PLANNED_START_TIME);
@@ -476,7 +476,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
             .lastName(lastName)
             .firstNameLabel(firstName)
             .lastNameLabel(lastName)
-            .role(role)
+            .role(role == null ? null : new DynamicList(new Value(role, roleLabel), List.of()))
             .roleLabel(roleLabel)
             .attendanceType(attendance(attendanceType))
             .organisation(organisation)

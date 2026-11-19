@@ -286,6 +286,10 @@ class RecordAttendeesAndDurationRequestHandlerTest {
             parties.stream().map(ActualDayParty::getDidNotAttendFlag).toList());
     }
 
+    private static DynamicList code(String code) {
+        return code == null ? null : new DynamicList(new Value(code, code), List.of());
+    }
+
     private static HearingParticipant participant(String partyId, String firstName, String lastName, String role,
                                                   String attendanceType, String organisation, YesOrNo prefilled,
                                                   String representedParty) {
@@ -293,12 +297,11 @@ class RecordAttendeesAndDurationRequestHandlerTest {
             .partyId(partyId)
             .firstName(firstName)
             .lastName(lastName)
-            .role(role)
-            .attendanceType(attendanceType == null ? null
-                : new DynamicList(new Value(attendanceType, attendanceType), List.of()))
+            .role(code(role))
+            .attendanceType(code(attendanceType))
             .organisation(organisation)
             .prefilled(prefilled)
-            .representedParty(representedParty)
+            .representedParty(code(representedParty))
             .build();
     }
 
