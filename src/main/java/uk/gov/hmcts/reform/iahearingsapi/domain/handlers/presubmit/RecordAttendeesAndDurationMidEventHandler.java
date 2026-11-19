@@ -13,9 +13,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
@@ -25,7 +22,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.Party;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartyOneOff;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
-import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyNamesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
@@ -70,16 +66,13 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
 
     private final HearingService hearingService;
     private final HearingActualsService hearingActualsService;
-    private final PartyNamesMapper partyNamesMapper;
 
     public RecordAttendeesAndDurationMidEventHandler(
         HearingService hearingService,
-        HearingActualsService hearingActualsService,
-        PartyNamesMapper partyNamesMapper
+        HearingActualsService hearingActualsService
     ) {
         this.hearingService = hearingService;
         this.hearingActualsService = hearingActualsService;
-        this.partyNamesMapper = partyNamesMapper;
     }
 
     @Override
@@ -183,7 +176,6 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
 
         HearingActualsData actuals = hearingActualsService.getHearingActuals(hearingId);
         Optional<PlannedHearingDay> hearingDay = selectedHearingDay(actuals, selectedStartTime);
-        hearingDay.ifPresent(day -> populatePartyDetailsFromCaseData(day, caseDetails));
         asylumCase.write(ATTENDEES_AND_DURATION_PARTICIPANTS, toParticipants(hearingDay));
         asylumCase.write(ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, source);
     }
@@ -202,125 +194,12 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
             .or(() -> days.stream().findFirst());
     }
 
-    private void populatePartyDetailsFromCaseData(PlannedHearingDay day, CaseDetails<AsylumCase> caseDetails) {
-        List<Party> parties = Optional.ofNullable(day.getParties()).orElse(List.of());
-        if (parties.isEmpty()) {
-            return;
-        }
-
-        List<PartyDetailsModel> caseParties;
-        try {
-            caseParties = partyNamesMapper.mapAsylumPartyNames(caseDetails.getCaseData());
-        } catch (RuntimeException e) {
-            log.warn("Unable to read party names from case data for case {}, participants will not be "
-                     + "pre-populated with names", caseDetails.getId(), e);
-            return;
-        }
-
-        List<Party> unmatchedWitnesses = new ArrayList<>();
-        List<PartyDetailsModel> matchedCaseParties = new ArrayList<>();
-        for (Party party : parties) {
-            Optional<PartyDetailsModel> caseParty = findCaseParty(party, caseParties);
-            if (caseParty.isPresent()) {
-                fillPartyDetails(party, caseParty.get());
-                matchedCaseParties.add(caseParty.get());
-            } else if (PartyNamesMapper.WITNESS_ROLE.equals(toRole(normalise(party.getPartyRole())))) {
-                unmatchedWitnesses.add(party);
-            }
-        }
-
-        List<PartyDetailsModel> caseWitnesses = caseParties.stream()
-            .filter(caseParty -> PartyNamesMapper.WITNESS_ROLE.equals(caseParty.getPartyRole()))
-            .filter(caseParty -> matchedCaseParties.stream().noneMatch(matched -> matched == caseParty))
-            .toList();
-        if (!unmatchedWitnesses.isEmpty() && unmatchedWitnesses.size() == caseWitnesses.size()) {
-            for (int i = 0; i < unmatchedWitnesses.size(); i++) {
-                fillPartyDetails(unmatchedWitnesses.get(i), caseWitnesses.get(i));
-            }
-        } else if (!unmatchedWitnesses.isEmpty()) {
-            log.warn("Case {} has {} witnesses not matched by party id but the hearing has {}, witness names "
-                     + "will not be pre-populated", caseDetails.getId(), caseWitnesses.size(),
-                     unmatchedWitnesses.size());
-        }
-    }
-
-    private Optional<PartyDetailsModel> findCaseParty(Party party, List<PartyDetailsModel> caseParties) {
-        Optional<PartyDetailsModel> byId = caseParties.stream()
-            .filter(caseParty -> party.getPartyId() != null && party.getPartyId().equals(caseParty.getPartyID()))
-            .findFirst();
-        if (byId.isPresent()) {
-            return byId;
-        }
-        String role = toRole(normalise(party.getPartyRole()));
-        if (PartyNamesMapper.APPELLANT_ROLE.equals(role)) {
-            return onlyOne(caseParties.stream()
-                .filter(caseParty -> PartyNamesMapper.APPELLANT_ROLE.equals(caseParty.getPartyRole()))
-                .toList());
-        }
-        if (PartyNamesMapper.LEGAL_REP_ROLE.equals(role)) {
-            boolean organisation = isOrganisation(party);
-            return onlyOne(caseParties.stream()
-                .filter(caseParty -> PartyNamesMapper.LEGAL_REP_ROLE.equals(caseParty.getPartyRole()))
-                .filter(caseParty -> organisation == (caseParty.getOrganisationDetails() != null))
-                .toList());
-        }
-        return Optional.empty();
-    }
-
-    private Optional<PartyDetailsModel> onlyOne(List<PartyDetailsModel> candidates) {
-        return candidates.size() == 1 ? Optional.of(candidates.get(0)) : Optional.empty();
-    }
-
     private boolean isOrganisation(Party party) {
         if (party.getPartyType() != null && !party.getPartyType().isBlank()) {
             return PartyType.ORG.getPartyType().equalsIgnoreCase(party.getPartyType().trim());
         }
         return Optional.ofNullable(party.getOneOf()).orElse(List.of()).stream()
             .anyMatch(o -> o.getOrganisationDetails() != null && o.getIndividualDetails() == null);
-    }
-
-    private void fillPartyDetails(Party party, PartyDetailsModel caseParty) {
-        party.setPartyId(firstNonBlank(party.getPartyId(), caseParty.getPartyID()));
-
-        List<PartyOneOff> oneOf = new ArrayList<>(Optional.ofNullable(party.getOneOf()).orElse(List.of()));
-
-        IndividualDetailsModel caseIndividual = caseParty.getIndividualDetails();
-        if (caseIndividual != null) {
-            PartyOneOff holder = oneOf.stream()
-                .filter(o -> o.getIndividualDetails() != null)
-                .findFirst()
-                .orElseGet(() -> addOneOff(oneOf));
-            IndividualDetails individual = Optional.ofNullable(holder.getIndividualDetails())
-                .orElseGet(IndividualDetails::new);
-            individual.setTitle(firstNonBlank(individual.getTitle(), caseIndividual.getTitle()));
-            individual.setFirstName(firstNonBlank(individual.getFirstName(), caseIndividual.getFirstName()));
-            individual.setLastName(firstNonBlank(individual.getLastName(), caseIndividual.getLastName()));
-            holder.setIndividualDetails(individual);
-        }
-
-        OrganisationDetailsModel caseOrganisation = caseParty.getOrganisationDetails();
-        if (caseOrganisation != null) {
-            PartyOneOff holder = oneOf.stream()
-                .filter(o -> o.getOrganisationDetails() != null)
-                .findFirst()
-                .orElseGet(() -> addOneOff(oneOf));
-            OrganisationDetails organisation = Optional.ofNullable(holder.getOrganisationDetails())
-                .orElseGet(OrganisationDetails::new);
-            organisation.setName(firstNonBlank(organisation.getName(), caseOrganisation.getName()));
-            holder.setOrganisationDetails(organisation);
-        }
-
-        party.setOneOf(oneOf);
-    }
-
-    private PartyOneOff addOneOff(List<PartyOneOff> oneOf) {
-        PartyOneOff created = new PartyOneOff();
-        oneOf.add(created);
-        return created;
-    }
-
-    private String firstNonBlank(String preferred, String fallback) {
-        return preferred != null && !preferred.isBlank() ? preferred : fallback;
     }
 
     private String normalise(String partyRole) {
@@ -335,6 +214,10 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         List<Party> parties = day.map(PlannedHearingDay::getParties).orElse(List.of());
         List<IdValue<HearingParticipant>> participants = new ArrayList<>();
         for (Party party : parties) {
+            // only individuals attend; organisations (e.g. the Home Office, a legal rep's firm) are not listed
+            if (isOrganisation(party)) {
+                continue;
+            }
             participants.add(new IdValue<>(String.valueOf(participants.size() + 1), toParticipant(party)));
         }
         return participants;
@@ -354,10 +237,15 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         String partyRole = normalise(party.getPartyRole());
         String role = toRole(partyRole);
 
+        String firstName = individual.map(IndividualDetails::getFirstName).orElse(null);
+        String lastName = individual.map(IndividualDetails::getLastName).orElse(null);
+
         return HearingParticipant.builder()
             .partyId(party.getPartyId())
-            .firstName(individual.map(IndividualDetails::getFirstName).orElse(null))
-            .lastName(individual.map(IndividualDetails::getLastName).orElse(null))
+            .firstName(firstName)
+            .lastName(lastName)
+            .firstNameLabel(firstName)
+            .lastNameLabel(lastName)
             .role(role)
             .roleLabel(Optional.ofNullable(toRoleLabel(role)).orElse(partyRole))
             .prefilled(YesOrNo.YES)

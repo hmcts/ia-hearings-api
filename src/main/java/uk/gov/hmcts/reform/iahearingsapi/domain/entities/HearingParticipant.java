@@ -15,6 +15,9 @@ public class HearingParticipant {
     private String partyId;
     private String firstName;
     private String lastName;
+    // read-only copies of the names, only set on attendees pre-populated from HMC
+    private String firstNameLabel;
+    private String lastNameLabel;
     private String roleLabel;
     private String role;
     private String representedParty;

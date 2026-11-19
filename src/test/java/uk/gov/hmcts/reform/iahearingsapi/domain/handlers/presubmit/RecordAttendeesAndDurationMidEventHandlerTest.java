@@ -49,9 +49,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingGetResponse;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.IndividualDetailsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.OrganisationDetailsModel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyDetailsModel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
@@ -63,7 +60,6 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.Party;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartyOneOff;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
-import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.PartyNamesMapper;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 @ExtendWith(MockitoExtension.class)
@@ -112,8 +108,6 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     @Mock
     private HearingActualsService hearingActualsService;
     @Mock
-    private PartyNamesMapper partyNamesMapper;
-    @Mock
     private HearingGetResponse hearingGetResponse;
     @Mock
     private HearingDetails hearingDetails;
@@ -137,10 +131,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         when(hearingActualsService.getHearingActuals(HEARING_ID))
             .thenReturn(hearingActuals(List.of(plannedHearingDay)));
 
-        givenCaseParties(List.of());
-
-        handler = new RecordAttendeesAndDurationMidEventHandler(
-            hearingService, hearingActualsService, partyNamesMapper);
+        handler = new RecordAttendeesAndDurationMidEventHandler(hearingService, hearingActualsService);
     }
 
     @Test
@@ -287,8 +278,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
             new IdValue<>("1", prefilled("p1", "John", "Smith", "APEL", "Appellant", "VID", null)),
             new IdValue<>("2", prefilled("p2", "Jane", "Doe", "LGRP", "Legal Representative", "INTER", null)),
-            new IdValue<>("3", prefilled("p3", "Ivan", "Petrov", null, "INTP", "TEL", null)),
-            new IdValue<>("4", prefilled("p4", null, null, "RESP", "Respondent", "NA", "Home Office"))
+            new IdValue<>("3", prefilled("p3", "Ivan", "Petrov", null, "INTP", "TEL", null))
         ));
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, HEARING_ID + "|" + SECOND_PLANNED_START_TIME);
@@ -383,222 +373,42 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     }
 
     @Test
-    void should_populate_missing_party_names_from_case_data() {
+    void should_take_names_only_from_hmc_individual_details() {
         givenTimesPageForFirstHearingDay(List.of(
-            Party.builder().partyId("appellant-id").partyRole("APEL").partyChannelSubType("INTER").build(),
-            Party.builder().partyId("lr-org-id").partyRole("LGRP").partyChannelSubType("VIDTEAMS")
-                .oneOf(List.of(PartyOneOff.builder().organisationDetails(new OrganisationDetails()).build()))
-                .build()
-        ));
-        givenCaseParties(List.of(
-            individualCaseParty("appellant-id", "APEL", "John", "Smith"),
-            PartyDetailsModel.builder().partyID("lr-org-id").partyRole("LGRP")
-                .organisationDetails(OrganisationDetailsModel.builder().name("Law Firm").build())
+            individual("appellant-id", "APEL", "INTER", "Hmc", "Smith"),
+            Party.builder().partyId("witness-id").partyRole("WITN").partyType("IND").partyChannelSubType("TEL")
                 .build()
         ));
 
         handler.handle(MID_EVENT, callback);
 
-        verify(partyNamesMapper).mapAsylumPartyNames(asylumCase);
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", prefilled(
-                "appellant-id", "John", "Smith", "APEL", "Appellant", "INTER", null)),
-            new IdValue<>("2", prefilled(
-                "lr-org-id", null, null, "LGRP", "Legal Representative", "VID", "Law Firm"))
+            new IdValue<>("1", prefilled("appellant-id", "Hmc", "Smith", "APEL", "Appellant", "INTER", null)),
+            new IdValue<>("2", prefilled("witness-id", null, null, "WITN", "Witness", "TEL", null))
         ));
     }
 
     @Test
-    void should_match_appellant_by_role_when_party_id_differs() {
+    void should_list_only_individual_parties() {
         givenTimesPageForFirstHearingDay(List.of(
-            Party.builder().partyId("hmc-appellant-id").partyRole("APPL").partyChannelSubType("INTER").build(),
-            Party.builder().partyId("unknown-witness").partyRole("WITN").partyChannelSubType("INTER").build()
-        ));
-        givenCaseParties(List.of(
-            individualCaseParty("case-appellant-id", "APEL", "John", "Smith"),
-            individualCaseParty("case-witness-id", "WITN", "Will", "Ness")
-        ));
-
-        handler.handle(MID_EVENT, callback);
-
-        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", prefilled(
-                "hmc-appellant-id", "John", "Smith", "APEL", "Appellant", "INTER", null)),
-            new IdValue<>("2", prefilled(
-                "unknown-witness", "Will", "Ness", "WITN", "Witness", "INTER", null))
-        ));
-    }
-
-    @Test
-    void should_populate_legal_rep_and_witness_names_from_case_data_by_party_id() {
-        givenTimesPageForFirstHearingDay(List.of(
-            Party.builder().partyId("lr-id").partyRole("LGRP").partyType("IND").partyChannelSubType("INTER").build(),
+            individual("appellant-id", "APEL", "INTER", "John", "Smith").toBuilder().partyType("IND").build(),
             Party.builder().partyId("lr-org-id").partyRole("LGRP").partyType("ORG").partyChannelSubType("INTER")
                 .build(),
-            Party.builder().partyId("witness-1").partyRole("WITN").partyChannelSubType("VIDTEAMS").build(),
-            Party.builder().partyId("witness-2").partyRole("WITN").partyChannelSubType("TEL").build()
-        ));
-        givenCaseParties(List.of(
-            individualCaseParty("appellant-id", "APEL", "José", "González"),
-            individualCaseParty("lr-id", "LGRP", "Stephen", "Fenn"),
-            organisationCaseParty("lr-org-id", "IA Legal Services"),
-            individualCaseParty("witness-1", "WITN", "Jenny", "Bat"),
-            individualCaseParty("witness-2", "WITN", "Krish", "Patel")
-        ));
-
-        handler.handle(MID_EVENT, callback);
-
-        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", prefilled("lr-id", "Stephen", "Fenn", "LGRP", "Legal Representative", "INTER", null)),
-            new IdValue<>("2", prefilled(
-                "lr-org-id", null, null, "LGRP", "Legal Representative", "INTER", "IA Legal Services")),
-            new IdValue<>("3", prefilled("witness-1", "Jenny", "Bat", "WITN", "Witness", "VID", null)),
-            new IdValue<>("4", prefilled("witness-2", "Krish", "Patel", "WITN", "Witness", "TEL", null))
-        ));
-    }
-
-    @Test
-    void should_match_legal_rep_individual_and_organisation_by_role_and_party_type_when_ids_differ() {
-        givenTimesPageForFirstHearingDay(List.of(
-            Party.builder().partyId("hmc-lr").partyRole("LR").partyType("IND").partyChannelSubType("INTER").build(),
-            Party.builder().partyId("hmc-lr-org").partyRole("LGRP").partyType("ORG").partyChannelSubType("INTER")
-                .build(),
-            Party.builder().partyId("hmc-witness").partyRole("WITN").partyChannelSubType("INTER").build()
-        ));
-        givenCaseParties(List.of(
-            individualCaseParty("lr-id", "LGRP", "Stephen", "Fenn"),
-            organisationCaseParty("lr-org-id", "IA Legal Services"),
-            individualCaseParty("witness-1", "WITN", "Jenny", "Bat")
-        ));
-
-        handler.handle(MID_EVENT, callback);
-
-        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", prefilled("hmc-lr", "Stephen", "Fenn", "LGRP", "Legal Representative", "INTER", null)),
-            new IdValue<>("2", prefilled(
-                "hmc-lr-org", null, null, "LGRP", "Legal Representative", "INTER", "IA Legal Services")),
-            new IdValue<>("3", prefilled("hmc-witness", "Jenny", "Bat", "WITN", "Witness", "INTER", null))
-        ));
-    }
-
-    @Test
-    void should_populate_names_and_party_ids_when_hmc_returns_parties_without_ids_or_names() {
-        // as returned by HMC hearing actuals: no party ids and no names
-        givenTimesPageForFirstHearingDay(List.of(
-            Party.builder().partyRole("APEL").partyType("IND").partyChannelSubType("INTER").build(),
-            Party.builder().partyRole("LGRP").partyType("IND").partyChannelSubType("INTER").build(),
-            Party.builder().partyRole("LGRP").partyType("ORG").build(),
-            Party.builder().partyRole("RESP").partyType("ORG").build(),
-            Party.builder().partyRole("WITN").partyType("IND").partyChannelSubType("INTER").build(),
-            Party.builder().partyRole("WITN").partyType("IND").partyChannelSubType("INTER").build(),
-            Party.builder().partyRole("WITN").partyType("IND").partyChannelSubType("INTER").build(),
-            Party.builder().partyRole("WITN").partyType("IND").partyChannelSubType("INTER").build()
-        ));
-        givenCaseParties(List.of(
-            individualCaseParty("appellant-id", "APEL", "José", "González"),
-            individualCaseParty("lr-id", "LGRP", "Stephen", "Fenn"),
-            organisationCaseParty("lr-org-id", "IA Legal Services"),
-            individualCaseParty("witness-1", "WITN", "Jenny", "Bat"),
-            individualCaseParty("witness-2", "WITN", "Krish", "Patel"),
-            individualCaseParty("witness-3", "WITN", "Ramesh", "Kumar"),
-            individualCaseParty("witness-4", "WITN", "Mat", "Jones")
-        ));
-
-        handler.handle(MID_EVENT, callback);
-
-        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", prefilled("appellant-id", "José", "González", "APEL", "Appellant", "INTER", null)),
-            new IdValue<>("2", prefilled("lr-id", "Stephen", "Fenn", "LGRP", "Legal Representative", "INTER", null)),
-            new IdValue<>("3", prefilled(
-                "lr-org-id", null, null, "LGRP", "Legal Representative", null, "IA Legal Services")),
-            new IdValue<>("4", prefilled(null, null, null, "RESP", "Respondent", null, null)),
-            new IdValue<>("5", prefilled("witness-1", "Jenny", "Bat", "WITN", "Witness", "INTER", null)),
-            new IdValue<>("6", prefilled("witness-2", "Krish", "Patel", "WITN", "Witness", "INTER", null)),
-            new IdValue<>("7", prefilled("witness-3", "Ramesh", "Kumar", "WITN", "Witness", "INTER", null)),
-            new IdValue<>("8", prefilled("witness-4", "Mat", "Jones", "WITN", "Witness", "INTER", null))
-        ));
-    }
-
-    @Test
-    void should_pair_only_witnesses_not_matched_by_party_id_in_order() {
-        givenTimesPageForFirstHearingDay(List.of(
-            Party.builder().partyRole("WITN").partyChannelSubType("INTER").build(),
-            Party.builder().partyId("witness-1").partyRole("WITN").partyChannelSubType("INTER").build(),
-            Party.builder().partyRole("WITN").partyChannelSubType("INTER").build()
-        ));
-        givenCaseParties(List.of(
-            individualCaseParty("witness-1", "WITN", "Jenny", "Bat"),
-            individualCaseParty("witness-2", "WITN", "Krish", "Patel"),
-            individualCaseParty("witness-3", "WITN", "Ramesh", "Kumar")
-        ));
-
-        handler.handle(MID_EVENT, callback);
-
-        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", prefilled("witness-2", "Krish", "Patel", "WITN", "Witness", "INTER", null)),
-            new IdValue<>("2", prefilled("witness-1", "Jenny", "Bat", "WITN", "Witness", "INTER", null)),
-            new IdValue<>("3", prefilled("witness-3", "Ramesh", "Kumar", "WITN", "Witness", "INTER", null))
-        ));
-    }
-
-    @Test
-    void should_not_populate_witness_names_when_number_of_witnesses_differs() {
-        givenTimesPageForFirstHearingDay(List.of(
-            Party.builder().partyRole("WITN").partyChannelSubType("INTER").build(),
-            Party.builder().partyRole("WITN").partyChannelSubType("INTER").build()
-        ));
-        givenCaseParties(List.of(
-            individualCaseParty("witness-1", "WITN", "Jenny", "Bat"),
-            individualCaseParty("witness-2", "WITN", "Krish", "Patel"),
-            individualCaseParty("witness-3", "WITN", "Ramesh", "Kumar")
-        ));
-
-        handler.handle(MID_EVENT, callback);
-
-        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", prefilled(null, null, null, "WITN", "Witness", "INTER", null)),
-            new IdValue<>("2", prefilled(null, null, null, "WITN", "Witness", "INTER", null))
-        ));
-    }
-
-    @Test
-    void should_keep_party_names_returned_by_hmc() {
-        givenTimesPageForFirstHearingDay(List.of(
-            Party.builder().partyId("appellant-id").partyRole("APEL").partyChannelSubType("INTER")
+            Party.builder().partyId("ho-id").partyRole("RESP").partyType(" org ").build(),
+            Party.builder().partyId("untyped-org-id").partyRole("RESP")
                 .oneOf(List.of(PartyOneOff.builder()
-                    .individualDetails(IndividualDetails.builder().firstName("Hmc").lastName("").build())
+                    .organisationDetails(OrganisationDetails.builder().name("Home Office").build())
                     .build()))
-                .build()
+                .build(),
+            individual("witness-id", "WITN", "VIDTEAMS", "Jenny", "Bat")
         ));
-        givenCaseParties(List.of(individualCaseParty("appellant-id", "APEL", "John", "Smith")));
 
         handler.handle(MID_EVENT, callback);
 
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", prefilled("appellant-id", "Hmc", "Smith", "APEL", "Appellant", "INTER", null))
+            new IdValue<>("1", prefilled("appellant-id", "John", "Smith", "APEL", "Appellant", "INTER", null)),
+            new IdValue<>("2", prefilled("witness-id", "Jenny", "Bat", "WITN", "Witness", "VID", null))
         ));
-    }
-
-    @Test
-    void should_still_populate_participants_when_case_party_details_cannot_be_built() {
-        givenTimesPageForFirstHearingDay(List.of(
-            Party.builder().partyId("appellant-id").partyRole("APEL").partyChannelSubType("INTER").build()
-        ));
-        when(partyNamesMapper.mapAsylumPartyNames(asylumCase))
-            .thenThrow(new IllegalStateException("appellantPartyId is a required field"));
-
-        handler.handle(MID_EVENT, callback);
-
-        verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", prefilled("appellant-id", null, null, "APEL", "Appellant", "INTER", null))
-        ));
-    }
-
-    @Test
-    void should_not_build_case_party_details_on_select_hearing_page() {
-        handler.handle(MID_EVENT, callback);
-
-        verifyNoInteractions(partyNamesMapper);
     }
 
     @Test
@@ -647,27 +457,6 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         )));
     }
 
-    private void givenCaseParties(List<PartyDetailsModel> parties) {
-        when(partyNamesMapper.mapAsylumPartyNames(asylumCase)).thenReturn(parties);
-    }
-
-    private static PartyDetailsModel individualCaseParty(String partyId, String role,
-                                                         String firstName, String lastName) {
-        return PartyDetailsModel.builder()
-            .partyID(partyId)
-            .partyRole(role)
-            .individualDetails(IndividualDetailsModel.builder().firstName(firstName).lastName(lastName).build())
-            .build();
-    }
-
-    private static PartyDetailsModel organisationCaseParty(String partyId, String name) {
-        return PartyDetailsModel.builder()
-            .partyID(partyId)
-            .partyRole("LGRP")
-            .organisationDetails(OrganisationDetailsModel.builder().name(name).build())
-            .build();
-    }
-
     private static Party individual(String partyId, String role, String channel, String firstName, String lastName) {
         return Party.builder()
             .partyId(partyId)
@@ -685,6 +474,8 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
             .partyId(partyId)
             .firstName(firstName)
             .lastName(lastName)
+            .firstNameLabel(firstName)
+            .lastNameLabel(lastName)
             .role(role)
             .roleLabel(roleLabel)
             .attendanceType(attendanceType)
