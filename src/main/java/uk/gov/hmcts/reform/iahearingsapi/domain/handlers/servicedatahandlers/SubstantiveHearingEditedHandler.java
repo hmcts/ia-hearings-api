@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursMinutes;
@@ -22,11 +23,14 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.CURRENT_HEARING_ID;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
@@ -149,8 +153,29 @@ public class SubstantiveHearingEditedHandler extends ListedHearingService implem
         assignRefDataFields(asylumCase, serviceData, caseId);
 
         String newHearingId = getHearingId(serviceData);
-        log.info("Writing {} {} to bail case {}", CURRENT_HEARING_ID, newHearingId, caseId);
+        log.info("Writing {} {} to asylum case {}", CURRENT_HEARING_ID, newHearingId, caseId);
         asylumCase.write(CURRENT_HEARING_ID, newHearingId);
+
+        LocalDateTime nextHearingDate = getNextHearingDate(serviceData);
+        Integer duration = getDuration(serviceData);
+        Optional<List<HearingDetails>> hearingDetailsListOpt = asylumCase.read(HEARINGS);
+        List<HearingDetails> hearingDetailsList = hearingDetailsListOpt.orElse(new ArrayList<>());
+        log.info("------1------hearingId {}", newHearingId);
+        log.info("------1------hearingDetailsList.size() {}", hearingDetailsList.size());
+        List<HearingDetails> newHearingDetailsList = addOrReplaceHearingDetails(
+            hearingDetailsList,
+            newHearingId,
+            nextHearingDate,
+            duration
+        );
+        log.info(
+            "Writing {} (size {}) {} to asylum case {}",
+            HEARINGS,
+            hearingDetailsList.size(),
+            newHearingId,
+            caseId
+        );
+        asylumCase.write(HEARINGS, newHearingDetailsList);
 
         return sendUpdate;
     }

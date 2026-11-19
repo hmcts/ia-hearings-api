@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ARIA_LISTING_REFERENCE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARINGS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.HEARING_CHANNEL;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LISTING_LENGTH;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.LIST_CASE_HEARING_CENTRE;
@@ -36,6 +37,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType.
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -52,6 +54,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefiniti
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingCentre;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ServiceDataFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
@@ -152,7 +155,74 @@ class ListedHearingServiceTest {
             List.of(new Value(channel.name(), channel.getLabel())));
         assertEquals(Optional.of(newHearingChannel), asylumCase.read(HEARING_CHANNEL));
 
+        HearingDetails expectedHearingDetails = HearingDetails.builder()
+            .hearingID("12345")
+            .hearingDateTime(LocalDateTime.parse(hearingDate))
+            .duration(200)
+            .build();
+        assertEquals(Optional.of(List.of(expectedHearingDetails)), asylumCase.read(HEARINGS));
+    }
 
+    @Test
+    void updateListCaseHearingDetails_replaces_existing_hearing_with_same_id_and_keeps_others() {
+        String hearingDate = "2023-12-02T10:00:00.000";
+        serviceData.write(ServiceDataFieldDefinition.HEARING_CHANNELS, List.of(HearingChannel.INTER));
+        serviceData.write(ServiceDataFieldDefinition.HEARING_TYPE, SUBSTANTIVE.getKey());
+        serviceData.write(ServiceDataFieldDefinition.NEXT_HEARING_DATE, hearingDate);
+        serviceData.write(ServiceDataFieldDefinition.HEARING_VENUE_ID, HATTON_CROSS.getEpimsId());
+        serviceData.write(DURATION, 200);
+        serviceData.write(HEARING_ID, "12345");
+
+        HearingDetails otherHearing = HearingDetails.builder()
+            .hearingID("67890")
+            .hearingDateTime(LocalDateTime.parse("2023-11-01T10:00:00.000"))
+            .duration(60)
+            .build();
+        HearingDetails previousVersionOfHearing = HearingDetails.builder()
+            .hearingID("12345")
+            .hearingDateTime(LocalDateTime.parse("2023-11-15T10:00:00.000"))
+            .duration(120)
+            .build();
+        asylumCase.write(HEARINGS, new ArrayList<>(List.of(otherHearing, previousVersionOfHearing)));
+
+        listedHearingService.updateListCaseHearingDetails(serviceData, asylumCase,
+            false, "caseId", courtVenueList, hearingLocationList);
+
+        HearingDetails expectedHearingDetails = HearingDetails.builder()
+            .hearingID("12345")
+            .hearingDateTime(LocalDateTime.parse(hearingDate))
+            .duration(200)
+            .build();
+        assertEquals(Optional.of(List.of(otherHearing, expectedHearingDetails)), asylumCase.read(HEARINGS));
+    }
+
+    @Test
+    void getNextHearingDate() {
+        serviceData.write(NEXT_HEARING_DATE, "2023-12-02T10:00:00.000");
+
+        assertEquals(LocalDateTime.parse("2023-12-02T10:00:00.000"),
+            listedHearingService.getNextHearingDate(serviceData));
+    }
+
+    @Test
+    void getNextHearingDate_exception() {
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> listedHearingService.getNextHearingDate(serviceData));
+        assertEquals("next hearing date can not be null", exception.getMessage());
+    }
+
+    @Test
+    void getDuration() {
+        serviceData.write(DURATION, 200);
+
+        assertEquals(200, listedHearingService.getDuration(serviceData));
+    }
+
+    @Test
+    void getDuration_exception() {
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> listedHearingService.getDuration(serviceData));
+        assertEquals("hearing duration can not be null", exception.getMessage());
     }
 
     private static Stream<Arguments> updateListCaseHearingDetailsSource() {

@@ -1,5 +1,10 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+@EqualsAndHashCode
+@ToString
 public class HoursAndMinutes {
 
     private String hours;
