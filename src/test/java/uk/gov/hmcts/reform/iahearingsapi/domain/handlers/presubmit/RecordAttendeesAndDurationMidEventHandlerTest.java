@@ -276,9 +276,9 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
         handler.handle(MID_EVENT, callback);
 
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
-            new IdValue<>("1", prefilled("p1", "John", "Smith", "APEL", "Appellant", "VID", null)),
+            new IdValue<>("1", prefilled("p1", "John", "Smith", "APEL", "Appellant", "VIDTEAMS", null)),
             new IdValue<>("2", prefilled("p2", "Jane", "Doe", "LGRP", "Legal Representative", "INTER", null)),
-            new IdValue<>("3", prefilled("p3", "Ivan", "Petrov", null, "INTP", "TEL", null))
+            new IdValue<>("3", prefilled("p3", "Ivan", "Petrov", null, "INTP", "TELCVP", null))
         ));
         verify(asylumCase).write(
             ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, HEARING_ID + "|" + SECOND_PLANNED_START_TIME);
@@ -376,7 +376,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
     void should_take_names_only_from_hmc_individual_details() {
         givenTimesPageForFirstHearingDay(List.of(
             individual("appellant-id", "APEL", "INTER", "Hmc", "Smith"),
-            Party.builder().partyId("witness-id").partyRole("WITN").partyType("IND").partyChannelSubType("TEL")
+            Party.builder().partyId("witness-id").partyRole("WITN").partyType("IND").partyChannelSubType("UNKNOWN")
                 .build()
         ));
 
@@ -384,7 +384,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
 
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
             new IdValue<>("1", prefilled("appellant-id", "Hmc", "Smith", "APEL", "Appellant", "INTER", null)),
-            new IdValue<>("2", prefilled("witness-id", null, null, "WITN", "Witness", "TEL", null))
+            new IdValue<>("2", prefilled("witness-id", null, null, "WITN", "Witness", null, null))
         ));
     }
 
@@ -407,7 +407,7 @@ class RecordAttendeesAndDurationMidEventHandlerTest {
 
         verify(asylumCase).write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
             new IdValue<>("1", prefilled("appellant-id", "John", "Smith", "APEL", "Appellant", "INTER", null)),
-            new IdValue<>("2", prefilled("witness-id", "Jenny", "Bat", "WITN", "Witness", "VID", null))
+            new IdValue<>("2", prefilled("witness-id", "Jenny", "Bat", "WITN", "Witness", "VIDTEAMS", null))
         ));
     }
 

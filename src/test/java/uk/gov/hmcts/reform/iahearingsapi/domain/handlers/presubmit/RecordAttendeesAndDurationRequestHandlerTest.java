@@ -264,6 +264,44 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         assertNull(actualHearingDay.getActualDayParties().get(1).getRepresentedParty());
     }
 
+    @Test
+    void should_send_ref_data_sub_channel_selected_for_pre_filled_participants() {
+        Value cvp = new Value("VIDCVP", "Video - CVP");
+        HearingParticipant prefilledWithSelection = withList(
+            participant("p1", "John", "Smith", "APEL", "VIDTEAMS", null, YesOrNo.YES, null),
+            new DynamicList(cvp, List.of(cvp)));
+        HearingParticipant prefilledNotInAttendance = withList(
+            participant("p2", "Jane", "Doe", "WITN", "TELCVP", null, YesOrNo.YES, null),
+            new DynamicList(new Value("NA", "Not in Attendance"), List.of()));
+        HearingParticipant prefilledWithoutSelection = withList(
+            participant("p3", "Ivan", "Petrov", "WITN", "TELCVP", null, YesOrNo.YES, null),
+            new DynamicList(new Value(" ", ""), List.of()));
+        HearingParticipant addedWithStaleList = withList(
+            participant(null, "Ann", "Lee", "WITN", "TELBTM", null, null, null),
+            new DynamicList(cvp, List.of(cvp)));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_PARTICIPANTS)).thenReturn(Optional.of(List.of(
+            new IdValue<>("1", prefilledWithSelection),
+            new IdValue<>("2", prefilledNotInAttendance),
+            new IdValue<>("3", prefilledWithoutSelection),
+            new IdValue<>("4", addedWithStaleList)
+        )));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).updateHearingActuals(requestCaptor.capture(), eq(HEARING_ID));
+        List<ActualDayParty> parties =
+            requestCaptor.getValue().getActualHearingDays().iterator().next().getActualDayParties();
+        assertEquals(List.of("VIDCVP", "NA", "TELCVP", "TELBTM"),
+            parties.stream().map(ActualDayParty::getPartyChannelSubType).toList());
+        assertEquals(List.of(false, true, false, false),
+            parties.stream().map(ActualDayParty::getDidNotAttendFlag).toList());
+    }
+
+    private static HearingParticipant withList(HearingParticipant participant, DynamicList attendanceTypeList) {
+        participant.setAttendanceTypeList(attendanceTypeList);
+        return participant;
+    }
+
     private static HearingParticipant participant(String partyId, String firstName, String lastName, String role,
                                                   String attendanceType, String organisation, YesOrNo prefilled,
                                                   String representedParty) {

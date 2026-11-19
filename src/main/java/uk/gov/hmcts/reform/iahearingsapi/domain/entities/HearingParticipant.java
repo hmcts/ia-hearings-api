@@ -21,7 +21,10 @@ public class HearingParticipant {
     private String roleLabel;
     private String role;
     private String representedParty;
+    // sub-channel picked from the FixedList, used on attendees added on the page
     private String attendanceType;
+    // sub-channel picked from HearingSubChannel ref data, used on pre-filled attendees (list built by ia-case-api)
+    private DynamicList attendanceTypeList;
     private String organisation;
     private YesOrNo prefilled;
 }

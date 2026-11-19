@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingSubChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
@@ -281,18 +282,10 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
     }
 
     private String toAttendanceType(String partyChannelSubType) {
-        if (partyChannelSubType == null) {
-            return null;
-        }
-        if (partyChannelSubType.startsWith(HearingChannel.VID.name())) {
-            return HearingChannel.VID.name();
-        }
-        if (partyChannelSubType.startsWith(HearingChannel.TEL.name())) {
-            return HearingChannel.TEL.name();
-        }
-        return Arrays.stream(HearingChannel.values())
-            .map(HearingChannel::name)
-            .filter(partyChannelSubType::equals)
+        // keep HMC's sub-channel (e.g. TELCVP) as is, so it is preselected and sent back unchanged
+        return Arrays.stream(HearingSubChannel.values())
+            .map(HearingSubChannel::name)
+            .filter(name -> name.equals(partyChannelSubType))
             .findFirst()
             .orElse(null);
     }

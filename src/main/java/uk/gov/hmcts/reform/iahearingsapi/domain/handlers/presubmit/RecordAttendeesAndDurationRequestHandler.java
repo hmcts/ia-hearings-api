@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursAndMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
@@ -284,7 +285,8 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
         String partyId,
         Map<String, String> partyIdByRole
     ) {
-        boolean didNotAttend = HearingChannel.NA.name().equals(participant.getAttendanceType());
+        String channel = readChannel(participant);
+        boolean didNotAttend = HearingChannel.NA.name().equals(channel);
         boolean hasName = isNotBlank(participant.getFirstName()) || isNotBlank(participant.getLastName());
 
         return ActualDayParty.builder()
@@ -294,10 +296,26 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
                 ? new ActualIndividualDetails(participant.getFirstName(), participant.getLastName())
                 : null)
             .actualOrganisationName(blankToNull(participant.getOrganisation()))
-            .partyChannelSubType(participant.getAttendanceType())
+            .partyChannelSubType(channel)
             .didNotAttendFlag(didNotAttend)
             .representedParty(readRepresentedParty(participant, partyId, partyIdByRole))
             .build();
+    }
+
+    private static String readChannel(HearingParticipant participant) {
+        // pre-filled attendees pick from the ref data list, attendees added on the page from the fixed list
+        if (participant.getPrefilled() == YesOrNo.YES) {
+            String selected = Optional.ofNullable(participant.getAttendanceTypeList())
+                .map(DynamicList::getValue)
+                .map(Value::getCode)
+                .map(String::trim)
+                .filter(code -> !code.isEmpty())
+                .orElse(null);
+            if (selected != null) {
+                return selected;
+            }
+        }
+        return blankToNull(participant.getAttendanceType());
     }
 
     private static String readRepresentedParty(
