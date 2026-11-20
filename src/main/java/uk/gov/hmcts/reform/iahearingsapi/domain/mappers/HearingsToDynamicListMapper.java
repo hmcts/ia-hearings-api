@@ -24,10 +24,14 @@ public class HearingsToDynamicListMapper {
     }
 
     public static DynamicList map(HearingsGetResponse hearings, Set<HmcStatus> statuses) {
+        return map(hearings, statuses, HearingType.SUBSTANTIVE);
+    }
+
+    public static DynamicList map(HearingsGetResponse hearings, Set<HmcStatus> statuses, HearingType hearingType) {
 
         List<Value> hearingValues = hearings == null ? Collections.emptyList() : hearings.getCaseHearings()
             .stream()
-            .filter(hearing -> hearing.getHearingType().equals(HearingType.SUBSTANTIVE.getKey()))
+            .filter(hearing -> hearingType.getKey().equals(hearing.getHearingType()))
             .filter(hearing -> statuses.contains(hearing.getHmcStatus()))
             .map(hearing -> new Value(hearing.getHearingRequestId(), mapHearingLabel(hearing)))
             .filter(value -> !Strings.isNullOrEmpty(value.getLabel()))
