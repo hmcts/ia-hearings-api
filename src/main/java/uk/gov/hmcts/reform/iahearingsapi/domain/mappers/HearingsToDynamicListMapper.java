@@ -28,10 +28,19 @@ public class HearingsToDynamicListMapper {
     }
 
     public static DynamicList map(HearingsGetResponse hearings, Set<HmcStatus> statuses, HearingType hearingType) {
+        return map(hearings, statuses, Set.of(hearingType));
+    }
+
+    public static DynamicList map(
+        HearingsGetResponse hearings,
+        Set<HmcStatus> statuses,
+        Set<HearingType> hearingTypes
+    ) {
+        Set<String> hearingTypeKeys = hearingTypes.stream().map(HearingType::getKey).collect(Collectors.toSet());
 
         List<Value> hearingValues = hearings == null ? Collections.emptyList() : hearings.getCaseHearings()
             .stream()
-            .filter(hearing -> hearingType.getKey().equals(hearing.getHearingType()))
+            .filter(hearing -> hearingTypeKeys.contains(hearing.getHearingType()))
             .filter(hearing -> statuses.contains(hearing.getHmcStatus()))
             .map(hearing -> new Value(hearing.getHearingRequestId(), mapHearingLabel(hearing)))
             .filter(value -> !Strings.isNullOrEmpty(value.getLabel()))

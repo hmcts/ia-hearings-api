@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.handlers.presubmit.bail;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING;
 
+import java.util.EnumSet;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,12 @@ public class RecordTheDecisionHearingsPreparer implements PreSubmitCallbackHandl
 
         bailCase.write(
             ATTENDEES_AND_DURATION_HEARING,
-            HearingsToDynamicListMapper.map(hearings, Set.of(HmcStatus.AWAITING_ACTUALS), HearingType.BAIL)
+            HearingsToDynamicListMapper.map(
+                hearings,
+                Set.of(HmcStatus.AWAITING_ACTUALS),
+                // a Bail case's hearing can be requested with any hearing type, e.g. Substantive
+                EnumSet.allOf(HearingType.class)
+            )
         );
 
         return new PreSubmitCallbackResponse<>(bailCase);

@@ -60,7 +60,7 @@ class RecordTheDecisionHearingsPreparerTest {
     }
 
     @Test
-    void should_list_only_bail_hearings_awaiting_actuals() {
+    void should_list_hearings_of_any_type_awaiting_actuals() {
         when(hearingsGetResponse.getCaseHearings()).thenReturn(List.of(
             hearing("1", HearingType.BAIL, HmcStatus.AWAITING_ACTUALS),
             hearing("2", HearingType.BAIL, HmcStatus.LISTED),
@@ -71,9 +71,12 @@ class RecordTheDecisionHearingsPreparerTest {
         preparer.handle(ABOUT_TO_START, callback);
 
         DynamicList hearings = bailCase.read(ATTENDEES_AND_DURATION_HEARING, DynamicList.class).orElseThrow();
-        assertEquals(1, hearings.getListItems().size());
+        assertEquals(2, hearings.getListItems().size());
         assertEquals("1", hearings.getListItems().get(0).getCode());
         assertTrue(hearings.getListItems().get(0).getLabel().startsWith("Bail (Awaiting hearing details) - "));
+        assertEquals("3", hearings.getListItems().get(1).getCode());
+        assertTrue(hearings.getListItems().get(1).getLabel()
+            .startsWith("Substantive (Awaiting hearing details) - "));
     }
 
     @Test
