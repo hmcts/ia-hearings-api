@@ -16,7 +16,6 @@ import java.util.List;
 @Builder(toBuilder = true)
 public class Party {
 
-    // HMC sends the party id as "partyID"
     @JsonAlias("partyID")
     private String partyId;
 

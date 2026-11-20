@@ -19,10 +19,8 @@ public class HearingParticipant {
     private String firstNameLabel;
     private String lastNameLabel;
     private String roleLabel;
-    // EntityRoleCode ref data lists (list items added by ia-case-api)
     private DynamicList role;
     private DynamicList representedParty;
-    // sub-channel picked from HearingSubChannel ref data (list items added by ia-case-api)
     private DynamicList attendanceType;
     private String organisation;
     private YesOrNo prefilled;

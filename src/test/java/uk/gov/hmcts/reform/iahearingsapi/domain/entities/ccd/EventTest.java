@@ -57,6 +57,7 @@ public class EventTest {
             Arguments.of("UpdateNextHearingInfo", Event.UPDATE_NEXT_HEARING_INFO.toString()),
             Arguments.of("hearingCancelled", Event.HEARING_CANCELLED.toString()),
             Arguments.of("recordAttendeesAndDuration", Event.RECORD_ATTENDEES_AND_DURATION.toString()),
+            Arguments.of("recordTheDecision", Event.RECORD_THE_DECISION.toString()),
             Arguments.of("unknown", Event.UNKNOWN.toString())
         );
     }
