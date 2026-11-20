@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
@@ -46,6 +47,7 @@ public enum UserRole {
     @JsonValue
     private final String id;
 
+    @JsonCreator
     UserRole(String id) {
         this.id = id;
     }

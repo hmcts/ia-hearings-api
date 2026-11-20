@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.service;
 
 import java.util.Map;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,8 +18,7 @@ public class IaCcdConvertService {
     private static final Logger LOG = LoggerFactory.getLogger(IaCcdConvertService.class);
 
     public AsylumCase convertToAsylumCaseData(Map<String, Object> dataMap) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
+        ObjectMapper mapper = new JsonMapper();
 
         try {
             return mapper.convertValue(dataMap, AsylumCase.class);
@@ -49,8 +48,7 @@ public class IaCcdConvertService {
     }
 
     public BailCase convertToBailCaseData(Map<String, Object> dataMap) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
+        ObjectMapper mapper = new JsonMapper();
 
         try {
             return mapper.convertValue(dataMap, BailCase.class);

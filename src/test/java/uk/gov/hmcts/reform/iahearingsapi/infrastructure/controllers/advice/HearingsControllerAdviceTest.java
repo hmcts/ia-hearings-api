@@ -268,7 +268,7 @@ class HearingsControllerAdviceTest {
         ResponseEntity<ErrorResponse> responseEntity =
             hearingsControllerAdvice.handleCcdDeserializationException(httpServletRequest, ex);
 
-        assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.UNPROCESSABLE_CONTENT, responseEntity.getStatusCode());
         assertThat(responseEntity.getBody()).isNotNull();
         assertThat(responseEntity.getBody().getErrorCode()).isEqualTo(ErrorCode.CCD_DATA_ERROR.getCode());
 

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.HashMap;
@@ -52,6 +53,7 @@ public enum State {
     @JsonValue
     private final String id;
 
+    @JsonCreator
     State(String id) {
         this.id = id;
     }
