@@ -22,6 +22,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_RESULT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_PARTICIPANTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_END;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_START;
@@ -40,12 +41,15 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualDayParty;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
@@ -140,6 +144,59 @@ class RecordTheDecisionHearingActualsHandlerTest {
         assertNull(day.getHearingStartTime());
         assertNull(day.getHearingEndTime());
         assertTrue(day.getPauseDateTimes().isEmpty());
+    }
+
+    @Test
+    void should_send_the_recorded_participants() {
+        bailCase.write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
+            new IdValue<>("1", HearingParticipant.builder()
+                .partyId("P1")
+                .firstName("José")
+                .lastName("González")
+                .role(selected("APEL"))
+                .attendanceType(selected("VIDCVP"))
+                .prefilled(YesOrNo.YES)
+                .build()),
+            new IdValue<>("2", HearingParticipant.builder()
+                .firstName("Ann")
+                .lastName("Smith")
+                .role(selected("LGRP"))
+                .representedParty(selected("APEL"))
+                .attendanceType(selected("NA"))
+                .build())
+        ));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        List<ActualDayParty> parties = onlyDay(sentActuals()).getActualDayParties();
+        assertEquals(2, parties.size());
+
+        ActualDayParty applicant = parties.get(0);
+        assertEquals("P1", applicant.getActualPartyId());
+        assertEquals("APEL", applicant.getPartyRole());
+        assertEquals("José", applicant.getIndividualDetails().getFirstName());
+        assertEquals("González", applicant.getIndividualDetails().getLastName());
+        assertEquals("VIDCVP", applicant.getPartyChannelSubType());
+        assertFalse(applicant.getDidNotAttendFlag());
+        assertNull(applicant.getRepresentedParty());
+
+        ActualDayParty legalRep = parties.get(1);
+        assertEquals("LGRP", legalRep.getPartyRole());
+        assertEquals("NA", legalRep.getPartyChannelSubType());
+        assertTrue(legalRep.getDidNotAttendFlag());
+        assertEquals("P1", legalRep.getRepresentedParty());
+    }
+
+    @Test
+    void should_not_send_participants_when_the_hearing_day_was_not_required() {
+        bailCase.write(ATTENDEES_AND_DURATION_HEARING_DAY_REQUIRED, YesOrNo.NO);
+        bailCase.write(ATTENDEES_AND_DURATION_PARTICIPANTS, List.of(
+            new IdValue<>("1", HearingParticipant.builder().partyId("P1").role(selected("APEL")).build())
+        ));
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        assertTrue(onlyDay(sentActuals()).getActualDayParties().isEmpty());
     }
 
     @Test
