@@ -31,6 +31,7 @@ public enum Event {
     UPDATE_NEXT_HEARING_INFO("UpdateNextHearingInfo"),
     HEARING_CANCELLED("hearingCancelled"),
     RECORD_ATTENDEES_AND_DURATION("recordAttendeesAndDuration"),
+    RECORD_THE_DECISION("recordTheDecision"),
 
     @JsonEnumDefaultValue
     UNKNOWN("unknown");
