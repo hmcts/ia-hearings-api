@@ -60,6 +60,10 @@ class RecordAttendeesAndDurationPreparerTest {
     private CaseHearing cancelledHearing;
     @Mock
     private CaseHearing costsHearing;
+    @Mock
+    private CaseHearing cmrHearing;
+    @Mock
+    private CaseHearing listedCmrHearing;
 
     private RecordAttendeesAndDurationPreparer preparer;
 
@@ -74,7 +78,7 @@ class RecordAttendeesAndDurationPreparerTest {
     }
 
     @Test
-    void should_write_only_substantive_hearings_awaiting_hearing_details() {
+    void should_write_only_substantive_and_cmr_hearings_awaiting_hearing_details() {
         mockHearing(substantiveHearing, "1", HearingType.SUBSTANTIVE.getKey(), "Substantive",
             HmcStatus.AWAITING_ACTUALS);
         mockHearing(listedHearing, "2", HearingType.SUBSTANTIVE.getKey(), "Substantive",
@@ -83,8 +87,12 @@ class RecordAttendeesAndDurationPreparerTest {
             HmcStatus.AWAITING_LISTING);
         mockHearing(costsHearing, "4", HearingType.COSTS.getKey(), "Costs",
             HmcStatus.AWAITING_ACTUALS);
-        when(hearingsGetResponse.getCaseHearings())
-            .thenReturn(List.of(substantiveHearing, listedHearing, cancelledHearing, costsHearing));
+        mockHearing(cmrHearing, "5", HearingType.CASE_MANAGEMENT_REVIEW.getKey(), "Case Management Review",
+            HmcStatus.AWAITING_ACTUALS);
+        mockHearing(listedCmrHearing, "6", HearingType.CASE_MANAGEMENT_REVIEW.getKey(), "Case Management Review",
+            HmcStatus.LISTED);
+        when(hearingsGetResponse.getCaseHearings()).thenReturn(List.of(
+            substantiveHearing, listedHearing, cancelledHearing, costsHearing, cmrHearing, listedCmrHearing));
         when(hearingService.getHearings(CASE_ID)).thenReturn(hearingsGetResponse);
 
         PreSubmitCallbackResponse<AsylumCase> callbackResponse = preparer.handle(ABOUT_TO_START, callback);
@@ -96,10 +104,13 @@ class RecordAttendeesAndDurationPreparerTest {
         ArgumentCaptor<DynamicList> captor = ArgumentCaptor.forClass(DynamicList.class);
         verify(asylumCase).write(eq(ATTENDEES_AND_DURATION_HEARING), captor.capture());
         DynamicList result = captor.getValue();
-        assertEquals(1, result.getListItems().size());
-        assertEquals("1", result.getListItems().getFirst().getCode());
+        assertEquals(2, result.getListItems().size());
+        assertEquals("1", result.getListItems().get(0).getCode());
         assertEquals("Substantive (Awaiting hearing details) - 20 January 2023",
-            result.getListItems().getFirst().getLabel());
+            result.getListItems().get(0).getLabel());
+        assertEquals("5", result.getListItems().get(1).getCode());
+        assertEquals("Case Management Review (Awaiting hearing details) - 20 January 2023",
+            result.getListItems().get(1).getLabel());
     }
 
     @Test
