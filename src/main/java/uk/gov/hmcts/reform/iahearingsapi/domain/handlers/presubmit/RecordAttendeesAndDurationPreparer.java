@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
 import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.HearingsToDynamicListMapper;
@@ -53,7 +54,11 @@ public class RecordAttendeesAndDurationPreparer implements PreSubmitCallbackHand
 
         asylumCase.write(
             ATTENDEES_AND_DURATION_HEARING,
-            HearingsToDynamicListMapper.map(hearings, Set.of(HmcStatus.AWAITING_ACTUALS))
+            HearingsToDynamicListMapper.map(
+                hearings,
+                Set.of(HmcStatus.AWAITING_ACTUALS),
+                Set.of(HearingType.SUBSTANTIVE, HearingType.CASE_MANAGEMENT_REVIEW)
+            )
         );
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
