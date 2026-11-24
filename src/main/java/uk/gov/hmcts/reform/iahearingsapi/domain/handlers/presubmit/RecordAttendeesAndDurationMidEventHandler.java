@@ -4,30 +4,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.PartyType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingPlanned;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.IndividualDetails;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.OrganisationDetails;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.Party;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartyOneOff;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.HearingParticipantsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.HearingDetails;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.List;
@@ -174,118 +166,11 @@ public class RecordAttendeesAndDurationMidEventHandler implements PreSubmitCallb
         }
 
         HearingActualsData actuals = hearingActualsService.getHearingActuals(hearingId);
-        Optional<PlannedHearingDay> hearingDay = selectedHearingDay(actuals, selectedStartTime);
-        asylumCase.write(ATTENDEES_AND_DURATION_PARTICIPANTS, toParticipants(hearingDay));
+        asylumCase.write(
+            ATTENDEES_AND_DURATION_PARTICIPANTS,
+            HearingParticipantsMapper.toParticipants(actuals, selectedStartTime)
+        );
         asylumCase.write(ATTENDEES_AND_DURATION_PARTICIPANTS_SOURCE, source);
-    }
-
-    private Optional<PlannedHearingDay> selectedHearingDay(
-        HearingActualsData actuals,
-        String selectedStartTime
-    ) {
-        List<PlannedHearingDay> days = Optional.ofNullable(actuals.getHearingPlanned())
-            .map(HearingPlanned::getPlannedHearingDays)
-            .orElse(List.of());
-
-        return days.stream()
-            .filter(day -> Objects.equals(day.getPlannedStartTime(), selectedStartTime))
-            .findFirst()
-            .or(() -> days.stream().findFirst());
-    }
-
-    private boolean isOrganisation(Party party) {
-        if (party.getPartyType() != null && !party.getPartyType().isBlank()) {
-            return PartyType.ORG.getPartyType().equalsIgnoreCase(party.getPartyType().trim());
-        }
-        return Optional.ofNullable(party.getOneOf()).orElse(List.of()).stream()
-            .anyMatch(o -> o.getOrganisationDetails() != null && o.getIndividualDetails() == null);
-    }
-
-    private String normalise(String partyRole) {
-        return Optional.ofNullable(partyRole)
-            .map(String::trim)
-            .map(value -> value.toUpperCase(Locale.UK))
-            .filter(value -> !value.isEmpty())
-            .orElse(null);
-    }
-
-    private List<IdValue<HearingParticipant>> toParticipants(Optional<PlannedHearingDay> day) {
-        List<Party> parties = day.map(PlannedHearingDay::getParties).orElse(List.of());
-        List<IdValue<HearingParticipant>> participants = new ArrayList<>();
-        for (Party party : parties) {
-            // only individuals attend; organisations (e.g. the Home Office, a legal rep's firm) are not listed
-            if (isOrganisation(party)) {
-                continue;
-            }
-            participants.add(new IdValue<>(String.valueOf(participants.size() + 1), toParticipant(party)));
-        }
-        return participants;
-    }
-
-    private HearingParticipant toParticipant(Party party) {
-        List<PartyOneOff> details = Optional.ofNullable(party.getOneOf()).orElse(List.of());
-        Optional<IndividualDetails> individual = details.stream()
-            .map(PartyOneOff::getIndividualDetails)
-            .filter(Objects::nonNull)
-            .findFirst();
-        Optional<OrganisationDetails> organisation = details.stream()
-            .map(PartyOneOff::getOrganisationDetails)
-            .filter(Objects::nonNull)
-            .findFirst();
-
-        String partyRole = normalise(party.getPartyRole());
-        String role = toRole(partyRole);
-        String roleLabel = Optional.ofNullable(toRoleLabel(role)).orElse(partyRole);
-
-        String firstName = individual.map(IndividualDetails::getFirstName).orElse(null);
-        String lastName = individual.map(IndividualDetails::getLastName).orElse(null);
-
-        return HearingParticipant.builder()
-            .partyId(party.getPartyId())
-            .firstName(firstName)
-            .lastName(lastName)
-            .firstNameLabel(firstName)
-            .lastNameLabel(lastName)
-            .role(role == null ? null : new DynamicList(new Value(role, roleLabel), List.of()))
-            .roleLabel(roleLabel)
-            .prefilled(YesOrNo.YES)
-            .attendanceType(toAttendanceType(party.getPartyChannelSubType()))
-            .organisation(organisation.map(OrganisationDetails::getName).orElse(null))
-            .build();
-    }
-
-    private String toRole(String partyRole) {
-        if (partyRole == null) {
-            return null;
-        }
-        // HMC's EntityRoleCode, with IA's older codes mapped to the ones used in ref data
-        return switch (partyRole) {
-            case "APPL" -> "APEL";
-            case "LR" -> "LGRP";
-            default -> partyRole;
-        };
-    }
-
-    private String toRoleLabel(String role) {
-        if (role == null) {
-            return null;
-        }
-        return switch (role) {
-            case "RESP" -> "Respondent";
-            case "APEL" -> "Appellant";
-            case "WITN" -> "Witness";
-            case "LGRP" -> "Legal Representative";
-            default -> null;
-        };
-    }
-
-    private DynamicList toAttendanceType(String partyChannelSubType) {
-        // preselects HMC's sub-channel (e.g. TELCVP); ia-case-api adds the ref data list items and label
-        return Optional.ofNullable(partyChannelSubType)
-            .map(String::trim)
-            .filter(code -> !code.isEmpty())
-            .map(code -> new DynamicList(new Value(code, code), List.of()))
-            .orElse(null);
     }
 
     private String toDateLabel(String plannedStartTime) {

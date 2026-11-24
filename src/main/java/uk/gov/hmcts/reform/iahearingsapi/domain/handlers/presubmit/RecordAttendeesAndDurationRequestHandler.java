@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.HoursAndMinutes;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
@@ -13,10 +12,8 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitC
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingChannel;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualDayParty;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
-import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualIndividualDetails;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingOutcome;
@@ -26,6 +23,7 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingRes
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PauseDateTime;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.HearingParticipantsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingService;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.UpdateHearingPayloadService;
@@ -35,15 +33,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.AsylumCaseFieldDefinition.ACTUAL_CASE_HEARING_LENGTH;
@@ -259,88 +253,7 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
                 .stream()
                 .map(IdValue::getValue)
                 .toList();
-
-        List<String> partyIds = participants.stream()
-            .map(participant -> Optional.ofNullable(blankToNull(participant.getPartyId()))
-                .orElseGet(() -> UUID.randomUUID().toString()))
-            .toList();
-
-        Map<String, String> partyIdByRole = new HashMap<>();
-        for (int i = 0; i < participants.size(); i++) {
-            String role = toHmcPartyRole(code(participants.get(i).getRole()));
-            if (role != null) {
-                partyIdByRole.putIfAbsent(role, partyIds.get(i));
-            }
-        }
-
-        List<ActualDayParty> parties = new ArrayList<>();
-        for (int i = 0; i < participants.size(); i++) {
-            parties.add(toActualDayParty(participants.get(i), partyIds.get(i), partyIdByRole));
-        }
-        return parties;
-    }
-
-    private static ActualDayParty toActualDayParty(
-        HearingParticipant participant,
-        String partyId,
-        Map<String, String> partyIdByRole
-    ) {
-        String channel = readChannel(participant);
-        boolean didNotAttend = HearingChannel.NA.name().equals(channel);
-        boolean hasName = isNotBlank(participant.getFirstName()) || isNotBlank(participant.getLastName());
-
-        return ActualDayParty.builder()
-            .actualPartyId(partyId)
-            .partyRole(toHmcPartyRole(code(participant.getRole())))
-            .individualDetails(hasName
-                ? new ActualIndividualDetails(participant.getFirstName(), participant.getLastName())
-                : null)
-            .actualOrganisationName(blankToNull(participant.getOrganisation()))
-            .partyChannelSubType(channel)
-            .didNotAttendFlag(didNotAttend)
-            .representedParty(readRepresentedParty(participant, partyId, partyIdByRole))
-            .build();
-    }
-
-    private static String readChannel(HearingParticipant participant) {
-        return code(participant.getAttendanceType());
-    }
-
-    private static String code(DynamicList list) {
-        return Optional.ofNullable(list)
-            .map(DynamicList::getValue)
-            .map(Value::getCode)
-            .map(String::trim)
-            .filter(code -> !code.isEmpty())
-            .orElse(null);
-    }
-
-    private static String readRepresentedParty(
-        HearingParticipant participant,
-        String partyId,
-        Map<String, String> partyIdByRole
-    ) {
-        // only attendees added on the page choose who they represent; pre-filled ones come from HMC as is
-        if (participant.getPrefilled() == YesOrNo.YES) {
-            return null;
-        }
-        return Optional.ofNullable(code(participant.getRepresentedParty()))
-            .map(code -> partyIdByRole.get(toHmcPartyRole(code)))
-            .filter(representedId -> !representedId.equals(partyId))
-            .orElse(null);
-    }
-
-    private static String toHmcPartyRole(String role) {
-        // IA sends legal representatives to HMC with the LGRP role code
-        return "LR".equals(role) ? "LGRP" : role;
-    }
-
-    private static boolean isNotBlank(String value) {
-        return value != null && !value.isBlank();
-    }
-
-    private static String blankToNull(String value) {
-        return isNotBlank(value) ? value : null;
+        return HearingParticipantsMapper.toActualDayParties(participants);
     }
 
     private static List<PauseDateTime> readPauseDateTimes(AsylumCase asylumCase, String hearingDate) {

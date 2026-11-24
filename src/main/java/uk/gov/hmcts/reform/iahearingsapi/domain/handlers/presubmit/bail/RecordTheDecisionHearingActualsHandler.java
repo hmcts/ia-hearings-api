@@ -10,6 +10,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDef
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_PART_HEARD_REASON;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_RESULT;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_HEARING_STAGE;
+import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_PARTICIPANTS;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSED_TIME_REQUIRED;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_END;
 import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition.ATTENDEES_AND_DURATION_PAUSE_START;
@@ -28,13 +29,16 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCase;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.BailCaseFieldDefinition;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.HearingParticipant;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.Event;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.Callback;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackResponse;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.callback.PreSubmitCallbackStage;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.IdValue;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.field.YesOrNo;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualDayParty;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.ActualHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActualsData;
@@ -44,11 +48,9 @@ import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingRes
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PauseDateTime;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PlannedHearingDay;
 import uk.gov.hmcts.reform.iahearingsapi.domain.handlers.PreSubmitCallbackHandler;
+import uk.gov.hmcts.reform.iahearingsapi.domain.mappers.HearingParticipantsMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.service.HearingActualsService;
 
-/**
- * Sends the hearing details recorded with a bail decision to HMC as the hearing actuals.
- */
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -100,11 +102,11 @@ public class RecordTheDecisionHearingActualsHandler implements PreSubmitCallback
             actualHearingDay.setHearingEndTime(
                 toDateTime(hearingDate, read(bailCase, ATTENDEES_AND_DURATION_FINISH_TIME)));
             actualHearingDay.setPauseDateTimes(readPauseDateTimes(bailCase, hearingDate));
+            actualHearingDay.setActualDayParties(readActualDayParties(bailCase));
         } else {
             actualHearingDay.setPauseDateTimes(List.of());
+            actualHearingDay.setActualDayParties(List.of());
         }
-        // attendees are not recorded for bail hearings
-        actualHearingDay.setActualDayParties(List.of());
         actualHearingDay.setNotRequired(!hearingDayRequired);
 
         HearingActuals hearingActuals = new HearingActuals();
@@ -122,7 +124,6 @@ public class RecordTheDecisionHearingActualsHandler implements PreSubmitCallback
     private static Optional<String> readHearingId(BailCase bailCase) {
         return bailCase.read(ATTENDEES_AND_DURATION_HEARING_ID, String.class)
             .filter(id -> !id.isBlank())
-            // the hearing ID is shown read-only, so the selected list item is used if it is not sent back
             .or(() -> selectedCode(bailCase, ATTENDEES_AND_DURATION_HEARING));
     }
 
@@ -145,7 +146,6 @@ public class RecordTheDecisionHearingActualsHandler implements PreSubmitCallback
     private static HearingOutcome toHearingOutcome(BailCase bailCase, String hearingDate) {
         HearingOutcome hearingOutcome = new HearingOutcome();
         hearingOutcome.setHearingResultDate(hearingDate);
-        // the hearing stage list holds HMC's hearing type codes
         hearingOutcome.setHearingType(
             Optional.of(read(bailCase, ATTENDEES_AND_DURATION_HEARING_STAGE))
                 .filter(stage -> !stage.isBlank())
@@ -165,6 +165,16 @@ public class RecordTheDecisionHearingActualsHandler implements PreSubmitCallback
         });
 
         return hearingOutcome;
+    }
+
+    private static List<ActualDayParty> readActualDayParties(BailCase bailCase) {
+        List<HearingParticipant> participants = bailCase
+            .<List<IdValue<HearingParticipant>>>read(ATTENDEES_AND_DURATION_PARTICIPANTS)
+            .orElse(List.of())
+            .stream()
+            .map(IdValue::getValue)
+            .toList();
+        return HearingParticipantsMapper.toActualDayParties(participants);
     }
 
     private static List<PauseDateTime> readPauseDateTimes(BailCase bailCase, String hearingDate) {
