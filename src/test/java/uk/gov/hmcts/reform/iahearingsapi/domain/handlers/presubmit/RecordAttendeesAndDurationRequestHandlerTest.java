@@ -214,11 +214,9 @@ class RecordAttendeesAndDurationRequestHandlerTest {
         ActualHearingDay actualHearingDay = requestCaptor.getValue().getActualHearingDays().iterator().next();
         List<ActualDayParty> parties = actualHearingDay.getActualDayParties();
 
-        // attendees added on the page get new, distinct UUIDs as their party ids
         List<String> addedIds = parties.subList(3, 7).stream().map(ActualDayParty::getActualPartyId).toList();
         addedIds.forEach(id -> assertEquals(id, UUID.fromString(id).toString()));
         assertEquals(4, new HashSet<>(addedIds).size());
-        // a selected role points at the party id of the first attendee with that role
         assertEquals("p1", parties.get(3).getRepresentedParty());
         assertEquals("p3", parties.get(4).getRepresentedParty());
         assertEquals(addedIds.get(0), parties.get(5).getRepresentedParty());
