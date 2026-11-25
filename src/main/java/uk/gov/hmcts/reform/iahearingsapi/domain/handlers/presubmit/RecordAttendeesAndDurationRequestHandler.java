@@ -33,6 +33,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -177,21 +178,22 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             hearingActualsService.completeHearingActuals(hearingId);
             log.info("Completed hearing actuals for hearing id {}", hearingId);
 
-            if (isSubstantiveHearing(hearingTypeStr, hearingId)) {
-                writeSubstantiveHearingDetails(asylumCase, hearingDayRequired);
+            Optional<HearingType> hearingType = resolveHearingType(hearingTypeStr, hearingId);
+            if (hearingType.isPresent()) {
+                writeHearingDetails(asylumCase, hearingDayRequired, hearingType.get());
             } else {
-                log.info("Hearing {} is not substantive, actual hearing length and attending judge not updated",
-                         hearingId);
+                log.info("Hearing {} is neither substantive nor CMR, actual hearing length and attending judge "
+                         + "not updated", hearingId);
             }
         }
 
         return new PreSubmitCallbackResponse<>(asylumCase);
     }
 
-    private boolean isSubstantiveHearing(String hearingStage, String hearingId) {
+    private Optional<HearingType> resolveHearingType(String hearingStage, String hearingId) {
         Optional<HearingType> stage = HearingType.from(hearingStage);
         if (stage.isPresent()) {
-            return stage.get() == HearingType.SUBSTANTIVE;
+            return stage;
         }
         String plannedHearingType = Optional.ofNullable(hearingActualsService.getHearingActuals(hearingId))
             .map(HearingActualsData::getHearingPlanned)
@@ -199,10 +201,16 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             .orElse(null);
         log.info("Hearing stage '{}' not recognised, using planned hearing type '{}' for hearing {}",
                  hearingStage, plannedHearingType, hearingId);
-        return HearingType.SUBSTANTIVE.getHmcValue().equals(plannedHearingType);
+        return Arrays.stream(HearingType.values())
+            .filter(type -> type.getHmcValue().equals(plannedHearingType))
+            .findFirst();
     }
 
-    private static void writeSubstantiveHearingDetails(AsylumCase asylumCase, boolean hearingDayRequired) {
+    private static void writeHearingDetails(
+        AsylumCase asylumCase,
+        boolean hearingDayRequired,
+        HearingType hearingType
+    ) {
         Optional<Duration> length = hearingDayRequired ? readHearingLength(asylumCase) : Optional.empty();
         length.ifPresent(value -> asylumCase.write(ACTUAL_CASE_HEARING_LENGTH, new HoursAndMinutes(
             String.valueOf(value.toHours()), String.valueOf(value.toMinutesPart()))));
@@ -212,7 +220,8 @@ public class RecordAttendeesAndDurationRequestHandler implements PreSubmitCallba
             .filter(value -> !value.isEmpty());
         judge.ifPresent(value -> asylumCase.write(ATTENDING_JUDGE, value));
 
-        log.info("Substantive hearing: actual hearing length {}, attending judge {}",
+        log.info("{} hearing: actual hearing length {}, attending judge {}",
+                 hearingType.getHmcValue(),
                  length.map(Duration::toString).orElse("not updated (no valid start and finish time)"),
                  judge.isPresent() ? "updated" : "not updated (none entered)");
     }

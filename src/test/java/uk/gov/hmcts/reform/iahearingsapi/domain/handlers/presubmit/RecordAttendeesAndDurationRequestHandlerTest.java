@@ -565,18 +565,22 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @Test
-    void should_not_change_hearing_length_and_judge_when_hearing_is_not_substantive() {
+    void should_populate_hearing_length_and_judge_for_cmr_hearing_after_submitting_actuals() {
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class))
             .thenReturn(Optional.of(HearingType.CMR.getLabel()));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_START_TIME, String.class)).thenReturn(Optional.of("10:00"));
+        when(asylumCase.read(ATTENDEES_AND_DURATION_FINISH_TIME, String.class)).thenReturn(Optional.of("10:40"));
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class))
-            .thenReturn(Optional.of("Judge Smith"));
+            .thenReturn(Optional.of(" Judge Smith "));
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
-        verify(hearingActualsService).completeHearingActuals(HEARING_ID);
-        verify(asylumCase, never()).write(eq(ACTUAL_CASE_HEARING_LENGTH), any());
-        verify(asylumCase, never()).write(eq(ATTENDING_JUDGE), any());
-        verify(asylumCase, never()).clear(any());
+        InOrder inOrder = inOrder(hearingActualsService, asylumCase);
+        inOrder.verify(hearingActualsService).updateHearingActuals(any(), eq(HEARING_ID));
+        inOrder.verify(hearingActualsService).completeHearingActuals(HEARING_ID);
+        inOrder.verify(asylumCase).write(ACTUAL_CASE_HEARING_LENGTH, new HoursAndMinutes("0", "40"));
+        inOrder.verify(asylumCase).write(ATTENDING_JUDGE, "Judge Smith");
+        verify(hearingActualsService, never()).getHearingActuals(HEARING_ID);
     }
 
     @Test
@@ -606,7 +610,7 @@ class RecordAttendeesAndDurationRequestHandlerTest {
     }
 
     @Test
-    void should_not_change_hearing_length_and_judge_when_stage_is_missing_and_hmc_hearing_is_not_substantive() {
+    void should_populate_hearing_length_and_judge_when_stage_is_missing_but_hmc_hearing_is_cmr() {
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class)).thenReturn(Optional.empty());
         when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class))
             .thenReturn(Optional.of("Judge Smith"));
@@ -614,8 +618,23 @@ class RecordAttendeesAndDurationRequestHandlerTest {
 
         handler.handle(ABOUT_TO_SUBMIT, callback);
 
+        verify(asylumCase).write(ACTUAL_CASE_HEARING_LENGTH, new HoursAndMinutes("2", "30"));
+        verify(asylumCase).write(ATTENDING_JUDGE, "Judge Smith");
+    }
+
+    @Test
+    void should_not_change_hearing_length_and_judge_when_stage_is_missing_and_hmc_hearing_is_not_substantive_or_cmr() {
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_STAGE, String.class)).thenReturn(Optional.empty());
+        when(asylumCase.read(ATTENDEES_AND_DURATION_HEARING_JUDGE, String.class))
+            .thenReturn(Optional.of("Judge Smith"));
+        givenPlannedHearingType("BFA1-COS");
+
+        handler.handle(ABOUT_TO_SUBMIT, callback);
+
+        verify(hearingActualsService).completeHearingActuals(HEARING_ID);
         verify(asylumCase, never()).write(eq(ACTUAL_CASE_HEARING_LENGTH), any());
         verify(asylumCase, never()).write(eq(ATTENDING_JUDGE), any());
+        verify(asylumCase, never()).clear(any());
     }
 
     @Test
