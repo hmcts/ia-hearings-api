@@ -1,10 +1,13 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public class HoursAndMinutes {
 
     private String hours;
     private String minutes;
 
+    @JsonCreator
     public HoursAndMinutes() {
         // noop -- for deserializer
     }

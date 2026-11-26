@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.minidev.json.JSONArray;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 
 @Data
 @Builder

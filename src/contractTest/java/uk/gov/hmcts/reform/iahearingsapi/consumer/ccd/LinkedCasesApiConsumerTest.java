@@ -16,12 +16,12 @@ import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import au.com.dius.pact.core.model.annotations.PactFolder;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import au.com.dius.pact.consumer.dsl.LambdaDsl;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+
+import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -47,8 +47,7 @@ public class LinkedCasesApiConsumerTest {
     LinkedCasesApi linkedCasesApi;
 
     @Pact(provider = "linked-cases-api", consumer = "ia_hearingsApi")
-    public V4Pact generatePactFragmentForLinkedCases(PactDslWithProvider builder)
-        throws JsonProcessingException {
+    public V4Pact generatePactFragmentForLinkedCases(PactDslWithProvider builder) {
 
         // @formatter:off
         Map<String, String> headers = Map.of(CONTENT_TYPE, APPLICATION_JSON_VALUE,

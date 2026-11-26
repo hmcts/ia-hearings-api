@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.bail;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -14,6 +15,7 @@ public class BailPartyFlagIdValue {
     private String partyId;
     private BailStrategicCaseFlag value;
 
+    @JsonCreator
     private BailPartyFlagIdValue() {
         // noop -- for deserializer
     }
