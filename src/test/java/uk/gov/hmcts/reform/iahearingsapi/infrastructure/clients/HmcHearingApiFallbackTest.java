@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.CreateHearingRequest;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.HearingActuals;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.PartiesNotified;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.response.UpdateHearingRequest;
 import uk.gov.hmcts.reform.iahearingsapi.infrastructure.clients.model.hmc.DeleteHearingRequest;
@@ -54,6 +55,32 @@ class HmcHearingApiFallbackTest {
         HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.getHearingsRequest(
             "auth", "serviceAuth","URL","role","depID", "ID"));
         assertEquals(HmcException.MESSAGE_TEMPLATE + "getHearingsRequest call failed after retries", e.getMessage());
+    }
+
+    @Test
+    void getHearingActuals_throws_HmcException() {
+        HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.getHearingActuals(
+            "auth", "serviceAuth", "ID", "URL", "roleUrl", "ID", true
+        ));
+        assertEquals(HmcException.MESSAGE_TEMPLATE + "getHearingActualsRequest call failed after retries",
+                     e.getMessage());
+    }
+
+    @Test
+    void updateHearingActuals_throws_HmcException() {
+        HearingActuals someRequest = HearingActuals.builder().build();
+        HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.updateHearingActuals(
+            "auth", "serviceAuth", "URL", "role", "depID", someRequest, "id"));
+        assertEquals(HmcException.MESSAGE_TEMPLATE + "updateHearingActuals call failed after retries",
+                     e.getMessage());
+    }
+
+    @Test
+    void completeHearingActuals_throws_HmcException() {
+        HmcException e = assertThrows(HmcException.class, () -> hmcHearingApiFallback.completeHearingActuals(
+            "auth", "serviceAuth", "URL", "role", "depID", "id"));
+        assertEquals(HmcException.MESSAGE_TEMPLATE + "completeHearingActuals call failed after retries",
+                     e.getMessage());
     }
 
     @Test

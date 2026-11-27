@@ -13,6 +13,7 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus.UP
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -121,6 +122,43 @@ class HearingsToDynamicListMapperTest {
         assertTrue(hearingDescriptions.contains("Substantive (Update requested)"));
         assertTrue(hearingDescriptions.contains("Substantive (Awaiting hearing details) - 21 January 2023"));
         assertTrue(hearingDescriptions.contains("Substantive (Listed) - 21 January 4023"));
+    }
+
+    @Test
+    void should_map_only_hearings_in_given_statuses() {
+
+        List<CaseHearing> caseHearings = List.of(
+            CaseHearing.builder()
+                .hearingRequestId("1")
+                .hearingType("BFA1-SUB")
+                .hmcStatus(AWAITING_LISTING)
+                .build(),
+            CaseHearing.builder()
+                .hearingRequestId("2")
+                .hearingType("BFA1-SUB")
+                .hearingDaySchedule(List.of(HearingDaySchedule.builder()
+                                                .hearingStartDateTime(LocalDateTime.of(2023, 1, 21, 0, 0))
+                                                .build()))
+                .hmcStatus(AWAITING_ACTUALS)
+                .build(),
+            CaseHearing.builder()
+                .hearingRequestId("3")
+                .hearingType("BFA1-SUB")
+                .hearingDaySchedule(List.of(HearingDaySchedule.builder()
+                                                .hearingStartDateTime(LocalDateTime.of(4023, 1, 21, 0, 0))
+                                                .build()))
+                .hmcStatus(LISTED)
+                .build()
+        );
+
+        HearingsGetResponse hearingsGetResponse = new HearingsGetResponse()
+            .toBuilder().caseHearings(caseHearings).build();
+        DynamicList actual = HearingsToDynamicListMapper.map(hearingsGetResponse, Set.of(AWAITING_ACTUALS));
+
+        assertEquals(
+            List.of(new Value("2", "Substantive (Awaiting hearing details) - 21 January 2023")),
+            actual.getListItems()
+        );
     }
 
 }

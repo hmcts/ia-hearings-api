@@ -6,21 +6,42 @@ import static uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils.conve
 import com.google.common.base.Strings;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.DynamicList;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.Value;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.CaseHearing;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingType;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HearingsGetResponse;
+import uk.gov.hmcts.reform.iahearingsapi.domain.entities.hmc.HmcStatus;
 import uk.gov.hmcts.reform.iahearingsapi.domain.utils.HearingsUtils;
 
 public class HearingsToDynamicListMapper {
 
     public static DynamicList map(HearingsGetResponse hearings) {
+        return map(hearings, Set.of(HmcStatus.values()));
+    }
+
+    public static DynamicList map(HearingsGetResponse hearings, Set<HmcStatus> statuses) {
+        return map(hearings, statuses, HearingType.SUBSTANTIVE);
+    }
+
+    public static DynamicList map(HearingsGetResponse hearings, Set<HmcStatus> statuses, HearingType hearingType) {
+        return map(hearings, statuses, Set.of(hearingType));
+    }
+
+    public static DynamicList map(
+        HearingsGetResponse hearings,
+        Set<HmcStatus> statuses,
+        Set<HearingType> hearingTypes
+    ) {
+        Set<String> hearingTypeKeys = hearingTypes.stream().map(HearingType::getKey).collect(Collectors.toSet());
 
         List<Value> hearingValues = hearings == null ? Collections.emptyList() : hearings.getCaseHearings()
             .stream()
-            .filter(hearing -> hearing.getHearingType().equals(HearingType.SUBSTANTIVE.getKey()))
+            .filter(hearing -> hearingTypeKeys.contains(hearing.getHearingType()))
+            .filter(hearing -> statuses.contains(hearing.getHmcStatus()))
             .map(hearing -> new Value(hearing.getHearingRequestId(), mapHearingLabel(hearing)))
             .filter(value -> !Strings.isNullOrEmpty(value.getLabel()))
             .collect(Collectors.toList());

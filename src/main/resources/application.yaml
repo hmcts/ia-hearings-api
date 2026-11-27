@@ -106,13 +106,16 @@ security:
       - "submitAppeal"
     # Bails events below should be removed once Bails service is undergoing IDAM to AM migration - see DIAC-855
     caseworker-ia-admofficer:
+      - "recordTheDecision"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
     hearing-centre-admin:
+      - "recordTheDecision"
       - "listCase"
       - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
+      - "recordAttendeesAndDuration"
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
@@ -121,10 +124,12 @@ security:
       - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     ctsc:
+      - "recordTheDecision"
       - "listCase"
       - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
+      - "recordAttendeesAndDuration"
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
@@ -133,10 +138,12 @@ security:
       - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     ctsc-team-leader:
+      - "recordTheDecision"
       - "listCase"
       - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
+      - "recordAttendeesAndDuration"
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
@@ -145,10 +152,12 @@ security:
       - "cmrHearingCancelled"
       - "hearingCompletedOrCancelled"
     national-business-centre:
+      - "recordTheDecision"
       - "listCase"
       - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
+      - "recordAttendeesAndDuration"
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
@@ -161,6 +170,7 @@ security:
       - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
+      - "recordAttendeesAndDuration"
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
@@ -173,6 +183,7 @@ security:
       - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
+      - "recordAttendeesAndDuration"
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
@@ -187,6 +198,7 @@ security:
       - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
+      - "recordAttendeesAndDuration"
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
@@ -200,6 +212,7 @@ security:
       - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
+      - "recordAttendeesAndDuration"
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
@@ -213,6 +226,7 @@ security:
       - "editCaseListing"
       - "updateHearingRequest"
       - "recordAdjournmentDetails"
+      - "recordAttendeesAndDuration"
       - "endAppeal"
       - "updateInterpreterDetails"
       - "updateInterpreterBookingStatus"
@@ -223,18 +237,25 @@ security:
       - "restoreStateFromAdjourn"
     caseworker-ia-respondentofficer:
     caseworker-ia-iacjudge:
+      - "recordTheDecision"
       - "decideAnApplication"
     judge:
+      - "recordTheDecision"
       - "decideAnApplication"
     senior-judge:
+      - "recordTheDecision"
       - "decideAnApplication"
     leadership-judge:
+      - "recordTheDecision"
       - "decideAnApplication"
     fee-paid-judge:
+      - "recordTheDecision"
       - "decideAnApplication"
     lead-judge:
+      - "recordTheDecision"
       - "decideAnApplication"
     hearing-judge:
+      - "recordTheDecision"
       - "decideAnApplication"
     ftpa-judge:
       - "decideAnApplication"
@@ -246,6 +267,7 @@ security:
       - "handleHearingException"
       - "cmrReListing"
       - "recordAdjournmentDetails"
+      - "recordAttendeesAndDuration"
       - "listCaseForFTOnly"
       - "cmrListing"
       - "decisionWithoutHearingListed"

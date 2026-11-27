@@ -1,7 +1,11 @@
 package uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
+@EqualsAndHashCode
+@ToString
 public class HoursAndMinutes {
 
     private String hours;
