@@ -3,8 +3,11 @@ package uk.gov.hmcts.reform.iahearingsapi.domain.entities;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Optional;
+
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.reform.iahearingsapi.domain.entities.ccd.CaseData;
 
 public class AsylumCase extends HashMap<String, Object> implements CaseData {
